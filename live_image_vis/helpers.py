@@ -5,7 +5,7 @@ import hdf5plugin  # required to be loaded prior to h5py
 import h5py
 
 
-def convert_uint32_uint8(_image, display_min, display_max):
+def convert2_uint8(_image, display_min, display_max):
     _image = np.array(_image, copy=True)
     _image.clip(display_min, display_max, out=_image)
     _image -= display_min
@@ -14,31 +14,33 @@ def convert_uint32_uint8(_image, display_min, display_max):
 
 
 def calc_agg(im):
+    # im[im > 2 ** 31] = 0
     x_agg = np.mean(im, axis=0)
     y_agg = np.mean(im, axis=1)
     return x_agg, y_agg
 
 
-def mx_image_gen():
+def mx_image_gen(file, dataset):
     n_images = 100
-    image = {}
     im_type = 'uint32'
     im_type_info = np.iinfo(np.uint32)
 
-    for i in range(n_images):
-        with h5py.File('/home/usov_i/psi-projects/testshot/mana_data_000002.h5', 'r') as f:
-            image[i] = f['entry/data/data'][i, :, :]
+    for i in cycle(range(n_images)):
+        with h5py.File(file, 'r') as f:
+            image = f[dataset][i, :, :]
+        # sim_im_size_y, sim_im_size_x = image.shape
+        yield image
 
-    sim_im_size_y, sim_im_size_x = image[0].shape
 
-    return sim_im_size_y, sim_im_size_x, cycle(image.values())
-
+def mx_image(file, dataset, i):
+        with h5py.File(file, 'r') as f:
+            return f[dataset][i, :, :]
 
 def simul_image_gen(sim_im_size_x=4096, sim_im_size_y=4096):
-    cx = np.array([sim_im_size_x*3/4, sim_im_size_x/4, sim_im_size_x/4, sim_im_size_x*3/4]).astype('int')
-    cy = np.array([sim_im_size_y*3/4, sim_im_size_y*3/4, sim_im_size_y/4, sim_im_size_y/4]).astype('int')
-    sx = np.array([sim_im_size_x/15, sim_im_size_x/12, sim_im_size_x/9, sim_im_size_x/6]).astype('int')
-    sy = np.array([sim_im_size_y/15, sim_im_size_y/12, sim_im_size_y/9, sim_im_size_y/6]).astype('int')
+    cx = np.array([sim_im_size_x*3/4, sim_im_size_x/4, sim_im_size_x/4, sim_im_size_x*3/4], dtype='int')
+    cy = np.array([sim_im_size_y*3/4, sim_im_size_y*3/4, sim_im_size_y/4, sim_im_size_y/4], dtype='int')
+    sx = np.array([sim_im_size_x/15, sim_im_size_x/12, sim_im_size_x/9, sim_im_size_x/6], dtype='int')
+    sy = np.array([sim_im_size_y/15, sim_im_size_y/12, sim_im_size_y/9, sim_im_size_y/6], dtype='int')
 
     image = {}
     im_type = 'uint32'
@@ -51,3 +53,14 @@ def simul_image_gen(sim_im_size_x=4096, sim_im_size_y=4096):
         image[i] = _im
 
     return cycle(image.values())
+
+
+def convert_to_rgba(image, colormap):
+    # TODO: implement!
+    w, h = image.shape
+    image = np.ones((w, h, 4), dtype=np.uint8)*100
+    # view = image.view(dtype=np.uint8).reshape((w, h, 4))
+    # for i in range(w):
+    #     for j in range(h):
+    #         view[i, j, :] = [int(j/w*255), int(i/h*255), colormap, 255]
+    return image
