@@ -53,12 +53,6 @@ HDF5_DATASET_PATH = '/entry/data/data/'
 
 agg_plot_size = 170
 
-tools = [PanTool(),
-         WheelZoomTool(),
-         SaveTool(),
-         ResetTool(),
-         ]
-
 # Initial values
 disp_min = 0
 disp_max = 50000
@@ -132,9 +126,13 @@ total_sum_plot = Plot(
 
 total_sum_plot.add_glyph(total_sum_source, Line(x='x', y='y'))
 
-main_image_plot.add_tools(*tools)
-zoom_image_red_plot.add_tools(*tools)
-zoom_image_green_plot.add_tools(*tools)
+# Share 'pan' and 'wheel zoom' between plots, but 'save' and 'reset' keep separate
+shared_pan_tool = PanTool()
+shared_wheel_zoom_tool = WheelZoomTool()
+
+main_image_plot.add_tools(shared_pan_tool, shared_wheel_zoom_tool, SaveTool(), ResetTool())
+zoom_image_red_plot.add_tools(shared_pan_tool, shared_wheel_zoom_tool, SaveTool(), ResetTool())
+zoom_image_green_plot.add_tools(shared_pan_tool, shared_wheel_zoom_tool, SaveTool(), ResetTool())
 
 main_image_plot.add_layout(
     LinearAxis(),
