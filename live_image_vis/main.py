@@ -63,8 +63,8 @@ tools = [PanTool(),
 disp_min = 0
 disp_max = 50000
 
-sim_im_size_x = 960
-sim_im_size_y = 1280
+sim_im_size_x = 1280
+sim_im_size_y = 960
 
 # Arrange the layout_main
 main_image_plot = Plot(
