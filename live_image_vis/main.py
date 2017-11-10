@@ -48,10 +48,10 @@ STREAM_FPS = 2
 
 TRANSFER_MODE = 'Index'  # 'Index' or 'RGBA'
 
-HDF5_FILE_PATH = '/home/usov_i/psi-projects/testshot/'
+HDF5_FILE_PATH = '/filepath/'
 HDF5_DATASET_PATH = '/entry/data/data/'
 
-agg_plot_size = 170
+agg_plot_size = 200
 
 # Initial values
 disp_min = 0
@@ -345,10 +345,10 @@ def hdf5_file_path_update_button_callback():
 
     saved_runs_dropdown.menu = new_menu
 
-hdf5_file_path = TextInput(title='Path to Files', value=HDF5_FILE_PATH)
-hdf5_file_path_update_button = Button(label="Update (to be removed in the future)", button_type='default')
+hdf5_file_path = TextInput(title="Folder Path", value=HDF5_FILE_PATH)
+hdf5_file_path_update_button = Button(label="Update", button_type='default')
 hdf5_file_path_update_button.on_click(hdf5_file_path_update_button_callback)
-hdf5_dataset_path = TextInput(title='Path to Files', value=HDF5_DATASET_PATH)
+hdf5_dataset_path = TextInput(title="Dataset Path", value=HDF5_DATASET_PATH)
 
 
 def saved_runs_dropdown_callback(selection):
@@ -445,7 +445,7 @@ colormap_panel = column(colormap_scale_radiobuttongroup,
                         colormap_display_max)
 
 # Final layout_main -------
-layout_main = column(row(plot_agg_x, Spacer(width=agg_plot_size, height=agg_plot_size)),
+layout_main = column(row(plot_agg_x, ),
                      row(main_image_plot, plot_agg_y))
 layout_zoom = column(total_sum_plot, row(zoom_image_red_plot, Spacer(width=30), zoom_image_green_plot))
 layout_controls = row(colormap_panel, data_source_tabs)
