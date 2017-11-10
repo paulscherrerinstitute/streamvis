@@ -153,7 +153,7 @@ color_bar = ColorBar(
     height=20,
     width=MAIN_CANVAS_WIDTH // 2,
     padding=0,
-    # major_label_text_font_size='0pt',
+    major_label_text_font_size='0pt',
 )
 
 main_image_plot.add_layout(
