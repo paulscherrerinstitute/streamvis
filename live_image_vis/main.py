@@ -343,10 +343,10 @@ def hdf5_file_path_update_button_callback():
             if entry.is_file() and entry.name.endswith(('.hdf5', '.h5')):
                 new_menu.append((entry.name, entry.name))
 
-    saved_runs_dropdown.menu = new_menu
+    saved_runs_dropdown.menu = sorted(new_menu)
 
 hdf5_file_path = TextInput(title="Folder Path", value=HDF5_FILE_PATH)
-hdf5_file_path_update_button = Button(label="Update", button_type='default')
+hdf5_file_path_update_button = Button(label="Update File List", button_type='default')
 hdf5_file_path_update_button.on_click(hdf5_file_path_update_button_callback)
 hdf5_dataset_path = TextInput(title="Dataset Path", value=HDF5_DATASET_PATH)
 
@@ -368,7 +368,7 @@ hdf5_pulse_slider.on_change('value', hdf5_pulse_slider_callback)
 hdf5_file_data = []
 def load_file_button_callback():
     global hdf5_file_data
-    hdf5_file_data = partial(mx_image, file=hdf5_file_path.value+saved_runs_dropdown.label,
+    hdf5_file_data = partial(mx_image, file=os.path.join(hdf5_file_path.value, saved_runs_dropdown.label),
                              dataset=hdf5_dataset_path.value)
     update(hdf5_file_data(i=hdf5_pulse_slider.value))
 
