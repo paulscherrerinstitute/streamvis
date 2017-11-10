@@ -71,6 +71,14 @@ main_image_plot = Plot(
     logo=None,
 )
 
+main_image_plot.add_layout(
+    LinearAxis(),
+    place='above')
+
+main_image_plot.add_layout(
+    LinearAxis(major_label_orientation='vertical'),
+    place='right')
+
 pil_im = PIL_Image.fromarray(np.array([[0]], dtype='uint32'))
 
 zoom_image_red_plot = Plot(
@@ -82,6 +90,14 @@ zoom_image_red_plot = Plot(
     logo=None,
 )
 
+zoom_image_red_plot.add_layout(
+    LinearAxis(),
+    place='above')
+
+zoom_image_red_plot.add_layout(
+    LinearAxis(major_label_orientation='vertical'),
+    place='right')
+
 zoom_image_green_plot = Plot(
     x_range=Range1d(0, sim_im_size_x),
     y_range=Range1d(0, sim_im_size_y),
@@ -90,6 +106,14 @@ zoom_image_green_plot = Plot(
     toolbar_location='left',
     logo=None,
 )
+
+zoom_image_green_plot.add_layout(
+    LinearAxis(),
+    place='above')
+
+zoom_image_green_plot.add_layout(
+    LinearAxis(major_label_orientation='vertical'),
+    place='right')
 
 jscode = """
     var data = source.data;
@@ -134,14 +158,6 @@ shared_wheel_zoom_tool = WheelZoomTool()
 main_image_plot.add_tools(shared_pan_tool, shared_wheel_zoom_tool, SaveTool(), ResetTool())
 zoom_image_red_plot.add_tools(shared_pan_tool, shared_wheel_zoom_tool, SaveTool(), ResetTool())
 zoom_image_green_plot.add_tools(shared_pan_tool, shared_wheel_zoom_tool, SaveTool(), ResetTool())
-
-main_image_plot.add_layout(
-    LinearAxis(),
-    place='above')
-
-main_image_plot.add_layout(
-    LinearAxis(major_label_orientation='vertical'),
-    place='right')
 
 # Colormap
 color_mapper_lin = LinearColorMapper(palette=Plasma256, low=0, high=255)
