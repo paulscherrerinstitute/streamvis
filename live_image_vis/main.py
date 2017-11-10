@@ -1,4 +1,4 @@
-import warnings, os
+import os
 import numpy as np
 from threading import Thread
 from concurrent.futures import ThreadPoolExecutor
@@ -237,6 +237,147 @@ agg_y_source = ColumnDataSource(
 
 plot_agg_y.add_glyph(agg_y_source, Line(x='x', y='y', line_color='steelblue'))
 
+# Stream panel -------
+def stream_button_callback(state):
+    if state:
+        # Subscribe to the stream.
+        stream.source.connect()
+        doc.add_periodic_callback(unlocked_task, 1000 / STREAM_FPS)
+        stream_button.button_type = 'success'
+
+    else:
+        doc.remove_periodic_callback(unlocked_task)
+        stream.source.disconnect()
+        stream_button.button_type = 'default'
+
+
+stream_button = Toggle(label="Connect to Stream", button_type='default')
+stream_button.on_click(stream_button_callback)
+
+tab_stream = Panel(child=column(stream_button), title="Stream")
+
+
+# HDF5 File panel -------
+def hdf5_file_path_update():
+    """Update list of hdf5 files"""
+    new_menu = []
+    if os.path.isdir(hdf5_file_path.value):
+        with os.scandir(hdf5_file_path.value) as it:
+            for entry in it:
+                if entry.is_file() and entry.name.endswith(('.hdf5', '.h5')):
+                    new_menu.append((entry.name, entry.name))
+
+    saved_runs_dropdown.menu = sorted(new_menu)
+
+
+def hdf5_file_path_callback(attr, old, new):
+    hdf5_file_path_update()
+
+hdf5_file_path = TextInput(title="Folder Path", value=HDF5_FILE_PATH)
+hdf5_file_path.on_change('value', hdf5_file_path_callback)
+
+hdf5_dataset_path = TextInput(title="Dataset Path", value=HDF5_DATASET_PATH)
+
+doc.add_periodic_callback(hdf5_file_path_update, HDF5_FILE_PATH_UPDATE_PERIOD)
+
+
+def saved_runs_dropdown_callback(selection):
+    saved_runs_dropdown.label = selection
+
+saved_runs_dropdown = Dropdown(label="Saved Runs", button_type='primary', menu=[])
+saved_runs_dropdown.on_click(saved_runs_dropdown_callback)
+
+
+def hdf5_pulse_slider_callback(attr, old, new):
+    global hdf5_file_data
+    update(hdf5_file_data(i=new))
+
+hdf5_pulse_slider = Slider(start=0, end=99, value=0, step=1, title="Pulse Number")
+hdf5_pulse_slider.on_change('value', hdf5_pulse_slider_callback)
+
+hdf5_file_data = []
+def load_file_button_callback():
+    global hdf5_file_data
+    hdf5_file_data = partial(mx_image,
+                             file=os.path.join(hdf5_file_path.value, saved_runs_dropdown.label),
+                             dataset=hdf5_dataset_path.value)
+    update(hdf5_file_data(i=hdf5_pulse_slider.value))
+
+load_file_button = Button(label="Load", button_type='default')
+load_file_button.on_click(load_file_button_callback)
+
+tab_hdf5file = Panel(
+    child=column(hdf5_file_path, saved_runs_dropdown, hdf5_dataset_path, load_file_button, hdf5_pulse_slider),
+    title="HDF5 File")
+
+data_source_tabs = Tabs(tabs=[tab_stream, tab_hdf5file])
+
+
+# Colormap -------
+def colormap_auto_toggle_callback(state):
+    if state:
+        colormap_display_min.disabled = True
+        colormap_display_max.disabled = True
+    else:
+        colormap_display_min.disabled = False
+        colormap_display_max.disabled = False
+
+
+colormap_auto_toggle = Toggle(label="Auto", active=True, button_type='default')
+colormap_auto_toggle.on_click(colormap_auto_toggle_callback)
+
+def colormap_scale_radiobuttongroup_callback(selection):
+    """Callback for colormap_scale_radiobuttongroup change"""
+    if selection == 0:  # Linear
+        test_im.color_mapper = color_mapper_lin
+        color_bar.color_mapper = color_mapper_lin
+
+    else:  # Logarithmic
+        test_im.color_mapper = color_mapper_log
+        color_bar.color_mapper = color_mapper_log
+
+
+colormap_scale_radiobuttongroup = RadioButtonGroup(labels=["Linear", "Logarithmic"], active=0)
+colormap_scale_radiobuttongroup.on_click(colormap_scale_radiobuttongroup_callback)
+
+colormaps = [("Mono", 'mono'), ("Composite", 'composite')]
+colormap_dropdown = Dropdown(label='Mono', button_type='primary', menu=colormaps)
+
+
+def colormap_display_min_callback(attr, old, new):
+    if new.isdigit() and int(new) < disp_max:
+        global disp_min
+        disp_min = int(new)
+    else:
+        colormap_display_min.value = old
+
+
+def colormap_display_max_callback(attr, old, new):
+    if new.isdigit() and int(new) > disp_min:
+        global disp_max
+        disp_max = int(new)
+    else:
+        colormap_display_max.value = old
+
+
+colormap_display_min = TextInput(title='Min', value=str(disp_min), disabled=True)
+colormap_display_min.on_change('value', colormap_display_min_callback)
+colormap_display_max = TextInput(title='Max', value=str(disp_max), disabled=True)
+colormap_display_max.on_change('value', colormap_display_max_callback)
+
+colormap_panel = column(colormap_scale_radiobuttongroup,
+                        colormap_auto_toggle,
+                        colormap_display_min,
+                        colormap_display_max)
+
+# Final layout_main -------
+layout_main = column(row(plot_agg_x, ),
+                     row(main_image_plot, plot_agg_y))
+layout_zoom = column(total_sum_plot, row(zoom_image_red_plot, Spacer(width=30), zoom_image_green_plot))
+layout_controls = row(colormap_panel, data_source_tabs)
+doc.add_root(row(layout_main, Spacer(width=50), column(layout_zoom, layout_controls)))
+
+
 # Change to match your pipeline server
 server_address = 'http://0.0.0.0:8889'
 
@@ -313,147 +454,3 @@ def stream_receive():
     data = stream.source.receive()
     return data.data.data['image'].value
     # doc.add_next_tick_callback(partial(update, data=data))
-
-
-# Stream panel -------
-def stream_button_callback(state):
-    if state:
-        # Subscribe to the stream.
-        stream.source.connect()
-        doc.add_periodic_callback(unlocked_task, 1000 / STREAM_FPS)
-        stream_button.button_type = 'success'
-
-    else:
-        doc.remove_periodic_callback(unlocked_task)
-        stream.source.disconnect()
-        stream_button.button_type = 'default'
-
-
-stream_button = Toggle(label="Connect to Stream", button_type='default')
-stream_button.on_click(stream_button_callback)
-
-tab_stream = Panel(child=column(stream_button), title="Stream")
-
-
-# HDF5 File panel -------
-def hdf5_file_path_update():
-    """Update list of hdf5 files"""
-    new_menu = []
-    if os.path.isdir(hdf5_file_path.value):
-        with os.scandir(hdf5_file_path.value) as it:
-            for entry in it:
-                if entry.is_file() and entry.name.endswith(('.hdf5', '.h5')):
-                    new_menu.append((entry.name, entry.name))
-
-    saved_runs_dropdown.menu = sorted(new_menu)
-
-
-def hdf5_file_path_callback(attr, old, new):
-    hdf5_file_path_update()
-
-hdf5_file_path = TextInput(title="Folder Path", value=HDF5_FILE_PATH)
-hdf5_file_path.on_change('value', hdf5_file_path_callback)
-
-hdf5_dataset_path = TextInput(title="Dataset Path", value=HDF5_DATASET_PATH)
-
-doc.add_periodic_callback(hdf5_file_path_update, HDF5_FILE_PATH_UPDATE_PERIOD)
-
-
-def saved_runs_dropdown_callback(selection):
-    saved_runs_dropdown.label = selection
-
-saved_runs_dropdown = Dropdown(label="Saved Runs", button_type='primary', menu=[])
-saved_runs_dropdown.on_click(saved_runs_dropdown_callback)
-
-
-def hdf5_pulse_slider_callback(attr, old, new):
-    global hdf5_file_data
-    update(hdf5_file_data(i=new))
-
-hdf5_pulse_slider = Slider(start=0, end=99, value=1, step=1, title="Pulse Number")
-hdf5_pulse_slider.on_change('value', hdf5_pulse_slider_callback)
-
-hdf5_file_data = []
-def load_file_button_callback():
-    global hdf5_file_data
-    hdf5_file_data = partial(mx_image, file=os.path.join(hdf5_file_path.value, saved_runs_dropdown.label),
-                             dataset=hdf5_dataset_path.value)
-    update(hdf5_file_data(i=hdf5_pulse_slider.value))
-
-load_file_button = Button(label="Load", button_type='default')
-load_file_button.on_click(load_file_button_callback)
-
-tab_hdf5file = Panel(
-    child=column(hdf5_file_path, saved_runs_dropdown, hdf5_dataset_path, load_file_button, hdf5_pulse_slider),
-    title="HDF5 File")
-
-data_source_tabs = Tabs(tabs=[tab_stream, tab_hdf5file])
-
-
-# Colormap -------
-def colormap_auto_toggle_callback(state):
-    if state:
-        colormap_display_min.disabled = True
-        colormap_display_max.disabled = True
-    else:
-        colormap_display_min.disabled = False
-        colormap_display_max.disabled = False
-
-
-colormap_auto_toggle = Toggle(label="Auto", active=True, button_type='default')
-colormap_auto_toggle.on_click(colormap_auto_toggle_callback)
-
-
-def colormap_scale_radiobuttongroup_callback(selection):
-    """Callback for colormap_scale_radiobuttongroup change"""
-    if selection == 0:  # Linear
-        test_im.color_mapper = color_mapper_lin
-        color_bar.color_mapper = color_mapper_lin
-
-    elif selection == 1:  # Logarithmic
-        test_im.color_mapper = color_mapper_log
-        color_bar.color_mapper = color_mapper_log
-
-    else:
-        warnings.warn('The colormap scale selection is not implemented')
-
-
-colormap_scale_radiobuttongroup = RadioButtonGroup(labels=["Linear", "Logarithmic"], active=0)
-colormap_scale_radiobuttongroup.on_click(colormap_scale_radiobuttongroup_callback)
-
-colormaps = [("Mono", 'mono'), ("Composite", 'composite')]
-colormap_dropdown = Dropdown(label='Mono', button_type='primary', menu=colormaps)
-
-
-def colormap_display_min_callback(attr, old, new):
-    if new.isdigit() and int(new) < disp_max:
-        global disp_min
-        disp_min = int(new)
-    else:
-        colormap_display_min.value = old
-
-
-def colormap_display_max_callback(attr, old, new):
-    if new.isdigit() and int(new) > disp_min:
-        global disp_max
-        disp_max = int(new)
-    else:
-        colormap_display_max.value = old
-
-
-colormap_display_min = TextInput(title='Min', value=str(disp_min), disabled=True)
-colormap_display_min.on_change('value', colormap_display_min_callback)
-colormap_display_max = TextInput(title='Max', value=str(disp_max), disabled=True)
-colormap_display_max.on_change('value', colormap_display_max_callback)
-
-colormap_panel = column(colormap_scale_radiobuttongroup,
-                        colormap_auto_toggle,
-                        colormap_display_min,
-                        colormap_display_max)
-
-# Final layout_main -------
-layout_main = column(row(plot_agg_x, ),
-                     row(main_image_plot, plot_agg_y))
-layout_zoom = column(total_sum_plot, row(zoom_image_red_plot, Spacer(width=30), zoom_image_green_plot))
-layout_controls = row(colormap_panel, data_source_tabs)
-doc.add_root(row(layout_main, Spacer(width=50), column(layout_zoom, layout_controls)))
