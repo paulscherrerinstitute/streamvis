@@ -49,6 +49,7 @@ STREAM_FPS = 2
 TRANSFER_MODE = 'Index'  # 'Index' or 'RGBA'
 
 HDF5_FILE_PATH = '/filepath/'
+HDF5_FILE_PATH_UPDATE_PERIOD = 10000  # ms
 HDF5_DATASET_PATH = '/entry/data/data/'
 
 agg_plot_size = 200
@@ -335,20 +336,27 @@ tab_stream = Panel(child=column(stream_button), title="Stream")
 
 
 # HDF5 File panel -------
-def hdf5_file_path_update_button_callback():
+def hdf5_file_path_update():
     """Update list of hdf5 files"""
     new_menu = []
-    with os.scandir(hdf5_file_path.value) as it:
-        for entry in it:
-            if entry.is_file() and entry.name.endswith(('.hdf5', '.h5')):
-                new_menu.append((entry.name, entry.name))
+    if os.path.isdir(hdf5_file_path.value):
+        with os.scandir(hdf5_file_path.value) as it:
+            for entry in it:
+                if entry.is_file() and entry.name.endswith(('.hdf5', '.h5')):
+                    new_menu.append((entry.name, entry.name))
 
     saved_runs_dropdown.menu = sorted(new_menu)
 
+
+def hdf5_file_path_callback(attr, old, new):
+    hdf5_file_path_update()
+
 hdf5_file_path = TextInput(title="Folder Path", value=HDF5_FILE_PATH)
-hdf5_file_path_update_button = Button(label="Update File List", button_type='default')
-hdf5_file_path_update_button.on_click(hdf5_file_path_update_button_callback)
+hdf5_file_path.on_change('value', hdf5_file_path_callback)
+
 hdf5_dataset_path = TextInput(title="Dataset Path", value=HDF5_DATASET_PATH)
+
+doc.add_periodic_callback(hdf5_file_path_update, HDF5_FILE_PATH_UPDATE_PERIOD)
 
 
 def saved_runs_dropdown_callback(selection):
@@ -376,8 +384,7 @@ load_file_button = Button(label="Load", button_type='default')
 load_file_button.on_click(load_file_button_callback)
 
 tab_hdf5file = Panel(
-    child=column(hdf5_file_path, hdf5_file_path_update_button, saved_runs_dropdown, hdf5_dataset_path,
-                 load_file_button, hdf5_pulse_slider),
+    child=column(hdf5_file_path, saved_runs_dropdown, hdf5_dataset_path, load_file_button, hdf5_pulse_slider),
     title="HDF5 File")
 
 data_source_tabs = Tabs(tabs=[tab_stream, tab_hdf5file])
