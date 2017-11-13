@@ -427,17 +427,17 @@ def update(image):
     # image = image.astype('uint32')
     # pil_im = PIL_Image.fromarray(image)
 
-    x_start = main_image_plot.x_range.start
-    x_end = main_image_plot.x_range.end
-    y_start = main_image_plot.y_range.start
-    y_end = main_image_plot.y_range.end
+    start_0 = main_image_plot.y_range.start
+    end_0 = main_image_plot.y_range.end
+    start_1 = main_image_plot.x_range.start
+    end_1 = main_image_plot.x_range.end
 
     # test = np.asarray(pil_im.resize(size=(image_width, image_height),
-    #                                 box=(x_start, y_start, x_end, y_end),
+    #                                 box=(start_1, start_0, end_1, end_0),
     #                                 resample=PIL_Image.NEAREST))
-    # print(x_start, y_start, x_end, y_end)
+    # print(start_1, start_0, end_1, end_0)
     # image_source.data.update(image=[convert_uint32_uint8(image, disp_min, disp_max)],
-    #                          x=[x_start], y=[y_start], dw=[x_end - x_start], dh=[y_end - y_start])
+    #                          x=[start_1], y=[start_0], dw=[end_1 - start_1], dh=[end_0 - start_0])
 
     if colormap_auto_toggle.active:
         disp_min = int(np.min(image))
@@ -446,11 +446,14 @@ def update(image):
         colormap_display_max.value = str(disp_max)
 
     image_source.data.update(image=[convert2_uint8(image, disp_min, disp_max)])
-    x_agg, y_agg = calc_agg(image)
-    agg_x_source.data.update(y=x_agg)
-    agg_y_source.data.update(x=y_agg)
+
+    # Mean pixels value graphs
+    agg_0, range_0, agg_1, range_1 = calc_agg(image, start_0, end_0, start_1, end_1)
+    agg_y_source.data.update(x=agg_0, y=range_0)
+    agg_x_source.data.update(x=range_1, y=agg_1)
+
     t += 1
-    total_sum_source.stream(new_data=dict(x=[t], y=[sum(x_agg) + sum(y_agg)]))
+    total_sum_source.stream(new_data=dict(x=[t], y=[sum(agg_0) + sum(agg_1)]))
 
     # if zoom_image_red_plot.x_range.end-zoom_image_red_plot.x_range.start < 100:
     #     zoom_image_red_plot
