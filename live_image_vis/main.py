@@ -24,7 +24,7 @@ from bokeh.models.formatters import BasicTickFormatter
 from bokeh.models.widgets import Button, Toggle, Panel, Tabs, Dropdown, Select, RadioButtonGroup, TextInput
 from bokeh.models.annotations import Title
 
-from helpers import convert2_uint8, calc_agg, mx_image_gen, simul_image_gen, convert_to_rgba, mx_image
+from helpers import lin_convert2_uint8, calc_agg, mx_image_gen, simul_image_gen, convert_to_rgba, mx_image
 
 from cam_server import PipelineClient
 from cam_server.utils import get_host_port_from_stream_address
@@ -445,7 +445,7 @@ def update(image):
         disp_max = int(np.max(image))
         colormap_display_max.value = str(disp_max)
 
-    image_source.data.update(image=[convert2_uint8(image, disp_min, disp_max)])
+    image_source.data.update(image=[lin_convert2_uint8(image, disp_min, disp_max)])
 
     # Mean pixels value graphs
     agg_0, range_0, agg_1, range_1 = calc_agg(image, start_0, end_0, start_1, end_1)

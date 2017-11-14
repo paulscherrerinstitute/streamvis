@@ -5,12 +5,13 @@ import hdf5plugin  # required to be loaded prior to h5py
 import h5py
 
 
-def convert2_uint8(_image, display_min, display_max):
-    _image = np.array(_image, copy=True)
-    _image.clip(display_min, display_max, out=_image)
-    _image -= display_min
-    np.floor_divide(_image, (display_max-display_min+1)/256, out=_image, casting='unsafe')
-    return _image.astype(np.uint8)
+def lin_convert2_uint8(image, display_min, display_max):
+    """ Linear bit depth conversion of image pixel values to uint8 """
+    image = np.array(image, copy=True)
+    image.clip(display_min, display_max, out=image)
+    image -= display_min
+    np.floor_divide(image, (display_max - display_min + 1) / 256, out=image, casting='unsafe')
+    return image.astype(np.uint8)
 
 
 def calc_agg(image, start_0, end_0, start_1, end_1):
