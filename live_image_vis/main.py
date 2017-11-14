@@ -26,6 +26,8 @@ from bokeh.models.annotations import Title
 
 from helpers import lin_convert2_uint8, calc_agg, mx_image_gen, simul_image_gen, convert_to_rgba, mx_image
 
+import pyFAI
+
 from cam_server import PipelineClient
 from cam_server.utils import get_host_port_from_stream_address
 from bsread import source, SUB
@@ -44,7 +46,17 @@ MAIN_CANVAS_HEIGHT = 1536 + 65
 ZOOM_CANVAS_WIDTH = 700
 ZOOM_CANVAS_HEIGHT = 700
 
-STREAM_FPS = 2
+AZIMUTHAL_CANVAS_WIDTH = 700
+AZIMUTHAL_CANVAS_HEIGHT = 500
+
+AZIMUTHAL_INTEG_WIDTH = 500
+AZIMUTHAL_INTEG_HEIGHT = 300
+
+DETECTOR_PIXEL_SIZE = 75e-6  # pixel size 75um
+SAMPLE_DETECTOR_DISTANCE = 1  # distance from a sample to the detector in meters
+WAVE_LENGTH = 1e-10
+
+STREAM_FPS = 1
 
 TRANSFER_MODE = 'Index'  # 'Index' or 'RGBA'
 
@@ -253,6 +265,77 @@ agg_y_source = ColumnDataSource(
 
 plot_agg_y.add_glyph(agg_y_source, Line(x='x', y='y', line_color='steelblue'))
 
+# Azimuthal integration plots ------
+azimuthal_integ2d_plot = Plot(
+    x_range=Range1d(0, AZIMUTHAL_INTEG_WIDTH, bounds=(0, AZIMUTHAL_INTEG_WIDTH)),
+    y_range=Range1d(0, AZIMUTHAL_INTEG_HEIGHT, bounds=(0, AZIMUTHAL_INTEG_HEIGHT)),
+    plot_height=AZIMUTHAL_CANVAS_HEIGHT,
+    plot_width=AZIMUTHAL_CANVAS_WIDTH,
+    title=Title(text='Azimuthal Integration'),
+    logo=None,
+)
+
+azimuthal_integ2d_plot.add_layout(LinearAxis(axis_label='Azimuthal angle'), place='left')
+azimuthal_integ2d_plot.add_layout(LinearAxis(axis_label='Scattering angle'), place='below')
+
+azimuthal_integ2d_source = ColumnDataSource(
+    dict(image=[np.array([[0]], dtype='uint32')],
+         x=[0], y=[0], dw=[AZIMUTHAL_INTEG_WIDTH], dh=[AZIMUTHAL_INTEG_HEIGHT]))
+
+azimuthal_integ2d_plot.add_glyph(
+    azimuthal_integ2d_source,
+    Image(image='image', x='x', y='y', dw='dw', dh='dh', color_mapper=color_mapper_lin)
+)
+
+azimuthal_integ1d_plot = Plot(
+    x_range=DataRange1d(),
+    y_range=DataRange1d(),
+    plot_height=int(AZIMUTHAL_CANVAS_HEIGHT / 2),
+    plot_width=AZIMUTHAL_CANVAS_WIDTH,
+    logo=None,
+)
+
+azimuthal_integ1d_plot.add_layout(LinearAxis(axis_label='Intensity'), place='left')
+azimuthal_integ1d_plot.add_layout(LinearAxis(), place='below')
+
+azimuthal_integ1d_source = ColumnDataSource(dict(x=[], y=[]))
+
+azimuthal_integ1d_plot.add_glyph(azimuthal_integ1d_source, Line(x='x', y='y'))
+
+
+def poni1_textinput_callback(attr, old, new):
+    if new.isdigit():
+        ai.poni1 = float(new) * DETECTOR_PIXEL_SIZE
+    else:
+        poni1_textinput.value = old
+
+
+def poni2_textinput_callback(attr, old, new):
+    if new.isdigit():
+        ai.poni2 = float(new) * DETECTOR_PIXEL_SIZE
+    else:
+        poni2_textinput.value = old
+
+
+def sample2det_dist_textinput_callback(attr, old, new):
+    if new.isdigit():
+        ai.dist = float(new)
+    else:
+        sample2det_dist_textinput.value = old
+
+sample2det_dist_textinput = TextInput(title='Sample to Detector distance (m)', value='1')
+sample2det_dist_textinput.on_change('value', sample2det_dist_textinput_callback)
+poni1_textinput = TextInput(title='Center vertical (pix)', value='0')
+poni1_textinput.on_change('value', poni1_textinput_callback)
+poni2_textinput = TextInput(title='Center horizontal (pix)', value='0')
+poni2_textinput.on_change('value', poni2_textinput_callback)
+
+detector = pyFAI.detectors.Detector(DETECTOR_PIXEL_SIZE, DETECTOR_PIXEL_SIZE)
+detector.max_shape = (sim_im_size_y, sim_im_size_x)
+
+ai = pyFAI.AzimuthalIntegrator(dist=SAMPLE_DETECTOR_DISTANCE, detector=detector)
+ai.wavelength = WAVE_LENGTH
+
 # Stream panel -------
 def stream_button_callback(state):
     if state:
@@ -389,9 +472,12 @@ colormap_panel = column(colormap_scale_radiobuttongroup,
 # Final layout_main -------
 layout_main = column(row(plot_agg_x, ),
                      row(main_image_plot, plot_agg_y))
-layout_zoom = column(total_sum_plot, row(zoom_image_red_plot, Spacer(width=30), zoom_image_green_plot))
+layout_zoom = column(total_sum_plot, zoom_image_red_plot, Spacer(width=30), zoom_image_green_plot)
 layout_controls = row(colormap_panel, data_source_tabs)
-doc.add_root(row(layout_main, Spacer(width=50), column(layout_zoom, layout_controls)))
+layout_azim_integ = column(azimuthal_integ2d_plot, azimuthal_integ1d_plot, sample2det_dist_textinput,
+                           poni1_textinput, poni2_textinput)
+doc.add_root(row(layout_main, Spacer(width=50), layout_zoom, Spacer(width=50),
+                 column(layout_azim_integ, Spacer(height=30), layout_controls)))
 
 
 # Change to match your pipeline server
@@ -457,6 +543,12 @@ def update(image):
 
     # if zoom_image_red_plot.x_range.end-zoom_image_red_plot.x_range.start < 100:
     #     zoom_image_red_plot
+
+    i2d, tth2d, chi = ai.integrate2d(image, AZIMUTHAL_INTEG_WIDTH, AZIMUTHAL_INTEG_HEIGHT, unit="2th_deg")
+    azimuthal_integ2d_source.data.update(image=[lin_convert2_uint8(i2d, disp_min, disp_max)])
+
+    tth1d, i1d = ai.integrate1d(image.copy(), AZIMUTHAL_INTEG_WIDTH, unit="2th_deg")
+    azimuthal_integ1d_source.data.update(x=tth1d, y=i1d)
 
     doc.unhold()
 
