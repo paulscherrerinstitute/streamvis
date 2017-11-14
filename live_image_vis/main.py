@@ -27,10 +27,7 @@ from bokeh.models.annotations import Title
 from helpers import lin_convert2_uint8, calc_agg, mx_image_gen, simul_image_gen, convert_to_rgba, mx_image
 
 import pyFAI
-
-from cam_server import PipelineClient
-from cam_server.utils import get_host_port_from_stream_address
-from bsread import source, SUB
+import zmq
 
 from tornado import gen
 
@@ -70,8 +67,8 @@ agg_plot_size = 200
 disp_min = 0
 disp_max = 50000
 
-sim_im_size_x = 1280
-sim_im_size_y = 960
+sim_im_size_x = 1024
+sim_im_size_y = 1536
 
 # Arrange the layout_main
 main_image_plot = Plot(
@@ -339,14 +336,13 @@ ai.wavelength = WAVE_LENGTH
 # Stream panel -------
 def stream_button_callback(state):
     if state:
-        # Subscribe to the stream.
-        stream.source.connect()
+        skt.connect("tcp://127.0.0.1:9001")
         doc.add_periodic_callback(unlocked_task, 1000 / STREAM_FPS)
         stream_button.button_type = 'success'
 
     else:
         doc.remove_periodic_callback(unlocked_task)
-        stream.source.disconnect()
+        skt.disconnect("tcp://127.0.0.1:9001")
         stream_button.button_type = 'default'
 
 
@@ -479,23 +475,18 @@ layout_azim_integ = column(azimuthal_integ2d_plot, azimuthal_integ1d_plot, sampl
 doc.add_root(row(layout_main, Spacer(width=50), layout_zoom, Spacer(width=50),
                  column(layout_azim_integ, Spacer(height=30), layout_controls)))
 
+ctx = zmq.Context()
+skt = ctx.socket(zmq.SUB)
+skt.setsockopt_string(zmq.SUBSCRIBE, "")
 
-# Change to match your pipeline server
-server_address = 'http://0.0.0.0:8889'
 
-# Initialize the client.
-pipeline_client = PipelineClient(server_address)
-
-# Setup the pipeline config. Use the simulation camera as the pipeline source.
-pipeline_config = {'camera_name': 'simulation'}
-
-# Create a new pipeline with the provided configuration. Stream address in format tcp://hostname:port.
-instance_id, pipeline_stream_address = pipeline_client.create_instance_from_config(pipeline_config)
-
-# Extract the stream hostname and port from the stream address.
-pipeline_host, pipeline_port = get_host_port_from_stream_address(pipeline_stream_address)
-
-stream = source(host=pipeline_host, port=pipeline_port, mode=SUB, receive_timeout=100)
+def recv_array(socket, flags=0, copy=True, track=False):
+    """recv a numpy array"""
+    md = socket.recv_json(flags=flags)
+    print(md)
+    msg = socket.recv(flags=flags, copy=copy, track=track)
+    A = np.frombuffer(msg, dtype=md['type'])
+    return md, A.reshape(md['shape'])
 
 executor = ThreadPoolExecutor(max_workers=2)
 
@@ -556,12 +547,11 @@ def update(image):
 @gen.coroutine
 @without_document_lock
 def unlocked_task():
-    im = yield executor.submit(stream_receive)
+    md, im = yield executor.submit(stream_receive)
     doc.add_next_tick_callback(partial(update, image=im))
 
 
 def stream_receive():
     # Receive next message.
-    data = stream.source.receive()
-    return data.data.data['image'].value
-    # doc.add_next_tick_callback(partial(update, data=data))
+    md, data = recv_array(skt)
+    return md, data
