@@ -21,7 +21,8 @@ from bokeh.models.tickers import BasicTicker, AdaptiveTicker
 from bokeh.models.glyphs import Image, ImageRGBA
 from bokeh.models.grids import Grid
 from bokeh.models.formatters import BasicTickFormatter
-from bokeh.models.widgets import Button, Toggle, Panel, Tabs, Dropdown, Select, RadioButtonGroup, TextInput
+from bokeh.models.widgets import Button, Toggle, Panel, Tabs, Dropdown, Select, RadioButtonGroup, TextInput, \
+    DataTable, TableColumn
 from bokeh.models.annotations import Title
 
 from helpers import lin_convert2_uint8, calc_agg, mx_image_gen, simul_image_gen, convert_to_rgba, mx_image
@@ -469,11 +470,22 @@ colormap_panel = column(colormap_scale_radiobuttongroup,
                         colormap_display_min,
                         colormap_display_max)
 
+# Metadata table ------
+metadata_table_source = ColumnDataSource(dict(metadata=['', '', ''], value=['', '', '']))
+metadata_table = DataTable(
+    source=metadata_table_source,
+    columns=[TableColumn(field='metadata', title="Metadata Name"), TableColumn(field='value', title="Value")],
+    width=255,
+    height=300,
+    row_headers=False,
+    selectable=False,
+)
+
 # Final layout_main -------
 layout_main = column(row(plot_agg_x, ),
                      row(main_image_plot, plot_agg_y))
 layout_zoom = column(total_sum_plot, zoom_image_red_plot, Spacer(height=30), zoom_image_green_plot)
-layout_controls = row(colormap_panel, data_source_tabs)
+layout_controls = row(column(colormap_panel, Spacer(height=30), metadata_table), data_source_tabs)
 layout_azim_integ = column(azimuthal_integ2d_plot, azimuthal_integ1d_plot, sample2det_dist_textinput,
                            poni1_textinput, poni2_textinput)
 doc.add_root(row(layout_main, Spacer(width=50), layout_zoom, Spacer(width=50),
@@ -487,7 +499,7 @@ skt.setsockopt_string(zmq.SUBSCRIBE, "")
 def recv_array(socket, flags=0, copy=True, track=False):
     """recv a numpy array"""
     md = socket.recv_json(flags=flags)
-    print(md)
+    # print(md)
     msg = socket.recv(flags=flags, copy=copy, track=track)
     A = np.frombuffer(msg, dtype=md['type'])
     return md, A.reshape(md['shape'])
@@ -498,7 +510,7 @@ t = 0
 
 
 @gen.coroutine
-def update(image):
+def update(image, metadata):
     global t, disp_min, disp_max
     doc.hold()
     image_height = main_image_plot.inner_height
@@ -545,6 +557,10 @@ def update(image):
     tth1d, i1d = ai.integrate1d(image.copy(), AZIMUTHAL_INTEG_WIDTH, unit="2th_deg")
     azimuthal_integ1d_source.data.update(x=tth1d, y=i1d)
 
+    # Unpack metadata
+    metadata_table_source.data.update(metadata=list(map(str, metadata.keys())),
+                                      value=list(map(str, metadata.values())))
+
     doc.unhold()
 
 
@@ -552,7 +568,7 @@ def update(image):
 @without_document_lock
 def unlocked_task():
     md, im = yield executor.submit(stream_receive)
-    doc.add_next_tick_callback(partial(update, image=im))
+    doc.add_next_tick_callback(partial(update, image=im, metadata=md))
 
 
 def stream_receive():
