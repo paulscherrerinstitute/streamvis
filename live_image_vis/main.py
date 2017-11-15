@@ -158,6 +158,9 @@ total_sum_plot = Plot(
     logo=None,
 )
 
+total_sum_plot.add_layout(LinearAxis(axis_label="Total intensity"), place='left')
+total_sum_plot.add_layout(LinearAxis(), place='below')
+
 total_sum_plot.add_glyph(total_sum_source, Line(x='x', y='y'))
 
 # Share 'pan' and 'wheel zoom' between plots, but 'save' and 'reset' keep separate
@@ -469,7 +472,7 @@ colormap_panel = column(colormap_scale_radiobuttongroup,
 # Final layout_main -------
 layout_main = column(row(plot_agg_x, ),
                      row(main_image_plot, plot_agg_y))
-layout_zoom = column(total_sum_plot, zoom_image_red_plot, Spacer(width=30), zoom_image_green_plot)
+layout_zoom = column(total_sum_plot, zoom_image_red_plot, Spacer(height=30), zoom_image_green_plot)
 layout_controls = row(colormap_panel, data_source_tabs)
 layout_azim_integ = column(azimuthal_integ2d_plot, azimuthal_integ1d_plot, sample2det_dist_textinput,
                            poni1_textinput, poni2_textinput)
@@ -491,7 +494,7 @@ def recv_array(socket, flags=0, copy=True, track=False):
 
 executor = ThreadPoolExecutor(max_workers=2)
 
-t = 1
+t = 0
 
 
 @gen.coroutine
@@ -531,7 +534,7 @@ def update(image):
     agg_x_source.data.update(x=range_1, y=agg_1)
 
     t += 1
-    total_sum_source.stream(new_data=dict(x=[t], y=[sum(agg_0) + sum(agg_1)]))
+    total_sum_source.stream(new_data=dict(x=[t], y=[np.sum(image, dtype=np.float)]))
 
     # if zoom_image_red_plot.x_range.end-zoom_image_red_plot.x_range.start < 100:
     #     zoom_image_red_plot
