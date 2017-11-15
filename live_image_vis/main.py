@@ -149,7 +149,7 @@ zoom_image_green_plot.y_range.callback = CustomJS(
 total_sum_source = ColumnDataSource(dict(x=[], y=[]))
 
 total_sum_plot = Plot(
-    title=Title(text='Total Image Intensity'),
+    title=Title(text="Total Image Intensity"),
     x_range=DataRange1d(),
     y_range=DataRange1d(),
     plot_height=agg_plot_size,
@@ -208,6 +208,7 @@ plot_agg_x = Plot(
     y_range=DataRange1d(),
     plot_height=agg_plot_size,
     plot_width=main_image_plot.plot_width,
+    title=Title(text="Detector Image"),
     toolbar_location=None,
 )
 
@@ -268,12 +269,12 @@ azimuthal_integ2d_plot = Plot(
     y_range=Range1d(0, AZIMUTHAL_INTEG_HEIGHT, bounds=(0, AZIMUTHAL_INTEG_HEIGHT)),
     plot_height=AZIMUTHAL_CANVAS_HEIGHT,
     plot_width=AZIMUTHAL_CANVAS_WIDTH,
-    title=Title(text='Azimuthal Integration'),
+    title=Title(text="Azimuthal Integration"),
     logo=None,
 )
 
-azimuthal_integ2d_plot.add_layout(LinearAxis(axis_label='Azimuthal angle'), place='left')
-azimuthal_integ2d_plot.add_layout(LinearAxis(axis_label='Scattering angle'), place='below')
+azimuthal_integ2d_plot.add_layout(LinearAxis(axis_label="Azimuthal angle"), place='left')
+azimuthal_integ2d_plot.add_layout(LinearAxis(axis_label="Scattering angle"), place='below')
 
 azimuthal_integ2d_source = ColumnDataSource(
     dict(image=[np.array([[0]], dtype='uint32')],
@@ -292,7 +293,7 @@ azimuthal_integ1d_plot = Plot(
     logo=None,
 )
 
-azimuthal_integ1d_plot.add_layout(LinearAxis(axis_label='Intensity'), place='left')
+azimuthal_integ1d_plot.add_layout(LinearAxis(axis_label="Intensity"), place='left')
 azimuthal_integ1d_plot.add_layout(LinearAxis(), place='below')
 
 azimuthal_integ1d_source = ColumnDataSource(dict(x=[], y=[]))
@@ -320,11 +321,11 @@ def sample2det_dist_textinput_callback(attr, old, new):
     else:
         sample2det_dist_textinput.value = old
 
-sample2det_dist_textinput = TextInput(title='Sample to Detector distance (m)', value='1')
+sample2det_dist_textinput = TextInput(title="Sample to Detector distance (m)", value='1')
 sample2det_dist_textinput.on_change('value', sample2det_dist_textinput_callback)
-poni1_textinput = TextInput(title='Center vertical (pix)', value='0')
+poni1_textinput = TextInput(title="Center vertical (pix)", value='0')
 poni1_textinput.on_change('value', poni1_textinput_callback)
-poni2_textinput = TextInput(title='Center horizontal (pix)', value='0')
+poni2_textinput = TextInput(title="Center horizontal (pix)", value='0')
 poni2_textinput.on_change('value', poni2_textinput_callback)
 
 detector = pyFAI.detectors.Detector(DETECTOR_PIXEL_SIZE, DETECTOR_PIXEL_SIZE)
