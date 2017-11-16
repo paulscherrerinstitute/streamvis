@@ -306,21 +306,21 @@ azimuthal_integ1d_plot.add_glyph(azimuthal_integ1d_source, Line(x='x', y='y'))
 
 
 def poni1_textinput_callback(attr, old, new):
-    if new.isdigit():
+    if new.lstrip('-+').isdigit():
         ai.poni1 = float(new) * DETECTOR_PIXEL_SIZE
     else:
         poni1_textinput.value = old
 
 
 def poni2_textinput_callback(attr, old, new):
-    if new.isdigit():
+    if new.lstrip('-+').isdigit():
         ai.poni2 = float(new) * DETECTOR_PIXEL_SIZE
     else:
         poni2_textinput.value = old
 
 
 def sample2det_dist_textinput_callback(attr, old, new):
-    if new.isdigit():
+    if new.lstrip('-+').isdigit():
         ai.dist = float(new)
     else:
         sample2det_dist_textinput.value = old
@@ -445,7 +445,7 @@ colormap_dropdown = Dropdown(label='Mono', button_type='primary', menu=colormaps
 
 
 def colormap_display_min_callback(attr, old, new):
-    if new.isdigit() and int(new) < disp_max:
+    if new.lstrip('-+').isdigit() and int(new) < disp_max:
         global disp_min
         disp_min = int(new)
     else:
@@ -453,7 +453,7 @@ def colormap_display_min_callback(attr, old, new):
 
 
 def colormap_display_max_callback(attr, old, new):
-    if new.isdigit() and int(new) > disp_min:
+    if new.lstrip('-+').isdigit() and int(new) > disp_min:
         global disp_max
         disp_max = int(new)
     else:
