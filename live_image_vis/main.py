@@ -269,15 +269,15 @@ plot_agg_y.add_glyph(agg_y_source, Line(x='x', y='y', line_color='steelblue'))
 
 # Azimuthal integration plots ------
 azimuthal_integ2d_plot = Plot(
-    x_range=Range1d(0, AZIMUTHAL_INTEG_WIDTH, bounds=(0, AZIMUTHAL_INTEG_WIDTH)),
-    y_range=Range1d(0, AZIMUTHAL_INTEG_HEIGHT, bounds=(0, AZIMUTHAL_INTEG_HEIGHT)),
+    x_range=Range1d(0, 10),
+    y_range=Range1d(0, 10),
     plot_height=AZIMUTHAL_CANVAS_HEIGHT,
     plot_width=AZIMUTHAL_CANVAS_WIDTH,
     title=Title(text="Azimuthal Integration"),
     logo=None,
 )
 
-azimuthal_integ2d_plot.add_layout(LinearAxis(axis_label="Azimuthal angle"), place='left')
+azimuthal_integ2d_plot.add_layout(LinearAxis(axis_label="Azimuthal angle, χ deg"), place='left')
 azimuthal_integ2d_plot.add_layout(LinearAxis(), place='below')
 
 azimuthal_integ2d_source = ColumnDataSource(
@@ -298,7 +298,7 @@ azimuthal_integ1d_plot = Plot(
 )
 
 azimuthal_integ1d_plot.add_layout(LinearAxis(axis_label="Intensity"), place='left')
-azimuthal_integ1d_plot.add_layout(LinearAxis(axis_label="Scattering angle"), place='below')
+azimuthal_integ1d_plot.add_layout(LinearAxis(axis_label="Scattering angle, 2θ deg"), place='below')
 
 azimuthal_integ1d_source = ColumnDataSource(dict(x=[], y=[]))
 
@@ -486,8 +486,8 @@ layout_main = column(row(plot_agg_x, ),
                      row(main_image_plot, plot_agg_y))
 layout_zoom = column(total_sum_plot, zoom_image_red_plot, Spacer(width=1, height=30), zoom_image_green_plot)
 layout_controls = row(column(colormap_panel, Spacer(width=1, height=30), metadata_table), data_source_tabs)
-layout_azim_integ = column(azimuthal_integ2d_plot, azimuthal_integ1d_plot, sample2det_dist_textinput,
-                           poni1_textinput, poni2_textinput)
+layout_azim_integ = column(azimuthal_integ2d_plot, azimuthal_integ1d_plot, Spacer(width=1, height=30),
+                           sample2det_dist_textinput, poni1_textinput, poni2_textinput)
 doc.add_root(row(layout_main, Spacer(width=50, height=1), layout_zoom, Spacer(width=50, height=1),
                  column(layout_azim_integ, Spacer(width=1, height=30), layout_controls)))
 
@@ -552,7 +552,19 @@ def update(image, metadata):
     #     zoom_image_red_plot
 
     i2d, tth2d, chi = ai.integrate2d(image, AZIMUTHAL_INTEG_WIDTH, AZIMUTHAL_INTEG_HEIGHT, unit="2th_deg")
-    azimuthal_integ2d_source.data.update(image=[lin_convert2_uint8(i2d, disp_min, disp_max)])
+
+    azimuthal_integ2d_plot.x_range.start = azimuthal_integ1d_plot.x_range.start
+    azimuthal_integ2d_plot.x_range.end = azimuthal_integ1d_plot.x_range.end
+    azimuthal_integ2d_plot.y_range.start = chi[0]
+    azimuthal_integ2d_plot.y_range.end = chi[-1]
+
+    azimuthal_integ2d_source.data.update(
+        image=[lin_convert2_uint8(i2d, disp_min, disp_max)],
+        x=[tth2d[0]],
+        y=[chi[0]],
+        dw=[tth2d[-1]-tth2d[0]],
+        dh=[chi[-1]-chi[0]],
+    )
 
     tth1d, i1d = ai.integrate1d(image.copy(), AZIMUTHAL_INTEG_WIDTH, unit="2th_deg")
     azimuthal_integ1d_source.data.update(x=tth1d, y=i1d)
