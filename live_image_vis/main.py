@@ -278,7 +278,7 @@ azimuthal_integ2d_plot = Plot(
 )
 
 azimuthal_integ2d_plot.add_layout(LinearAxis(axis_label="Azimuthal angle"), place='left')
-azimuthal_integ2d_plot.add_layout(LinearAxis(axis_label="Scattering angle"), place='below')
+azimuthal_integ2d_plot.add_layout(LinearAxis(), place='below')
 
 azimuthal_integ2d_source = ColumnDataSource(
     dict(image=[np.array([[0]], dtype='uint32')],
@@ -298,7 +298,7 @@ azimuthal_integ1d_plot = Plot(
 )
 
 azimuthal_integ1d_plot.add_layout(LinearAxis(axis_label="Intensity"), place='left')
-azimuthal_integ1d_plot.add_layout(LinearAxis(), place='below')
+azimuthal_integ1d_plot.add_layout(LinearAxis(axis_label="Scattering angle"), place='below')
 
 azimuthal_integ1d_source = ColumnDataSource(dict(x=[], y=[]))
 
@@ -325,11 +325,11 @@ def sample2det_dist_textinput_callback(attr, old, new):
     else:
         sample2det_dist_textinput.value = old
 
-sample2det_dist_textinput = TextInput(title="Sample to Detector distance (m)", value='1')
+sample2det_dist_textinput = TextInput(title="Sample to Detector Distance (m):", value='1')
 sample2det_dist_textinput.on_change('value', sample2det_dist_textinput_callback)
-poni1_textinput = TextInput(title="Center vertical (pix)", value='0')
+poni1_textinput = TextInput(title="Center Vertical (pix):", value='0')
 poni1_textinput.on_change('value', poni1_textinput_callback)
-poni2_textinput = TextInput(title="Center horizontal (pix)", value='0')
+poni2_textinput = TextInput(title="Center Horizontal (pix):", value='0')
 poni2_textinput.on_change('value', poni2_textinput_callback)
 
 detector = pyFAI.detectors.Detector(DETECTOR_PIXEL_SIZE, DETECTOR_PIXEL_SIZE)
@@ -373,10 +373,10 @@ def hdf5_file_path_update():
 def hdf5_file_path_callback(attr, old, new):
     hdf5_file_path_update()
 
-hdf5_file_path = TextInput(title="Folder Path", value=HDF5_FILE_PATH)
+hdf5_file_path = TextInput(title="Folder Path:", value=HDF5_FILE_PATH)
 hdf5_file_path.on_change('value', hdf5_file_path_callback)
 
-hdf5_dataset_path = TextInput(title="Dataset Path", value=HDF5_DATASET_PATH)
+hdf5_dataset_path = TextInput(title="Dataset Path:", value=HDF5_DATASET_PATH)
 
 doc.add_periodic_callback(hdf5_file_path_update, HDF5_FILE_PATH_UPDATE_PERIOD)
 
@@ -460,9 +460,9 @@ def colormap_display_max_callback(attr, old, new):
         colormap_display_max.value = old
 
 
-colormap_display_min = TextInput(title='Min', value=str(disp_min), disabled=True)
+colormap_display_min = TextInput(title='Min Display Value:', value=str(disp_min), disabled=True)
 colormap_display_min.on_change('value', colormap_display_min_callback)
-colormap_display_max = TextInput(title='Max', value=str(disp_max), disabled=True)
+colormap_display_max = TextInput(title='Max Display Value:', value=str(disp_max), disabled=True)
 colormap_display_max.on_change('value', colormap_display_max_callback)
 
 colormap_panel = column(colormap_scale_radiobuttongroup,
