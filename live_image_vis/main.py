@@ -484,12 +484,12 @@ metadata_table = DataTable(
 # Final layout_main -------
 layout_main = column(row(plot_agg_x, ),
                      row(main_image_plot, plot_agg_y))
-layout_zoom = column(total_sum_plot, zoom_image_red_plot, Spacer(height=30), zoom_image_green_plot)
-layout_controls = row(column(colormap_panel, Spacer(height=30), metadata_table), data_source_tabs)
+layout_zoom = column(total_sum_plot, zoom_image_red_plot, Spacer(width=0, height=30), zoom_image_green_plot)
+layout_controls = row(column(colormap_panel, Spacer(width=0, height=30), metadata_table), data_source_tabs)
 layout_azim_integ = column(azimuthal_integ2d_plot, azimuthal_integ1d_plot, sample2det_dist_textinput,
                            poni1_textinput, poni2_textinput)
-doc.add_root(row(layout_main, Spacer(width=50), layout_zoom, Spacer(width=50),
-                 column(layout_azim_integ, Spacer(height=30), layout_controls)))
+doc.add_root(row(layout_main, Spacer(width=50, height=0), layout_zoom, Spacer(width=50, height=0),
+                 column(layout_azim_integ, Spacer(width=0, height=30), layout_controls)))
 
 ctx = zmq.Context()
 skt = ctx.socket(zmq.SUB)
