@@ -306,23 +306,23 @@ azimuthal_integ1d_plot.add_glyph(azimuthal_integ1d_source, Line(x='x', y='y'))
 
 
 def poni1_textinput_callback(attr, old, new):
-    if new.lstrip('-+').isdigit():
+    try:
         ai.poni1 = float(new) * DETECTOR_PIXEL_SIZE
-    else:
+    except ValueError:
         poni1_textinput.value = old
 
 
 def poni2_textinput_callback(attr, old, new):
-    if new.lstrip('-+').isdigit():
+    try:
         ai.poni2 = float(new) * DETECTOR_PIXEL_SIZE
-    else:
+    except ValueError:
         poni2_textinput.value = old
 
 
 def sample2det_dist_textinput_callback(attr, old, new):
-    if new.lstrip('-+').isdigit():
+    try:
         ai.dist = float(new)
-    else:
+    except ValueError:
         sample2det_dist_textinput.value = old
 
 sample2det_dist_textinput = TextInput(title="Sample to Detector Distance (m):", value='1')
