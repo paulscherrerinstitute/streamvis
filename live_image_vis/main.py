@@ -155,7 +155,7 @@ total_sum_plot = Plot(
     y_range=DataRange1d(),
     plot_height=agg_plot_size,
     plot_width=ZOOM_CANVAS_WIDTH,
-    toolbar_location=None,
+    toolbar_location='left',
     logo=None,
 )
 
@@ -284,10 +284,9 @@ azimuthal_integ2d_source = ColumnDataSource(
     dict(image=[np.array([[0]], dtype='uint32')],
          x=[0], y=[0], dw=[AZIMUTHAL_INTEG_WIDTH], dh=[AZIMUTHAL_INTEG_HEIGHT]))
 
-azimuthal_integ2d_plot.add_glyph(
-    azimuthal_integ2d_source,
-    Image(image='image', x='x', y='y', dw='dw', dh='dh', color_mapper=color_mapper_lin)
-)
+azimuthal_image = Image(image='image', x='x', y='y', dw='dw', dh='dh', color_mapper=color_mapper_lin)
+
+azimuthal_integ2d_plot.add_glyph(azimuthal_integ2d_source, azimuthal_image)
 
 azimuthal_integ1d_plot = Plot(
     x_range=DataRange1d(),
@@ -429,12 +428,14 @@ colormap_auto_toggle.on_click(colormap_auto_toggle_callback)
 def colormap_scale_radiobuttongroup_callback(selection):
     """Callback for colormap_scale_radiobuttongroup change"""
     if selection == 0:  # Linear
-        test_im.color_mapper = color_mapper_lin
         color_bar.color_mapper = color_mapper_lin
+        azimuthal_image.color_mapper = color_mapper_lin
+        test_im.color_mapper = color_mapper_lin
 
     else:  # Logarithmic
-        test_im.color_mapper = color_mapper_log
         color_bar.color_mapper = color_mapper_log
+        azimuthal_image.color_mapper = color_mapper_log
+        test_im.color_mapper = color_mapper_log
 
 
 colormap_scale_radiobuttongroup = RadioButtonGroup(labels=["Linear", "Logarithmic"], active=0)
