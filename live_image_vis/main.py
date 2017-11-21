@@ -109,6 +109,12 @@ zoom_image_red_plot.add_layout(
     LinearAxis(major_label_orientation='vertical'),
     place='right')
 
+zoom_image_red_plot.add_layout(
+    Grid(dimension=0, ticker=BasicTicker()))
+
+zoom_image_red_plot.add_layout(
+    Grid(dimension=1, ticker=BasicTicker()))
+
 zoom_image_green_plot = Plot(
     x_range=Range1d(0, sim_im_size_x),
     y_range=Range1d(0, sim_im_size_y),
@@ -125,6 +131,12 @@ zoom_image_green_plot.add_layout(
 zoom_image_green_plot.add_layout(
     LinearAxis(major_label_orientation='vertical'),
     place='right')
+
+zoom_image_green_plot.add_layout(
+    Grid(dimension=0, ticker=BasicTicker()))
+
+zoom_image_green_plot.add_layout(
+    Grid(dimension=1, ticker=BasicTicker()))
 
 jscode = """
     var data = source.data;
@@ -163,6 +175,12 @@ total_sum_plot = Plot(
 total_sum_plot.add_layout(LinearAxis(axis_label="Total intensity"), place='left')
 total_sum_plot.add_layout(LinearAxis(), place='below')
 
+total_sum_plot.add_layout(
+    Grid(dimension=0, ticker=BasicTicker()))
+
+total_sum_plot.add_layout(
+    Grid(dimension=1, ticker=BasicTicker()))
+
 total_sum_plot.add_glyph(total_sum_source, Line(x='x', y='y'))
 
 zoom1_sum_source = ColumnDataSource(dict(x=[], y=[]))
@@ -180,6 +198,12 @@ zoom1_sum_plot = Plot(
 zoom1_sum_plot.add_layout(LinearAxis(axis_label="Intensity"), place='left')
 zoom1_sum_plot.add_layout(LinearAxis(), place='below')
 
+zoom1_sum_plot.add_layout(
+    Grid(dimension=0, ticker=BasicTicker()))
+
+zoom1_sum_plot.add_layout(
+    Grid(dimension=1, ticker=BasicTicker()))
+
 zoom1_sum_plot.add_glyph(zoom1_sum_source, Line(x='x', y='y', line_color='red'))
 
 zoom2_sum_source = ColumnDataSource(dict(x=[], y=[]))
@@ -196,6 +220,12 @@ zoom2_sum_plot = Plot(
 
 zoom2_sum_plot.add_layout(LinearAxis(axis_label="Intensity"), place='left')
 zoom2_sum_plot.add_layout(LinearAxis(), place='below')
+
+zoom2_sum_plot.add_layout(
+    Grid(dimension=0, ticker=BasicTicker()))
+
+zoom2_sum_plot.add_layout(
+    Grid(dimension=1, ticker=BasicTicker()))
 
 zoom2_sum_plot.add_glyph(zoom2_sum_source, Line(x='x', y='y', line_color='green'))
 
@@ -333,6 +363,12 @@ azimuthal_integ1d_plot = Plot(
 
 azimuthal_integ1d_plot.add_layout(LinearAxis(axis_label="Intensity"), place='left')
 azimuthal_integ1d_plot.add_layout(LinearAxis(axis_label="Scattering angle, 2θ deg"), place='below')
+
+azimuthal_integ1d_plot.add_layout(
+    Grid(dimension=0, ticker=BasicTicker()))
+
+azimuthal_integ1d_plot.add_layout(
+    Grid(dimension=1, ticker=BasicTicker()))
 
 azimuthal_integ1d_source = ColumnDataSource(dict(x=[], y=[]))
 
