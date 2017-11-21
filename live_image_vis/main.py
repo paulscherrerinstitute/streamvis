@@ -25,7 +25,8 @@ from bokeh.models.widgets import Button, Toggle, Panel, Tabs, Dropdown, Select, 
     DataTable, TableColumn
 from bokeh.models.annotations import Title
 
-from helpers import lin_convert2_uint8, calc_agg, mx_image_gen, simul_image_gen, convert_to_rgba, mx_image
+from helpers import lin_convert2_uint8, calc_agg, calc_mean, mx_image_gen, simul_image_gen, convert_to_rgba, \
+                                                       mx_image
 
 import pyFAI
 import zmq
@@ -41,8 +42,8 @@ doc.title = "ImageVis"
 MAIN_CANVAS_WIDTH = 1024 + 54
 MAIN_CANVAS_HEIGHT = 1536 + 65
 
-ZOOM_CANVAS_WIDTH = 700
-ZOOM_CANVAS_HEIGHT = 700
+ZOOM_CANVAS_WIDTH = 600
+ZOOM_CANVAS_HEIGHT = 600
 
 AZIMUTHAL_CANVAS_WIDTH = 700
 AZIMUTHAL_CANVAS_HEIGHT = 500
@@ -163,6 +164,40 @@ total_sum_plot.add_layout(LinearAxis(axis_label="Total intensity"), place='left'
 total_sum_plot.add_layout(LinearAxis(), place='below')
 
 total_sum_plot.add_glyph(total_sum_source, Line(x='x', y='y'))
+
+zoom1_sum_source = ColumnDataSource(dict(x=[], y=[]))
+
+zoom1_sum_plot = Plot(
+    title=Title(text="Zoom Area 1 Total Intensity"),
+    x_range=DataRange1d(),
+    y_range=DataRange1d(),
+    plot_height=agg_plot_size,
+    plot_width=ZOOM_CANVAS_WIDTH,
+    toolbar_location='left',
+    logo=None,
+)
+
+zoom1_sum_plot.add_layout(LinearAxis(axis_label="Intensity"), place='left')
+zoom1_sum_plot.add_layout(LinearAxis(), place='below')
+
+zoom1_sum_plot.add_glyph(zoom1_sum_source, Line(x='x', y='y', line_color='red'))
+
+zoom2_sum_source = ColumnDataSource(dict(x=[], y=[]))
+
+zoom2_sum_plot = Plot(
+    title=Title(text="Zoom Area 2 Total Intensity"),
+    x_range=DataRange1d(),
+    y_range=DataRange1d(),
+    plot_height=agg_plot_size,
+    plot_width=ZOOM_CANVAS_WIDTH,
+    toolbar_location='left',
+    logo=None,
+)
+
+zoom2_sum_plot.add_layout(LinearAxis(axis_label="Intensity"), place='left')
+zoom2_sum_plot.add_layout(LinearAxis(), place='below')
+
+zoom2_sum_plot.add_glyph(zoom2_sum_source, Line(x='x', y='y', line_color='green'))
 
 # Share 'pan' and 'wheel zoom' between plots, but 'save' and 'reset' keep separate
 shared_pan_tool = PanTool()
@@ -485,7 +520,8 @@ metadata_table = DataTable(
 # Final layout_main -------
 layout_main = column(row(plot_agg_x, ),
                      row(main_image_plot, plot_agg_y))
-layout_zoom = column(total_sum_plot, zoom_image_red_plot, Spacer(width=1, height=30), zoom_image_green_plot)
+layout_zoom = column(total_sum_plot, zoom1_sum_plot, zoom2_sum_plot, zoom_image_red_plot,
+                     zoom_image_green_plot)
 layout_controls = row(column(colormap_panel, Spacer(width=1, height=30), metadata_table), data_source_tabs)
 layout_azim_integ = column(azimuthal_integ2d_plot, azimuthal_integ1d_plot, Spacer(width=1, height=30),
                            sample2det_dist_textinput, poni1_textinput, poni2_textinput)
@@ -542,12 +578,19 @@ def update(image, metadata):
     image_source.data.update(image=[lin_convert2_uint8(image, disp_min, disp_max)])
 
     # Mean pixels value graphs
-    agg_0, range_0, agg_1, range_1 = calc_agg(image, start_0, end_0, start_1, end_1)
+    agg_0, range_0, agg_1, range_1 = calc_mean(image, start_0, end_0, start_1, end_1)
     agg_y_source.data.update(x=agg_0, y=range_0)
     agg_x_source.data.update(x=range_1, y=agg_1)
 
     t += 1
     total_sum_source.stream(new_data=dict(x=[t], y=[np.sum(image, dtype=np.float)]))
+
+    agg_zoom1 = calc_agg(image, zoom_image_red_plot.y_range.start, zoom_image_red_plot.y_range.end,
+                         zoom_image_red_plot.x_range.start, zoom_image_red_plot.x_range.end)
+    agg_zoom2 = calc_agg(image, zoom_image_green_plot.y_range.start, zoom_image_green_plot.y_range.end,
+                         zoom_image_green_plot.x_range.start, zoom_image_green_plot.x_range.end)
+    zoom1_sum_source.stream(new_data=dict(x=[t], y=[agg_zoom1]))
+    zoom2_sum_source.stream(new_data=dict(x=[t], y=[agg_zoom2]))
 
     # if zoom_image_red_plot.x_range.end-zoom_image_red_plot.x_range.start < 100:
     #     zoom_image_red_plot

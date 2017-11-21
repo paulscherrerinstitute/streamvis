@@ -14,7 +14,7 @@ def lin_convert2_uint8(image, display_min, display_max):
     return image.astype(np.uint8)
 
 
-def calc_agg(image, start_0, end_0, start_1, end_1):
+def calc_mean(image, start_0, end_0, start_1, end_1):
     """ Aggregate image pixel values along both axes """
     im_size_0, im_size_1 = image.shape
     start_0 = max(int(np.floor(start_0)), 0)
@@ -28,6 +28,18 @@ def calc_agg(image, start_0, end_0, start_1, end_1):
 
     # shift pixel center coordinates to half integer values
     return agg_0, np.arange(start_0, end_0)+0.5, agg_1, np.arange(start_1, end_1)+0.5
+
+
+def calc_agg(image, start_0, end_0, start_1, end_1):
+    """ Aggregate image pixel values along both axes """
+    im_size_0, im_size_1 = image.shape
+    start_0 = max(int(np.floor(start_0)), 0)
+    end_0 = min(int(np.ceil(end_0)), im_size_0)
+    start_1 = max(int(np.floor(start_1)), 0)
+    end_1 = min(int(np.ceil(end_1)), im_size_1)
+    im_block = image[start_0:end_0, start_1:end_1]
+
+    return np.sum(im_block)
 
 
 def mx_image_gen(file, dataset):
