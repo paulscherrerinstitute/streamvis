@@ -43,7 +43,7 @@ MAIN_CANVAS_WIDTH = 1024 + 54
 MAIN_CANVAS_HEIGHT = 1536 + 65
 
 ZOOM_CANVAS_WIDTH = 600
-ZOOM_CANVAS_HEIGHT = 600
+ZOOM_CANVAS_HEIGHT = 570
 
 AZIMUTHAL_CANVAS_WIDTH = 700
 AZIMUTHAL_CANVAS_HEIGHT = 500
@@ -236,6 +236,19 @@ shared_wheel_zoom_tool = WheelZoomTool()
 main_image_plot.add_tools(shared_pan_tool, shared_wheel_zoom_tool, SaveTool(), ResetTool())
 zoom_image_red_plot.add_tools(shared_pan_tool, shared_wheel_zoom_tool, SaveTool(), ResetTool())
 zoom_image_green_plot.add_tools(shared_pan_tool, shared_wheel_zoom_tool, SaveTool(), ResetTool())
+
+
+# Intensity stream reset button
+def intensity_stream_reset_button_callback():
+    global t
+    # Keep the latest point in order to prevent full axis reset
+    t = 1
+    total_sum_source.data.update(x=[1], y=[total_sum_source.data['y'][-1]])
+    zoom1_sum_source.data.update(x=[1], y=[zoom1_sum_source.data['y'][-1]])
+    zoom2_sum_source.data.update(x=[1], y=[zoom2_sum_source.data['y'][-1]])
+
+intensity_stream_reset_button = Button(label="Reset", button_type='default')
+intensity_stream_reset_button.on_click(intensity_stream_reset_button_callback)
 
 # Colormap
 color_mapper_lin = LinearColorMapper(palette=Plasma256, low=0, high=255)
@@ -556,8 +569,10 @@ metadata_table = DataTable(
 # Final layout_main -------
 layout_main = column(row(plot_agg_x, ),
                      row(main_image_plot, plot_agg_y))
-layout_zoom = column(total_sum_plot, zoom1_sum_plot, zoom2_sum_plot, zoom_image_red_plot,
-                     zoom_image_green_plot)
+layout_zoom = column(total_sum_plot, zoom1_sum_plot, zoom2_sum_plot,
+                     row(Spacer(width=280, height=1), intensity_stream_reset_button),
+                     Spacer(width=1, height=10),
+                     zoom_image_red_plot, zoom_image_green_plot)
 layout_controls = row(column(colormap_panel, Spacer(width=1, height=30), metadata_table), data_source_tabs)
 layout_azim_integ = column(azimuthal_integ2d_plot, azimuthal_integ1d_plot, Spacer(width=1, height=30),
                            sample2det_dist_textinput, poni1_textinput, poni2_textinput)
