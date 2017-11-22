@@ -97,6 +97,7 @@ main_image_plot.add_layout(
 pil_im = PIL_Image.fromarray(np.array([[0]], dtype='uint32'))
 
 zoom_image_red_plot = Plot(
+    title=Title(text="Zoom Area 1"),
     x_range=Range1d(0, sim_im_size_x),
     y_range=Range1d(0, sim_im_size_y),
     plot_height=ZOOM_CANVAS_HEIGHT,
@@ -120,6 +121,7 @@ zoom_image_red_plot.add_layout(
     Grid(dimension=1, ticker=BasicTicker()))
 
 zoom_image_green_plot = Plot(
+    title=Title(text="Zoom Area 2"),
     x_range=Range1d(0, sim_im_size_x),
     y_range=Range1d(0, sim_im_size_y),
     plot_height=ZOOM_CANVAS_HEIGHT,
@@ -177,7 +179,7 @@ total_sum_plot = Plot(
 )
 
 total_sum_plot.add_layout(LinearAxis(axis_label="Total intensity"), place='left')
-total_sum_plot.add_layout(LinearAxis(), place='below')
+total_sum_plot.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='below')
 
 total_sum_plot.add_layout(
     Grid(dimension=0, ticker=BasicTicker()))
@@ -200,7 +202,7 @@ zoom1_sum_plot = Plot(
 )
 
 zoom1_sum_plot.add_layout(LinearAxis(axis_label="Intensity"), place='left')
-zoom1_sum_plot.add_layout(LinearAxis(), place='below')
+zoom1_sum_plot.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='below')
 
 zoom1_sum_plot.add_layout(
     Grid(dimension=0, ticker=BasicTicker()))
@@ -216,7 +218,7 @@ zoom2_sum_plot = Plot(
     title=Title(text="Zoom Area 2 Total Intensity"),
     x_range=DataRange1d(),
     y_range=DataRange1d(),
-    plot_height=agg_plot_size,
+    plot_height=agg_plot_size+10,
     plot_width=ZOOM_CANVAS_WIDTH,
     toolbar_location='left',
     logo=None,
@@ -350,37 +352,17 @@ agg_y_source = ColumnDataSource(
 plot_agg_y.add_glyph(agg_y_source, Line(x='x', y='y', line_color='steelblue'))
 
 # Azimuthal integration plots ------
-azimuthal_integ2d_plot = Plot(
-    x_range=Range1d(0, 10),
-    y_range=Range1d(0, 10),
-    plot_height=AZIMUTHAL_CANVAS_HEIGHT,
+azimuthal_integ1d_plot = Plot(
+    x_range=DataRange1d(),
+    y_range=DataRange1d(),
+    plot_height=agg_plot_size,
     plot_width=AZIMUTHAL_CANVAS_WIDTH,
     title=Title(text="Azimuthal Integration"),
     logo=None,
 )
 
-azimuthal_integ2d_plot.add_layout(LinearAxis(axis_label="Azimuthal angle, χ deg"), place='left')
-azimuthal_integ2d_plot.add_layout(LinearAxis(), place='below')
-
-azimuthal_integ2d_source = ColumnDataSource(
-    dict(image=[np.array([[0]], dtype='uint32')],
-         x=[0], y=[0], dw=[AZIMUTHAL_INTEG_WIDTH], dh=[AZIMUTHAL_INTEG_HEIGHT]))
-
-azimuthal_image = Image(image='image', x='x', y='y', dw='dw', dh='dh', color_mapper=color_mapper_lin)
-
-azimuthal_integ2d_plot.add_glyph(azimuthal_integ2d_source, azimuthal_image)
-
-azimuthal_integ1d_plot = Plot(
-    x_range=DataRange1d(),
-    y_range=DataRange1d(),
-    plot_height=int(AZIMUTHAL_CANVAS_HEIGHT / 2),
-    plot_width=AZIMUTHAL_CANVAS_WIDTH,
-    logo=None,
-)
-
-azimuthal_integ_axis_label = LinearAxis(axis_label="Scattering angle, 2θ deg")
 azimuthal_integ1d_plot.add_layout(LinearAxis(axis_label="Intensity"), place='left')
-azimuthal_integ1d_plot.add_layout(azimuthal_integ_axis_label, place='below')
+azimuthal_integ1d_plot.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='below')
 
 azimuthal_integ1d_plot.add_layout(
     Grid(dimension=0, ticker=BasicTicker()))
@@ -391,6 +373,27 @@ azimuthal_integ1d_plot.add_layout(
 azimuthal_integ1d_source = ColumnDataSource(dict(x=[], y=[]))
 
 azimuthal_integ1d_plot.add_glyph(azimuthal_integ1d_source, Line(x='x', y='y'))
+
+
+azimuthal_integ2d_plot = Plot(
+    x_range=Range1d(0, 10),
+    y_range=Range1d(0, 10),
+    plot_height=AZIMUTHAL_CANVAS_HEIGHT,
+    plot_width=AZIMUTHAL_CANVAS_WIDTH,
+    logo=None,
+)
+
+azimuthal_integ_axis_label = LinearAxis(axis_label="Scattering angle, 2θ deg")
+azimuthal_integ2d_plot.add_layout(LinearAxis(axis_label="Azimuthal angle, χ deg"), place='left')
+azimuthal_integ2d_plot.add_layout(azimuthal_integ_axis_label, place='below')
+
+azimuthal_integ2d_source = ColumnDataSource(
+    dict(image=[np.array([[0]], dtype='uint32')],
+         x=[0], y=[0], dw=[AZIMUTHAL_INTEG_WIDTH], dh=[AZIMUTHAL_INTEG_HEIGHT]))
+
+azimuthal_image = Image(image='image', x='x', y='y', dw='dw', dh='dh', color_mapper=color_mapper_lin)
+
+azimuthal_integ2d_plot.add_glyph(azimuthal_integ2d_source, azimuthal_image)
 
 
 def poni1_textinput_callback(attr, old, new):
@@ -607,13 +610,12 @@ layout_main = column(row(plot_agg_x, ),
                      row(main_image_plot, plot_agg_y))
 layout_zoom = column(total_sum_plot, zoom1_sum_plot, zoom2_sum_plot,
                      row(Spacer(width=280, height=1), intensity_stream_reset_button),
-                     Spacer(width=1, height=10),
                      zoom_image_red_plot, zoom_image_green_plot)
 layout_controls = row(column(colormap_panel, Spacer(width=1, height=30), metadata_table), data_source_tabs)
-layout_azim_integ = column(azimuthal_integ2d_plot, azimuthal_integ1d_plot, Spacer(width=1, height=30),
+layout_azim_integ = column(azimuthal_integ1d_plot, azimuthal_integ2d_plot, Spacer(width=1, height=30),
                            row(column(sample2det_dist_textinput, poni1_textinput, poni2_textinput),
                                column(unit_select, wavelength_textinput)))
-doc.add_root(row(layout_main, Spacer(width=50, height=1), layout_zoom, Spacer(width=50, height=1),
+doc.add_root(row(layout_main, Spacer(width=30, height=1), layout_zoom, Spacer(width=80, height=1),
                  column(layout_azim_integ, Spacer(width=1, height=30), layout_controls)))
 
 ctx = zmq.Context()
