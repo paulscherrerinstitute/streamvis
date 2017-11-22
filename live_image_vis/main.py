@@ -36,6 +36,8 @@ from tornado import gen
 doc = curdoc()
 doc.title = "ImageVis"
 
+DETECTOR_SERVER_ADDRESS = "tcp://127.0.0.1:9001"
+
 # Currently in bokeh it's possible to control only a canvas size, but not a size of the plotting area.
 # plot_width = MAIN_CANVAS_WIDTH-54
 # plot_height = MAIN_CANVAS_HEIGHT-65
@@ -53,6 +55,8 @@ AZIMUTHAL_INTEG_HEIGHT = 300
 
 DETECTOR_PIXEL_SIZE = 75e-6  # pixel size 75um
 SAMPLE_DETECTOR_DISTANCE = 1  # distance from a sample to the detector in meters
+PONI1_PIXEL = 0
+PONI2_PIXEL = 0
 WAVE_LENGTH = 1e-10
 
 STREAM_FPS = 1
@@ -427,11 +431,12 @@ def wavelength_textinput_callback(attr, old, new):
     except ValueError:
         wavelength_textinput.value = old
 
-sample2det_dist_textinput = TextInput(title="Sample to Detector Distance (m):", value='1')
+sample2det_dist_textinput = TextInput(title="Sample to Detector Distance (m):",
+                                      value=str(SAMPLE_DETECTOR_DISTANCE))
 sample2det_dist_textinput.on_change('value', sample2det_dist_textinput_callback)
-poni1_textinput = TextInput(title="Center Vertical (pix):", value='0')
+poni1_textinput = TextInput(title="Center Vertical (pix):", value=str(PONI1_PIXEL))
 poni1_textinput.on_change('value', poni1_textinput_callback)
-poni2_textinput = TextInput(title="Center Horizontal (pix):", value='0')
+poni2_textinput = TextInput(title="Center Horizontal (pix):", value=str(PONI2_PIXEL))
 poni2_textinput.on_change('value', poni2_textinput_callback)
 unit_select = Select(
     title="Unit:", value="2th_deg",
@@ -444,19 +449,24 @@ wavelength_textinput.on_change('value', wavelength_textinput_callback)
 detector = pyFAI.detectors.Detector(DETECTOR_PIXEL_SIZE, DETECTOR_PIXEL_SIZE)
 detector.max_shape = (sim_im_size_y, sim_im_size_x)
 
-ai = pyFAI.AzimuthalIntegrator(dist=SAMPLE_DETECTOR_DISTANCE, detector=detector)
-ai.wavelength = WAVE_LENGTH
+ai = pyFAI.AzimuthalIntegrator(
+    detector=detector,
+    dist=SAMPLE_DETECTOR_DISTANCE,
+    poni1=PONI1_PIXEL * DETECTOR_PIXEL_SIZE,
+    poni2=PONI2_PIXEL * DETECTOR_PIXEL_SIZE,
+    wavelength=WAVE_LENGTH,
+)
 
 # Stream panel -------
 def stream_button_callback(state):
     if state:
-        skt.connect("tcp://127.0.0.1:9001")
+        skt.connect(DETECTOR_SERVER_ADDRESS)
         doc.add_periodic_callback(unlocked_task, 1000 / STREAM_FPS)
         stream_button.button_type = 'success'
 
     else:
         doc.remove_periodic_callback(unlocked_task)
-        skt.disconnect("tcp://127.0.0.1:9001")
+        skt.disconnect(DETECTOR_SERVER_ADDRESS)
         stream_button.button_type = 'default'
 
 
