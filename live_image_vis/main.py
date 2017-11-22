@@ -374,8 +374,9 @@ azimuthal_integ1d_plot = Plot(
     logo=None,
 )
 
+azimuthal_integ_axis_label = LinearAxis(axis_label="Scattering angle, 2θ deg")
 azimuthal_integ1d_plot.add_layout(LinearAxis(axis_label="Intensity"), place='left')
-azimuthal_integ1d_plot.add_layout(LinearAxis(axis_label="Scattering angle, 2θ deg"), place='below')
+azimuthal_integ1d_plot.add_layout(azimuthal_integ_axis_label, place='below')
 
 azimuthal_integ1d_plot.add_layout(
     Grid(dimension=0, ticker=BasicTicker()))
@@ -408,12 +409,37 @@ def sample2det_dist_textinput_callback(attr, old, new):
     except ValueError:
         sample2det_dist_textinput.value = old
 
+
+def unit_select_callback(attr, old, new):
+    if new == "2th_deg":
+        azimuthal_integ_axis_label.axis_label = "Scattering angle, 2θ deg"
+    elif new == "2th_rad":
+        azimuthal_integ_axis_label.axis_label = "Scattering angle, 2θ rad"
+    elif new == "q_nm^-1":
+        azimuthal_integ_axis_label.axis_label = "Scattering vector, q nm⁻¹"
+    elif new == "q_A^-1":
+        azimuthal_integ_axis_label.axis_label = "Scattering vector, q Å⁻¹"
+
+
+def wavelength_textinput_callback(attr, old, new):
+    try:
+        ai.wavelength = float(new)
+    except ValueError:
+        wavelength_textinput.value = old
+
 sample2det_dist_textinput = TextInput(title="Sample to Detector Distance (m):", value='1')
 sample2det_dist_textinput.on_change('value', sample2det_dist_textinput_callback)
 poni1_textinput = TextInput(title="Center Vertical (pix):", value='0')
 poni1_textinput.on_change('value', poni1_textinput_callback)
 poni2_textinput = TextInput(title="Center Horizontal (pix):", value='0')
 poni2_textinput.on_change('value', poni2_textinput_callback)
+unit_select = Select(
+    title="Unit:", value="2th_deg",
+    options=[("2th_deg", "2θ deg"), ("2th_rad", "2θ rad"), ("q_nm^-1", "q nm⁻¹"), ("q_A^-1", "q Å⁻¹")]
+)
+unit_select.on_change('value', unit_select_callback)
+wavelength_textinput = TextInput(title="Wavelength (m):", value=str(WAVE_LENGTH))
+wavelength_textinput.on_change('value', wavelength_textinput_callback)
 
 detector = pyFAI.detectors.Detector(DETECTOR_PIXEL_SIZE, DETECTOR_PIXEL_SIZE)
 detector.max_shape = (sim_im_size_y, sim_im_size_x)
@@ -575,7 +601,8 @@ layout_zoom = column(total_sum_plot, zoom1_sum_plot, zoom2_sum_plot,
                      zoom_image_red_plot, zoom_image_green_plot)
 layout_controls = row(column(colormap_panel, Spacer(width=1, height=30), metadata_table), data_source_tabs)
 layout_azim_integ = column(azimuthal_integ2d_plot, azimuthal_integ1d_plot, Spacer(width=1, height=30),
-                           sample2det_dist_textinput, poni1_textinput, poni2_textinput)
+                           row(column(sample2det_dist_textinput, poni1_textinput, poni2_textinput),
+                               column(unit_select, wavelength_textinput)))
 doc.add_root(row(layout_main, Spacer(width=50, height=1), layout_zoom, Spacer(width=50, height=1),
                  column(layout_azim_integ, Spacer(width=1, height=30), layout_controls)))
 
@@ -646,7 +673,8 @@ def update(image, metadata):
     # if zoom_image_red_plot.x_range.end-zoom_image_red_plot.x_range.start < 100:
     #     zoom_image_red_plot
 
-    i2d, tth2d, chi = ai.integrate2d(image, AZIMUTHAL_INTEG_WIDTH, AZIMUTHAL_INTEG_HEIGHT, unit="2th_deg")
+    i2d, tth2d, chi = ai.integrate2d(image, AZIMUTHAL_INTEG_WIDTH, AZIMUTHAL_INTEG_HEIGHT,
+                                     unit=unit_select.value)
 
     azimuthal_integ2d_plot.x_range.start = azimuthal_integ1d_plot.x_range.start
     azimuthal_integ2d_plot.x_range.end = azimuthal_integ1d_plot.x_range.end
@@ -661,7 +689,7 @@ def update(image, metadata):
         dh=[chi[-1]-chi[0]],
     )
 
-    tth1d, i1d = ai.integrate1d(image.copy(), AZIMUTHAL_INTEG_WIDTH, unit="2th_deg")
+    tth1d, i1d = ai.integrate1d(image.copy(), AZIMUTHAL_INTEG_WIDTH, unit=unit_select.value)
     azimuthal_integ1d_source.data.update(x=tth1d, y=i1d)
 
     # Unpack metadata
