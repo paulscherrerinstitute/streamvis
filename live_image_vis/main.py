@@ -252,7 +252,7 @@ def intensity_stream_reset_button_callback():
     zoom1_sum_source.data.update(x=[1], y=[zoom1_sum_source.data['y'][-1]])
     zoom2_sum_source.data.update(x=[1], y=[zoom2_sum_source.data['y'][-1]])
 
-intensity_stream_reset_button = Button(label="Reset", button_type='default')
+intensity_stream_reset_button = Button(label="Reset", button_type='default', width=250)
 intensity_stream_reset_button.on_click(intensity_stream_reset_button_callback)
 
 # Colormap
@@ -444,7 +444,7 @@ poni1_textinput.on_change('value', poni1_textinput_callback)
 poni2_textinput = TextInput(title="Center Horizontal (pix):", value=str(PONI2_PIXEL))
 poni2_textinput.on_change('value', poni2_textinput_callback)
 unit_select = Select(
-    title="Unit:", value="2th_deg",
+    title="Unit:", value="2th_deg", width=260,
     options=[("2th_deg", "2θ deg"), ("2th_rad", "2θ rad"), ("q_nm^-1", "q nm⁻¹"), ("q_A^-1", "q Å⁻¹")]
 )
 unit_select.on_change('value', unit_select_callback)
@@ -475,7 +475,7 @@ def stream_button_callback(state):
         stream_button.button_type = 'default'
 
 
-stream_button = Toggle(label="Connect to Stream", button_type='default')
+stream_button = Toggle(label="Connect to Stream", button_type='default', width=250)
 stream_button.on_click(stream_button_callback)
 
 tab_stream = Panel(child=column(stream_button), title="Stream")
@@ -497,10 +497,10 @@ def hdf5_file_path_update():
 def hdf5_file_path_callback(attr, old, new):
     hdf5_file_path_update()
 
-hdf5_file_path = TextInput(title="Folder Path:", value=HDF5_FILE_PATH)
+hdf5_file_path = TextInput(title="Folder Path:", value=HDF5_FILE_PATH, width=250)
 hdf5_file_path.on_change('value', hdf5_file_path_callback)
 
-hdf5_dataset_path = TextInput(title="Dataset Path:", value=HDF5_DATASET_PATH)
+hdf5_dataset_path = TextInput(title="Dataset Path:", value=HDF5_DATASET_PATH, width=250)
 
 doc.add_periodic_callback(hdf5_file_path_update, HDF5_FILE_PATH_UPDATE_PERIOD)
 
@@ -508,7 +508,7 @@ doc.add_periodic_callback(hdf5_file_path_update, HDF5_FILE_PATH_UPDATE_PERIOD)
 def saved_runs_dropdown_callback(selection):
     saved_runs_dropdown.label = selection
 
-saved_runs_dropdown = Dropdown(label="Saved Runs", button_type='primary', menu=[])
+saved_runs_dropdown = Dropdown(label="Saved Runs", button_type='primary', menu=[], width=250)
 saved_runs_dropdown.on_click(saved_runs_dropdown_callback)
 
 
@@ -527,12 +527,13 @@ def load_file_button_callback():
                              dataset=hdf5_dataset_path.value)
     update(hdf5_file_data(i=hdf5_pulse_slider.value))
 
-load_file_button = Button(label="Load", button_type='default')
+load_file_button = Button(label="Load", button_type='default', width=250)
 load_file_button.on_click(load_file_button_callback)
 
 tab_hdf5file = Panel(
     child=column(hdf5_file_path, saved_runs_dropdown, hdf5_dataset_path, load_file_button, hdf5_pulse_slider),
-    title="HDF5 File")
+    title="HDF5 File",
+)
 
 data_source_tabs = Tabs(tabs=[tab_stream, tab_hdf5file])
 
@@ -547,7 +548,7 @@ def colormap_auto_toggle_callback(state):
         colormap_display_max.disabled = False
 
 
-colormap_auto_toggle = Toggle(label="Auto", active=True, button_type='default')
+colormap_auto_toggle = Toggle(label="Auto", active=True, button_type='default', width=250)
 colormap_auto_toggle.on_click(colormap_auto_toggle_callback)
 
 def colormap_scale_radiobuttongroup_callback(selection):
@@ -611,8 +612,8 @@ metadata_table_source = ColumnDataSource(dict(metadata=['', '', ''], value=['', 
 metadata_table = DataTable(
     source=metadata_table_source,
     columns=[TableColumn(field='metadata', title="Metadata Name"), TableColumn(field='value', title="Value")],
-    width=255,
-    height=300,
+    width=350,
+    height=400,
     row_headers=False,
     selectable=False,
 )
@@ -621,9 +622,9 @@ metadata_table = DataTable(
 layout_main = column(row(plot_agg_x, ),
                      row(main_image_plot, plot_agg_y))
 layout_zoom = column(total_sum_plot, zoom1_sum_plot, zoom2_sum_plot,
-                     row(Spacer(width=280, height=1), intensity_stream_reset_button),
+                     row(Spacer(width=320, height=1), intensity_stream_reset_button),
                      zoom_image_red_plot, zoom_image_green_plot)
-layout_controls = row(column(colormap_panel, Spacer(width=1, height=30), metadata_table), data_source_tabs)
+layout_controls = row(column(colormap_panel, Spacer(width=1, height=30), data_source_tabs), metadata_table)
 layout_azim_integ = column(azimuthal_integ1d_plot, azimuthal_integ2d_plot, Spacer(width=1, height=30),
                            row(column(sample2det_dist_textinput, poni1_textinput, poni2_textinput),
                                column(unit_select, wavelength_textinput)))
