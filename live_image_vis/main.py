@@ -94,8 +94,6 @@ main_image_plot.add_layout(
     LinearAxis(major_label_orientation='vertical'),
     place='right')
 
-pil_im = PIL_Image.fromarray(np.array([[0]], dtype='uint32'))
-
 zoom_image_red_plot = Plot(
     title=Title(text="Zoom Area 1"),
     x_range=Range1d(0, sim_im_size_x),
@@ -278,17 +276,17 @@ image_source = ColumnDataSource(
     dict(image=[np.array([[0]], dtype='uint32')],
          x=[0], y=[0], dw=[sim_im_size_x], dh=[sim_im_size_y]))
 
-test_im = Image(image='image', x='x', y='y', dw='dw', dh='dh', color_mapper=color_mapper_lin)
+default_image = Image(image='image', x='x', y='y', dw='dw', dh='dh', color_mapper=color_mapper_lin)
 
-main_image_plot.add_glyph(image_source, test_im)
+main_image_plot.add_glyph(image_source, default_image)
 
 rect_red = Rect(x='x', y='y', width='width', height='height', line_color='red', fill_alpha=0)
 rect_green = Rect(x='x', y='y', width='width', height='height', line_color='green', fill_alpha=0)
 main_image_plot.add_glyph(zoom_area_red_source, rect_red)
 main_image_plot.add_glyph(zoom_area_green_source, rect_green)
 
-zoom_image_red_plot.add_glyph(image_source, test_im)
-zoom_image_green_plot.add_glyph(image_source, test_im)
+zoom_image_red_plot.add_glyph(image_source, default_image)
+zoom_image_green_plot.add_glyph(image_source, default_image)
 
 # Aggregate plot along x
 plot_agg_x = Plot(
@@ -391,9 +389,7 @@ azimuthal_integ2d_source = ColumnDataSource(
     dict(image=[np.array([[0]], dtype='uint32')],
          x=[0], y=[0], dw=[AZIMUTHAL_INTEG_WIDTH], dh=[AZIMUTHAL_INTEG_HEIGHT]))
 
-azimuthal_image = Image(image='image', x='x', y='y', dw='dw', dh='dh', color_mapper=color_mapper_lin)
-
-azimuthal_integ2d_plot.add_glyph(azimuthal_integ2d_source, azimuthal_image)
+azimuthal_integ2d_plot.add_glyph(azimuthal_integ2d_source, default_image)
 
 
 def poni1_textinput_callback(attr, old, new):
@@ -552,13 +548,11 @@ def colormap_scale_radiobuttongroup_callback(selection):
     """Callback for colormap_scale_radiobuttongroup change"""
     if selection == 0:  # Linear
         color_bar.color_mapper = color_mapper_lin
-        azimuthal_image.color_mapper = color_mapper_lin
-        test_im.color_mapper = color_mapper_lin
+        default_image.color_mapper = color_mapper_lin
 
     else:  # Logarithmic
         color_bar.color_mapper = color_mapper_log
-        azimuthal_image.color_mapper = color_mapper_log
-        test_im.color_mapper = color_mapper_log
+        default_image.color_mapper = color_mapper_log
 
 
 colormap_scale_radiobuttongroup = RadioButtonGroup(labels=["Linear", "Logarithmic"], active=0)
