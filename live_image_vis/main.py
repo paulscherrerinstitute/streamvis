@@ -39,11 +39,14 @@ doc.title = "ImageVis"
 
 DETECTOR_SERVER_ADDRESS = "tcp://127.0.0.1:9001"
 
+IMAGE_SIZE_X = 1024
+IMAGE_SIZE_Y = 1536
+
 # Currently in bokeh it's possible to control only a canvas size, but not a size of the plotting area.
 # plot_width = MAIN_CANVAS_WIDTH-54
 # plot_height = MAIN_CANVAS_HEIGHT-65
-MAIN_CANVAS_WIDTH = 1024 + 54
-MAIN_CANVAS_HEIGHT = 1536 + 65
+MAIN_CANVAS_WIDTH = IMAGE_SIZE_X + 54
+MAIN_CANVAS_HEIGHT = IMAGE_SIZE_Y + 65
 
 ZOOM_CANVAS_WIDTH = 600
 ZOOM_CANVAS_HEIGHT = 570
@@ -74,13 +77,10 @@ agg_plot_size = 200
 disp_min = 0
 disp_max = 1000
 
-sim_im_size_x = 1024
-sim_im_size_y = 1536
-
 # Arrange the layout_main
 main_image_plot = Plot(
-    x_range=Range1d(0, sim_im_size_x, bounds=(0, sim_im_size_x)),
-    y_range=Range1d(0, sim_im_size_y, bounds=(0, sim_im_size_y)),
+    x_range=Range1d(0, IMAGE_SIZE_X, bounds=(0, IMAGE_SIZE_X)),
+    y_range=Range1d(0, IMAGE_SIZE_Y, bounds=(0, IMAGE_SIZE_Y)),
     plot_height=MAIN_CANVAS_HEIGHT,
     plot_width=MAIN_CANVAS_WIDTH,
     toolbar_location='left',
@@ -95,52 +95,52 @@ main_image_plot.add_layout(
     LinearAxis(major_label_orientation='vertical'),
     place='right')
 
-zoom_image_red_plot = Plot(
+zoom1_image_plot = Plot(
     title=Title(text="Zoom Area 1"),
-    x_range=Range1d(0, sim_im_size_x),
-    y_range=Range1d(0, sim_im_size_y),
+    x_range=Range1d(0, IMAGE_SIZE_X),
+    y_range=Range1d(0, IMAGE_SIZE_Y),
     plot_height=ZOOM_CANVAS_HEIGHT,
     plot_width=ZOOM_CANVAS_WIDTH,
     toolbar_location='left',
     logo=None,
 )
 
-zoom_image_red_plot.add_layout(
+zoom1_image_plot.add_layout(
     LinearAxis(),
     place='above')
 
-zoom_image_red_plot.add_layout(
+zoom1_image_plot.add_layout(
     LinearAxis(major_label_orientation='vertical'),
     place='right')
 
-zoom_image_red_plot.add_layout(
+zoom1_image_plot.add_layout(
     Grid(dimension=0, ticker=BasicTicker()))
 
-zoom_image_red_plot.add_layout(
+zoom1_image_plot.add_layout(
     Grid(dimension=1, ticker=BasicTicker()))
 
-zoom_image_green_plot = Plot(
+zoom2_image_plot = Plot(
     title=Title(text="Zoom Area 2"),
-    x_range=Range1d(0, sim_im_size_x),
-    y_range=Range1d(0, sim_im_size_y),
+    x_range=Range1d(0, IMAGE_SIZE_X),
+    y_range=Range1d(0, IMAGE_SIZE_Y),
     plot_height=ZOOM_CANVAS_HEIGHT,
     plot_width=ZOOM_CANVAS_WIDTH,
     toolbar_location='left',
     logo=None,
 )
 
-zoom_image_green_plot.add_layout(
+zoom2_image_plot.add_layout(
     LinearAxis(),
     place='above')
 
-zoom_image_green_plot.add_layout(
+zoom2_image_plot.add_layout(
     LinearAxis(major_label_orientation='vertical'),
     place='right')
 
-zoom_image_green_plot.add_layout(
+zoom2_image_plot.add_layout(
     Grid(dimension=0, ticker=BasicTicker()))
 
-zoom_image_green_plot.add_layout(
+zoom2_image_plot.add_layout(
     Grid(dimension=1, ticker=BasicTicker()))
 
 jscode = """
@@ -152,18 +152,18 @@ jscode = """
     source.change.emit();
 """
 
-zoom_area_red_source = ColumnDataSource(dict(x=[], y=[], width=[], height=[]))
-zoom_area_green_source = ColumnDataSource(dict(x=[], y=[], width=[], height=[]))
+zoom1_area_source = ColumnDataSource(dict(x=[], y=[], width=[], height=[]))
+zoom2_area_source = ColumnDataSource(dict(x=[], y=[], width=[], height=[]))
 
-zoom_image_red_plot.x_range.callback = CustomJS(
-    args=dict(source=zoom_area_red_source), code=jscode % ('x', 'width'))
-zoom_image_red_plot.y_range.callback = CustomJS(
-    args=dict(source=zoom_area_red_source), code=jscode % ('y', 'height'))
+zoom1_image_plot.x_range.callback = CustomJS(
+    args=dict(source=zoom1_area_source), code=jscode % ('x', 'width'))
+zoom1_image_plot.y_range.callback = CustomJS(
+    args=dict(source=zoom1_area_source), code=jscode % ('y', 'height'))
 
-zoom_image_green_plot.x_range.callback = CustomJS(
-    args=dict(source=zoom_area_green_source), code=jscode % ('x', 'width'))
-zoom_image_green_plot.y_range.callback = CustomJS(
-    args=dict(source=zoom_area_green_source), code=jscode % ('y', 'height'))
+zoom2_image_plot.x_range.callback = CustomJS(
+    args=dict(source=zoom2_area_source), code=jscode % ('x', 'width'))
+zoom2_image_plot.y_range.callback = CustomJS(
+    args=dict(source=zoom2_area_source), code=jscode % ('y', 'height'))
 
 total_sum_source = ColumnDataSource(dict(x=[], y=[]))
 
@@ -239,8 +239,8 @@ shared_pan_tool = PanTool()
 shared_wheel_zoom_tool = WheelZoomTool()
 
 main_image_plot.add_tools(shared_pan_tool, shared_wheel_zoom_tool, SaveTool(), ResetTool())
-zoom_image_red_plot.add_tools(shared_pan_tool, shared_wheel_zoom_tool, SaveTool(), ResetTool())
-zoom_image_green_plot.add_tools(shared_pan_tool, shared_wheel_zoom_tool, SaveTool(), ResetTool())
+zoom1_image_plot.add_tools(shared_pan_tool, shared_wheel_zoom_tool, SaveTool(), ResetTool())
+zoom2_image_plot.add_tools(shared_pan_tool, shared_wheel_zoom_tool, SaveTool(), ResetTool())
 
 
 # Intensity stream reset button
@@ -271,7 +271,7 @@ main_image_plot.add_layout(
 
 image_source = ColumnDataSource(
     dict(image=[np.array([[0]], dtype='uint32')],
-         x=[0], y=[0], dw=[sim_im_size_x], dh=[sim_im_size_y]))
+         x=[0], y=[0], dw=[IMAGE_SIZE_X], dh=[IMAGE_SIZE_Y]))
 
 default_image = Image(image='image', x='x', y='y', dw='dw', dh='dh',
                       color_mapper=LinearColorMapper(palette=Plasma256, low=disp_min, high=disp_max))
@@ -280,11 +280,11 @@ main_image_plot.add_glyph(image_source, default_image)
 
 rect_red = Rect(x='x', y='y', width='width', height='height', line_color='red', fill_alpha=0)
 rect_green = Rect(x='x', y='y', width='width', height='height', line_color='green', fill_alpha=0)
-main_image_plot.add_glyph(zoom_area_red_source, rect_red)
-main_image_plot.add_glyph(zoom_area_green_source, rect_green)
+main_image_plot.add_glyph(zoom1_area_source, rect_red)
+main_image_plot.add_glyph(zoom2_area_source, rect_green)
 
-zoom_image_red_plot.add_glyph(image_source, default_image)
-zoom_image_green_plot.add_glyph(image_source, default_image)
+zoom1_image_plot.add_glyph(image_source, default_image)
+zoom2_image_plot.add_glyph(image_source, default_image)
 
 # Aggregate plot along x
 plot_agg_x = Plot(
@@ -312,8 +312,8 @@ plot_agg_x.add_layout(
     Grid(dimension=1, ticker=BasicTicker()))
 
 agg_x_source = ColumnDataSource(
-    dict(x=np.arange(sim_im_size_x) + 0.5,  # shift to a pixel center
-         y=np.zeros(sim_im_size_x))
+    dict(x=np.arange(IMAGE_SIZE_X) + 0.5,  # shift to a pixel center
+         y=np.zeros(IMAGE_SIZE_X))
 )
 plot_agg_x.add_glyph(agg_x_source, Line(x='x', y='y', line_color='steelblue'))
 
@@ -341,8 +341,8 @@ plot_agg_y.add_layout(
     Grid(dimension=1, ticker=BasicTicker()))
 
 agg_y_source = ColumnDataSource(
-    dict(x=np.zeros(sim_im_size_y),
-         y=np.arange(sim_im_size_y) + 0.5)  # shift to a pixel center
+    dict(x=np.zeros(IMAGE_SIZE_Y),
+         y=np.arange(IMAGE_SIZE_Y) + 0.5)  # shift to a pixel center
 )
 
 plot_agg_y.add_glyph(agg_y_source, Line(x='x', y='y', line_color='steelblue'))
@@ -392,8 +392,8 @@ azimuthal_integ2d_plot.add_glyph(azimuthal_integ2d_source, default_image)
 poni_position_source = ColumnDataSource(dict(x=[PONI2_PIXEL], y=[PONI1_PIXEL]))
 poni_position_marker = CircleX(x='x', y='y', size=15, fill_alpha=0.3, fill_color='red', line_color='red')
 main_image_plot.add_glyph(poni_position_source, poni_position_marker)
-zoom_image_red_plot.add_glyph(poni_position_source, poni_position_marker)
-zoom_image_green_plot.add_glyph(poni_position_source, poni_position_marker)
+zoom1_image_plot.add_glyph(poni_position_source, poni_position_marker)
+zoom2_image_plot.add_glyph(poni_position_source, poni_position_marker)
 
 
 def poni1_textinput_callback(attr, old, new):
@@ -452,7 +452,7 @@ wavelength_textinput = TextInput(title="Wavelength (m):", value=str(WAVE_LENGTH)
 wavelength_textinput.on_change('value', wavelength_textinput_callback)
 
 detector = pyFAI.detectors.Detector(DETECTOR_PIXEL_SIZE, DETECTOR_PIXEL_SIZE)
-detector.max_shape = (sim_im_size_y, sim_im_size_x)
+detector.max_shape = (IMAGE_SIZE_Y, IMAGE_SIZE_X)
 
 ai = pyFAI.AzimuthalIntegrator(
     detector=detector,
@@ -623,7 +623,7 @@ layout_main = column(row(plot_agg_x, ),
                      row(main_image_plot, plot_agg_y))
 layout_zoom = column(total_sum_plot, zoom1_sum_plot, zoom2_sum_plot,
                      row(Spacer(width=320, height=1), intensity_stream_reset_button),
-                     zoom_image_red_plot, zoom_image_green_plot)
+                     zoom1_image_plot, zoom2_image_plot)
 layout_controls = row(column(colormap_panel, Spacer(width=1, height=30), data_source_tabs), metadata_table)
 layout_azim_integ = column(azimuthal_integ1d_plot, azimuthal_integ2d_plot, Spacer(width=1, height=30),
                            row(column(sample2det_dist_textinput, poni1_textinput, poni2_textinput),
@@ -688,10 +688,10 @@ def update(image, metadata):
     t += 1
     total_sum_source.stream(new_data=dict(x=[t], y=[np.sum(image, dtype=np.float)]))
 
-    agg_zoom1 = calc_agg(image, zoom_image_red_plot.y_range.start, zoom_image_red_plot.y_range.end,
-                         zoom_image_red_plot.x_range.start, zoom_image_red_plot.x_range.end)
-    agg_zoom2 = calc_agg(image, zoom_image_green_plot.y_range.start, zoom_image_green_plot.y_range.end,
-                         zoom_image_green_plot.x_range.start, zoom_image_green_plot.x_range.end)
+    agg_zoom1 = calc_agg(image, zoom1_image_plot.y_range.start, zoom1_image_plot.y_range.end,
+                         zoom1_image_plot.x_range.start, zoom1_image_plot.x_range.end)
+    agg_zoom2 = calc_agg(image, zoom2_image_plot.y_range.start, zoom2_image_plot.y_range.end,
+                         zoom2_image_plot.x_range.start, zoom2_image_plot.x_range.end)
     zoom1_sum_source.stream(new_data=dict(x=[t], y=[agg_zoom1]))
     zoom2_sum_source.stream(new_data=dict(x=[t], y=[agg_zoom2]))
 
