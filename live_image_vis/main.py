@@ -21,6 +21,7 @@ from bokeh.models.tickers import BasicTicker, AdaptiveTicker
 from bokeh.models.glyphs import Image, ImageRGBA
 from bokeh.models.grids import Grid
 from bokeh.models.formatters import BasicTickFormatter
+from bokeh.models.markers import CircleX
 from bokeh.models.widgets import Button, Toggle, Panel, Tabs, Dropdown, Select, RadioButtonGroup, TextInput, \
     DataTable, TableColumn
 from bokeh.models.annotations import Title
@@ -388,10 +389,17 @@ azimuthal_integ2d_source = ColumnDataSource(
 
 azimuthal_integ2d_plot.add_glyph(azimuthal_integ2d_source, default_image)
 
+poni_position_source = ColumnDataSource(dict(x=[PONI2_PIXEL], y=[PONI1_PIXEL]))
+poni_position_marker = CircleX(x='x', y='y', size=15, fill_alpha=0.3, fill_color='red', line_color='red')
+main_image_plot.add_glyph(poni_position_source, poni_position_marker)
+zoom_image_red_plot.add_glyph(poni_position_source, poni_position_marker)
+zoom_image_green_plot.add_glyph(poni_position_source, poni_position_marker)
+
 
 def poni1_textinput_callback(attr, old, new):
     try:
         ai.poni1 = float(new) * DETECTOR_PIXEL_SIZE
+        poni_position_source.data.update(y=[float(new)])
     except ValueError:
         poni1_textinput.value = old
 
@@ -399,6 +407,7 @@ def poni1_textinput_callback(attr, old, new):
 def poni2_textinput_callback(attr, old, new):
     try:
         ai.poni2 = float(new) * DETECTOR_PIXEL_SIZE
+        poni_position_source.data.update(x=[float(new)])
     except ValueError:
         poni2_textinput.value = old
 
