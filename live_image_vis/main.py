@@ -71,7 +71,7 @@ agg_plot_size = 200
 
 # Initial values
 disp_min = 0
-disp_max = 50000
+disp_max = 1000
 
 sim_im_size_x = 1024
 sim_im_size_y = 1536
@@ -255,17 +255,13 @@ intensity_stream_reset_button = Button(label="Reset", button_type='default')
 intensity_stream_reset_button.on_click(intensity_stream_reset_button_callback)
 
 # Colormap
-color_mapper_lin = LinearColorMapper(palette=Plasma256, low=0, high=255)
-color_mapper_log = LogColorMapper(palette=Plasma256, low=0, high=255)
-
 color_bar = ColorBar(
-    color_mapper=color_mapper_lin,
+    color_mapper=LinearColorMapper(palette=Plasma256, low=disp_min, high=disp_max),
     location=(0, -5),
     orientation='horizontal',
     height=20,
     width=MAIN_CANVAS_WIDTH // 2,
     padding=0,
-    major_label_text_font_size='0pt',
 )
 
 main_image_plot.add_layout(
@@ -276,7 +272,8 @@ image_source = ColumnDataSource(
     dict(image=[np.array([[0]], dtype='uint32')],
          x=[0], y=[0], dw=[sim_im_size_x], dh=[sim_im_size_y]))
 
-default_image = Image(image='image', x='x', y='y', dw='dw', dh='dh', color_mapper=color_mapper_lin)
+default_image = Image(image='image', x='x', y='y', dw='dw', dh='dh',
+                      color_mapper=LinearColorMapper(palette=Plasma256, low=disp_min, high=disp_max))
 
 main_image_plot.add_glyph(image_source, default_image)
 
@@ -547,12 +544,12 @@ colormap_auto_toggle.on_click(colormap_auto_toggle_callback)
 def colormap_scale_radiobuttongroup_callback(selection):
     """Callback for colormap_scale_radiobuttongroup change"""
     if selection == 0:  # Linear
-        color_bar.color_mapper = color_mapper_lin
-        default_image.color_mapper = color_mapper_lin
+        color_bar.color_mapper = LinearColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
+        default_image.color_mapper = LinearColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
 
     else:  # Logarithmic
-        color_bar.color_mapper = color_mapper_log
-        default_image.color_mapper = color_mapper_log
+        color_bar.color_mapper = LogColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
+        default_image.color_mapper = LogColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
 
 
 colormap_scale_radiobuttongroup = RadioButtonGroup(labels=["Linear", "Logarithmic"], active=0)
@@ -566,6 +563,12 @@ def colormap_display_min_callback(attr, old, new):
     if new.lstrip('-+').isdigit() and int(new) < disp_max:
         global disp_min
         disp_min = int(new)
+        if colormap_scale_radiobuttongroup.active == 0:
+            color_bar.color_mapper = LinearColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
+            default_image.color_mapper = LinearColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
+        else:
+            color_bar.color_mapper = LogColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
+            default_image.color_mapper = LogColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
     else:
         colormap_display_min.value = old
 
@@ -574,6 +577,12 @@ def colormap_display_max_callback(attr, old, new):
     if new.lstrip('-+').isdigit() and int(new) > disp_min:
         global disp_max
         disp_max = int(new)
+        if colormap_scale_radiobuttongroup.active == 0:
+            color_bar.color_mapper = LinearColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
+            default_image.color_mapper = LinearColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
+        else:
+            color_bar.color_mapper = LogColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
+            default_image.color_mapper = LogColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
     else:
         colormap_display_max.value = old
 
@@ -659,7 +668,7 @@ def update(image, metadata):
         disp_max = int(np.max(image))
         colormap_display_max.value = str(disp_max)
 
-    image_source.data.update(image=[lin_convert2_uint8(image, disp_min, disp_max)])
+    image_source.data.update(image=[image])
 
     # Mean pixels value graphs
     agg_0, range_0, agg_1, range_1 = calc_mean(image, start_0, end_0, start_1, end_1)
@@ -688,7 +697,7 @@ def update(image, metadata):
     azimuthal_integ2d_plot.y_range.end = chi[-1]
 
     azimuthal_integ2d_source.data.update(
-        image=[lin_convert2_uint8(i2d, disp_min, disp_max)],
+        image=[i2d],
         x=[tth2d[0]],
         y=[chi[0]],
         dw=[tth2d[-1]-tth2d[0]],
