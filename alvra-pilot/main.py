@@ -3,6 +3,7 @@ import numpy as np
 from threading import Thread
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
+from collections import deque
 
 import colorcet as cc
 from PIL import Image as PIL_Image
@@ -48,7 +49,8 @@ MAIN_CANVAS_HEIGHT = 512 + 94
 ZOOM_CANVAS_WIDTH = 1024 + 54
 ZOOM_CANVAS_HEIGHT = 512 + 29
 
-STREAM_FPS = 1
+APP_FPS = 1
+STREAM_ROLLOVER = 3600
 
 TRANSFER_MODE = 'Index'  # 'Index' or 'RGBA'
 
@@ -62,6 +64,9 @@ hist_plot_size = 400
 # Initial values
 disp_min = 0
 disp_max = 1000
+
+BUFFER_SIZE = 100
+buffer = deque(maxlen=BUFFER_SIZE)
 
 # Arrange the layout_main
 main_image_plot = Plot(
@@ -453,15 +458,30 @@ hist2_plot.add_glyph(hist2_source, VBar(x="x", top="top", bottom=0, width=0.5, f
 
 hist2_plot.add_tools(PanTool(), WheelZoomTool(), SaveTool(), ResetTool())
 
+
 # Stream panel -------
+def image_buffer_slider_callback(attr, old, new):
+    md, image = buffer[round(new['value'][0])]
+    doc.add_next_tick_callback(partial(update, image=image, metadata=md))
+
+image_buffer_slider_source = ColumnDataSource(data=dict(value=[]))
+image_buffer_slider_source.on_change('data', image_buffer_slider_callback)
+
+image_buffer_slider = Slider(start=0-np.finfo(float).eps, end=1, value=0, step=1, title="Buffered Image",
+                             callback_policy='mouseup')
+
+image_buffer_slider.callback = CustomJS(
+    args=dict(source=image_buffer_slider_source),
+    code="""source.data = { value: [cb_obj.value] }""",
+)
+
+
 def stream_button_callback(state):
     if state:
         skt.connect(DETECTOR_SERVER_ADDRESS)
-        doc.add_periodic_callback(unlocked_task, 1000 / STREAM_FPS)
         stream_button.button_type = 'success'
 
     else:
-        doc.remove_periodic_callback(unlocked_task)
         skt.disconnect(DETECTOR_SERVER_ADDRESS)
         stream_button.button_type = 'default'
 
@@ -469,7 +489,7 @@ def stream_button_callback(state):
 stream_button = Toggle(label="Connect to Stream", button_type='default', width=250)
 stream_button.on_click(stream_button_callback)
 
-tab_stream = Panel(child=column(stream_button), title="Stream")
+tab_stream = Panel(child=column(image_buffer_slider, stream_button), title="Stream")
 
 
 # HDF5 File panel -------
@@ -641,8 +661,6 @@ def recv_array(socket, flags=0, copy=True, track=False):
     A = np.frombuffer(msg, dtype=md['type'])
     return md, A.reshape(md['shape'])
 
-executor = ThreadPoolExecutor(max_workers=2)
-
 t = 0
 
 
@@ -692,14 +710,14 @@ def update(image, metadata):
     zoom2_agg_x_source.data.update(x=range_1, y=agg_1)
 
     t += 1
-    total_sum_source.stream(new_data=dict(x=[t], y=[np.sum(image, dtype=np.float)]))
+    total_sum_source.stream(new_data=dict(x=[t], y=[np.sum(image, dtype=np.float)]), rollover=STREAM_ROLLOVER)
 
     agg_zoom1 = calc_agg(image, zoom1_image_plot.y_range.start, zoom1_image_plot.y_range.end,
                          zoom1_image_plot.x_range.start, zoom1_image_plot.x_range.end)
     agg_zoom2 = calc_agg(image, zoom2_image_plot.y_range.start, zoom2_image_plot.y_range.end,
                          zoom2_image_plot.x_range.start, zoom2_image_plot.x_range.end)
-    zoom1_sum_source.stream(new_data=dict(x=[t], y=[agg_zoom1]))
-    zoom2_sum_source.stream(new_data=dict(x=[t], y=[agg_zoom2]))
+    zoom1_sum_source.stream(new_data=dict(x=[t], y=[agg_zoom1]), rollover=STREAM_ROLLOVER)
+    zoom2_sum_source.stream(new_data=dict(x=[t], y=[agg_zoom2]), rollover=STREAM_ROLLOVER)
 
     # if zoom_image_red_plot.x_range.end-zoom_image_red_plot.x_range.start < 100:
     #     zoom_image_red_plot
@@ -711,14 +729,25 @@ def update(image, metadata):
     doc.unhold()
 
 
-@gen.coroutine
-@without_document_lock
-def unlocked_task():
-    md, im = yield executor.submit(stream_receive)
-    doc.add_next_tick_callback(partial(update, image=im, metadata=md))
+def internal_periodic_callback():
+    # Set slider to the right-most position
+    if len(buffer) > 1 and stream_button.active:
+        image_buffer_slider.end = len(buffer) - 1
+        image_buffer_slider.value = len(buffer) - 1
+
+    if len(buffer) > 0 and stream_button.active:
+        md, data = buffer[-1]
+        doc.add_next_tick_callback(partial(update, image=data, metadata=md))
+
+doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)
 
 
 def stream_receive():
     # Receive next message.
-    md, data = recv_array(skt)
-    return md, data
+    while True:
+        recv_data = recv_array(skt)
+        buffer.append(recv_data)
+
+
+executor = ThreadPoolExecutor(max_workers=1)
+executor.submit(stream_receive)
