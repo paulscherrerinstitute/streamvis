@@ -49,6 +49,8 @@ MAIN_CANVAS_HEIGHT = 512 + 94
 ZOOM_CANVAS_WIDTH = 1024 + 54
 ZOOM_CANVAS_HEIGHT = 512 + 29
 
+DEBUG_INTENSITY_WIDTH = 1000
+
 APP_FPS = 1
 STREAM_ROLLOVER = 3600
 
@@ -64,6 +66,11 @@ hist_plot_size = 400
 # Initial values
 disp_min = 0
 disp_max = 1000
+
+ZOOM_INIT_WIDTH = 1024
+ZOOM_INIT_HEIGHT = 512
+ZOOM1_INIT_X = ZOOM_INIT_WIDTH * 2
+ZOOM2_INIT_X = ZOOM_INIT_WIDTH * 6
 
 BUFFER_SIZE = 100
 buffer = deque(maxlen=BUFFER_SIZE)
@@ -142,8 +149,10 @@ jscode = """
     source.change.emit();
 """
 
-zoom1_area_source = ColumnDataSource(dict(x=[], y=[], width=[], height=[]))
-zoom2_area_source = ColumnDataSource(dict(x=[], y=[], width=[], height=[]))
+zoom1_area_source = ColumnDataSource(dict(x=[ZOOM1_INIT_X + ZOOM_INIT_WIDTH / 2], y=[ZOOM_INIT_HEIGHT / 2],
+                                          width=[ZOOM_INIT_WIDTH], height=[IMAGE_SIZE_Y]))
+zoom2_area_source = ColumnDataSource(dict(x=[ZOOM2_INIT_X + ZOOM_INIT_WIDTH / 2], y=[ZOOM_INIT_HEIGHT / 2],
+                                          width=[ZOOM_INIT_WIDTH], height=[IMAGE_SIZE_Y]))
 
 zoom1_image_plot.x_range.callback = CustomJS(
     args=dict(source=zoom1_area_source), code=jscode % ('x', 'width'))
@@ -162,7 +171,7 @@ total_sum_plot = Plot(
     x_range=DataRange1d(),
     y_range=DataRange1d(),
     plot_height=agg_plot_size,
-    plot_width=ZOOM_CANVAS_WIDTH,
+    plot_width=DEBUG_INTENSITY_WIDTH,
     toolbar_location='left',
     logo=None,
 )
@@ -185,7 +194,7 @@ zoom1_sum_plot = Plot(
     x_range=DataRange1d(),
     y_range=DataRange1d(),
     plot_height=agg_plot_size,
-    plot_width=ZOOM_CANVAS_WIDTH,
+    plot_width=DEBUG_INTENSITY_WIDTH,
     toolbar_location='left',
     logo=None,
 )
@@ -208,7 +217,7 @@ zoom2_sum_plot = Plot(
     x_range=DataRange1d(),
     y_range=DataRange1d(),
     plot_height=agg_plot_size+10,
-    plot_width=ZOOM_CANVAS_WIDTH,
+    plot_width=DEBUG_INTENSITY_WIDTH,
     toolbar_location='left',
     logo=None,
 )
@@ -275,6 +284,11 @@ main_image_plot.add_glyph(zoom2_area_source, rect_green)
 
 zoom1_image_plot.add_glyph(image_source, default_image)
 zoom2_image_plot.add_glyph(image_source, default_image)
+
+zoom1_image_plot.x_range.start = ZOOM1_INIT_X
+zoom1_image_plot.x_range.end = ZOOM1_INIT_X + ZOOM_INIT_WIDTH
+zoom2_image_plot.x_range.start = ZOOM2_INIT_X
+zoom2_image_plot.x_range.end = ZOOM2_INIT_X + ZOOM_INIT_WIDTH
 
 # Aggregate zoom1 plot along x
 zoom1_plot_agg_x = Plot(
