@@ -1,6 +1,5 @@
 import os
 import numpy as np
-from threading import Thread
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from collections import deque
@@ -12,25 +11,21 @@ from matplotlib.colors import Normalize, LogNorm
 
 from bokeh.io import curdoc
 from bokeh.document import without_document_lock
-from bokeh.layouts import column, row, gridplot, WidgetBox
-from bokeh.transform import linear_cmap
-from bokeh.events import MouseEnter
+from bokeh.layouts import column, row
 from bokeh.models import ColumnDataSource, Slider, Range1d, ColorBar, Spacer, Plot, \
     LinearAxis, DataRange1d, Line, CustomJS, Rect, VBar
 from bokeh.palettes import Inferno256, Magma256, Greys256, Greys8, Viridis256, Plasma256
 from bokeh.models.mappers import LinearColorMapper, LogColorMapper
 from bokeh.models.tools import PanTool, BoxZoomTool, WheelZoomTool, SaveTool, ResetTool
-from bokeh.models.tickers import BasicTicker, AdaptiveTicker
-from bokeh.models.glyphs import Image, ImageRGBA
+from bokeh.models.tickers import BasicTicker
+from bokeh.models.glyphs import ImageRGBA
 from bokeh.models.grids import Grid
 from bokeh.models.formatters import BasicTickFormatter
-from bokeh.models.markers import CircleX
 from bokeh.models.widgets import Button, Toggle, Panel, Tabs, Dropdown, Select, RadioButtonGroup, TextInput, \
     DataTable, TableColumn
 from bokeh.models.annotations import Title
 
-from helpers import lin_convert2_uint8, calc_agg, calc_mean, mx_image_gen, simul_image_gen, \
-    convert_to_rgba, mx_image
+from helpers import calc_agg, calc_mean, mx_image_gen, simul_image_gen, mx_image
 
 import zmq
 
@@ -239,7 +234,7 @@ zoom2_sum_plot.add_glyph(zoom2_sum_source, Line(x='x', y='y', line_color='green'
 shared_pan_tool = PanTool(dimensions='width')
 shared_wheel_zoom_tool = WheelZoomTool(dimensions='width')
 
-main_image_plot.add_tools(shared_pan_tool, shared_wheel_zoom_tool, SaveTool(), ResetTool())
+main_image_plot.add_tools(SaveTool())
 zoom1_image_plot.add_tools(shared_pan_tool, shared_wheel_zoom_tool, SaveTool(), ResetTool())
 zoom2_image_plot.add_tools(shared_pan_tool, shared_wheel_zoom_tool, SaveTool(), ResetTool())
 
@@ -690,7 +685,6 @@ def update(image, metadata):
     image_width = zoom1_image_plot.inner_width
     # print(image_width, image_height)
 
-    # image = image.astype('uint32')
     # pil_im = PIL_Image.fromarray(image)
 
     zoom1_start_0 = zoom1_image_plot.y_range.start
@@ -715,10 +709,6 @@ def update(image, metadata):
         colormap_display_min.value = str(disp_min)
         disp_max = int(np.max(image))
         colormap_display_max.value = str(disp_max)
-        color_lin_norm.vmin = disp_min
-        color_log_norm.vmin = disp_min
-        color_lin_norm.vmax = disp_max
-        color_log_norm.vmax = disp_max
 
     image_source.data.update(image=[color_mapper.to_rgba(image, bytes=True)])
 
@@ -740,9 +730,6 @@ def update(image, metadata):
                          zoom2_image_plot.x_range.start, zoom2_image_plot.x_range.end)
     zoom1_sum_source.stream(new_data=dict(x=[t], y=[agg_zoom1]), rollover=STREAM_ROLLOVER)
     zoom2_sum_source.stream(new_data=dict(x=[t], y=[agg_zoom2]), rollover=STREAM_ROLLOVER)
-
-    # if zoom_image_red_plot.x_range.end-zoom_image_red_plot.x_range.start < 100:
-    #     zoom_image_red_plot
 
     # Unpack metadata
     metadata_table_source.data.update(metadata=list(map(str, metadata.keys())),

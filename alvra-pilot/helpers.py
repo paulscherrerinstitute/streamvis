@@ -75,14 +75,3 @@ def simul_image_gen(sim_im_size_x=4096, sim_im_size_y=4096):
         image[i] = _im
 
     return cycle(image.values())
-
-
-def convert_to_rgba(image, colormap):
-    # TODO: implement!
-    w, h = image.shape
-    image = np.ones((w, h, 4), dtype=np.uint8)*100
-    # view = image.view(dtype=np.uint8).reshape((w, h, 4))
-    # for i in range(w):
-    #     for j in range(h):
-    #         view[i, j, :] = [int(j/w*255), int(i/h*255), colormap, 255]
-    return image
