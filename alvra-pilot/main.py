@@ -7,6 +7,8 @@ from collections import deque
 
 import colorcet as cc
 from PIL import Image as PIL_Image
+from matplotlib.cm import ScalarMappable
+from matplotlib.colors import Normalize, LogNorm
 
 from bokeh.io import curdoc
 from bokeh.document import without_document_lock
@@ -272,10 +274,13 @@ image_source = ColumnDataSource(
     dict(image=[np.array([[0]], dtype='uint32')],
          x=[0], y=[0], dw=[IMAGE_SIZE_X], dh=[IMAGE_SIZE_Y]))
 
-default_image = Image(image='image', x='x', y='y', dw='dw', dh='dh',
-                      color_mapper=LinearColorMapper(palette=Plasma256, low=disp_min, high=disp_max))
+default_image = ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh')
 
 main_image_plot.add_glyph(image_source, default_image)
+
+color_lin_norm = Normalize()
+color_log_norm = LogNorm()
+color_mapper = ScalarMappable(norm=color_lin_norm, cmap='plasma')
 
 rect_red = Rect(x='x', y='y', width='width', height='height', line_color='red', fill_alpha=0)
 rect_green = Rect(x='x', y='y', width='width', height='height', line_color='green', fill_alpha=0)
@@ -580,12 +585,11 @@ def colormap_scale_radiobuttongroup_callback(selection):
     """Callback for colormap_scale_radiobuttongroup change"""
     if selection == 0:  # Linear
         color_bar.color_mapper = LinearColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
-        default_image.color_mapper = LinearColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
+        color_mapper.norm = color_lin_norm
 
     else:  # Logarithmic
         color_bar.color_mapper = LogColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
-        default_image.color_mapper = LogColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
-
+        color_mapper.norm = color_log_norm
 
 colormap_scale_radiobuttongroup = RadioButtonGroup(labels=["Linear", "Logarithmic"], active=0)
 colormap_scale_radiobuttongroup.on_click(colormap_scale_radiobuttongroup_callback)
@@ -598,12 +602,12 @@ def colormap_display_min_callback(attr, old, new):
     if new.lstrip('-+').isdigit() and int(new) < disp_max:
         global disp_min
         disp_min = int(new)
+        color_lin_norm.vmin = disp_min
+        color_log_norm.vmin = disp_min
         if colormap_scale_radiobuttongroup.active == 0:
             color_bar.color_mapper = LinearColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
-            default_image.color_mapper = LinearColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
         else:
             color_bar.color_mapper = LogColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
-            default_image.color_mapper = LogColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
     else:
         colormap_display_min.value = old
 
@@ -612,12 +616,12 @@ def colormap_display_max_callback(attr, old, new):
     if new.lstrip('-+').isdigit() and int(new) > disp_min:
         global disp_max
         disp_max = int(new)
+        color_lin_norm.vmax = disp_max
+        color_log_norm.vmax = disp_max
         if colormap_scale_radiobuttongroup.active == 0:
             color_bar.color_mapper = LinearColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
-            default_image.color_mapper = LinearColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
         else:
             color_bar.color_mapper = LogColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
-            default_image.color_mapper = LogColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
     else:
         colormap_display_max.value = old
 
@@ -711,8 +715,12 @@ def update(image, metadata):
         colormap_display_min.value = str(disp_min)
         disp_max = int(np.max(image))
         colormap_display_max.value = str(disp_max)
+        color_lin_norm.vmin = disp_min
+        color_log_norm.vmin = disp_min
+        color_lin_norm.vmax = disp_max
+        color_log_norm.vmax = disp_max
 
-    image_source.data.update(image=[image])
+    image_source.data.update(image=[color_mapper.to_rgba(image, bytes=True)])
 
     # Mean pixels value graphs
     agg_0, range_0, agg_1, range_1 = calc_mean(image, zoom1_start_0, zoom1_end_0, zoom1_start_1, zoom1_end_1)
