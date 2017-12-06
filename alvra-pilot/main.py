@@ -252,8 +252,10 @@ intensity_stream_reset_button = Button(label="Reset", button_type='default', wid
 intensity_stream_reset_button.on_click(intensity_stream_reset_button_callback)
 
 # Colormap
+lin_colormapper = LinearColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
+log_colormapper = LogColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
 color_bar = ColorBar(
-    color_mapper=LinearColorMapper(palette=Plasma256, low=disp_min, high=disp_max),
+    color_mapper=lin_colormapper,
     location=(0, -5),
     orientation='horizontal',
     height=20,
@@ -275,7 +277,7 @@ main_image_plot.add_glyph(image_source, default_image)
 
 color_lin_norm = Normalize()
 color_log_norm = LogNorm()
-color_mapper = ScalarMappable(norm=color_lin_norm, cmap='plasma')
+image_color_mapper = ScalarMappable(norm=color_lin_norm, cmap='plasma')
 
 rect_red = Rect(x='x', y='y', width='width', height='height', line_color='red', fill_alpha=0)
 rect_green = Rect(x='x', y='y', width='width', height='height', line_color='green', fill_alpha=0)
@@ -579,12 +581,12 @@ colormap_auto_toggle.on_click(colormap_auto_toggle_callback)
 def colormap_scale_radiobuttongroup_callback(selection):
     """Callback for colormap_scale_radiobuttongroup change"""
     if selection == 0:  # Linear
-        color_bar.color_mapper = LinearColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
-        color_mapper.norm = color_lin_norm
+        color_bar.color_mapper = lin_colormapper
+        image_color_mapper.norm = color_lin_norm
 
     else:  # Logarithmic
-        color_bar.color_mapper = LogColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
-        color_mapper.norm = color_log_norm
+        color_bar.color_mapper = log_colormapper
+        image_color_mapper.norm = color_log_norm
 
 colormap_scale_radiobuttongroup = RadioButtonGroup(labels=["Linear", "Logarithmic"], active=0)
 colormap_scale_radiobuttongroup.on_click(colormap_scale_radiobuttongroup_callback)
@@ -599,10 +601,9 @@ def colormap_display_min_callback(attr, old, new):
         disp_min = int(new)
         color_lin_norm.vmin = disp_min
         color_log_norm.vmin = disp_min
-        if colormap_scale_radiobuttongroup.active == 0:
-            color_bar.color_mapper = LinearColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
-        else:
-            color_bar.color_mapper = LogColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
+        lin_colormapper.low = disp_min
+        log_colormapper.low = disp_min
+
     else:
         colormap_display_min.value = old
 
@@ -613,10 +614,9 @@ def colormap_display_max_callback(attr, old, new):
         disp_max = int(new)
         color_lin_norm.vmax = disp_max
         color_log_norm.vmax = disp_max
-        if colormap_scale_radiobuttongroup.active == 0:
-            color_bar.color_mapper = LinearColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
-        else:
-            color_bar.color_mapper = LogColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
+        lin_colormapper.high = disp_max
+        log_colormapper.high = disp_max
+
     else:
         colormap_display_max.value = old
 
@@ -710,7 +710,7 @@ def update(image, metadata):
         disp_max = int(np.max(image))
         colormap_display_max.value = str(disp_max)
 
-    image_source.data.update(image=[color_mapper.to_rgba(image, bytes=True)])
+    image_source.data.update(image=[image_color_mapper.to_rgba(image, bytes=True)])
 
     # Mean pixels value graphs
     agg_0, range_0, agg_1, range_1 = calc_mean(image, zoom1_start_0, zoom1_end_0, zoom1_start_1, zoom1_end_1)
