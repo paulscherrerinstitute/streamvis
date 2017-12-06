@@ -30,6 +30,16 @@ def calc_mean(image, start_0, end_0, start_1, end_1):
     return agg_0, np.arange(start_0, end_0)+0.5, agg_1, np.arange(start_1, end_1)+0.5
 
 
+def calc_hist(image, start_0, end_0, start_1, end_1):
+    im_size_0, im_size_1 = image.shape
+    start_0 = max(int(np.floor(start_0)), 0)
+    end_0 = min(int(np.ceil(end_0)), im_size_0)
+    start_1 = max(int(np.floor(start_1)), 0)
+    end_1 = min(int(np.ceil(end_1)), im_size_1)
+    im_block = image[start_0:end_0, start_1:end_1]
+
+    return np.histogram(im_block, 100)
+
 def calc_agg(image, start_0, end_0, start_1, end_1):
     """ Aggregate image pixel values along both axes """
     im_size_0, im_size_1 = image.shape

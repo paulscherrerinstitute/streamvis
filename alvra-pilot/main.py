@@ -13,7 +13,7 @@ from bokeh.io import curdoc
 from bokeh.document import without_document_lock
 from bokeh.layouts import column, row
 from bokeh.models import ColumnDataSource, Slider, Range1d, ColorBar, Spacer, Plot, \
-    LinearAxis, DataRange1d, Line, CustomJS, Rect, VBar
+    LinearAxis, DataRange1d, Line, CustomJS, Rect, Quad
 from bokeh.palettes import Inferno256, Magma256, Greys256, Viridis256, Plasma256
 from bokeh.models.mappers import LinearColorMapper, LogColorMapper
 from bokeh.models.tools import PanTool, BoxZoomTool, WheelZoomTool, SaveTool, ResetTool
@@ -25,7 +25,7 @@ from bokeh.models.widgets import Button, Toggle, Panel, Tabs, Dropdown, Select, 
     DataTable, TableColumn
 from bokeh.models.annotations import Title
 
-from helpers import calc_agg, calc_mean, mx_image_gen, simul_image_gen, mx_image
+from helpers import calc_agg, calc_mean, mx_image_gen, simul_image_gen, mx_image, calc_hist
 
 import zmq
 
@@ -442,11 +442,11 @@ hist1_plot = Plot(
 )
 
 hist1_plot.add_layout(
-    LinearAxis(formatter=BasicTickFormatter(use_scientific=True)),
-    place='above')
+    LinearAxis(axis_label="Intensity", formatter=BasicTickFormatter(use_scientific=True)),
+    place='below')
 
 hist1_plot.add_layout(
-    LinearAxis(),
+    LinearAxis(axis_label="Counts"),
     place='right')
 
 hist1_plot.add_layout(
@@ -455,9 +455,10 @@ hist1_plot.add_layout(
 hist1_plot.add_layout(
     Grid(dimension=1, ticker=BasicTicker()))
 
-hist1_source = ColumnDataSource(dict(x=[1], top=[1]))
+hist1_source = ColumnDataSource(dict(left=[], right=[], top=[]))
 
-hist1_plot.add_glyph(hist1_source, VBar(x="x", top="top", bottom=0, width=0.5, fill_color="#b3de69"))
+hist1_plot.add_glyph(hist1_source,
+                     Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
 
 hist1_plot.add_tools(PanTool(), WheelZoomTool(), SaveTool(), ResetTool())
 
@@ -472,11 +473,11 @@ hist2_plot = Plot(
 )
 
 hist2_plot.add_layout(
-    LinearAxis(formatter=BasicTickFormatter(use_scientific=True)),
-    place='above')
+    LinearAxis(axis_label="Intensity", formatter=BasicTickFormatter(use_scientific=True)),
+    place='below')
 
 hist2_plot.add_layout(
-    LinearAxis(),
+    LinearAxis(axis_label="Counts"),
     place='right')
 
 hist2_plot.add_layout(
@@ -485,9 +486,10 @@ hist2_plot.add_layout(
 hist2_plot.add_layout(
     Grid(dimension=1, ticker=BasicTicker()))
 
-hist2_source = ColumnDataSource(dict(x=[1], top=[1]))
+hist2_source = ColumnDataSource(dict(left=[], right=[], top=[]))
 
-hist2_plot.add_glyph(hist2_source, VBar(x="x", top="top", bottom=0, width=0.5, fill_color="#b3de69"))
+hist2_plot.add_glyph(hist2_source,
+                     Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
 
 hist2_plot.add_tools(PanTool(), WheelZoomTool(), SaveTool(), ResetTool())
 
@@ -664,11 +666,11 @@ layout_main = column(main_image_plot, colormap_select)
 layout_zoom = row(
     column(zoom1_plot_agg_x,
            row(zoom1_image_plot, zoom1_plot_agg_y),
-           row(Spacer(width=1, height=1), hist1_plot)
+           row(Spacer(width=1, height=1), hist1_plot, Spacer(width=1, height=1))
            ),
     column(zoom2_plot_agg_x,
            row(zoom2_image_plot, zoom2_plot_agg_y),
-           row(Spacer(width=1, height=1), hist2_plot)
+           row(Spacer(width=1, height=1), hist2_plot, Spacer(width=1, height=1))
            )
 )
 
@@ -747,6 +749,11 @@ def update(image, metadata):
                          zoom2_image_plot.x_range.start, zoom2_image_plot.x_range.end)
     zoom1_sum_source.stream(new_data=dict(x=[t], y=[agg_zoom1]), rollover=STREAM_ROLLOVER)
     zoom2_sum_source.stream(new_data=dict(x=[t], y=[agg_zoom2]), rollover=STREAM_ROLLOVER)
+
+    counts1, edges1 = calc_hist(image, zoom1_start_0, zoom1_end_0, zoom1_start_1, zoom1_end_1)
+    counts2, edges2 = calc_hist(image, zoom2_start_0, zoom2_end_0, zoom2_start_1, zoom2_end_1)
+    hist1_source.data.update(left=edges1[:-1], right=edges1[1:], top=counts1)
+    hist2_source.data.update(left=edges2[:-1], right=edges2[1:], top=counts2)
 
     # Unpack metadata
     metadata_table_source.data.update(metadata=list(map(str, metadata.keys())),
