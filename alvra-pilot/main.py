@@ -486,7 +486,7 @@ def image_buffer_slider_callback(attr, old, new):
 image_buffer_slider_source = ColumnDataSource(data=dict(value=[]))
 image_buffer_slider_source.on_change('data', image_buffer_slider_callback)
 
-image_buffer_slider = Slider(start=0-np.finfo(float).eps, end=1, value=0, step=1, title="Buffered Image",
+image_buffer_slider = Slider(start=0, end=1, value=0, step=1, title="Buffered Image",
                              callback_policy='mouseup')
 
 image_buffer_slider.callback = CustomJS(
