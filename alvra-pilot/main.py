@@ -279,8 +279,8 @@ color_lin_norm = Normalize()
 color_log_norm = LogNorm()
 image_color_mapper = ScalarMappable(norm=color_lin_norm, cmap='plasma')
 
-rect_red = Rect(x='x', y='y', width='width', height='height', line_color='red', fill_alpha=0)
-rect_green = Rect(x='x', y='y', width='width', height='height', line_color='green', fill_alpha=0)
+rect_red = Rect(x='x', y='y', width='width', height='height', line_color='red', line_width=2, fill_alpha=0)
+rect_green = Rect(x='x', y='y', width='width', height='height', line_color='green', line_width=2, fill_alpha=0)
 main_image_plot.add_glyph(zoom1_area_source, rect_red)
 main_image_plot.add_glyph(zoom2_area_source, rect_green)
 
