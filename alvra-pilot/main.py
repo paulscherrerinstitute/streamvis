@@ -25,7 +25,7 @@ from bokeh.models.widgets import Button, Toggle, Panel, Tabs, Dropdown, Select, 
     DataTable, TableColumn
 from bokeh.models.annotations import Title
 
-from helpers import calc_agg, calc_mean, mx_image_gen, simul_image_gen, mx_image, calc_hist
+from helpers import calc_stats, mx_image_gen, simul_image_gen, mx_image
 
 import zmq
 
@@ -731,29 +731,23 @@ def update(image, metadata):
 
     image_source.data.update(image=[image_color_mapper.to_rgba(image, bytes=True)])
 
-    # Mean pixels value graphs
-    agg_0, range_0, agg_1, range_1 = calc_mean(image, zoom1_start_0, zoom1_end_0, zoom1_start_1, zoom1_end_1)
-    zoom1_agg_y_source.data.update(x=agg_0, y=range_0)
-    zoom1_agg_x_source.data.update(x=range_1, y=agg_1)
-
-    agg_0, range_0, agg_1, range_1 = calc_mean(image, zoom2_start_0, zoom2_end_0, zoom2_start_1, zoom2_end_1)
-    zoom2_agg_y_source.data.update(x=agg_0, y=range_0)
-    zoom2_agg_x_source.data.update(x=range_1, y=agg_1)
-
     t += 1
+    # Statistics
+    agg0, r0, agg1, r1, counts, edges, tot = \
+        calc_stats(image, zoom1_start_0, zoom1_end_0, zoom1_start_1, zoom1_end_1)
+    zoom1_agg_y_source.data.update(x=agg0, y=r0)
+    zoom1_agg_x_source.data.update(x=r1, y=agg1)
+    zoom1_sum_source.stream(new_data=dict(x=[t], y=[tot]), rollover=STREAM_ROLLOVER)
+    hist1_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
+
+    agg0, r0, agg1, r1, counts, edges, tot = \
+        calc_stats(image, zoom2_start_0, zoom2_end_0, zoom2_start_1, zoom2_end_1)
+    zoom2_agg_y_source.data.update(x=agg0, y=r0)
+    zoom2_agg_x_source.data.update(x=r1, y=agg1)
+    zoom2_sum_source.stream(new_data=dict(x=[t], y=[tot]), rollover=STREAM_ROLLOVER)
+    hist2_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
+
     total_sum_source.stream(new_data=dict(x=[t], y=[np.sum(image, dtype=np.float)]), rollover=STREAM_ROLLOVER)
-
-    agg_zoom1 = calc_agg(image, zoom1_image_plot.y_range.start, zoom1_image_plot.y_range.end,
-                         zoom1_image_plot.x_range.start, zoom1_image_plot.x_range.end)
-    agg_zoom2 = calc_agg(image, zoom2_image_plot.y_range.start, zoom2_image_plot.y_range.end,
-                         zoom2_image_plot.x_range.start, zoom2_image_plot.x_range.end)
-    zoom1_sum_source.stream(new_data=dict(x=[t], y=[agg_zoom1]), rollover=STREAM_ROLLOVER)
-    zoom2_sum_source.stream(new_data=dict(x=[t], y=[agg_zoom2]), rollover=STREAM_ROLLOVER)
-
-    counts1, edges1 = calc_hist(image, zoom1_start_0, zoom1_end_0, zoom1_start_1, zoom1_end_1)
-    counts2, edges2 = calc_hist(image, zoom2_start_0, zoom2_end_0, zoom2_start_1, zoom2_end_1)
-    hist1_source.data.update(left=edges1[:-1], right=edges1[1:], top=counts1)
-    hist2_source.data.update(left=edges2[:-1], right=edges2[1:], top=counts2)
 
     # Unpack metadata
     metadata_table_source.data.update(metadata=list(map(str, metadata.keys())),
