@@ -14,7 +14,7 @@ from bokeh.document import without_document_lock
 from bokeh.layouts import column, row
 from bokeh.models import ColumnDataSource, Slider, Range1d, ColorBar, Spacer, Plot, \
     LinearAxis, DataRange1d, Line, CustomJS, Rect, VBar
-from bokeh.palettes import Inferno256, Magma256, Greys256, Greys8, Viridis256, Plasma256
+from bokeh.palettes import Inferno256, Magma256, Greys256, Viridis256, Plasma256
 from bokeh.models.mappers import LinearColorMapper, LogColorMapper
 from bokeh.models.tools import PanTool, BoxZoomTool, WheelZoomTool, SaveTool, ResetTool
 from bokeh.models.tickers import BasicTicker
@@ -291,6 +291,23 @@ zoom1_image_plot.x_range.start = ZOOM1_INIT_X
 zoom1_image_plot.x_range.end = ZOOM1_INIT_X + ZOOM_INIT_WIDTH
 zoom2_image_plot.x_range.start = ZOOM2_INIT_X
 zoom2_image_plot.x_range.end = ZOOM2_INIT_X + ZOOM_INIT_WIDTH
+
+
+def colormap_select_callback(attr, old, new):
+    image_color_mapper.set_cmap(new)
+    if new == 'gray_r':
+        lin_colormapper.palette = Greys256[::-1]
+        log_colormapper.palette = Greys256[::-1]
+
+    elif new == 'plasma':
+        lin_colormapper.palette = Plasma256
+        log_colormapper.palette = Plasma256
+
+colormap_select = Select(
+    title="Colormap:", value='plasma',
+    options=['gray_r', 'plasma']
+)
+colormap_select.on_change('value', colormap_select_callback)
 
 # Aggregate zoom1 plot along x
 zoom1_plot_agg_x = Plot(
@@ -643,7 +660,7 @@ metadata_table = DataTable(
 )
 
 # Final layout_main -------
-layout_main = column(main_image_plot)
+layout_main = column(main_image_plot, colormap_select)
 layout_zoom = row(
     column(zoom1_plot_agg_x,
            row(zoom1_image_plot, zoom1_plot_agg_y),
