@@ -77,8 +77,8 @@ aggregated_image = np.zeros((IMAGE_SIZE_Y, IMAGE_SIZE_X), dtype=np.float32)
 # Arrange the layout_main
 main_image_plot = Plot(
     title=Title(text="Detector Image"),
-    x_range=Range1d(0, IMAGE_SIZE_X, bounds=(0, IMAGE_SIZE_X)),
-    y_range=Range1d(0, IMAGE_SIZE_Y, bounds=(0, IMAGE_SIZE_Y)),
+    x_range=Range1d(0, IMAGE_SIZE_X),
+    y_range=Range1d(0, IMAGE_SIZE_Y),
     plot_height=MAIN_CANVAS_HEIGHT,
     plot_width=MAIN_CANVAS_WIDTH,
     toolbar_location='left',
@@ -233,10 +233,10 @@ zoom2_sum_plot.add_layout(
 zoom2_sum_plot.add_glyph(zoom2_sum_source, Line(x='x', y='y', line_color='green'))
 
 # Share 'pan' and 'wheel zoom' between plots, but 'save' and 'reset' keep separate
-shared_pan_tool = PanTool(dimensions='width')
-shared_wheel_zoom_tool = WheelZoomTool(dimensions='width')
+shared_pan_tool = PanTool()
+shared_wheel_zoom_tool = WheelZoomTool()
 
-main_image_plot.add_tools(SaveTool())
+main_image_plot.add_tools(shared_pan_tool, shared_wheel_zoom_tool, SaveTool(), ResetTool())
 zoom1_image_plot.add_tools(shared_pan_tool, shared_wheel_zoom_tool, SaveTool(), ResetTool())
 zoom2_image_plot.add_tools(shared_pan_tool, shared_wheel_zoom_tool, SaveTool(), ResetTool())
 
