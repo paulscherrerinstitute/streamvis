@@ -72,6 +72,8 @@ ZOOM2_INIT_X = ZOOM_INIT_WIDTH * 6
 BUFFER_SIZE = 100
 buffer = deque(maxlen=BUFFER_SIZE)
 
+aggregated_image = np.zeros((IMAGE_SIZE_Y, IMAGE_SIZE_X), dtype=np.float32)
+
 # Arrange the layout_main
 main_image_plot = Plot(
     title=Title(text="Detector Image"),
@@ -516,6 +518,19 @@ def threshold_button_callback(state):
 threshold_button = Toggle(label="Apply Thresholding", active=False, button_type='default', width=250)
 threshold_button.on_click(threshold_button_callback)
 
+
+def aggregate_button_callback(state):
+    global aggregated_image
+    if state:
+        aggregated_image = np.zeros((IMAGE_SIZE_Y, IMAGE_SIZE_X), dtype=np.float32)
+        aggregate_button.button_type = 'warning'
+    else:
+        aggregate_button.button_type = 'default'
+
+aggregate_button = Toggle(label="Aggregate", active=False, button_type='default', width=250)
+aggregate_button.on_click(aggregate_button_callback)
+
+
 # Stream panel -------
 def image_buffer_slider_callback(attr, old, new):
     md, image = buffer[round(new['value'][0])]
@@ -689,7 +704,8 @@ layout_zoom = row(
     column(zoom1_plot_agg_x,
            row(zoom1_image_plot, zoom1_plot_agg_y),
            row(Spacer(width=1, height=1), hist1_plot, Spacer(width=1, height=1)),
-           threshold_textinput, threshold_button),
+           row(threshold_button, Spacer(width=30, height=1), aggregate_button),
+           threshold_textinput),
     column(zoom2_plot_agg_x,
            row(zoom2_image_plot, zoom2_plot_agg_y),
            row(Spacer(width=1, height=1), hist2_plot, Spacer(width=1, height=1)),
@@ -720,7 +736,7 @@ t = 0
 
 @gen.coroutine
 def update(image, metadata):
-    global t, disp_min, disp_max
+    global t, disp_min, disp_max, aggregated_image
     doc.hold()
     image_height = zoom1_image_plot.inner_height
     image_width = zoom1_image_plot.inner_width
@@ -748,6 +764,10 @@ def update(image, metadata):
     if threshold_button.active:
         image = image.copy()
         image[image < threshold] = 0
+
+    if aggregate_button.active:
+        aggregated_image += image
+        image = aggregated_image
 
     if colormap_auto_toggle.active:
         disp_min = int(np.min(image))
