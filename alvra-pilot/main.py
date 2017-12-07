@@ -493,6 +493,28 @@ hist2_plot.add_glyph(hist2_source,
 
 hist2_plot.add_tools(PanTool(), WheelZoomTool(), SaveTool(), ResetTool())
 
+# Threshold
+threshold = 0
+def threshold_textinput_callback(attr, old, new):
+    global threshold
+    try:
+        threshold = float(new)
+
+    except ValueError:
+        threshold_textinput.value = old
+
+threshold_textinput = TextInput(title='Threshold:', value=str(0))
+threshold_textinput.on_change('value', threshold_textinput_callback)
+
+
+def threshold_button_callback(state):
+    if state:
+        threshold_button.button_type = 'warning'
+    else:
+        threshold_button.button_type = 'default'
+
+threshold_button = Toggle(label="Apply Thresholding", active=False, button_type='default', width=250)
+threshold_button.on_click(threshold_button_callback)
 
 # Stream panel -------
 def image_buffer_slider_callback(attr, old, new):
@@ -666,11 +688,11 @@ layout_main = column(main_image_plot, colormap_select)
 layout_zoom = row(
     column(zoom1_plot_agg_x,
            row(zoom1_image_plot, zoom1_plot_agg_y),
-           row(Spacer(width=1, height=1), hist1_plot, Spacer(width=1, height=1))
-           ),
+           row(Spacer(width=1, height=1), hist1_plot, Spacer(width=1, height=1)),
+           threshold_textinput, threshold_button),
     column(zoom2_plot_agg_x,
            row(zoom2_image_plot, zoom2_plot_agg_y),
-           row(Spacer(width=1, height=1), hist2_plot, Spacer(width=1, height=1))
+           row(Spacer(width=1, height=1), hist2_plot, Spacer(width=1, height=1)),
            )
 )
 
@@ -722,6 +744,10 @@ def update(image, metadata):
     # print(start_1, start_0, end_1, end_0)
     # image_source.data.update(image=[convert_uint32_uint8(image, disp_min, disp_max)],
     #                          x=[start_1], y=[start_0], dw=[end_1 - start_1], dh=[end_0 - start_0])
+
+    if threshold_button.active:
+        image = image.copy()
+        image[image < threshold] = 0
 
     if colormap_auto_toggle.active:
         disp_min = int(np.min(image))
