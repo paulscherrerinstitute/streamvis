@@ -73,6 +73,7 @@ BUFFER_SIZE = 100
 buffer = deque(maxlen=BUFFER_SIZE)
 
 aggregated_image = np.zeros((IMAGE_SIZE_Y, IMAGE_SIZE_X), dtype=np.float32)
+at = 0
 
 # Arrange the layout_main
 main_image_plot = Plot(
@@ -520,9 +521,10 @@ threshold_button.on_click(threshold_button_callback)
 
 
 def aggregate_button_callback(state):
-    global aggregated_image
+    global aggregated_image, at
     if state:
         aggregated_image = np.zeros((IMAGE_SIZE_Y, IMAGE_SIZE_X), dtype=np.float32)
+        at = 0
         aggregate_button.button_type = 'warning'
     else:
         aggregate_button.button_type = 'default'
@@ -736,7 +738,7 @@ t = 0
 
 @gen.coroutine
 def update(image, metadata):
-    global t, disp_min, disp_max, aggregated_image
+    global t, disp_min, disp_max, aggregated_image, at
     doc.hold()
     image_height = zoom1_image_plot.inner_height
     image_width = zoom1_image_plot.inner_width
@@ -767,7 +769,8 @@ def update(image, metadata):
 
     if aggregate_button.active:
         aggregated_image += image
-        image = aggregated_image
+        at += 1
+        image = aggregated_image / at
 
     if colormap_auto_toggle.active:
         disp_min = int(np.min(image))
