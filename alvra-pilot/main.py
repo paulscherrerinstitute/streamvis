@@ -655,28 +655,36 @@ colormap_dropdown = Dropdown(label='Mono', button_type='primary', menu=colormaps
 
 
 def colormap_display_min_callback(attr, old, new):
-    if new.lstrip('-+').isdigit() and int(new) < disp_max:
-        global disp_min
-        disp_min = int(new)
-        color_lin_norm.vmin = disp_min
-        color_log_norm.vmin = disp_min
-        lin_colormapper.low = disp_min
-        log_colormapper.low = disp_min
+    global disp_min
+    try:
+        new_value = float(new)
+        if new_value < disp_max:
+            disp_min = new_value
+            color_lin_norm.vmin = disp_min
+            color_log_norm.vmin = disp_min
+            lin_colormapper.low = disp_min
+            log_colormapper.low = disp_min
+        else:
+            colormap_display_min.value = old
 
-    else:
+    except ValueError:
         colormap_display_min.value = old
 
 
 def colormap_display_max_callback(attr, old, new):
-    if new.lstrip('-+').isdigit() and int(new) > disp_min:
-        global disp_max
-        disp_max = int(new)
-        color_lin_norm.vmax = disp_max
-        color_log_norm.vmax = disp_max
-        lin_colormapper.high = disp_max
-        log_colormapper.high = disp_max
+    global disp_max
+    try:
+        new_value = float(new)
+        if new_value > disp_min:
+            disp_max = new_value
+            color_lin_norm.vmax = disp_max
+            color_log_norm.vmax = disp_max
+            lin_colormapper.high = disp_max
+            log_colormapper.high = disp_max
+        else:
+            colormap_display_max.value = old
 
-    else:
+    except ValueError:
         colormap_display_max.value = old
 
 
