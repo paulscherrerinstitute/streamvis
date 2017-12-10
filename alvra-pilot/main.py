@@ -464,7 +464,7 @@ hist1_source = ColumnDataSource(dict(left=[], right=[], top=[]))
 hist1_plot.add_glyph(hist1_source,
                      Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
 
-hist1_plot.add_tools(PanTool(), WheelZoomTool(), SaveTool(), ResetTool())
+hist1_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool())
 
 # Histogram zoom2
 hist2_plot = Plot(
@@ -495,7 +495,7 @@ hist2_source = ColumnDataSource(dict(left=[], right=[], top=[]))
 hist2_plot.add_glyph(hist2_source,
                      Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
 
-hist2_plot.add_tools(PanTool(), WheelZoomTool(), SaveTool(), ResetTool())
+hist2_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool())
 
 # Threshold
 threshold = 0
@@ -530,7 +530,7 @@ def aggregate_button_callback(state):
     else:
         aggregate_button.button_type = 'default'
 
-aggregate_button = Toggle(label="Aggregate", active=False, button_type='default', width=250)
+aggregate_button = Toggle(label="Average Aggregate", active=False, button_type='default', width=250)
 aggregate_button.on_click(aggregate_button_callback)
 
 
@@ -650,9 +650,6 @@ def colormap_scale_radiobuttongroup_callback(selection):
 colormap_scale_radiobuttongroup = RadioButtonGroup(labels=["Linear", "Logarithmic"], active=0)
 colormap_scale_radiobuttongroup.on_click(colormap_scale_radiobuttongroup_callback)
 
-colormaps = [("Mono", 'mono'), ("Composite", 'composite')]
-colormap_dropdown = Dropdown(label='Mono', button_type='primary', menu=colormaps)
-
 
 def colormap_display_min_callback(attr, old, new):
     global disp_min
@@ -703,7 +700,7 @@ metadata_table_source = ColumnDataSource(dict(metadata=['', '', ''], value=['', 
 metadata_table = DataTable(
     source=metadata_table_source,
     columns=[TableColumn(field='metadata', title="Metadata Name"), TableColumn(field='value', title="Value")],
-    width=350,
+    width=500,
     height=400,
     row_headers=False,
     selectable=False,
@@ -726,10 +723,12 @@ layout_zoom = row(
 layout_intensities = column(gridplot([total_sum_plot, zoom1_sum_plot, zoom2_sum_plot],
                                      ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
                             intensity_stream_reset_button)
-layout_controls = row(column(colormap_panel, Spacer(width=1, height=30), data_source_tabs), metadata_table)
+layout_controls = row(column(colormap_panel, data_source_tabs),
+                      Spacer(width=30, height=1), metadata_table)
 doc.add_root(
     column(layout_main, Spacer(width=1, height=1),
-           row(layout_zoom, Spacer(width=1, height=1), column(layout_intensities, layout_controls))))
+           row(layout_zoom, Spacer(width=1, height=1),
+               column(layout_intensities, Spacer(width=1, height=10), layout_controls))))
 
 ctx = zmq.Context()
 skt = ctx.socket(zmq.SUB)
