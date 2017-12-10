@@ -21,8 +21,10 @@ def calc_stats(image, start_0, end_0, start_1, end_1):
     end_0 = min(int(np.ceil(end_0)), im_size_0)
     start_1 = max(int(np.floor(start_1)), 0)
     end_1 = min(int(np.ceil(end_1)), im_size_1)
-    im_block = image[start_0:end_0, start_1:end_1]
+    if start_0 > end_0 or start_1 > end_1:
+        return [0], [0], [0], [0], [0], [0, 1], 0
 
+    im_block = image[start_0:end_0, start_1:end_1]
     agg_1 = np.mean(im_block, axis=0)
     agg_0 = np.mean(im_block, axis=1)
     r0 = np.arange(start_0, end_0)+0.5
