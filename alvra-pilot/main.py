@@ -11,7 +11,7 @@ from matplotlib.colors import Normalize, LogNorm
 
 from bokeh.io import curdoc
 from bokeh.document import without_document_lock
-from bokeh.layouts import column, row
+from bokeh.layouts import column, row, gridplot
 from bokeh.models import ColumnDataSource, Slider, Range1d, ColorBar, Spacer, Plot, \
     LinearAxis, DataRange1d, Line, CustomJS, Rect, Quad
 from bokeh.palettes import Inferno256, Magma256, Greys256, Viridis256, Plasma256
@@ -164,16 +164,15 @@ zoom2_image_plot.x_range.callback = CustomJS(
 zoom2_image_plot.y_range.callback = CustomJS(
     args=dict(source=zoom2_area_source), code=jscode % ('y', 'height'))
 
+gridplot_shared_range = DataRange1d()
 total_sum_source = ColumnDataSource(dict(x=[], y=[]))
 
 total_sum_plot = Plot(
     title=Title(text="Total Image Intensity"),
-    x_range=DataRange1d(),
+    x_range=gridplot_shared_range,
     y_range=DataRange1d(),
     plot_height=agg_plot_size,
     plot_width=DEBUG_INTENSITY_WIDTH,
-    toolbar_location='left',
-    logo=None,
 )
 
 total_sum_plot.add_layout(LinearAxis(axis_label="Total intensity"), place='left')
@@ -187,16 +186,16 @@ total_sum_plot.add_layout(
 
 total_sum_plot.add_glyph(total_sum_source, Line(x='x', y='y'))
 
+total_sum_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool())
+
 zoom1_sum_source = ColumnDataSource(dict(x=[], y=[]))
 
 zoom1_sum_plot = Plot(
     title=Title(text="Zoom Area 1 Total Intensity"),
-    x_range=DataRange1d(),
+    x_range=gridplot_shared_range,
     y_range=DataRange1d(),
     plot_height=agg_plot_size,
     plot_width=DEBUG_INTENSITY_WIDTH,
-    toolbar_location='left',
-    logo=None,
 )
 
 zoom1_sum_plot.add_layout(LinearAxis(axis_label="Intensity"), place='left')
@@ -210,16 +209,16 @@ zoom1_sum_plot.add_layout(
 
 zoom1_sum_plot.add_glyph(zoom1_sum_source, Line(x='x', y='y', line_color='red'))
 
+zoom1_sum_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool())
+
 zoom2_sum_source = ColumnDataSource(dict(x=[], y=[]))
 
 zoom2_sum_plot = Plot(
     title=Title(text="Zoom Area 2 Total Intensity"),
-    x_range=DataRange1d(),
+    x_range=gridplot_shared_range,
     y_range=DataRange1d(),
     plot_height=agg_plot_size+10,
     plot_width=DEBUG_INTENSITY_WIDTH,
-    toolbar_location='left',
-    logo=None,
 )
 
 zoom2_sum_plot.add_layout(LinearAxis(axis_label="Intensity"), place='left')
@@ -232,6 +231,8 @@ zoom2_sum_plot.add_layout(
     Grid(dimension=1, ticker=BasicTicker()))
 
 zoom2_sum_plot.add_glyph(zoom2_sum_source, Line(x='x', y='y', line_color='green'))
+
+zoom2_sum_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool())
 
 # Share 'pan' and 'wheel zoom' between plots, but 'save' and 'reset' keep separate
 shared_pan_tool = PanTool()
@@ -714,7 +715,9 @@ layout_zoom = row(
            )
 )
 
-layout_intensities = column(total_sum_plot, zoom1_sum_plot, zoom2_sum_plot, intensity_stream_reset_button)
+layout_intensities = column(gridplot([total_sum_plot, zoom1_sum_plot, zoom2_sum_plot],
+                                     ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
+                            intensity_stream_reset_button)
 layout_controls = row(column(colormap_panel, Spacer(width=1, height=30), data_source_tabs), metadata_table)
 doc.add_root(
     column(layout_main, Spacer(width=1, height=1),
