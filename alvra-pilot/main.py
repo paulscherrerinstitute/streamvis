@@ -644,8 +644,11 @@ def colormap_scale_radiobuttongroup_callback(selection):
         image_color_mapper.norm = color_lin_norm
 
     else:  # Logarithmic
-        color_bar.color_mapper = log_colormapper
-        image_color_mapper.norm = color_log_norm
+        if disp_min > 0:
+            color_bar.color_mapper = log_colormapper
+            image_color_mapper.norm = color_log_norm
+        else:
+            colormap_scale_radiobuttongroup.active = 0
 
 colormap_scale_radiobuttongroup = RadioButtonGroup(labels=["Linear", "Logarithmic"], active=0)
 colormap_scale_radiobuttongroup.on_click(colormap_scale_radiobuttongroup_callback)
@@ -656,6 +659,8 @@ def colormap_display_min_callback(attr, old, new):
     try:
         new_value = float(new)
         if new_value < disp_max:
+            if new_value <= 0:
+                colormap_scale_radiobuttongroup.active = 0
             disp_min = new_value
             color_lin_norm.vmin = disp_min
             color_log_norm.vmin = disp_min
@@ -673,6 +678,8 @@ def colormap_display_max_callback(attr, old, new):
     try:
         new_value = float(new)
         if new_value > disp_min:
+            if new_value <= 0:
+                colormap_scale_radiobuttongroup.active = 0
             disp_max = new_value
             color_lin_norm.vmax = disp_max
             color_log_norm.vmax = disp_max
@@ -784,6 +791,8 @@ def update(image, metadata):
 
     if colormap_auto_toggle.active:
         disp_min = int(np.min(image))
+        if disp_min <= 0:  # switch to linear colormap
+            colormap_scale_radiobuttongroup.active = 0
         colormap_display_min.value = str(disp_min)
         disp_max = int(np.max(image))
         colormap_display_max.value = str(disp_max)
