@@ -782,7 +782,10 @@ def update(image, metadata):
 
     if threshold_button.active:
         image = image.copy()
-        image[image < threshold] = 0
+        ind = image < threshold
+        image[ind] = 0
+    else:
+        ind = None
 
     if aggregate_button.active:
         aggregated_image += image
@@ -802,14 +805,14 @@ def update(image, metadata):
     t += 1
     # Statistics
     agg0, r0, agg1, r1, counts, edges, tot = \
-        calc_stats(image, zoom1_start_0, zoom1_end_0, zoom1_start_1, zoom1_end_1)
+        calc_stats(image, zoom1_start_0, zoom1_end_0, zoom1_start_1, zoom1_end_1, ind)
     zoom1_agg_y_source.data.update(x=agg0, y=r0)
     zoom1_agg_x_source.data.update(x=r1, y=agg1)
     zoom1_sum_source.stream(new_data=dict(x=[t], y=[tot]), rollover=STREAM_ROLLOVER)
     hist1_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
 
     agg0, r0, agg1, r1, counts, edges, tot = \
-        calc_stats(image, zoom2_start_0, zoom2_end_0, zoom2_start_1, zoom2_end_1)
+        calc_stats(image, zoom2_start_0, zoom2_end_0, zoom2_start_1, zoom2_end_1, ind)
     zoom2_agg_y_source.data.update(x=agg0, y=r0)
     zoom2_agg_x_source.data.update(x=r1, y=agg1)
     zoom2_sum_source.stream(new_data=dict(x=[t], y=[tot]), rollover=STREAM_ROLLOVER)

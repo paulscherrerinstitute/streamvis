@@ -14,7 +14,7 @@ def lin_convert2_uint8(image, display_min, display_max):
     return image.astype(np.uint8)
 
 
-def calc_stats(image, start_0, end_0, start_1, end_1):
+def calc_stats(image, start_0, end_0, start_1, end_1, ind):
     """ Aggregate image pixel values along both axes """
     im_size_0, im_size_1 = image.shape
     start_0 = max(int(np.floor(start_0)), 0)
@@ -25,11 +25,17 @@ def calc_stats(image, start_0, end_0, start_1, end_1):
         return [0], [0], [0], [0], [0], [0, 1], 0
 
     im_block = image[start_0:end_0, start_1:end_1]
+
     agg_1 = np.mean(im_block, axis=0)
     agg_0 = np.mean(im_block, axis=1)
     r0 = np.arange(start_0, end_0)+0.5
     r1 = np.arange(start_1, end_1)+0.5
-    counts, edges = np.histogram(im_block, 100)
+
+    if ind is None:
+        counts, edges = np.histogram(im_block, 100)
+    else:
+        counts, edges = np.histogram(im_block[~ind[start_0:end_0, start_1:end_1]], 100)
+
     total_sum = np.sum(im_block)
 
     return agg_0, r0, agg_1, r1, counts, edges, total_sum
