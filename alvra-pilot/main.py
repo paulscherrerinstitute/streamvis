@@ -780,17 +780,16 @@ def update(image, metadata):
     # image_source.data.update(image=[convert_uint32_uint8(image, disp_min, disp_max)],
     #                          x=[start_1], y=[start_0], dw=[end_1 - start_1], dh=[end_0 - start_0])
 
-    if threshold_button.active:
+    if threshold_button.active and (not aggregate_button.active):
         image = image.copy()
         ind = image < threshold
         image[ind] = 0
     else:
         ind = None
 
-    if aggregate_button.active:
-        aggregated_image += image
-        at += 1
+    if aggregate_button.active and at != 0:
         image = aggregated_image / at
+        ind = None
 
     if colormap_auto_toggle.active:
         disp_min = int(np.min(image))
@@ -842,10 +841,19 @@ doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)
 
 def stream_receive():
     # Receive next message.
+    global aggregated_image, at
     while True:
         recv_data = recv_array(skt)
         buffer.append(recv_data)
 
+        if aggregate_button.active:
+            _, image = recv_data
+            if threshold_button.active:
+                image = image.copy()
+                image[image < threshold] = 0
+
+            aggregated_image += image
+            at += 1
 
 executor = ThreadPoolExecutor(max_workers=1)
 executor.submit(stream_receive)
