@@ -708,10 +708,12 @@ metadata_table = DataTable(
     source=metadata_table_source,
     columns=[TableColumn(field='metadata', title="Metadata Name"), TableColumn(field='value', title="Value")],
     width=500,
-    height=400,
+    height=378,
     row_headers=False,
     selectable=False,
 )
+
+metadata_issues_dropdown = Dropdown(label="Metadata Issues", button_type='default', menu=[], width=250)
 
 # Final layout_main -------
 layout_main = column(main_image_plot, colormap_select)
@@ -731,7 +733,8 @@ layout_intensities = column(gridplot([total_sum_plot, zoom1_sum_plot, zoom2_sum_
                                      ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
                             intensity_stream_reset_button)
 layout_controls = row(column(colormap_panel, data_source_tabs),
-                      Spacer(width=30, height=1), metadata_table)
+                      Spacer(width=30, height=1),
+                      column(metadata_table, row(Spacer(width=250, height=1), metadata_issues_dropdown)))
 doc.add_root(
     column(layout_main, Spacer(width=1, height=1),
            row(layout_zoom, Spacer(width=1, height=1),
@@ -822,6 +825,30 @@ def update(image, metadata):
     # Unpack metadata
     metadata_table_source.data.update(metadata=list(map(str, metadata.keys())),
                                       value=list(map(str, metadata.values())))
+
+    # Check metadata for issues
+    new_menu = []
+    if 'pulse_id_diff' in metadata.keys():
+        if any(metadata['pulse_id_diff']):
+            new_menu.append(('Not all pulse_id_diff are 0', '1'))
+
+    if 'missing_packets_1' in metadata.keys():
+        if any(metadata['missing_packets_1']):
+            new_menu.append(('There are missing packets 1', '2'))
+
+    if 'missing_packets_2' in metadata.keys():
+        if any(metadata['missing_packets_2']):
+            new_menu.append(('There are missing packets 2', '3'))
+
+    if 'is_good_frame' in metadata.keys():
+        if not metadata['is_good_frame']:
+            new_menu.append(('Frame is not good', '4'))
+
+    metadata_issues_dropdown.menu = new_menu
+    if new_menu:
+        metadata_issues_dropdown.button_type = 'danger'
+    else:
+        metadata_issues_dropdown.button_type = 'default'
 
     doc.unhold()
 
