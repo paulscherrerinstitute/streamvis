@@ -36,8 +36,8 @@ doc.title = "JF 4.5M ImageVis"
 
 DETECTOR_SERVER_ADDRESS = "tcp://127.0.0.1:9001"
 
-IMAGE_SIZE_X = 9216
-IMAGE_SIZE_Y = 512
+IMAGE_SIZE_X = 9216 + (9 - 1) * 6 + 2 * 3 * 9
+IMAGE_SIZE_Y = 514
 
 # Currently in bokeh it's possible to control only a canvas size, but not a size of the plotting area.
 MAIN_CANVAS_WIDTH = 3500 + 54
