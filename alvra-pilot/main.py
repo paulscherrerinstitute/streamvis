@@ -41,10 +41,10 @@ IMAGE_SIZE_Y = 514
 
 # Currently in bokeh it's possible to control only a canvas size, but not a size of the plotting area.
 MAIN_CANVAS_WIDTH = 3500 + 54
-MAIN_CANVAS_HEIGHT = 512 + 94
+MAIN_CANVAS_HEIGHT = 514 + 94
 
-ZOOM_CANVAS_WIDTH = 1024 + 54
-ZOOM_CANVAS_HEIGHT = 512 + 29
+ZOOM_CANVAS_WIDTH = 1030 + 54
+ZOOM_CANVAS_HEIGHT = 514 + 29
 
 DEBUG_INTENSITY_WIDTH = 1000
 
@@ -64,10 +64,10 @@ hist_plot_size = 400
 disp_min = 0
 disp_max = 1000
 
-ZOOM_INIT_WIDTH = 1024
-ZOOM_INIT_HEIGHT = 512
-ZOOM1_INIT_X = ZOOM_INIT_WIDTH * 2
-ZOOM2_INIT_X = ZOOM_INIT_WIDTH * 6
+ZOOM_INIT_WIDTH = 1030
+ZOOM_INIT_HEIGHT = 514
+ZOOM1_INIT_X = (ZOOM_INIT_WIDTH + 6) * 2
+ZOOM2_INIT_X = (ZOOM_INIT_WIDTH + 6) * 6
 
 BUFFER_SIZE = 100
 buffer = deque(maxlen=BUFFER_SIZE)
@@ -760,8 +760,8 @@ t = 0
 def update(image, metadata):
     global t, disp_min, disp_max, aggregated_image, at
     doc.hold()
-    image_height = zoom1_image_plot.inner_height
-    image_width = zoom1_image_plot.inner_width
+    # image_height = zoom1_image_plot.inner_height
+    # image_width = zoom1_image_plot.inner_width
     # print(image_width, image_height)
 
     # pil_im = PIL_Image.fromarray(image)
