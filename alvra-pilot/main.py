@@ -533,6 +533,21 @@ def aggregate_button_callback(state):
 aggregate_button = Toggle(label="Average Aggregate", active=False, button_type='default', width=250)
 aggregate_button.on_click(aggregate_button_callback)
 
+aggregate_time = np.Inf
+def aggregate_time_textinput_callback(attr, old, new):
+    global aggregate_time
+    try:
+        new_value = float(new)
+        if new_value >= 1:
+            aggregate_time = new_value
+        else:
+            aggregate_time_textinput.value = old
+
+    except ValueError:
+        aggregate_time_textinput.value = old
+
+aggregate_time_textinput = TextInput(title='Average Aggregate Time:', value=str(np.Inf))
+aggregate_time_textinput.on_change('value', aggregate_time_textinput_callback)
 
 # Stream panel -------
 def image_buffer_slider_callback(attr, old, new):
@@ -721,8 +736,9 @@ layout_zoom = row(
     column(zoom1_plot_agg_x,
            row(zoom1_image_plot, zoom1_plot_agg_y),
            row(Spacer(width=1, height=1), hist1_plot, Spacer(width=1, height=1)),
-           row(threshold_button, Spacer(width=30, height=1), aggregate_button),
-           threshold_textinput),
+           row(column(threshold_button, threshold_textinput),
+               column(aggregate_button, aggregate_time_textinput)),
+           ),
     column(zoom2_plot_agg_x,
            row(zoom2_image_plot, zoom2_plot_agg_y),
            row(Spacer(width=1, height=1), hist2_plot, Spacer(width=1, height=1)),
@@ -878,6 +894,10 @@ def stream_receive():
             if threshold_button.active:
                 image = image.copy()
                 image[image < threshold] = 0
+
+            if at >= aggregate_time:
+                aggregated_image = np.zeros((IMAGE_SIZE_Y, IMAGE_SIZE_X), dtype=np.float32)
+                at = 0
 
             aggregated_image += image
             at += 1
