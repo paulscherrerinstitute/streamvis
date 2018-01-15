@@ -1,0 +1,27 @@
+{% set data = load_setup_py_data() %}
+
+package:
+  name: streamvis
+  version: {{ data['version'] }}
+
+source:
+  path: ..
+
+build:
+  entry_points:
+    - streamvis = streamvis.streamvis:main
+
+requirements:
+  build:
+    - python
+    - setuptools
+  run:
+    - python
+    - bokeh
+    - pyzmq
+    - matplotlib
+    - h5py
+
+about:
+  home: https://git.psi.ch/usov_i/streamvis
+  summary: {{ data['description'] }}
