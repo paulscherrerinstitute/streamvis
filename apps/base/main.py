@@ -2,6 +2,7 @@ import os
 from functools import partial
 
 import numpy as np
+from bokeh import events
 from bokeh.io import curdoc
 from bokeh.layouts import column, row, gridplot
 from bokeh.models import ColumnDataSource, Slider, Range1d, ColorBar, Spacer, Plot, \
@@ -26,8 +27,9 @@ import receiver
 doc = curdoc()
 doc.title = "JF StreamVis"
 
-IMAGE_SIZE_X = 1536
-IMAGE_SIZE_Y = 1024
+# initial image size to organize placeholders for actual data
+image_size_x = 1024
+image_size_y = 1024
 
 # Currently in bokeh it's possible to control only a canvas size, but not a size of the plotting area.
 MAIN_CANVAS_WIDTH = 1500 + 54
@@ -53,14 +55,14 @@ disp_min = 0
 disp_max = 1000
 
 ZOOM_INIT_WIDTH = 1030
-ZOOM_INIT_HEIGHT = IMAGE_SIZE_Y
+ZOOM_INIT_HEIGHT = image_size_y
 ZOOM1_INIT_X = (ZOOM_INIT_WIDTH + 6) * 0
 
 # Arrange the layout_main
 main_image_plot = Plot(
     title=Title(text="Detector Image"),
-    x_range=Range1d(0, IMAGE_SIZE_X),
-    y_range=Range1d(0, IMAGE_SIZE_Y),
+    x_range=Range1d(0, image_size_x),
+    y_range=Range1d(0, image_size_y),
     plot_height=MAIN_CANVAS_HEIGHT,
     plot_width=MAIN_CANVAS_WIDTH,
     toolbar_location='left',
@@ -76,8 +78,8 @@ main_image_plot.add_layout(
     place='right')
 
 zoom1_image_plot = Plot(
-    x_range=Range1d(0, IMAGE_SIZE_X),
-    y_range=Range1d(0, IMAGE_SIZE_Y),
+    x_range=Range1d(0, image_size_x),
+    y_range=Range1d(0, image_size_y),
     plot_height=ZOOM_CANVAS_HEIGHT,
     plot_width=ZOOM_CANVAS_WIDTH,
     toolbar_location='left',
@@ -108,7 +110,7 @@ jscode = """
 """
 
 zoom1_area_source = ColumnDataSource(dict(x=[ZOOM1_INIT_X + ZOOM_INIT_WIDTH / 2], y=[ZOOM_INIT_HEIGHT / 2],
-                                          width=[ZOOM_INIT_WIDTH], height=[IMAGE_SIZE_Y]))
+                                          width=[ZOOM_INIT_WIDTH], height=[image_size_y]))
 
 zoom1_image_plot.x_range.callback = CustomJS(
     args=dict(source=zoom1_area_source), code=jscode % ('x', 'width'))
@@ -199,11 +201,30 @@ main_image_plot.add_layout(
 
 image_source = ColumnDataSource(
     dict(image=[np.array([[0]], dtype='uint32')],
-         x=[0], y=[0], dw=[IMAGE_SIZE_X], dh=[IMAGE_SIZE_Y]))
+         x=[0], y=[0], dw=[image_size_x], dh=[image_size_y]))
 
 default_image = ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh')
 
 main_image_plot.add_glyph(image_source, default_image)
+
+js_reset_code = """
+    // reset to the current image size area, instead of a default reset to the initial plot ranges
+    source.x_range.start = 0;
+    source.x_range.end = image_source.data.dw[0];
+    source.y_range.start = 0;
+    source.y_range.end = image_source.data.dh[0];
+    source.change.emit();
+"""
+
+main_image_plot.js_on_event(
+    events.Reset,
+    CustomJS(args=dict(source=main_image_plot, image_source=image_source), code=js_reset_code)
+)
+
+zoom1_image_plot.js_on_event(
+    events.Reset,
+    CustomJS(args=dict(source=zoom1_image_plot, image_source=image_source), code=js_reset_code)
+)
 
 color_lin_norm = Normalize()
 color_log_norm = LogNorm()
@@ -260,8 +281,8 @@ zoom1_plot_agg_x.add_layout(
     Grid(dimension=1, ticker=BasicTicker()))
 
 zoom1_agg_x_source = ColumnDataSource(
-    dict(x=np.arange(IMAGE_SIZE_X) + 0.5,  # shift to a pixel center
-         y=np.zeros(IMAGE_SIZE_X))
+    dict(x=np.arange(image_size_x) + 0.5,  # shift to a pixel center
+         y=np.zeros(image_size_x))
 )
 zoom1_plot_agg_x.add_glyph(zoom1_agg_x_source, Line(x='x', y='y', line_color='steelblue'))
 
@@ -289,8 +310,8 @@ zoom1_plot_agg_y.add_layout(
     Grid(dimension=1, ticker=BasicTicker()))
 
 zoom1_agg_y_source = ColumnDataSource(
-    dict(x=np.zeros(IMAGE_SIZE_Y),
-         y=np.arange(IMAGE_SIZE_Y) + 0.5)  # shift to a pixel center
+    dict(x=np.zeros(image_size_y),
+         y=np.arange(image_size_y) + 0.5)  # shift to a pixel center
 )
 
 zoom1_plot_agg_y.add_glyph(zoom1_agg_y_source, Line(x='x', y='y', line_color='steelblue'))
@@ -535,7 +556,7 @@ t = 0
 
 @gen.coroutine
 def update(image, metadata):
-    global t, disp_min, disp_max, aggregated_image, at
+    global t, disp_min, disp_max, aggregated_image, at, image_size_x, image_size_y
     doc.hold()
     # image_height = zoom1_image_plot.inner_height
     # image_width = zoom1_image_plot.inner_width
@@ -563,7 +584,23 @@ def update(image, metadata):
         disp_max = int(np.max(image))
         colormap_display_max.value = str(disp_max)
 
-    image_source.data.update(image=[image_color_mapper.to_rgba(image, bytes=True)])
+    if metadata['shape'] == [image_size_y, image_size_x]:
+        image_source.data.update(image=[image_color_mapper.to_rgba(image, bytes=True)])
+
+    else:
+        image_size_y = metadata['shape'][0]
+        image_size_x = metadata['shape'][1]
+        main_image_plot.y_range.start = 0
+        main_image_plot.x_range.start = 0
+        main_image_plot.y_range.end = image_size_y
+        main_image_plot.x_range.end = image_size_x
+        zoom1_image_plot.y_range.start = 0
+        zoom1_image_plot.x_range.start = 0
+        zoom1_image_plot.y_range.end = image_size_y
+        zoom1_image_plot.x_range.end = image_size_x
+
+        image_source.data.update(image=[image_color_mapper.to_rgba(image, bytes=True)],
+                                 dw=[image_size_x], dh=[image_size_y])
 
     t += 1
     # Statistics
