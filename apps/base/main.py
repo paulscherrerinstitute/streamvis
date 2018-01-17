@@ -168,9 +168,8 @@ zoom1_image_plot.x_range.callback = CustomJS(
 zoom1_image_plot.y_range.callback = CustomJS(
     args=dict(source=zoom1_area_source), code=jscode_move_rect % ('y', 'height'))
 
-total_sum_source = ColumnDataSource(dict(x=[], y=[]))
-
-total_sum_plot = Plot(
+# Total intensity plot
+total_intensity_plot = Plot(
     title=Title(text="Total Image Intensity"),
     x_range=DataRange1d(),
     y_range=DataRange1d(),
@@ -178,47 +177,56 @@ total_sum_plot = Plot(
     plot_width=DEBUG_INTENSITY_WIDTH,
 )
 
-total_sum_plot.add_layout(LinearAxis(axis_label="Total intensity"), place='left')
-total_sum_plot.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='below')
+# ---- tools
+total_intensity_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool())
 
-total_sum_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-total_sum_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
+# ---- axes
+total_intensity_plot.add_layout(LinearAxis(axis_label="Total intensity"), place='left')
+total_intensity_plot.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='below')
 
-total_sum_plot.add_glyph(total_sum_source, Line(x='x', y='y'))
+# ---- grid lines
+total_intensity_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
+total_intensity_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
-total_sum_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool())
+# ---- line glyph
+total_sum_source = ColumnDataSource(dict(x=[], y=[]))
+total_intensity_plot.add_glyph(total_sum_source, Line(x='x', y='y'))
 
-zoom1_sum_source = ColumnDataSource(dict(x=[], y=[]))
-
-zoom1_sum_plot = Plot(
+# Zoom1 intensity plot
+zoom1_intensity_plot = Plot(
     title=Title(text="Zoom Area 1 Total Intensity"),
-    x_range=total_sum_plot.x_range,
+    x_range=total_intensity_plot.x_range,
     y_range=DataRange1d(),
     plot_height=agg_plot_size,
     plot_width=DEBUG_INTENSITY_WIDTH,
 )
 
-zoom1_sum_plot.add_layout(LinearAxis(axis_label="Intensity"), place='left')
-zoom1_sum_plot.add_layout(LinearAxis(), place='below')
+# ---- tools
+zoom1_intensity_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool())
 
-zoom1_sum_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-zoom1_sum_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
+# ---- axes
+zoom1_intensity_plot.add_layout(LinearAxis(axis_label="Intensity"), place='left')
+zoom1_intensity_plot.add_layout(LinearAxis(), place='below')
 
-zoom1_sum_plot.add_glyph(zoom1_sum_source, Line(x='x', y='y', line_color='red'))
+# ---- grid lines
+zoom1_intensity_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
+zoom1_intensity_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
-zoom1_sum_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool())
+# ---- line glyph
+zoom1_sum_source = ColumnDataSource(dict(x=[], y=[]))
+zoom1_intensity_plot.add_glyph(zoom1_sum_source, Line(x='x', y='y', line_color='red'))
 
 
 # Intensity stream reset button
 def intensity_stream_reset_button_callback():
     global stream_t
-    # Keep the latest point in order to prevent full axis reset
-    stream_t = 1
+    stream_t = 1  # keep the latest point in order to prevent full axis reset
     total_sum_source.data.update(x=[1], y=[total_sum_source.data['y'][-1]])
     zoom1_sum_source.data.update(x=[1], y=[zoom1_sum_source.data['y'][-1]])
 
 intensity_stream_reset_button = Button(label="Reset", button_type='default', width=250)
 intensity_stream_reset_button.on_click(intensity_stream_reset_button_callback)
+
 
 color_lin_norm = Normalize()
 color_log_norm = LogNorm()
@@ -501,7 +509,7 @@ layout_zoom = row(
            row(zoom1_image_plot, zoom1_plot_agg_y),
            row(Spacer(width=1, height=1), hist1_plot, Spacer(width=1, height=1))))
 
-layout_intensities = column(gridplot([total_sum_plot, zoom1_sum_plot],
+layout_intensities = column(gridplot([total_intensity_plot, zoom1_intensity_plot],
                                      ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
                             intensity_stream_reset_button)
 layout_controls = row(column(colormap_panel, data_source_tabs),
