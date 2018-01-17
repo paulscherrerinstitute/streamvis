@@ -47,6 +47,7 @@ ZOOM_CANVAS_HEIGHT = 514 + 29
 DEBUG_INTENSITY_WIDTH = 1000
 
 APP_FPS = 1
+stream_t = 0
 STREAM_ROLLOVER = 3600
 
 HDF5_FILE_PATH = '/filepath/'
@@ -158,7 +159,7 @@ zoom1_sum_plot = Plot(
 )
 
 zoom1_sum_plot.add_layout(LinearAxis(axis_label="Intensity"), place='left')
-zoom1_sum_plot.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='below')
+zoom1_sum_plot.add_layout(LinearAxis(), place='below')
 
 zoom1_sum_plot.add_layout(
     Grid(dimension=0, ticker=BasicTicker()))
@@ -180,9 +181,9 @@ zoom1_image_plot.add_tools(shared_pan_tool, shared_wheel_zoom_tool, SaveTool(), 
 
 # Intensity stream reset button
 def intensity_stream_reset_button_callback():
-    global t
+    global stream_t
     # Keep the latest point in order to prevent full axis reset
-    t = 1
+    stream_t = 1
     total_sum_source.data.update(x=[1], y=[total_sum_source.data['y'][-1]])
     zoom1_sum_source.data.update(x=[1], y=[zoom1_sum_source.data['y'][-1]])
 
@@ -563,12 +564,10 @@ doc.add_root(
            row(layout_zoom, Spacer(width=1, height=1),
                column(layout_intensities, Spacer(width=1, height=10), layout_controls))))
 
-t = 0
-
 
 @gen.coroutine
 def update(image, metadata):
-    global t, disp_min, disp_max, aggregated_image, at, image_size_x, image_size_y
+    global stream_t, disp_min, disp_max, aggregated_image, at, image_size_x, image_size_y
     doc.hold()
     main_image_height = main_image_plot.inner_height
     main_image_width = main_image_plot.inner_width
@@ -633,9 +632,9 @@ def update(image, metadata):
     zoom1_agg_y_source.data.update(x=agg0, y=r0)
     zoom1_agg_x_source.data.update(x=r1, y=agg1)
     if connected and receiver.state == 'receiving':
-        t += 1
-        zoom1_sum_source.stream(new_data=dict(x=[t], y=[tot]), rollover=STREAM_ROLLOVER)
-        total_sum_source.stream(new_data=dict(x=[t], y=[np.sum(image, dtype=np.float)]),
+        stream_t += 1
+        zoom1_sum_source.stream(new_data=dict(x=[stream_t], y=[tot]), rollover=STREAM_ROLLOVER)
+        total_sum_source.stream(new_data=dict(x=[stream_t], y=[np.sum(image, dtype=np.float)]),
                                 rollover=STREAM_ROLLOVER)
 
     # Unpack metadata
