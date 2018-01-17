@@ -282,28 +282,6 @@ intensity_stream_reset_button = Button(label="Reset", button_type='default', wid
 intensity_stream_reset_button.on_click(intensity_stream_reset_button_callback)
 
 
-color_lin_norm = Normalize()
-color_log_norm = LogNorm()
-image_color_mapper = ScalarMappable(norm=color_lin_norm, cmap='plasma')
-
-
-def colormap_select_callback(attr, old, new):
-    image_color_mapper.set_cmap(new)
-    if new == 'gray_r':
-        lin_colormapper.palette = Greys256[::-1]
-        log_colormapper.palette = Greys256[::-1]
-
-    elif new == 'plasma':
-        lin_colormapper.palette = Plasma256
-        log_colormapper.palette = Plasma256
-
-colormap_select = Select(
-    title="Colormap:", value='plasma',
-    options=['gray_r', 'plasma']
-)
-colormap_select.on_change('value', colormap_select_callback)
-
-
 # Histogram zoom1
 hist1_plot = Plot(
     x_range=DataRange1d(),
@@ -420,6 +398,28 @@ data_source_tabs = Tabs(tabs=[tab_stream, tab_hdf5file])
 
 
 # Colormap -------
+color_lin_norm = Normalize()
+color_log_norm = LogNorm()
+image_color_mapper = ScalarMappable(norm=color_lin_norm, cmap='plasma')
+
+
+def colormap_select_callback(attr, old, new):
+    image_color_mapper.set_cmap(new)
+    if new == 'gray_r':
+        lin_colormapper.palette = Greys256[::-1]
+        log_colormapper.palette = Greys256[::-1]
+
+    elif new == 'plasma':
+        lin_colormapper.palette = Plasma256
+        log_colormapper.palette = Plasma256
+
+colormap_select = Select(
+    title="Colormap:", value='plasma', width=260,
+    options=['gray_r', 'plasma']
+)
+colormap_select.on_change('value', colormap_select_callback)
+
+
 def colormap_auto_toggle_callback(state):
     if state:
         colormap_display_min.disabled = True
@@ -493,7 +493,8 @@ colormap_display_min.on_change('value', colormap_display_min_callback)
 colormap_display_max = TextInput(title='Max Display Value:', value=str(disp_max), disabled=True)
 colormap_display_max.on_change('value', colormap_display_max_callback)
 
-colormap_panel = column(colormap_scale_radiobuttongroup,
+colormap_panel = column(colormap_select,
+                        colormap_scale_radiobuttongroup,
                         colormap_auto_toggle,
                         colormap_display_min,
                         colormap_display_max)
@@ -512,7 +513,7 @@ metadata_table = DataTable(
 metadata_issues_dropdown = Dropdown(label="Metadata Issues", button_type='default', menu=[], width=250)
 
 # Final layout_main -------
-layout_main = column(main_image_plot, colormap_select)
+layout_main = column(main_image_plot, )
 layout_zoom = row(
     column(zoom1_plot_agg_x,
            row(zoom1_image_plot, zoom1_plot_agg_y),
