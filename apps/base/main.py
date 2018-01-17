@@ -65,6 +65,7 @@ ZOOM_INIT_WIDTH = image_size_x
 ZOOM_INIT_HEIGHT = image_size_y
 ZOOM1_INIT_X = 0
 
+
 # Main plot
 main_image_plot = Plot(
     title=Title(text="Detector Image"),
@@ -111,9 +112,10 @@ jscode_reset = """
 main_image_plot.js_on_event(events.Reset, CustomJS(
     args=dict(source=main_image_plot, image_source=main_image_source), code=jscode_reset))
 
+
 # Zoom plot
 zoom1_image_plot = Plot(
-    x_range=Range1d(0, image_size_x),
+    x_range=Range1d(ZOOM1_INIT_X, ZOOM1_INIT_X + ZOOM_INIT_WIDTH),
     y_range=Range1d(0, image_size_y),
     plot_height=ZOOM_CANVAS_HEIGHT,
     plot_width=ZOOM_CANVAS_WIDTH,
@@ -168,6 +170,57 @@ zoom1_image_plot.x_range.callback = CustomJS(
 zoom1_image_plot.y_range.callback = CustomJS(
     args=dict(source=zoom1_area_source), code=jscode_move_rect % ('y', 'height'))
 
+# ---- aggregate zoom1 plot along x axis
+zoom1_plot_agg_x = Plot(
+    title=Title(text="Zoom Area 1"),
+    x_range=zoom1_image_plot.x_range,
+    y_range=DataRange1d(),
+    plot_height=agg_plot_size,
+    plot_width=zoom1_image_plot.plot_width,
+    toolbar_location=None,
+)
+
+# -------- axes
+zoom1_plot_agg_x.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
+zoom1_plot_agg_x.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='below')
+
+# -------- grid lines
+zoom1_plot_agg_x.add_layout(Grid(dimension=0, ticker=BasicTicker()))
+zoom1_plot_agg_x.add_layout(Grid(dimension=1, ticker=BasicTicker()))
+
+# -------- line glyph
+zoom1_agg_x_source = ColumnDataSource(
+    dict(x=np.arange(image_size_x) + 0.5,  # shift to a pixel center
+         y=np.zeros(image_size_x)))
+
+zoom1_plot_agg_x.add_glyph(zoom1_agg_x_source, Line(x='x', y='y', line_color='steelblue'))
+
+
+# ---- aggregate zoom1 plot along y axis
+zoom1_plot_agg_y = Plot(
+    x_range=DataRange1d(),
+    y_range=zoom1_image_plot.y_range,
+    plot_height=zoom1_image_plot.plot_height,
+    plot_width=agg_plot_size,
+    toolbar_location=None,
+)
+
+# -------- axes
+zoom1_plot_agg_y.add_layout(LinearAxis(), place='above')
+zoom1_plot_agg_y.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='left')
+
+# -------- grid lines
+zoom1_plot_agg_y.add_layout(Grid(dimension=0, ticker=BasicTicker()))
+zoom1_plot_agg_y.add_layout(Grid(dimension=1, ticker=BasicTicker()))
+
+# -------- line glyph
+zoom1_agg_y_source = ColumnDataSource(
+    dict(x=np.zeros(image_size_y),
+         y=np.arange(image_size_y) + 0.5))  # shift to a pixel center
+
+zoom1_plot_agg_y.add_glyph(zoom1_agg_y_source, Line(x='x', y='y', line_color='steelblue'))
+
+
 # Total intensity plot
 total_intensity_plot = Plot(
     title=Title(text="Total Image Intensity"),
@@ -191,6 +244,7 @@ total_intensity_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 # ---- line glyph
 total_sum_source = ColumnDataSource(dict(x=[], y=[]))
 total_intensity_plot.add_glyph(total_sum_source, Line(x='x', y='y'))
+
 
 # Zoom1 intensity plot
 zoom1_intensity_plot = Plot(
@@ -232,9 +286,6 @@ color_lin_norm = Normalize()
 color_log_norm = LogNorm()
 image_color_mapper = ScalarMappable(norm=color_lin_norm, cmap='plasma')
 
-zoom1_image_plot.x_range.start = ZOOM1_INIT_X
-zoom1_image_plot.x_range.end = ZOOM1_INIT_X + ZOOM_INIT_WIDTH
-
 
 def colormap_select_callback(attr, old, new):
     image_color_mapper.set_cmap(new)
@@ -252,48 +303,6 @@ colormap_select = Select(
 )
 colormap_select.on_change('value', colormap_select_callback)
 
-# Aggregate zoom1 plot along x
-zoom1_plot_agg_x = Plot(
-    title=Title(text="Zoom Area 1"),
-    x_range=zoom1_image_plot.x_range,
-    y_range=DataRange1d(),
-    plot_height=agg_plot_size,
-    plot_width=zoom1_image_plot.plot_width,
-    toolbar_location=None,
-)
-
-zoom1_plot_agg_x.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
-zoom1_plot_agg_x.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='below')
-
-zoom1_plot_agg_x.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-zoom1_plot_agg_x.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-zoom1_agg_x_source = ColumnDataSource(
-    dict(x=np.arange(image_size_x) + 0.5,  # shift to a pixel center
-         y=np.zeros(image_size_x))
-)
-zoom1_plot_agg_x.add_glyph(zoom1_agg_x_source, Line(x='x', y='y', line_color='steelblue'))
-
-# Aggregate zoom1 plot along y
-zoom1_plot_agg_y = Plot(
-    x_range=DataRange1d(),
-    y_range=zoom1_image_plot.y_range,
-    plot_height=zoom1_image_plot.plot_height,
-    plot_width=agg_plot_size,
-    toolbar_location=None,
-)
-
-zoom1_plot_agg_y.add_layout(LinearAxis(), place='above')
-zoom1_plot_agg_y.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='left')
-
-zoom1_plot_agg_y.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-zoom1_plot_agg_y.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-zoom1_agg_y_source = ColumnDataSource(
-    dict(x=np.zeros(image_size_y),
-         y=np.arange(image_size_y) + 0.5))  # shift to a pixel center
-
-zoom1_plot_agg_y.add_glyph(zoom1_agg_y_source, Line(x='x', y='y', line_color='steelblue'))
 
 # Histogram zoom1
 hist1_plot = Plot(
