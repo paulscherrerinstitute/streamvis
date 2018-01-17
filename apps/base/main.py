@@ -168,12 +168,11 @@ zoom1_image_plot.x_range.callback = CustomJS(
 zoom1_image_plot.y_range.callback = CustomJS(
     args=dict(source=zoom1_area_source), code=jscode_move_rect % ('y', 'height'))
 
-gridplot_shared_range = DataRange1d()
 total_sum_source = ColumnDataSource(dict(x=[], y=[]))
 
 total_sum_plot = Plot(
     title=Title(text="Total Image Intensity"),
-    x_range=gridplot_shared_range,
+    x_range=DataRange1d(),
     y_range=DataRange1d(),
     plot_height=agg_plot_size,
     plot_width=DEBUG_INTENSITY_WIDTH,
@@ -193,7 +192,7 @@ zoom1_sum_source = ColumnDataSource(dict(x=[], y=[]))
 
 zoom1_sum_plot = Plot(
     title=Title(text="Zoom Area 1 Total Intensity"),
-    x_range=gridplot_shared_range,
+    x_range=total_sum_plot.x_range,
     y_range=DataRange1d(),
     plot_height=agg_plot_size,
     plot_width=DEBUG_INTENSITY_WIDTH,
