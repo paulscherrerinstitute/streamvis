@@ -29,8 +29,13 @@ doc = curdoc()
 doc.title = "JF StreamVis"
 
 # initial image size to organize placeholders for actual data
-image_size_x = 1024
-image_size_y = 1024
+image_size_x = 200
+image_size_y = 100
+
+current_image = np.zeros((image_size_y, image_size_x), dtype='float32')
+current_metadata = dict(shape=[image_size_y, image_size_x])
+
+connected = False
 
 # Currently in bokeh it's possible to control only a canvas size, but not a size of the plotting area.
 MAIN_CANVAS_WIDTH = 1500 + 54
@@ -55,9 +60,9 @@ hist_plot_size = 400
 disp_min = 0
 disp_max = 1000
 
-ZOOM_INIT_WIDTH = 1030
+ZOOM_INIT_WIDTH = image_size_x
 ZOOM_INIT_HEIGHT = image_size_y
-ZOOM1_INIT_X = (ZOOM_INIT_WIDTH + 6) * 0
+ZOOM1_INIT_X = 0
 
 # Arrange the layout_main
 main_image_plot = Plot(
@@ -201,12 +206,12 @@ main_image_plot.add_layout(
     place='below')
 
 main_image_source = ColumnDataSource(
-    dict(image=[np.array([[0]], dtype='float32')],
+    dict(image=[current_image],
          x=[0], y=[0], dw=[image_size_x], dh=[image_size_y],
          full_dw=[image_size_x], full_dh=[image_size_y]))
 
 zoom1_image_source = ColumnDataSource(
-    dict(image=[np.array([[0]], dtype='float32')],
+    dict(image=[current_image],
          x=[0], y=[0], dw=[image_size_x], dh=[image_size_y],
          full_dw=[image_size_x], full_dh=[image_size_y]))
 
@@ -372,13 +377,14 @@ image_buffer_slider.callback = CustomJS(
 
 
 def stream_button_callback(state):
+    global connected
     if state:
-        doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)
+        connected = True
         stream_button.label = 'Connecting'
         stream_button.button_type = 'default'
 
     else:
-        doc.remove_periodic_callback(internal_periodic_callback)
+        connected = False
         stream_button.label = 'Connect'
         stream_button.button_type = 'default'
 
@@ -569,7 +575,7 @@ def update(image, metadata):
     zoom1_image_height = zoom1_image_plot.inner_height
     zoom1_image_width = zoom1_image_plot.inner_width
 
-    if metadata['shape'] != [image_size_y, image_size_x]:
+    if 'shape' in metadata and metadata['shape'] != [image_size_y, image_size_x]:
         image_size_y = metadata['shape'][0]
         image_size_x = metadata['shape'][1]
         main_image_source.data.update(full_dw=[image_size_x], full_dh=[image_size_y])
@@ -620,16 +626,17 @@ def update(image, metadata):
                                    x=[zoom1_start_1], y=[zoom1_start_0], dw=[zoom1_end_1 - zoom1_start_1],
                                    dh=[zoom1_end_0 - zoom1_start_0])
 
-    t += 1
     # Statistics
     agg0, r0, agg1, r1, counts, edges, tot = \
         calc_stats(image, zoom1_start_0, zoom1_end_0, zoom1_start_1, zoom1_end_1, None)
+    hist1_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
     zoom1_agg_y_source.data.update(x=agg0, y=r0)
     zoom1_agg_x_source.data.update(x=r1, y=agg1)
-    zoom1_sum_source.stream(new_data=dict(x=[t], y=[tot]), rollover=STREAM_ROLLOVER)
-    hist1_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
-
-    total_sum_source.stream(new_data=dict(x=[t], y=[np.sum(image, dtype=np.float)]), rollover=STREAM_ROLLOVER)
+    if connected and receiver.state == 'receiving':
+        t += 1
+        zoom1_sum_source.stream(new_data=dict(x=[t], y=[tot]), rollover=STREAM_ROLLOVER)
+        total_sum_source.stream(new_data=dict(x=[t], y=[np.sum(image, dtype=np.float)]),
+                                rollover=STREAM_ROLLOVER)
 
     # Unpack metadata
     metadata_table_source.data.update(metadata=list(map(str, metadata.keys())),
@@ -663,19 +670,28 @@ def update(image, metadata):
 
 
 def internal_periodic_callback():
-    if receiver.state == 'polling':
-        stream_button.label = 'Polling'
-        stream_button.button_type = 'warning'
+    global current_image, current_metadata
+    if main_image_plot.inner_width is None:
+        # wait for the initialization to finish, thus skip this periodic callback
+        return
 
-    elif receiver.state == 'receiving':
-        stream_button.label = 'Receiving'
-        stream_button.button_type = 'success'
+    if connected:
+        if receiver.state == 'polling':
+            stream_button.label = 'Polling'
+            stream_button.button_type = 'warning'
 
-        # Set slider to the right-most position
-        if len(receiver.data_buffer) > 1:
-            image_buffer_slider.end = len(receiver.data_buffer) - 1
-            image_buffer_slider.value = len(receiver.data_buffer) - 1
+        elif receiver.state == 'receiving':
+            stream_button.label = 'Receiving'
+            stream_button.button_type = 'success'
 
-        if len(receiver.data_buffer) > 0:
-            metadata, image = receiver.data_buffer[-1]
-            doc.add_next_tick_callback(partial(update, image=image, metadata=metadata))
+            # Set slider to the right-most position
+            if len(receiver.data_buffer) > 1:
+                image_buffer_slider.end = len(receiver.data_buffer) - 1
+                image_buffer_slider.value = len(receiver.data_buffer) - 1
+
+            if len(receiver.data_buffer) > 0:
+                current_metadata, current_image = receiver.data_buffer[-1]
+
+    doc.add_next_tick_callback(partial(update, image=current_image, metadata=current_metadata))
+
+doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)
