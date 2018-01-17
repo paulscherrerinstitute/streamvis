@@ -76,6 +76,8 @@ main_image_plot = Plot(
     logo=None,
 )
 
+main_image_plot.add_tools(PanTool(), WheelZoomTool(), SaveTool(), ResetTool())
+
 main_image_plot.add_layout(LinearAxis(), place='above')
 main_image_plot.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
 
@@ -93,6 +95,9 @@ zoom1_image_plot.add_layout(LinearAxis(major_label_orientation='vertical'), plac
 
 zoom1_image_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
 zoom1_image_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
+
+# Share 'pan' and 'wheel zoom' with the main plot, but 'save' and 'reset' keep separate
+zoom1_image_plot.add_tools(main_image_plot.tools[0], main_image_plot.tools[1], SaveTool(), ResetTool())
 
 jscode_move_rect = """
     var data = source.data;
@@ -153,13 +158,6 @@ zoom1_sum_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 zoom1_sum_plot.add_glyph(zoom1_sum_source, Line(x='x', y='y', line_color='red'))
 
 zoom1_sum_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool())
-
-# Share 'pan' and 'wheel zoom' between plots, but 'save' and 'reset' keep separate
-shared_pan_tool = PanTool()
-shared_wheel_zoom_tool = WheelZoomTool()
-
-main_image_plot.add_tools(shared_pan_tool, shared_wheel_zoom_tool, SaveTool(), ResetTool())
-zoom1_image_plot.add_tools(shared_pan_tool, shared_wheel_zoom_tool, SaveTool(), ResetTool())
 
 
 # Intensity stream reset button
