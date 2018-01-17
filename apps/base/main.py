@@ -438,7 +438,6 @@ colormap_auto_toggle.on_click(colormap_auto_toggle_callback)
 
 
 def colormap_scale_radiobuttongroup_callback(selection):
-    """Callback for colormap_scale_radiobuttongroup change"""
     if selection == 0:  # Linear
         color_bar.color_mapper = lin_colormapper
         image_color_mapper.norm = color_lin_norm
@@ -516,28 +515,40 @@ metadata_table = DataTable(
 
 metadata_issues_dropdown = Dropdown(label="Metadata Issues", button_type='default', menu=[], width=250)
 
-# Final layout_main -------
+# Final layouts -------
 layout_main = column(main_image_plot, )
-layout_zoom = row(
-    column(zoom1_plot_agg_x,
-           row(zoom1_image_plot, zoom1_plot_agg_y),
-           row(Spacer(width=1, height=1), zoom1_hist_plot, Spacer(width=1, height=1))))
 
-layout_intensities = column(gridplot([total_intensity_plot, zoom1_intensity_plot],
-                                     ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
-                            intensity_stream_reset_button)
-layout_controls = row(column(colormap_panel, data_source_tabs),
-                      Spacer(width=30, height=1),
-                      column(metadata_table, row(Spacer(width=250, height=1), metadata_issues_dropdown)))
+layout_zoom = column(zoom1_plot_agg_x,
+                     row(zoom1_image_plot, zoom1_plot_agg_y),
+                     row(Spacer(width=1, height=1), zoom1_hist_plot, Spacer(width=1, height=1)))
 
-doc.add_root(column(layout_main, Spacer(width=1, height=1),
-                    row(layout_zoom, Spacer(width=1, height=1),
-                        column(layout_intensities, Spacer(width=1, height=10), layout_controls))))
+layout_utility = column(gridplot([total_intensity_plot, zoom1_intensity_plot],
+                                 ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
+                        intensity_stream_reset_button)
+
+layout_controls = column(colormap_panel, data_source_tabs)
+
+layout_metadata = column(metadata_table, row(Spacer(width=250, height=1), metadata_issues_dropdown))
+
+final_layout = column(layout_main,
+                      Spacer(width=1, height=1),
+                      row(layout_zoom,
+                          Spacer(width=1, height=1),
+                          column(layout_utility,
+                                 Spacer(width=1, height=10),
+                                 row(layout_controls,
+                                     Spacer(width=30, height=1),
+                                     layout_metadata)
+                                 )
+                          )
+                      )
+
+doc.add_root(final_layout)
 
 
 @gen.coroutine
 def update(image, metadata):
-    global stream_t, disp_min, disp_max, aggregated_image, at, image_size_x, image_size_y
+    global stream_t, disp_min, disp_max, image_size_x, image_size_y
     doc.hold()
     main_image_height = main_image_plot.inner_height
     main_image_width = main_image_plot.inner_width
