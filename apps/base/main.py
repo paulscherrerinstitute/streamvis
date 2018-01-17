@@ -170,7 +170,8 @@ zoom1_image_plot.x_range.callback = CustomJS(
 zoom1_image_plot.y_range.callback = CustomJS(
     args=dict(source=zoom1_area_source), code=jscode_move_rect % ('y', 'height'))
 
-# ---- aggregate zoom1 plot along x axis
+
+# aggregate zoom1 plot along x axis
 zoom1_plot_agg_x = Plot(
     title=Title(text="Zoom Area 1"),
     x_range=zoom1_image_plot.x_range,
@@ -180,15 +181,15 @@ zoom1_plot_agg_x = Plot(
     toolbar_location=None,
 )
 
-# -------- axes
+# ---- axes
 zoom1_plot_agg_x.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
 zoom1_plot_agg_x.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='below')
 
-# -------- grid lines
+# ---- grid lines
 zoom1_plot_agg_x.add_layout(Grid(dimension=0, ticker=BasicTicker()))
 zoom1_plot_agg_x.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
-# -------- line glyph
+# ---- line glyph
 zoom1_agg_x_source = ColumnDataSource(
     dict(x=np.arange(image_size_x) + 0.5,  # shift to a pixel center
          y=np.zeros(image_size_x)))
@@ -196,7 +197,7 @@ zoom1_agg_x_source = ColumnDataSource(
 zoom1_plot_agg_x.add_glyph(zoom1_agg_x_source, Line(x='x', y='y', line_color='steelblue'))
 
 
-# ---- aggregate zoom1 plot along y axis
+# aggregate zoom1 plot along y axis
 zoom1_plot_agg_y = Plot(
     x_range=DataRange1d(),
     y_range=zoom1_image_plot.y_range,
@@ -205,20 +206,47 @@ zoom1_plot_agg_y = Plot(
     toolbar_location=None,
 )
 
-# -------- axes
+# ---- axes
 zoom1_plot_agg_y.add_layout(LinearAxis(), place='above')
 zoom1_plot_agg_y.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='left')
 
-# -------- grid lines
+# ---- grid lines
 zoom1_plot_agg_y.add_layout(Grid(dimension=0, ticker=BasicTicker()))
 zoom1_plot_agg_y.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
-# -------- line glyph
+# ---- line glyph
 zoom1_agg_y_source = ColumnDataSource(
     dict(x=np.zeros(image_size_y),
          y=np.arange(image_size_y) + 0.5))  # shift to a pixel center
 
 zoom1_plot_agg_y.add_glyph(zoom1_agg_y_source, Line(x='x', y='y', line_color='steelblue'))
+
+
+# histogram zoom1 plot
+zoom1_hist_plot = Plot(
+    x_range=DataRange1d(),
+    y_range=DataRange1d(),
+    plot_height=hist_plot_size,
+    plot_width=zoom1_image_plot.plot_width,
+    toolbar_location='left',
+    logo=None,
+)
+
+# ---- tools
+zoom1_hist_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool())
+
+# ---- axes
+zoom1_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
+zoom1_hist_plot.add_layout(LinearAxis(axis_label="Counts"), place='right')
+
+# ---- grid lines
+zoom1_hist_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
+zoom1_hist_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
+
+# ---- quad (single bin) glyph
+hist1_source = ColumnDataSource(dict(left=[], right=[], top=[]))
+zoom1_hist_plot.add_glyph(hist1_source,
+                          Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
 
 
 # Total intensity plot
@@ -280,30 +308,6 @@ def intensity_stream_reset_button_callback():
 
 intensity_stream_reset_button = Button(label="Reset", button_type='default', width=250)
 intensity_stream_reset_button.on_click(intensity_stream_reset_button_callback)
-
-
-# Histogram zoom1
-hist1_plot = Plot(
-    x_range=DataRange1d(),
-    y_range=DataRange1d(),
-    plot_height=hist_plot_size,
-    plot_width=zoom1_image_plot.plot_width,
-    toolbar_location='left',
-    logo=None,
-)
-
-hist1_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
-hist1_plot.add_layout(LinearAxis(axis_label="Counts"), place='right')
-
-hist1_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-hist1_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-hist1_source = ColumnDataSource(dict(left=[], right=[], top=[]))
-
-hist1_plot.add_glyph(hist1_source,
-                     Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
-
-hist1_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool())
 
 
 # Stream panel -------
@@ -517,7 +521,7 @@ layout_main = column(main_image_plot, )
 layout_zoom = row(
     column(zoom1_plot_agg_x,
            row(zoom1_image_plot, zoom1_plot_agg_y),
-           row(Spacer(width=1, height=1), hist1_plot, Spacer(width=1, height=1))))
+           row(Spacer(width=1, height=1), zoom1_hist_plot, Spacer(width=1, height=1))))
 
 layout_intensities = column(gridplot([total_intensity_plot, zoom1_intensity_plot],
                                      ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
