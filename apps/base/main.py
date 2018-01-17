@@ -65,7 +65,7 @@ ZOOM_INIT_WIDTH = image_size_x
 ZOOM_INIT_HEIGHT = image_size_y
 ZOOM1_INIT_X = 0
 
-# Arrange the layout_main
+# Main plot
 main_image_plot = Plot(
     title=Title(text="Detector Image"),
     x_range=Range1d(0, image_size_x),
@@ -76,11 +76,42 @@ main_image_plot = Plot(
     logo=None,
 )
 
+# ---- tools
 main_image_plot.add_tools(PanTool(), WheelZoomTool(), SaveTool(), ResetTool())
 
+# ---- axes
 main_image_plot.add_layout(LinearAxis(), place='above')
 main_image_plot.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
 
+# ---- colormap
+lin_colormapper = LinearColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
+log_colormapper = LogColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
+color_bar = ColorBar(color_mapper=lin_colormapper, location=(0, -5), orientation='horizontal', height=20,
+                     width=MAIN_CANVAS_WIDTH // 2, padding=0)
+
+main_image_plot.add_layout(color_bar, place='below')
+
+# ---- rgba image glyph
+main_image_source = ColumnDataSource(
+    dict(image=[current_image], x=[0], y=[0], dw=[image_size_x], dh=[image_size_y],
+         full_dw=[image_size_x], full_dh=[image_size_y]))
+
+main_image_plot.add_glyph(main_image_source, ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh'))
+
+# ---- overwrite reset tool behavior
+jscode_reset = """
+    // reset to the current image size area, instead of a default reset to the initial plot ranges
+    source.x_range.start = 0;
+    source.x_range.end = image_source.data.full_dw[0];
+    source.y_range.start = 0;
+    source.y_range.end = image_source.data.full_dh[0];
+    source.change.emit();
+"""
+
+main_image_plot.js_on_event(events.Reset, CustomJS(
+    args=dict(source=main_image_plot, image_source=main_image_source), code=jscode_reset))
+
+# Zoom plot
 zoom1_image_plot = Plot(
     x_range=Range1d(0, image_size_x),
     y_range=Range1d(0, image_size_y),
@@ -90,14 +121,37 @@ zoom1_image_plot = Plot(
     logo=None,
 )
 
+# ---- tools
+# share 'pan' and 'wheel zoom' with the main plot, but 'save' and 'reset' keep separate
+zoom1_image_plot.add_tools(main_image_plot.tools[0], main_image_plot.tools[1], SaveTool(), ResetTool())
+
+# ---- axes
 zoom1_image_plot.add_layout(LinearAxis(), place='above')
 zoom1_image_plot.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
 
+# ---- grid lines
 zoom1_image_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
 zoom1_image_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
-# Share 'pan' and 'wheel zoom' with the main plot, but 'save' and 'reset' keep separate
-zoom1_image_plot.add_tools(main_image_plot.tools[0], main_image_plot.tools[1], SaveTool(), ResetTool())
+# ---- rgba image glyph
+zoom1_image_source = ColumnDataSource(
+    dict(image=[current_image], x=[0], y=[0], dw=[image_size_x], dh=[image_size_y],
+         full_dw=[image_size_x], full_dh=[image_size_y]))
+
+zoom1_image_plot.add_glyph(zoom1_image_source, ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh'))
+
+# ---- overwrite reset tool behavior
+# reuse js code from the main plot
+zoom1_image_plot.js_on_event(events.Reset, CustomJS(
+    args=dict(source=zoom1_image_plot, image_source=zoom1_image_source), code=jscode_reset))
+
+# ---- add rectangle glyph of zoom area to the main plot
+zoom1_area_source = ColumnDataSource(
+    dict(x=[ZOOM1_INIT_X + ZOOM_INIT_WIDTH / 2], y=[ZOOM_INIT_HEIGHT / 2],
+         width=[ZOOM_INIT_WIDTH], height=[image_size_y]))
+
+rect_red = Rect(x='x', y='y', width='width', height='height', line_color='red', line_width=2, fill_alpha=0)
+main_image_plot.add_glyph(zoom1_area_source, rect_red)
 
 jscode_move_rect = """
     var data = source.data;
@@ -107,10 +161,6 @@ jscode_move_rect = """
     data['%s'] = [end - start];
     source.change.emit();
 """
-
-zoom1_area_source = ColumnDataSource(
-    dict(x=[ZOOM1_INIT_X + ZOOM_INIT_WIDTH / 2], y=[ZOOM_INIT_HEIGHT / 2],
-         width=[ZOOM_INIT_WIDTH], height=[image_size_y]))
 
 zoom1_image_plot.x_range.callback = CustomJS(
     args=dict(source=zoom1_area_source), code=jscode_move_rect % ('x', 'width'))
@@ -171,57 +221,9 @@ def intensity_stream_reset_button_callback():
 intensity_stream_reset_button = Button(label="Reset", button_type='default', width=250)
 intensity_stream_reset_button.on_click(intensity_stream_reset_button_callback)
 
-# Colormap
-lin_colormapper = LinearColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
-log_colormapper = LogColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
-color_bar = ColorBar(
-    color_mapper=lin_colormapper,
-    location=(0, -5),
-    orientation='horizontal',
-    height=20,
-    width=MAIN_CANVAS_WIDTH // 2,
-    padding=0,
-)
-
-main_image_plot.add_layout(color_bar, place='below')
-
-main_image_source = ColumnDataSource(
-    dict(image=[current_image],
-         x=[0], y=[0], dw=[image_size_x], dh=[image_size_y],
-         full_dw=[image_size_x], full_dh=[image_size_y]))
-
-zoom1_image_source = ColumnDataSource(
-    dict(image=[current_image],
-         x=[0], y=[0], dw=[image_size_x], dh=[image_size_y],
-         full_dw=[image_size_x], full_dh=[image_size_y]))
-
-default_image = ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh')
-
-main_image_plot.add_glyph(main_image_source, default_image)
-
-jscode_reset = """
-    // reset to the current image size area, instead of a default reset to the initial plot ranges
-    source.x_range.start = 0;
-    source.x_range.end = image_source.data.full_dw[0];
-    source.y_range.start = 0;
-    source.y_range.end = image_source.data.full_dh[0];
-    source.change.emit();
-"""
-
-main_image_plot.js_on_event(events.Reset, CustomJS(
-    args=dict(source=main_image_plot, image_source=main_image_source), code=jscode_reset))
-
-zoom1_image_plot.js_on_event(events.Reset, CustomJS(
-    args=dict(source=zoom1_image_plot, image_source=zoom1_image_source), code=jscode_reset))
-
 color_lin_norm = Normalize()
 color_log_norm = LogNorm()
 image_color_mapper = ScalarMappable(norm=color_lin_norm, cmap='plasma')
-
-rect_red = Rect(x='x', y='y', width='width', height='height', line_color='red', line_width=2, fill_alpha=0)
-main_image_plot.add_glyph(zoom1_area_source, rect_red)
-
-zoom1_image_plot.add_glyph(zoom1_image_source, default_image)
 
 zoom1_image_plot.x_range.start = ZOOM1_INIT_X
 zoom1_image_plot.x_range.end = ZOOM1_INIT_X + ZOOM_INIT_WIDTH
