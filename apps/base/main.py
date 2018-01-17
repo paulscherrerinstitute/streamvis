@@ -2,6 +2,7 @@ import os
 from functools import partial
 
 import numpy as np
+from PIL import Image as PIL_Image
 from bokeh import events
 from bokeh.io import curdoc
 from bokeh.layouts import column, row, gridplot
@@ -199,31 +200,37 @@ main_image_plot.add_layout(
     color_bar,
     place='below')
 
-image_source = ColumnDataSource(
-    dict(image=[np.array([[0]], dtype='uint32')],
-         x=[0], y=[0], dw=[image_size_x], dh=[image_size_y]))
+main_image_source = ColumnDataSource(
+    dict(image=[np.array([[0]], dtype='float32')],
+         x=[0], y=[0], dw=[image_size_x], dh=[image_size_y],
+         full_dw=[image_size_x], full_dh=[image_size_y]))
+
+zoom1_image_source = ColumnDataSource(
+    dict(image=[np.array([[0]], dtype='float32')],
+         x=[0], y=[0], dw=[image_size_x], dh=[image_size_y],
+         full_dw=[image_size_x], full_dh=[image_size_y]))
 
 default_image = ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh')
 
-main_image_plot.add_glyph(image_source, default_image)
+main_image_plot.add_glyph(main_image_source, default_image)
 
 js_reset_code = """
     // reset to the current image size area, instead of a default reset to the initial plot ranges
     source.x_range.start = 0;
-    source.x_range.end = image_source.data.dw[0];
+    source.x_range.end = image_source.data.full_dw[0];
     source.y_range.start = 0;
-    source.y_range.end = image_source.data.dh[0];
+    source.y_range.end = image_source.data.full_dh[0];
     source.change.emit();
 """
 
 main_image_plot.js_on_event(
     events.Reset,
-    CustomJS(args=dict(source=main_image_plot, image_source=image_source), code=js_reset_code)
+    CustomJS(args=dict(source=main_image_plot, image_source=main_image_source), code=js_reset_code)
 )
 
 zoom1_image_plot.js_on_event(
     events.Reset,
-    CustomJS(args=dict(source=zoom1_image_plot, image_source=image_source), code=js_reset_code)
+    CustomJS(args=dict(source=zoom1_image_plot, image_source=zoom1_image_source), code=js_reset_code)
 )
 
 color_lin_norm = Normalize()
@@ -233,7 +240,7 @@ image_color_mapper = ScalarMappable(norm=color_lin_norm, cmap='plasma')
 rect_red = Rect(x='x', y='y', width='width', height='height', line_color='red', line_width=2, fill_alpha=0)
 main_image_plot.add_glyph(zoom1_area_source, rect_red)
 
-zoom1_image_plot.add_glyph(image_source, default_image)
+zoom1_image_plot.add_glyph(zoom1_image_source, default_image)
 
 zoom1_image_plot.x_range.start = ZOOM1_INIT_X
 zoom1_image_plot.x_range.end = ZOOM1_INIT_X + ZOOM_INIT_WIDTH
@@ -550,7 +557,6 @@ doc.add_root(
            row(layout_zoom, Spacer(width=1, height=1),
                column(layout_intensities, Spacer(width=1, height=10), layout_controls))))
 
-
 t = 0
 
 
@@ -558,38 +564,17 @@ t = 0
 def update(image, metadata):
     global t, disp_min, disp_max, aggregated_image, at, image_size_x, image_size_y
     doc.hold()
-    # image_height = zoom1_image_plot.inner_height
-    # image_width = zoom1_image_plot.inner_width
-    # print(image_width, image_height)
+    main_image_height = main_image_plot.inner_height
+    main_image_width = main_image_plot.inner_width
+    zoom1_image_height = zoom1_image_plot.inner_height
+    zoom1_image_width = zoom1_image_plot.inner_width
 
-    # pil_im = PIL_Image.fromarray(image)
-
-    zoom1_start_0 = zoom1_image_plot.y_range.start
-    zoom1_end_0 = zoom1_image_plot.y_range.end
-    zoom1_start_1 = zoom1_image_plot.x_range.start
-    zoom1_end_1 = zoom1_image_plot.x_range.end
-
-    # test = np.asarray(pil_im.resize(size=(image_width, image_height),
-    #                                 box=(start_1, start_0, end_1, end_0),
-    #                                 resample=PIL_Image.NEAREST))
-    # print(start_1, start_0, end_1, end_0)
-    # image_source.data.update(image=[convert_uint32_uint8(image, disp_min, disp_max)],
-    #                          x=[start_1], y=[start_0], dw=[end_1 - start_1], dh=[end_0 - start_0])
-
-    if colormap_auto_toggle.active:
-        disp_min = int(np.min(image))
-        if disp_min <= 0:  # switch to linear colormap
-            colormap_scale_radiobuttongroup.active = 0
-        colormap_display_min.value = str(disp_min)
-        disp_max = int(np.max(image))
-        colormap_display_max.value = str(disp_max)
-
-    if metadata['shape'] == [image_size_y, image_size_x]:
-        image_source.data.update(image=[image_color_mapper.to_rgba(image, bytes=True)])
-
-    else:
+    if metadata['shape'] != [image_size_y, image_size_x]:
         image_size_y = metadata['shape'][0]
         image_size_x = metadata['shape'][1]
+        main_image_source.data.update(full_dw=[image_size_x], full_dh=[image_size_y])
+        zoom1_image_source.data.update(full_dw=[image_size_x], full_dh=[image_size_y])
+
         main_image_plot.y_range.start = 0
         main_image_plot.x_range.start = 0
         main_image_plot.y_range.end = image_size_y
@@ -599,8 +584,41 @@ def update(image, metadata):
         zoom1_image_plot.y_range.end = image_size_y
         zoom1_image_plot.x_range.end = image_size_x
 
-        image_source.data.update(image=[image_color_mapper.to_rgba(image, bytes=True)],
-                                 dw=[image_size_x], dh=[image_size_y])
+    main_start_0 = main_image_plot.y_range.start
+    main_end_0 = main_image_plot.y_range.end
+    main_start_1 = main_image_plot.x_range.start
+    main_end_1 = main_image_plot.x_range.end
+
+    zoom1_start_0 = zoom1_image_plot.y_range.start
+    zoom1_end_0 = zoom1_image_plot.y_range.end
+    zoom1_start_1 = zoom1_image_plot.x_range.start
+    zoom1_end_1 = zoom1_image_plot.x_range.end
+
+    if colormap_auto_toggle.active:
+        disp_min = int(np.min(image))
+        if disp_min <= 0:  # switch to linear colormap
+            colormap_scale_radiobuttongroup.active = 0
+        colormap_display_min.value = str(disp_min)
+        disp_max = int(np.max(image))
+        colormap_display_max.value = str(disp_max)
+
+    pil_im = PIL_Image.fromarray(image)
+
+    main_image = np.asarray(pil_im.resize(size=(main_image_width, main_image_height),
+                                          box=(main_start_1, main_start_0, main_end_1, main_end_0),
+                                          resample=PIL_Image.NEAREST))
+
+    zoom1_image = np.asarray(pil_im.resize(size=(zoom1_image_width, zoom1_image_height),
+                                           box=(zoom1_start_1, zoom1_start_0, zoom1_end_1, zoom1_end_0),
+                                           resample=PIL_Image.NEAREST))
+
+    main_image_source.data.update(image=[image_color_mapper.to_rgba(main_image, bytes=True)],
+                                  x=[main_start_1], y=[main_start_0], dw=[main_end_1 - main_start_1],
+                                  dh=[main_end_0 - main_start_0])
+
+    zoom1_image_source.data.update(image=[image_color_mapper.to_rgba(zoom1_image, bytes=True)],
+                                   x=[zoom1_start_1], y=[zoom1_start_0], dw=[zoom1_end_1 - zoom1_start_1],
+                                   dh=[zoom1_end_0 - zoom1_start_0])
 
     t += 1
     # Statistics
