@@ -9,7 +9,6 @@ from bokeh.layouts import column, row, gridplot
 from bokeh.models import ColumnDataSource, Slider, Range1d, ColorBar, Spacer, Plot, \
     LinearAxis, DataRange1d, Line, CustomJS, Rect, Quad
 from bokeh.models.annotations import Title
-from bokeh.models.formatters import BasicTickFormatter
 from bokeh.models.glyphs import ImageRGBA
 from bokeh.models.grids import Grid
 from bokeh.models.mappers import LinearColorMapper, LogColorMapper
@@ -53,6 +52,7 @@ STREAM_ROLLOVER = 3600
 HDF5_FILE_PATH = '/filepath/'
 HDF5_FILE_PATH_UPDATE_PERIOD = 10000  # ms
 HDF5_DATASET_PATH = '/entry/data/data/'
+hdf5_file_data = []
 
 agg_plot_size = 200
 hist_plot_size = 400
@@ -76,13 +76,8 @@ main_image_plot = Plot(
     logo=None,
 )
 
-main_image_plot.add_layout(
-    LinearAxis(),
-    place='above')
-
-main_image_plot.add_layout(
-    LinearAxis(major_label_orientation='vertical'),
-    place='right')
+main_image_plot.add_layout(LinearAxis(), place='above')
+main_image_plot.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
 
 zoom1_image_plot = Plot(
     x_range=Range1d(0, image_size_x),
@@ -93,21 +88,13 @@ zoom1_image_plot = Plot(
     logo=None,
 )
 
-zoom1_image_plot.add_layout(
-    LinearAxis(),
-    place='above')
+zoom1_image_plot.add_layout(LinearAxis(), place='above')
+zoom1_image_plot.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
 
-zoom1_image_plot.add_layout(
-    LinearAxis(major_label_orientation='vertical'),
-    place='right')
+zoom1_image_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
+zoom1_image_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
-zoom1_image_plot.add_layout(
-    Grid(dimension=0, ticker=BasicTicker()))
-
-zoom1_image_plot.add_layout(
-    Grid(dimension=1, ticker=BasicTicker()))
-
-jscode = """
+jscode_move_rect = """
     var data = source.data;
     var start = cb_obj.start;
     var end = cb_obj.end;
@@ -116,13 +103,15 @@ jscode = """
     source.change.emit();
 """
 
-zoom1_area_source = ColumnDataSource(dict(x=[ZOOM1_INIT_X + ZOOM_INIT_WIDTH / 2], y=[ZOOM_INIT_HEIGHT / 2],
-                                          width=[ZOOM_INIT_WIDTH], height=[image_size_y]))
+zoom1_area_source = ColumnDataSource(
+    dict(x=[ZOOM1_INIT_X + ZOOM_INIT_WIDTH / 2], y=[ZOOM_INIT_HEIGHT / 2],
+         width=[ZOOM_INIT_WIDTH], height=[image_size_y]))
 
 zoom1_image_plot.x_range.callback = CustomJS(
-    args=dict(source=zoom1_area_source), code=jscode % ('x', 'width'))
+    args=dict(source=zoom1_area_source), code=jscode_move_rect % ('x', 'width'))
+
 zoom1_image_plot.y_range.callback = CustomJS(
-    args=dict(source=zoom1_area_source), code=jscode % ('y', 'height'))
+    args=dict(source=zoom1_area_source), code=jscode_move_rect % ('y', 'height'))
 
 gridplot_shared_range = DataRange1d()
 total_sum_source = ColumnDataSource(dict(x=[], y=[]))
@@ -138,11 +127,8 @@ total_sum_plot = Plot(
 total_sum_plot.add_layout(LinearAxis(axis_label="Total intensity"), place='left')
 total_sum_plot.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='below')
 
-total_sum_plot.add_layout(
-    Grid(dimension=0, ticker=BasicTicker()))
-
-total_sum_plot.add_layout(
-    Grid(dimension=1, ticker=BasicTicker()))
+total_sum_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
+total_sum_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
 total_sum_plot.add_glyph(total_sum_source, Line(x='x', y='y'))
 
@@ -161,11 +147,8 @@ zoom1_sum_plot = Plot(
 zoom1_sum_plot.add_layout(LinearAxis(axis_label="Intensity"), place='left')
 zoom1_sum_plot.add_layout(LinearAxis(), place='below')
 
-zoom1_sum_plot.add_layout(
-    Grid(dimension=0, ticker=BasicTicker()))
-
-zoom1_sum_plot.add_layout(
-    Grid(dimension=1, ticker=BasicTicker()))
+zoom1_sum_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
+zoom1_sum_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
 zoom1_sum_plot.add_glyph(zoom1_sum_source, Line(x='x', y='y', line_color='red'))
 
@@ -202,9 +185,7 @@ color_bar = ColorBar(
     padding=0,
 )
 
-main_image_plot.add_layout(
-    color_bar,
-    place='below')
+main_image_plot.add_layout(color_bar, place='below')
 
 main_image_source = ColumnDataSource(
     dict(image=[current_image],
@@ -220,7 +201,7 @@ default_image = ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh')
 
 main_image_plot.add_glyph(main_image_source, default_image)
 
-js_reset_code = """
+jscode_reset = """
     // reset to the current image size area, instead of a default reset to the initial plot ranges
     source.x_range.start = 0;
     source.x_range.end = image_source.data.full_dw[0];
@@ -229,15 +210,11 @@ js_reset_code = """
     source.change.emit();
 """
 
-main_image_plot.js_on_event(
-    events.Reset,
-    CustomJS(args=dict(source=main_image_plot, image_source=main_image_source), code=js_reset_code)
-)
+main_image_plot.js_on_event(events.Reset, CustomJS(
+    args=dict(source=main_image_plot, image_source=main_image_source), code=jscode_reset))
 
-zoom1_image_plot.js_on_event(
-    events.Reset,
-    CustomJS(args=dict(source=zoom1_image_plot, image_source=zoom1_image_source), code=js_reset_code)
-)
+zoom1_image_plot.js_on_event(events.Reset, CustomJS(
+    args=dict(source=zoom1_image_plot, image_source=zoom1_image_source), code=jscode_reset))
 
 color_lin_norm = Normalize()
 color_log_norm = LogNorm()
@@ -278,20 +255,11 @@ zoom1_plot_agg_x = Plot(
     toolbar_location=None,
 )
 
-zoom1_plot_agg_x.add_layout(
-    LinearAxis(formatter=BasicTickFormatter(use_scientific=True),
-               major_label_orientation='vertical'),
-    place='right')
+zoom1_plot_agg_x.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
+zoom1_plot_agg_x.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='below')
 
-zoom1_plot_agg_x.add_layout(
-    LinearAxis(major_label_text_font_size='0pt'),
-    place='below')
-
-zoom1_plot_agg_x.add_layout(
-    Grid(dimension=0, ticker=BasicTicker()))
-
-zoom1_plot_agg_x.add_layout(
-    Grid(dimension=1, ticker=BasicTicker()))
+zoom1_plot_agg_x.add_layout(Grid(dimension=0, ticker=BasicTicker()))
+zoom1_plot_agg_x.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
 zoom1_agg_x_source = ColumnDataSource(
     dict(x=np.arange(image_size_x) + 0.5,  # shift to a pixel center
@@ -308,24 +276,15 @@ zoom1_plot_agg_y = Plot(
     toolbar_location=None,
 )
 
-zoom1_plot_agg_y.add_layout(
-    LinearAxis(formatter=BasicTickFormatter(use_scientific=True)),
-    place='above')
+zoom1_plot_agg_y.add_layout(LinearAxis(), place='above')
+zoom1_plot_agg_y.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='left')
 
-zoom1_plot_agg_y.add_layout(
-    LinearAxis(major_label_text_font_size='0pt'),
-    place='left')
-
-zoom1_plot_agg_y.add_layout(
-    Grid(dimension=0, ticker=BasicTicker()))
-
-zoom1_plot_agg_y.add_layout(
-    Grid(dimension=1, ticker=BasicTicker()))
+zoom1_plot_agg_y.add_layout(Grid(dimension=0, ticker=BasicTicker()))
+zoom1_plot_agg_y.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
 zoom1_agg_y_source = ColumnDataSource(
     dict(x=np.zeros(image_size_y),
-         y=np.arange(image_size_y) + 0.5)  # shift to a pixel center
-)
+         y=np.arange(image_size_y) + 0.5))  # shift to a pixel center
 
 zoom1_plot_agg_y.add_glyph(zoom1_agg_y_source, Line(x='x', y='y', line_color='steelblue'))
 
@@ -339,19 +298,11 @@ hist1_plot = Plot(
     logo=None,
 )
 
-hist1_plot.add_layout(
-    LinearAxis(axis_label="Intensity", formatter=BasicTickFormatter(use_scientific=True)),
-    place='below')
+hist1_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
+hist1_plot.add_layout(LinearAxis(axis_label="Counts"), place='right')
 
-hist1_plot.add_layout(
-    LinearAxis(axis_label="Counts"),
-    place='right')
-
-hist1_plot.add_layout(
-    Grid(dimension=0, ticker=BasicTicker()))
-
-hist1_plot.add_layout(
-    Grid(dimension=1, ticker=BasicTicker()))
+hist1_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
+hist1_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
 hist1_source = ColumnDataSource(dict(left=[], right=[], top=[]))
 
@@ -359,6 +310,7 @@ hist1_plot.add_glyph(hist1_source,
                      Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
 
 hist1_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool())
+
 
 # Stream panel -------
 def image_buffer_slider_callback(attr, old, new):
@@ -373,8 +325,7 @@ image_buffer_slider = Slider(start=0, end=1, value=0, step=1, title="Buffered Im
 
 image_buffer_slider.callback = CustomJS(
     args=dict(source=image_buffer_slider_source),
-    code="""source.data = { value: [cb_obj.value] }""",
-)
+    code="""source.data = {value: [cb_obj.value]}""")
 
 
 def stream_button_callback(state):
@@ -434,12 +385,11 @@ def hdf5_pulse_slider_callback(attr, old, new):
 hdf5_pulse_slider = Slider(start=0, end=99, value=0, step=1, title="Pulse Number")
 hdf5_pulse_slider.on_change('value', hdf5_pulse_slider_callback)
 
-hdf5_file_data = []
+
 def load_file_button_callback():
     global hdf5_file_data
-    hdf5_file_data = partial(mx_image,
-                             file=os.path.join(hdf5_file_path.value, saved_runs_dropdown.label),
-                             dataset=hdf5_dataset_path.value)
+    file_name = os.path.join(hdf5_file_path.value, saved_runs_dropdown.label)
+    hdf5_file_data = partial(mx_image, file=file_name, dataset=hdf5_dataset_path.value)
     update(hdf5_file_data(i=hdf5_pulse_slider.value))
 
 load_file_button = Button(label="Load", button_type='default', width=250)
@@ -465,6 +415,7 @@ def colormap_auto_toggle_callback(state):
 
 colormap_auto_toggle = Toggle(label="Auto", active=True, button_type='default', width=250)
 colormap_auto_toggle.on_click(colormap_auto_toggle_callback)
+
 
 def colormap_scale_radiobuttongroup_callback(selection):
     """Callback for colormap_scale_radiobuttongroup change"""
@@ -549,9 +500,7 @@ layout_main = column(main_image_plot, colormap_select)
 layout_zoom = row(
     column(zoom1_plot_agg_x,
            row(zoom1_image_plot, zoom1_plot_agg_y),
-           row(Spacer(width=1, height=1), hist1_plot, Spacer(width=1, height=1)),
-           ),
-)
+           row(Spacer(width=1, height=1), hist1_plot, Spacer(width=1, height=1))))
 
 layout_intensities = column(gridplot([total_sum_plot, zoom1_sum_plot],
                                      ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
@@ -559,10 +508,10 @@ layout_intensities = column(gridplot([total_sum_plot, zoom1_sum_plot],
 layout_controls = row(column(colormap_panel, data_source_tabs),
                       Spacer(width=30, height=1),
                       column(metadata_table, row(Spacer(width=250, height=1), metadata_issues_dropdown)))
-doc.add_root(
-    column(layout_main, Spacer(width=1, height=1),
-           row(layout_zoom, Spacer(width=1, height=1),
-               column(layout_intensities, Spacer(width=1, height=10), layout_controls))))
+
+doc.add_root(column(layout_main, Spacer(width=1, height=1),
+                    row(layout_zoom, Spacer(width=1, height=1),
+                        column(layout_intensities, Spacer(width=1, height=10), layout_controls))))
 
 
 @gen.coroutine
@@ -584,6 +533,7 @@ def update(image, metadata):
         main_image_plot.x_range.start = 0
         main_image_plot.y_range.end = image_size_y
         main_image_plot.x_range.end = image_size_x
+
         zoom1_image_plot.y_range.start = 0
         zoom1_image_plot.x_range.start = 0
         zoom1_image_plot.y_range.end = image_size_y
@@ -609,28 +559,33 @@ def update(image, metadata):
 
     pil_im = PIL_Image.fromarray(image)
 
-    main_image = np.asarray(pil_im.resize(size=(main_image_width, main_image_height),
-                                          box=(main_start_1, main_start_0, main_end_1, main_end_0),
-                                          resample=PIL_Image.NEAREST))
+    main_image = np.asarray(
+        pil_im.resize(size=(main_image_width, main_image_height),
+                      box=(main_start_1, main_start_0, main_end_1, main_end_0),
+                      resample=PIL_Image.NEAREST))
 
-    zoom1_image = np.asarray(pil_im.resize(size=(zoom1_image_width, zoom1_image_height),
-                                           box=(zoom1_start_1, zoom1_start_0, zoom1_end_1, zoom1_end_0),
-                                           resample=PIL_Image.NEAREST))
+    zoom1_image = np.asarray(
+        pil_im.resize(size=(zoom1_image_width, zoom1_image_height),
+                      box=(zoom1_start_1, zoom1_start_0, zoom1_end_1, zoom1_end_0),
+                      resample=PIL_Image.NEAREST))
 
-    main_image_source.data.update(image=[image_color_mapper.to_rgba(main_image, bytes=True)],
-                                  x=[main_start_1], y=[main_start_0], dw=[main_end_1 - main_start_1],
-                                  dh=[main_end_0 - main_start_0])
+    main_image_source.data.update(
+        image=[image_color_mapper.to_rgba(main_image, bytes=True)],
+        x=[main_start_1], y=[main_start_0],
+        dw=[main_end_1 - main_start_1], dh=[main_end_0 - main_start_0])
 
-    zoom1_image_source.data.update(image=[image_color_mapper.to_rgba(zoom1_image, bytes=True)],
-                                   x=[zoom1_start_1], y=[zoom1_start_0], dw=[zoom1_end_1 - zoom1_start_1],
-                                   dh=[zoom1_end_0 - zoom1_start_0])
+    zoom1_image_source.data.update(
+        image=[image_color_mapper.to_rgba(zoom1_image, bytes=True)],
+        x=[zoom1_start_1], y=[zoom1_start_0],
+        dw=[zoom1_end_1 - zoom1_start_1], dh=[zoom1_end_0 - zoom1_start_0])
 
     # Statistics
-    agg0, r0, agg1, r1, counts, edges, tot = \
-        calc_stats(image, zoom1_start_0, zoom1_end_0, zoom1_start_1, zoom1_end_1, None)
+    agg0, r0, agg1, r1, counts, edges, tot = calc_stats(
+        image, zoom1_start_0, zoom1_end_0, zoom1_start_1, zoom1_end_1, None)
     hist1_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
     zoom1_agg_y_source.data.update(x=agg0, y=r0)
     zoom1_agg_x_source.data.update(x=r1, y=agg1)
+
     if connected and receiver.state == 'receiving':
         stream_t += 1
         zoom1_sum_source.stream(new_data=dict(x=[stream_t], y=[tot]), rollover=STREAM_ROLLOVER)
@@ -638,8 +593,8 @@ def update(image, metadata):
                                 rollover=STREAM_ROLLOVER)
 
     # Unpack metadata
-    metadata_table_source.data.update(metadata=list(map(str, metadata.keys())),
-                                      value=list(map(str, metadata.values())))
+    metadata_table_source.data.update(
+        metadata=list(map(str, metadata.keys())), value=list(map(str, metadata.values())))
 
     # Check metadata for issues
     new_menu = []
