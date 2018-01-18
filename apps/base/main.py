@@ -3,6 +3,7 @@ from functools import partial
 
 import numpy as np
 from PIL import Image as PIL_Image
+import colorcet as cc
 from bokeh import events
 from bokeh.io import curdoc
 from bokeh.layouts import column, row, gridplot
@@ -417,9 +418,13 @@ def colormap_select_callback(attr, old, new):
         lin_colormapper.palette = Plasma256
         log_colormapper.palette = Plasma256
 
+    elif new == 'coolwarm':
+        lin_colormapper.palette = cc.coolwarm
+        log_colormapper.palette = cc.coolwarm
+
 colormap_select = Select(
     title="Colormap:", value='plasma', width=260,
-    options=['gray_r', 'plasma']
+    options=['gray_r', 'plasma', 'coolwarm']
 )
 colormap_select.on_change('value', colormap_select_callback)
 

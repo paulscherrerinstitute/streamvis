@@ -20,6 +20,7 @@ requirements:
     - bokeh
     - pyzmq
     - matplotlib
+    - colorcet
     - h5py
 
 about:
