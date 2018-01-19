@@ -55,7 +55,10 @@ def mx_image_gen(file, dataset):
 
 def mx_image(file, dataset, i):
         with h5py.File(file, 'r') as f:
-            return f[dataset][i, :, :]
+            image = f[dataset][i, :, :].astype(np.float32)
+            metadata = dict(shape=list(image.shape))
+            return image, metadata
+
 
 def simul_image_gen(sim_im_size_x=4096, sim_im_size_y=4096):
     cx = np.array([sim_im_size_x*3/4, sim_im_size_x/4, sim_im_size_x/4, sim_im_size_x*3/4], dtype='int')

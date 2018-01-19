@@ -50,9 +50,9 @@ APP_FPS = 1
 stream_t = 0
 STREAM_ROLLOVER = 3600
 
-HDF5_FILE_PATH = '/filepath/'
+HDF5_FILE_PATH = '/filepath'
 HDF5_FILE_PATH_UPDATE_PERIOD = 10000  # ms
-HDF5_DATASET_PATH = '/entry/data/data/'
+HDF5_DATASET_PATH = '/entry/data/data'
 hdf5_file_data = []
 
 agg_plot_size = 200
@@ -378,18 +378,20 @@ saved_runs_dropdown.on_click(saved_runs_dropdown_callback)
 
 
 def hdf5_pulse_slider_callback(attr, old, new):
-    global hdf5_file_data
-    update(hdf5_file_data(i=new))
+    global hdf5_file_data, current_image, current_metadata
+    current_image, current_metadata = hdf5_file_data(i=new)
+    update(current_image, current_metadata)
 
 hdf5_pulse_slider = Slider(start=0, end=99, value=0, step=1, title="Pulse Number")
 hdf5_pulse_slider.on_change('value', hdf5_pulse_slider_callback)
 
 
 def load_file_button_callback():
-    global hdf5_file_data
+    global hdf5_file_data, current_image, current_metadata
     file_name = os.path.join(hdf5_file_path.value, saved_runs_dropdown.label)
     hdf5_file_data = partial(mx_image, file=file_name, dataset=hdf5_dataset_path.value)
-    update(hdf5_file_data(i=hdf5_pulse_slider.value))
+    current_image, current_metadata = hdf5_file_data(i=hdf5_pulse_slider.value)
+    update(current_image, current_metadata)
 
 load_file_button = Button(label="Load", button_type='default', width=250)
 load_file_button.on_click(load_file_button_callback)
