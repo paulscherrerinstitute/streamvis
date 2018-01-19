@@ -311,7 +311,8 @@ intensity_stream_reset_button = Button(label="Reset", button_type='default', wid
 intensity_stream_reset_button.on_click(intensity_stream_reset_button_callback)
 
 
-# Stream panel -------
+# Stream panel
+# ---- image buffer slider
 def image_buffer_slider_callback(attr, old, new):
     md, image = receiver.data_buffer[round(new['value'][0])]
     doc.add_next_tick_callback(partial(update, image=image, metadata=md))
@@ -327,6 +328,7 @@ image_buffer_slider.callback = CustomJS(
     code="""source.data = {value: [cb_obj.value]}""")
 
 
+# ---- connect toggle button
 def stream_button_callback(state):
     global connected
     if state:
@@ -343,12 +345,14 @@ def stream_button_callback(state):
 stream_button = Toggle(label="Connect", button_type='default', width=250)
 stream_button.on_click(stream_button_callback)
 
-tab_stream = Panel(child=column(image_buffer_slider, stream_button), title="Stream")
+
+# assemble
+tab_stream = Panel(child=column(image_buffer_slider, stream_button),
+                   title="Stream")
 
 
-# HDF5 File panel -------
+# HDF5 File panel
 def hdf5_file_path_update():
-    """Update list of hdf5 files"""
     new_menu = []
     if os.path.isdir(hdf5_file_path.value):
         with os.scandir(hdf5_file_path.value) as it:
@@ -358,25 +362,41 @@ def hdf5_file_path_update():
 
     saved_runs_dropdown.menu = sorted(new_menu)
 
+doc.add_periodic_callback(hdf5_file_path_update, HDF5_FILE_PATH_UPDATE_PERIOD)
 
+
+# ---- folder path text input
 def hdf5_file_path_callback(attr, old, new):
     hdf5_file_path_update()
 
 hdf5_file_path = TextInput(title="Folder Path:", value=HDF5_FILE_PATH, width=250)
 hdf5_file_path.on_change('value', hdf5_file_path_callback)
 
-hdf5_dataset_path = TextInput(title="Dataset Path:", value=HDF5_DATASET_PATH, width=250)
 
-doc.add_periodic_callback(hdf5_file_path_update, HDF5_FILE_PATH_UPDATE_PERIOD)
-
-
+# ---- saved runs dropdown menu
 def saved_runs_dropdown_callback(selection):
     saved_runs_dropdown.label = selection
 
 saved_runs_dropdown = Dropdown(label="Saved Runs", button_type='primary', menu=[], width=250)
 saved_runs_dropdown.on_click(saved_runs_dropdown_callback)
 
+# ---- dataset path text input
+hdf5_dataset_path = TextInput(title="Dataset Path:", value=HDF5_DATASET_PATH, width=250)
 
+
+# ---- load button
+def load_file_button_callback():
+    global hdf5_file_data, current_image, current_metadata
+    file_name = os.path.join(hdf5_file_path.value, saved_runs_dropdown.label)
+    hdf5_file_data = partial(mx_image, file=file_name, dataset=hdf5_dataset_path.value)
+    current_image, current_metadata = hdf5_file_data(i=hdf5_pulse_slider.value)
+    update(current_image, current_metadata)
+
+load_file_button = Button(label="Load", button_type='default', width=250)
+load_file_button.on_click(load_file_button_callback)
+
+
+# ---- pulse number slider
 def hdf5_pulse_slider_callback(attr, old, new):
     global hdf5_file_data, current_image, current_metadata
     current_image, current_metadata = hdf5_file_data(i=new['value'][0])
@@ -393,30 +413,21 @@ hdf5_pulse_slider.callback = CustomJS(
     code="""source.data = {value: [cb_obj.value]}""")
 
 
-def load_file_button_callback():
-    global hdf5_file_data, current_image, current_metadata
-    file_name = os.path.join(hdf5_file_path.value, saved_runs_dropdown.label)
-    hdf5_file_data = partial(mx_image, file=file_name, dataset=hdf5_dataset_path.value)
-    current_image, current_metadata = hdf5_file_data(i=hdf5_pulse_slider.value)
-    update(current_image, current_metadata)
-
-load_file_button = Button(label="Load", button_type='default', width=250)
-load_file_button.on_click(load_file_button_callback)
-
+# assemble
 tab_hdf5file = Panel(
     child=column(hdf5_file_path, saved_runs_dropdown, hdf5_dataset_path, load_file_button, hdf5_pulse_slider),
-    title="HDF5 File",
-)
+    title="HDF5 File")
 
 data_source_tabs = Tabs(tabs=[tab_stream, tab_hdf5file])
 
 
-# Colormap -------
+# Colormap panel
 color_lin_norm = Normalize()
 color_log_norm = LogNorm()
 image_color_mapper = ScalarMappable(norm=color_lin_norm, cmap='plasma')
 
 
+# ---- colormap selector
 def colormap_select_callback(attr, old, new):
     image_color_mapper.set_cmap(new)
     if new == 'gray_r':
@@ -438,6 +449,7 @@ colormap_select = Select(
 colormap_select.on_change('value', colormap_select_callback)
 
 
+# ---- colormap auto toggle button
 def colormap_auto_toggle_callback(state):
     if state:
         colormap_display_min.disabled = True
@@ -446,11 +458,11 @@ def colormap_auto_toggle_callback(state):
         colormap_display_min.disabled = False
         colormap_display_max.disabled = False
 
-
 colormap_auto_toggle = Toggle(label="Auto", active=True, button_type='default', width=250)
 colormap_auto_toggle.on_click(colormap_auto_toggle_callback)
 
 
+# ---- colormap scale radiobutton group
 def colormap_scale_radiobuttongroup_callback(selection):
     if selection == 0:  # Linear
         color_bar.color_mapper = lin_colormapper
@@ -467,6 +479,7 @@ colormap_scale_radiobuttongroup = RadioButtonGroup(labels=["Linear", "Logarithmi
 colormap_scale_radiobuttongroup.on_click(colormap_scale_radiobuttongroup_callback)
 
 
+# ---- colormap min/max values
 def colormap_display_min_callback(attr, old, new):
     global disp_min
     try:
@@ -504,19 +517,18 @@ def colormap_display_max_callback(attr, old, new):
     except ValueError:
         colormap_display_max.value = old
 
-
 colormap_display_min = TextInput(title='Min Display Value:', value=str(disp_min), disabled=True)
 colormap_display_min.on_change('value', colormap_display_min_callback)
 colormap_display_max = TextInput(title='Max Display Value:', value=str(disp_max), disabled=True)
 colormap_display_max.on_change('value', colormap_display_max_callback)
 
-colormap_panel = column(colormap_select,
-                        colormap_scale_radiobuttongroup,
-                        colormap_auto_toggle,
-                        colormap_display_min,
-                        colormap_display_max)
 
-# Metadata table ------
+# assemble
+colormap_panel = column(colormap_select, colormap_scale_radiobuttongroup, colormap_auto_toggle,
+                        colormap_display_min, colormap_display_max)
+
+
+# Metadata table
 metadata_table_source = ColumnDataSource(dict(metadata=['', '', ''], value=['', '', '']))
 metadata_table = DataTable(
     source=metadata_table_source,
@@ -529,7 +541,7 @@ metadata_table = DataTable(
 
 metadata_issues_dropdown = Dropdown(label="Metadata Issues", button_type='default', menu=[], width=250)
 
-# Final layouts -------
+# Final layouts
 layout_main = column(main_image_plot)
 
 layout_zoom = column(zoom1_plot_agg_x,
