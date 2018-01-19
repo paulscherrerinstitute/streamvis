@@ -316,7 +316,7 @@ def image_buffer_slider_callback(attr, old, new):
     md, image = receiver.data_buffer[round(new['value'][0])]
     doc.add_next_tick_callback(partial(update, image=image, metadata=md))
 
-image_buffer_slider_source = ColumnDataSource(data=dict(value=[]))
+image_buffer_slider_source = ColumnDataSource(dict(value=[]))
 image_buffer_slider_source.on_change('data', image_buffer_slider_callback)
 
 image_buffer_slider = Slider(start=0, end=1, value=0, step=1, title="Buffered Image",
@@ -379,11 +379,18 @@ saved_runs_dropdown.on_click(saved_runs_dropdown_callback)
 
 def hdf5_pulse_slider_callback(attr, old, new):
     global hdf5_file_data, current_image, current_metadata
-    current_image, current_metadata = hdf5_file_data(i=new)
+    current_image, current_metadata = hdf5_file_data(i=new['value'][0])
     update(current_image, current_metadata)
 
-hdf5_pulse_slider = Slider(start=0, end=99, value=0, step=1, title="Pulse Number")
-hdf5_pulse_slider.on_change('value', hdf5_pulse_slider_callback)
+hdf5_pulse_slider_source = ColumnDataSource(dict(value=[]))
+hdf5_pulse_slider_source.on_change('data', hdf5_pulse_slider_callback)
+
+hdf5_pulse_slider = Slider(start=0, end=99, value=0, step=1, title="Pulse Number",
+                           callback_policy='mouseup')
+
+hdf5_pulse_slider.callback = CustomJS(
+    args=dict(source=hdf5_pulse_slider_source),
+    code="""source.data = {value: [cb_obj.value]}""")
 
 
 def load_file_button_callback():
