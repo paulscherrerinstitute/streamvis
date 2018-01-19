@@ -32,9 +32,9 @@ def calc_stats(image, start_0, end_0, start_1, end_1, ind):
     r1 = np.arange(start_1, end_1)+0.5
 
     if ind is None:
-        counts, edges = np.histogram(im_block, 100)
+        counts, edges = np.histogram(im_block, bins='scott')
     else:
-        counts, edges = np.histogram(im_block[~ind[start_0:end_0, start_1:end_1]], 'auto')
+        counts, edges = np.histogram(im_block[~ind[start_0:end_0, start_1:end_1]], bins='scott')
 
     total_sum = np.sum(im_block)
 
