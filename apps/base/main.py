@@ -71,8 +71,8 @@ ZOOM1_INIT_X = 0
 # Main plot
 main_image_plot = Plot(
     title=Title(text="Detector Image"),
-    x_range=Range1d(0, image_size_x),
-    y_range=Range1d(0, image_size_y),
+    x_range=Range1d(0, image_size_x, bounds=(0, image_size_x)),
+    y_range=Range1d(0, image_size_y, bounds=(0, image_size_y)),
     plot_height=MAIN_CANVAS_HEIGHT,
     plot_width=MAIN_CANVAS_WIDTH,
     toolbar_location='left',
@@ -117,8 +117,8 @@ main_image_plot.js_on_event(events.Reset, CustomJS(
 
 # Zoom plot
 zoom1_image_plot = Plot(
-    x_range=Range1d(ZOOM1_INIT_X, ZOOM1_INIT_X + ZOOM_INIT_WIDTH),
-    y_range=Range1d(0, image_size_y),
+    x_range=Range1d(ZOOM1_INIT_X, ZOOM1_INIT_X + ZOOM_INIT_WIDTH, bounds=(0, image_size_x)),
+    y_range=Range1d(0, image_size_y, bounds=(0, image_size_y)),
     plot_height=ZOOM_CANVAS_HEIGHT,
     plot_width=ZOOM_CANVAS_WIDTH,
     toolbar_location='left',
@@ -594,11 +594,15 @@ def update(image, metadata):
         main_image_plot.x_range.start = 0
         main_image_plot.y_range.end = image_size_y
         main_image_plot.x_range.end = image_size_x
+        main_image_plot.x_range.bounds = (0, image_size_x)
+        main_image_plot.y_range.bounds = (0, image_size_y)
 
         zoom1_image_plot.y_range.start = 0
         zoom1_image_plot.x_range.start = 0
         zoom1_image_plot.y_range.end = image_size_y
         zoom1_image_plot.x_range.end = image_size_x
+        zoom1_image_plot.x_range.bounds = (0, image_size_x)
+        zoom1_image_plot.y_range.bounds = (0, image_size_y)
 
     main_start_0 = main_image_plot.y_range.start
     main_end_0 = main_image_plot.y_range.end
