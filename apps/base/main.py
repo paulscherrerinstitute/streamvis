@@ -2,6 +2,8 @@ import os
 from functools import partial
 
 import numpy as np
+import hdf5plugin  # required to be loaded prior to h5py
+import h5py
 from PIL import Image as PIL_Image
 import colorcet as cc
 from bokeh import events
@@ -18,7 +20,6 @@ from bokeh.models.tools import PanTool, BoxZoomTool, WheelZoomTool, SaveTool, Re
 from bokeh.models.widgets import Button, Toggle, Panel, Tabs, Dropdown, Select, RadioButtonGroup, TextInput, \
     DataTable, TableColumn
 from bokeh.palettes import Greys256, Plasma256
-from helpers import calc_stats, mx_image
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import Normalize, LogNorm
 from tornado import gen
@@ -385,6 +386,13 @@ hdf5_dataset_path = TextInput(title="Dataset Path:", value=HDF5_DATASET_PATH, wi
 
 
 # ---- load button
+def mx_image(file, dataset, i):
+    with h5py.File(file, 'r') as f:
+        image = f[dataset][i, :, :].astype(np.float32)
+        metadata = dict(shape=list(image.shape))
+        return image, metadata
+
+
 def load_file_button_callback():
     global hdf5_file_data, current_image, current_metadata
     file_name = os.path.join(hdf5_file_path.value, saved_runs_dropdown.label)
@@ -633,15 +641,37 @@ def update(image, metadata):
         dw=[zoom1_end_1 - zoom1_start_1], dh=[zoom1_end_0 - zoom1_start_0])
 
     # Statistics
-    agg0, r0, agg1, r1, counts, edges, tot = calc_stats(
-        image, zoom1_start_0, zoom1_end_0, zoom1_start_1, zoom1_end_1, None)
+    ind = None
+
+    im_size_0, im_size_1 = image.shape
+    start_0 = max(int(np.floor(zoom1_start_0)), 0)
+    end_0 = min(int(np.ceil(zoom1_end_0)), im_size_0)
+    start_1 = max(int(np.floor(zoom1_start_1)), 0)
+    end_1 = min(int(np.ceil(zoom1_end_1)), im_size_1)
+    if start_0 > end_0 or start_1 > end_1:
+        agg0, r0, agg1, r1, counts, edges, total_sum = [0], [0], [0], [0], [0], [0, 1], 0
+    else:
+        im_block = image[start_0:end_0, start_1:end_1]
+
+        agg1 = np.mean(im_block, axis=0)
+        agg0 = np.mean(im_block, axis=1)
+        r0 = np.arange(start_0, end_0) + 0.5
+        r1 = np.arange(start_1, end_1) + 0.5
+
+        if ind is None:
+            counts, edges = np.histogram(im_block, bins='scott')
+        else:
+            counts, edges = np.histogram(im_block[~ind[start_0:end_0, start_1:end_1]], bins='scott')
+
+        total_sum = np.sum(im_block)
+
     hist1_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
     zoom1_agg_y_source.data.update(x=agg0, y=r0)
     zoom1_agg_x_source.data.update(x=r1, y=agg1)
 
     if connected and receiver.state == 'receiving':
         stream_t += 1
-        zoom1_sum_source.stream(new_data=dict(x=[stream_t], y=[tot]), rollover=STREAM_ROLLOVER)
+        zoom1_sum_source.stream(new_data=dict(x=[stream_t], y=[total_sum]), rollover=STREAM_ROLLOVER)
         total_sum_source.stream(new_data=dict(x=[stream_t], y=[np.sum(image, dtype=np.float)]),
                                 rollover=STREAM_ROLLOVER)
 
