@@ -578,7 +578,6 @@ doc.add_root(final_layout)
 @gen.coroutine
 def update(image, metadata):
     global stream_t, disp_min, disp_max, image_size_x, image_size_y
-    doc.hold()
     main_image_height = main_image_plot.inner_height
     main_image_width = main_image_plot.inner_width
     zoom1_image_height = zoom1_image_plot.inner_height
@@ -706,8 +705,6 @@ def update(image, metadata):
         metadata_issues_dropdown.button_type = 'danger'
     else:
         metadata_issues_dropdown.button_type = 'default'
-
-    doc.unhold()
 
 
 def internal_periodic_callback():
