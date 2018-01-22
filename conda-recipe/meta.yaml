@@ -27,3 +27,5 @@ requirements:
 about:
   home: https://git.psi.ch/usov_i/streamvis
   summary: {{ data['description'] }}
+  license: GNU GPLv3
+  license_file: LICENSE

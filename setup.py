@@ -6,4 +6,5 @@ setup(name="streamvis",
       author_email="ivan.usov@psi.ch",
       description="Stream visualization of JF data.",
       packages=['streamvis'],
+      license='GNU GPLv3',
       )
