@@ -2,8 +2,6 @@ import os
 from functools import partial
 
 import numpy as np
-import hdf5plugin  # required to be loaded prior to h5py
-import h5py
 from PIL import Image as PIL_Image
 import colorcet as cc
 from bokeh import events
@@ -387,6 +385,8 @@ hdf5_dataset_path = TextInput(title="Dataset Path:", value=HDF5_DATASET_PATH, wi
 
 # ---- load button
 def mx_image(file, dataset, i):
+    import hdf5plugin  # required to be loaded prior to h5py
+    import h5py
     with h5py.File(file, 'r') as f:
         image = f[dataset][i, :, :].astype(np.float32)
         metadata = dict(shape=list(image.shape))
