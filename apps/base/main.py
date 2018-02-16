@@ -28,10 +28,10 @@ doc = curdoc()
 doc.title = "JF StreamVis"
 
 # initial image size to organize placeholders for actual data
-image_size_x = 200
+image_size_x = 100
 image_size_y = 100
 
-current_image = np.zeros((image_size_y, image_size_x), dtype='float32')
+current_image = np.zeros((1, 1), dtype='float32')
 current_metadata = dict(shape=[image_size_y, image_size_x])
 
 connected = False
@@ -730,6 +730,7 @@ def internal_periodic_callback():
             if len(receiver.data_buffer) > 0:
                 current_metadata, current_image = receiver.data_buffer[-1]
 
-    doc.add_next_tick_callback(partial(update, image=current_image, metadata=current_metadata))
+    if current_image.shape != (1, 1):
+        doc.add_next_tick_callback(partial(update, image=current_image, metadata=current_metadata))
 
 doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)
