@@ -25,11 +25,11 @@ from tornado import gen
 import receiver
 
 doc = curdoc()
-doc.title = "JF StreamVis"
+doc.title = "JF StreamVis Alvra"
 
 # initial image size to organize placeholders for actual data
-image_size_x = 100
-image_size_y = 100
+image_size_x = 9216 + (9 - 1) * 6 + 2 * 3 * 9
+image_size_y = 514
 
 current_image = np.zeros((1, 1), dtype='float32')
 current_metadata = dict(shape=[image_size_y, image_size_x])
@@ -37,7 +37,7 @@ current_metadata = dict(shape=[image_size_y, image_size_x])
 connected = False
 
 # Currently in bokeh it's possible to control only a canvas size, but not a size of the plotting area.
-MAIN_CANVAS_WIDTH = 1500 + 54
+MAIN_CANVAS_WIDTH = 3500 + 54
 MAIN_CANVAS_HEIGHT = 514 + 94
 
 ZOOM_CANVAS_WIDTH = 1030 + 54
@@ -61,9 +61,10 @@ hist_plot_size = 400
 disp_min = 0
 disp_max = 1000
 
-ZOOM_INIT_WIDTH = image_size_x
+ZOOM_INIT_WIDTH = 1030
 ZOOM_INIT_HEIGHT = image_size_y
-ZOOM1_INIT_X = 0
+ZOOM1_INIT_X = (ZOOM_INIT_WIDTH + 6) * 2
+ZOOM2_INIT_X = (ZOOM_INIT_WIDTH + 6) * 6
 
 
 # Main plot
@@ -113,7 +114,7 @@ main_image_plot.js_on_event(events.Reset, CustomJS(
     args=dict(source=main_image_plot, image_source=main_image_source), code=jscode_reset))
 
 
-# Zoom plot
+# Zoom plot 1
 zoom1_image_plot = Plot(
     x_range=Range1d(ZOOM1_INIT_X, ZOOM1_INIT_X + ZOOM_INIT_WIDTH, bounds=(0, image_size_x)),
     y_range=Range1d(0, image_size_y, bounds=(0, image_size_y)),
@@ -137,8 +138,7 @@ zoom1_image_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
 # ---- rgba image glyph
 zoom1_image_source = ColumnDataSource(
-    dict(image=[current_image], x=[0], y=[0], dw=[image_size_x], dh=[image_size_y],
-         full_dw=[image_size_x], full_dh=[image_size_y]))
+    dict(image=[current_image], x=[0], y=[0], dw=[image_size_x], dh=[image_size_y]))
 
 zoom1_image_plot.add_glyph(zoom1_image_source, ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh'))
 
@@ -152,8 +152,8 @@ zoom1_area_source = ColumnDataSource(
     dict(x=[ZOOM1_INIT_X + ZOOM_INIT_WIDTH / 2], y=[ZOOM_INIT_HEIGHT / 2],
          width=[ZOOM_INIT_WIDTH], height=[image_size_y]))
 
-rect_red = Rect(x='x', y='y', width='width', height='height', line_color='red', line_width=2, fill_alpha=0)
-main_image_plot.add_glyph(zoom1_area_source, rect_red)
+rect = Rect(x='x', y='y', width='width', height='height', line_color='red', line_width=2, fill_alpha=0)
+main_image_plot.add_glyph(zoom1_area_source, rect)
 
 jscode_move_rect = """
     var data = source.data;
@@ -249,6 +249,141 @@ zoom1_hist_plot.add_glyph(hist1_source,
                           Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
 
 
+# Zoom plot 2
+zoom2_image_plot = Plot(
+    x_range=Range1d(ZOOM2_INIT_X, ZOOM2_INIT_X + ZOOM_INIT_WIDTH, bounds=(0, image_size_x)),
+    y_range=Range1d(0, image_size_y, bounds=(0, image_size_y)),
+    plot_height=ZOOM_CANVAS_HEIGHT,
+    plot_width=ZOOM_CANVAS_WIDTH,
+    toolbar_location='left',
+    logo=None,
+)
+
+# ---- tools
+# share 'pan' and 'wheel zoom' with the main plot, but 'save' and 'reset' keep separate
+zoom2_image_plot.add_tools(main_image_plot.tools[0], main_image_plot.tools[1], SaveTool(), ResetTool())
+
+# ---- axes
+zoom2_image_plot.add_layout(LinearAxis(), place='above')
+zoom2_image_plot.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
+
+# ---- grid lines
+zoom2_image_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
+zoom2_image_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
+
+# ---- rgba image glyph
+zoom2_image_source = ColumnDataSource(
+    dict(image=[current_image], x=[0], y=[0], dw=[image_size_x], dh=[image_size_y]))
+
+zoom2_image_plot.add_glyph(zoom2_image_source, ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh'))
+
+# ---- overwrite reset tool behavior
+# reuse js code from the main plot
+zoom2_image_plot.js_on_event(events.Reset, CustomJS(
+    args=dict(source=zoom2_image_plot, image_source=zoom2_image_source), code=jscode_reset))
+
+# ---- add rectangle glyph of zoom area to the main plot
+zoom2_area_source = ColumnDataSource(
+    dict(x=[ZOOM2_INIT_X + ZOOM_INIT_WIDTH / 2], y=[ZOOM_INIT_HEIGHT / 2],
+         width=[ZOOM_INIT_WIDTH], height=[image_size_y]))
+
+rect = Rect(x='x', y='y', width='width', height='height', line_color='green', line_width=2, fill_alpha=0)
+main_image_plot.add_glyph(zoom2_area_source, rect)
+
+jscode_move_rect = """
+    var data = source.data;
+    var start = cb_obj.start;
+    var end = cb_obj.end;
+    data['%s'] = [start + (end - start) / 2];
+    data['%s'] = [end - start];
+    source.change.emit();
+"""
+
+zoom2_image_plot.x_range.callback = CustomJS(
+    args=dict(source=zoom2_area_source), code=jscode_move_rect % ('x', 'width'))
+
+zoom2_image_plot.y_range.callback = CustomJS(
+    args=dict(source=zoom2_area_source), code=jscode_move_rect % ('y', 'height'))
+
+
+# aggregate zoom2 plot along x axis
+zoom2_plot_agg_x = Plot(
+    title=Title(text="Zoom Area 2"),
+    x_range=zoom2_image_plot.x_range,
+    y_range=DataRange1d(),
+    plot_height=agg_plot_size,
+    plot_width=zoom2_image_plot.plot_width,
+    toolbar_location=None,
+)
+
+# ---- axes
+zoom2_plot_agg_x.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
+zoom2_plot_agg_x.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='below')
+
+# ---- grid lines
+zoom2_plot_agg_x.add_layout(Grid(dimension=0, ticker=BasicTicker()))
+zoom2_plot_agg_x.add_layout(Grid(dimension=1, ticker=BasicTicker()))
+
+# ---- line glyph
+zoom2_agg_x_source = ColumnDataSource(
+    dict(x=np.arange(image_size_x) + 0.5,  # shift to a pixel center
+         y=np.zeros(image_size_x)))
+
+zoom2_plot_agg_x.add_glyph(zoom2_agg_x_source, Line(x='x', y='y', line_color='steelblue'))
+
+
+# aggregate zoom2 plot along y axis
+zoom2_plot_agg_y = Plot(
+    x_range=DataRange1d(),
+    y_range=zoom2_image_plot.y_range,
+    plot_height=zoom2_image_plot.plot_height,
+    plot_width=agg_plot_size,
+    toolbar_location=None,
+)
+
+# ---- axes
+zoom2_plot_agg_y.add_layout(LinearAxis(), place='above')
+zoom2_plot_agg_y.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='left')
+
+# ---- grid lines
+zoom2_plot_agg_y.add_layout(Grid(dimension=0, ticker=BasicTicker()))
+zoom2_plot_agg_y.add_layout(Grid(dimension=1, ticker=BasicTicker()))
+
+# ---- line glyph
+zoom2_agg_y_source = ColumnDataSource(
+    dict(x=np.zeros(image_size_y),
+         y=np.arange(image_size_y) + 0.5))  # shift to a pixel center
+
+zoom2_plot_agg_y.add_glyph(zoom2_agg_y_source, Line(x='x', y='y', line_color='steelblue'))
+
+
+# histogram zoom2 plot
+zoom2_hist_plot = Plot(
+    x_range=DataRange1d(),
+    y_range=DataRange1d(),
+    plot_height=hist_plot_size,
+    plot_width=zoom2_image_plot.plot_width,
+    toolbar_location='left',
+    logo=None,
+)
+
+# ---- tools
+zoom2_hist_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool())
+
+# ---- axes
+zoom2_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
+zoom2_hist_plot.add_layout(LinearAxis(axis_label="Counts"), place='right')
+
+# ---- grid lines
+zoom2_hist_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
+zoom2_hist_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
+
+# ---- quad (single bin) glyph
+hist2_source = ColumnDataSource(dict(left=[], right=[], top=[]))
+zoom2_hist_plot.add_glyph(hist2_source,
+                          Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
+
+
 # Total intensity plot
 total_intensity_plot = Plot(
     title=Title(text="Total Image Intensity"),
@@ -299,12 +434,38 @@ zoom1_sum_source = ColumnDataSource(dict(x=[], y=[]))
 zoom1_intensity_plot.add_glyph(zoom1_sum_source, Line(x='x', y='y', line_color='red'))
 
 
+# Zoom2 intensity plot
+zoom2_intensity_plot = Plot(
+    title=Title(text="Zoom Area 2 Total Intensity"),
+    x_range=total_intensity_plot.x_range,
+    y_range=DataRange1d(),
+    plot_height=agg_plot_size,
+    plot_width=DEBUG_INTENSITY_WIDTH,
+)
+
+# ---- tools
+zoom2_intensity_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool())
+
+# ---- axes
+zoom2_intensity_plot.add_layout(LinearAxis(axis_label="Intensity"), place='left')
+zoom2_intensity_plot.add_layout(LinearAxis(), place='below')
+
+# ---- grid lines
+zoom2_intensity_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
+zoom2_intensity_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
+
+# ---- line glyph
+zoom2_sum_source = ColumnDataSource(dict(x=[], y=[]))
+zoom2_intensity_plot.add_glyph(zoom2_sum_source, Line(x='x', y='y', line_color='green'))
+
+
 # Intensity stream reset button
 def intensity_stream_reset_button_callback():
     global stream_t
     stream_t = 1  # keep the latest point in order to prevent full axis reset
     total_sum_source.data.update(x=[1], y=[total_sum_source.data['y'][-1]])
     zoom1_sum_source.data.update(x=[1], y=[zoom1_sum_source.data['y'][-1]])
+    zoom2_sum_source.data.update(x=[1], y=[zoom2_sum_source.data['y'][-1]])
 
 intensity_stream_reset_button = Button(label="Reset", button_type='default', width=250)
 intensity_stream_reset_button.on_click(intensity_stream_reset_button_callback)
@@ -552,11 +713,15 @@ metadata_issues_dropdown = Dropdown(label="Metadata Issues", button_type='defaul
 # Final layouts
 layout_main = column(main_image_plot)
 
-layout_zoom = column(zoom1_plot_agg_x,
-                     row(zoom1_image_plot, zoom1_plot_agg_y),
-                     row(Spacer(width=0, height=0), zoom1_hist_plot, Spacer(width=0, height=0)))
+layout_zoom1 = column(zoom1_plot_agg_x,
+                      row(zoom1_image_plot, zoom1_plot_agg_y),
+                      row(Spacer(width=0, height=0), zoom1_hist_plot, Spacer(width=0, height=0)))
 
-layout_utility = column(gridplot([total_intensity_plot, zoom1_intensity_plot],
+layout_zoom2 = column(zoom2_plot_agg_x,
+                      row(zoom2_image_plot, zoom2_plot_agg_y),
+                      row(Spacer(width=0, height=0), zoom2_hist_plot, Spacer(width=0, height=0)))
+
+layout_utility = column(gridplot([total_intensity_plot, zoom1_intensity_plot, zoom2_intensity_plot],
                                  ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
                         intensity_stream_reset_button)
 
@@ -565,7 +730,7 @@ layout_controls = column(colormap_panel, data_source_tabs)
 layout_metadata = column(metadata_table, row(Spacer(width=250, height=0), metadata_issues_dropdown))
 
 final_layout = column(layout_main, Spacer(width=0, height=0),
-                      row(layout_zoom, Spacer(width=0, height=0),
+                      row(layout_zoom1, Spacer(width=0, height=0), layout_zoom2, Spacer(width=0, height=0),
                           column(layout_utility, Spacer(width=0, height=10),
                                  row(layout_controls, Spacer(width=30, height=0), layout_metadata)
                                  )
@@ -582,12 +747,15 @@ def update(image, metadata):
     main_image_width = main_image_plot.inner_width
     zoom1_image_height = zoom1_image_plot.inner_height
     zoom1_image_width = zoom1_image_plot.inner_width
+    zoom2_image_height = zoom2_image_plot.inner_height
+    zoom2_image_width = zoom2_image_plot.inner_width
 
     if 'shape' in metadata and metadata['shape'] != [image_size_y, image_size_x]:
         image_size_y = metadata['shape'][0]
         image_size_x = metadata['shape'][1]
         main_image_source.data.update(full_dw=[image_size_x], full_dh=[image_size_y])
         zoom1_image_source.data.update(full_dw=[image_size_x], full_dh=[image_size_y])
+        zoom2_image_source.data.update(full_dw=[image_size_x], full_dh=[image_size_y])
 
         main_image_plot.y_range.start = 0
         main_image_plot.x_range.start = 0
@@ -603,6 +771,13 @@ def update(image, metadata):
         zoom1_image_plot.x_range.bounds = (0, image_size_x)
         zoom1_image_plot.y_range.bounds = (0, image_size_y)
 
+        zoom2_image_plot.y_range.start = 0
+        zoom2_image_plot.x_range.start = 0
+        zoom2_image_plot.y_range.end = image_size_y
+        zoom2_image_plot.x_range.end = image_size_x
+        zoom2_image_plot.x_range.bounds = (0, image_size_x)
+        zoom2_image_plot.y_range.bounds = (0, image_size_y)
+
     main_start_0 = main_image_plot.y_range.start
     main_end_0 = main_image_plot.y_range.end
     main_start_1 = main_image_plot.x_range.start
@@ -612,6 +787,11 @@ def update(image, metadata):
     zoom1_end_0 = zoom1_image_plot.y_range.end
     zoom1_start_1 = zoom1_image_plot.x_range.start
     zoom1_end_1 = zoom1_image_plot.x_range.end
+
+    zoom2_start_0 = zoom2_image_plot.y_range.start
+    zoom2_end_0 = zoom2_image_plot.y_range.end
+    zoom2_start_1 = zoom2_image_plot.x_range.start
+    zoom2_end_1 = zoom2_image_plot.x_range.end
 
     if colormap_auto_toggle.active:
         disp_min = int(np.min(image))
@@ -633,6 +813,11 @@ def update(image, metadata):
                       box=(zoom1_start_1, zoom1_start_0, zoom1_end_1, zoom1_end_0),
                       resample=PIL_Image.NEAREST))
 
+    zoom2_image = np.asarray(
+        pil_im.resize(size=(zoom2_image_width, zoom2_image_height),
+                      box=(zoom2_start_1, zoom2_start_0, zoom2_end_1, zoom2_end_0),
+                      resample=PIL_Image.NEAREST))
+
     main_image_source.data.update(
         image=[image_color_mapper.to_rgba(main_image, bytes=True)],
         x=[main_start_1], y=[main_start_0],
@@ -643,16 +828,22 @@ def update(image, metadata):
         x=[zoom1_start_1], y=[zoom1_start_0],
         dw=[zoom1_end_1 - zoom1_start_1], dh=[zoom1_end_0 - zoom1_start_0])
 
+    zoom2_image_source.data.update(
+        image=[image_color_mapper.to_rgba(zoom2_image, bytes=True)],
+        x=[zoom2_start_1], y=[zoom2_start_0],
+        dw=[zoom2_end_1 - zoom2_start_1], dh=[zoom2_end_0 - zoom2_start_0])
+
     # Statistics
     ind = None
 
     im_size_0, im_size_1 = image.shape
+
     start_0 = max(int(np.floor(zoom1_start_0)), 0)
     end_0 = min(int(np.ceil(zoom1_end_0)), im_size_0)
     start_1 = max(int(np.floor(zoom1_start_1)), 0)
     end_1 = min(int(np.ceil(zoom1_end_1)), im_size_1)
     if start_0 > end_0 or start_1 > end_1:
-        agg0, r0, agg1, r1, counts, edges, total_sum = [0], [0], [0], [0], [0], [0, 1], 0
+        agg0, r0, agg1, r1, counts, edges, total_sum_zoom1 = [0], [0], [0], [0], [0], [0, 1], 0
     else:
         im_block = image[start_0:end_0, start_1:end_1]
 
@@ -666,17 +857,43 @@ def update(image, metadata):
         else:
             counts, edges = np.histogram(im_block[~ind[start_0:end_0, start_1:end_1]], bins='scott')
 
-        total_sum = np.sum(im_block)
+        total_sum_zoom1 = np.sum(im_block)
 
     hist1_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
     zoom1_agg_y_source.data.update(x=agg0, y=r0)
     zoom1_agg_x_source.data.update(x=r1, y=agg1)
 
+    start_0 = max(int(np.floor(zoom2_start_0)), 0)
+    end_0 = min(int(np.ceil(zoom2_end_0)), im_size_0)
+    start_1 = max(int(np.floor(zoom2_start_1)), 0)
+    end_1 = min(int(np.ceil(zoom2_end_1)), im_size_1)
+    if start_0 > end_0 or start_1 > end_1:
+        agg0, r0, agg1, r1, counts, edges, total_sum_zoom2 = [0], [0], [0], [0], [0], [0, 1], 0
+    else:
+        im_block = image[start_0:end_0, start_1:end_1]
+
+        agg1 = np.mean(im_block, axis=0)
+        agg0 = np.mean(im_block, axis=1)
+        r0 = np.arange(start_0, end_0) + 0.5
+        r1 = np.arange(start_1, end_1) + 0.5
+
+        if ind is None:
+            counts, edges = np.histogram(im_block, bins='scott')
+        else:
+            counts, edges = np.histogram(im_block[~ind[start_0:end_0, start_1:end_1]], bins='scott')
+
+        total_sum_zoom2 = np.sum(im_block)
+
+    hist2_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
+    zoom2_agg_y_source.data.update(x=agg0, y=r0)
+    zoom2_agg_x_source.data.update(x=r1, y=agg1)
+
     if connected and receiver.state == 'receiving':
         stream_t += 1
-        zoom1_sum_source.stream(new_data=dict(x=[stream_t], y=[total_sum]), rollover=STREAM_ROLLOVER)
         total_sum_source.stream(new_data=dict(x=[stream_t], y=[np.sum(image, dtype=np.float)]),
                                 rollover=STREAM_ROLLOVER)
+        zoom1_sum_source.stream(new_data=dict(x=[stream_t], y=[total_sum_zoom1]), rollover=STREAM_ROLLOVER)
+        zoom2_sum_source.stream(new_data=dict(x=[stream_t], y=[total_sum_zoom2]), rollover=STREAM_ROLLOVER)
 
     # Unpack metadata
     metadata_table_source.data.update(
