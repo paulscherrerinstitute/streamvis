@@ -142,11 +142,6 @@ zoom1_image_source = ColumnDataSource(
 
 zoom1_image_plot.add_glyph(zoom1_image_source, ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh'))
 
-# ---- overwrite reset tool behavior
-# reuse js code from the main plot
-zoom1_image_plot.js_on_event(events.Reset, CustomJS(
-    args=dict(source=zoom1_image_plot, image_source=zoom1_image_source), code=jscode_reset))
-
 # ---- add rectangle glyph of zoom area to the main plot
 zoom1_area_source = ColumnDataSource(
     dict(x=[ZOOM1_INIT_X + ZOOM_INIT_WIDTH / 2], y=[ZOOM_INIT_HEIGHT / 2],
@@ -276,11 +271,6 @@ zoom2_image_source = ColumnDataSource(
     dict(image=[current_image], x=[0], y=[0], dw=[image_size_x], dh=[image_size_y]))
 
 zoom2_image_plot.add_glyph(zoom2_image_source, ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh'))
-
-# ---- overwrite reset tool behavior
-# reuse js code from the main plot
-zoom2_image_plot.js_on_event(events.Reset, CustomJS(
-    args=dict(source=zoom2_image_plot, image_source=zoom2_image_source), code=jscode_reset))
 
 # ---- add rectangle glyph of zoom area to the main plot
 zoom2_area_source = ColumnDataSource(
@@ -754,8 +744,6 @@ def update(image, metadata):
         image_size_y = metadata['shape'][0]
         image_size_x = metadata['shape'][1]
         main_image_source.data.update(full_dw=[image_size_x], full_dh=[image_size_y])
-        zoom1_image_source.data.update(full_dw=[image_size_x], full_dh=[image_size_y])
-        zoom2_image_source.data.update(full_dw=[image_size_x], full_dh=[image_size_y])
 
         main_image_plot.y_range.start = 0
         main_image_plot.x_range.start = 0
@@ -764,17 +752,9 @@ def update(image, metadata):
         main_image_plot.x_range.bounds = (0, image_size_x)
         main_image_plot.y_range.bounds = (0, image_size_y)
 
-        zoom1_image_plot.y_range.start = 0
-        zoom1_image_plot.x_range.start = 0
-        zoom1_image_plot.y_range.end = image_size_y
-        zoom1_image_plot.x_range.end = image_size_x
         zoom1_image_plot.x_range.bounds = (0, image_size_x)
         zoom1_image_plot.y_range.bounds = (0, image_size_y)
 
-        zoom2_image_plot.y_range.start = 0
-        zoom2_image_plot.x_range.start = 0
-        zoom2_image_plot.y_range.end = image_size_y
-        zoom2_image_plot.x_range.end = image_size_x
         zoom2_image_plot.x_range.bounds = (0, image_size_x)
         zoom2_image_plot.y_range.bounds = (0, image_size_y)
 
