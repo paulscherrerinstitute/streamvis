@@ -33,6 +33,7 @@ image_size_y = 514
 
 current_image = np.zeros((1, 1), dtype='float32')
 current_metadata = dict(shape=[image_size_y, image_size_x])
+current_mask = None
 
 connected = False
 
@@ -374,6 +375,63 @@ zoom2_hist_plot.add_glyph(hist2_source,
                           Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
 
 
+# Intensity threshold toggle button
+def threshold_button_callback(state):
+    if state:
+        receiver.threshold_flag = True
+        threshold_button.button_type = 'warning'
+    else:
+        receiver.threshold_flag = False
+        threshold_button.button_type = 'default'
+
+threshold_button = Toggle(label="Apply Thresholding", active=receiver.threshold_flag,
+                          button_type='default', width=250)
+threshold_button.on_click(threshold_button_callback)
+
+
+# Intensity threshold value textinput
+def threshold_textinput_callback(attr, old, new):
+    try:
+        receiver.threshold = float(new)
+
+    except ValueError:
+        threshold_textinput.value = old
+
+threshold_textinput = TextInput(title='Intensity threshold:', value=str(receiver.threshold))
+threshold_textinput.on_change('value', threshold_textinput_callback)
+
+
+# Aggregation time toggle button
+def aggregate_button_callback(state):
+    if state:
+        receiver.aggregate_flag = True
+        receiver.aggregate_counter = 1
+        aggregate_button.button_type = 'warning'
+    else:
+        receiver.aggregate_flag = False
+        aggregate_button.button_type = 'default'
+
+aggregate_button = Toggle(label="Average Aggregate", active=receiver.aggregate_flag,
+                          button_type='default', width=250)
+aggregate_button.on_click(aggregate_button_callback)
+
+
+# Aggregation time value textinput
+def aggregate_time_textinput_callback(attr, old, new):
+    try:
+        new_value = float(new)
+        if new_value >= 1:
+            receiver.aggregate_time = new_value
+        else:
+            aggregate_time_textinput.value = old
+
+    except ValueError:
+        aggregate_time_textinput.value = old
+
+aggregate_time_textinput = TextInput(title='Average Aggregate Time:', value=str(receiver.aggregate_time))
+aggregate_time_textinput.on_change('value', aggregate_time_textinput_callback)
+
+
 # Total intensity plot
 total_intensity_plot = Plot(
     title=Title(text="Total Image Intensity"),
@@ -464,7 +522,7 @@ intensity_stream_reset_button.on_click(intensity_stream_reset_button_callback)
 # Stream panel
 # ---- image buffer slider
 def image_buffer_slider_callback(attr, old, new):
-    md, image = receiver.data_buffer[round(new['value'][0])]
+    md, image, mask = receiver.data_buffer[round(new['value'][0])]
     doc.add_next_tick_callback(partial(update, image=image, metadata=md))
 
 image_buffer_slider_source = ColumnDataSource(dict(value=[]))
@@ -711,6 +769,9 @@ layout_zoom2 = column(zoom2_plot_agg_x,
                       row(zoom2_image_plot, zoom2_plot_agg_y),
                       row(Spacer(width=0, height=0), zoom2_hist_plot, Spacer(width=0, height=0)))
 
+layout_thr_agg = row(column(threshold_button, threshold_textinput),
+                     column(aggregate_button, aggregate_time_textinput))
+
 layout_utility = column(gridplot([total_intensity_plot, zoom1_intensity_plot, zoom2_intensity_plot],
                                  ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
                         intensity_stream_reset_button)
@@ -724,14 +785,15 @@ final_layout = column(layout_main, Spacer(width=0, height=0),
                           column(layout_utility, Spacer(width=0, height=10),
                                  row(layout_controls, Spacer(width=30, height=0), layout_metadata)
                                  )
-                          )
+                          ),
+                      layout_thr_agg,
                       )
 
 doc.add_root(final_layout)
 
 
 @gen.coroutine
-def update(image, metadata):
+def update(image, metadata, mask):
     global stream_t, disp_min, disp_max, image_size_x, image_size_y
     main_image_height = main_image_plot.inner_height
     main_image_width = main_image_plot.inner_width
@@ -814,8 +876,6 @@ def update(image, metadata):
         dw=[zoom2_end_1 - zoom2_start_1], dh=[zoom2_end_0 - zoom2_start_0])
 
     # Statistics
-    ind = None
-
     im_size_0, im_size_1 = image.shape
 
     start_0 = max(int(np.floor(zoom1_start_0)), 0)
@@ -832,10 +892,10 @@ def update(image, metadata):
         r0 = np.arange(start_0, end_0) + 0.5
         r1 = np.arange(start_1, end_1) + 0.5
 
-        if ind is None:
+        if mask is None:
             counts, edges = np.histogram(im_block, bins='scott')
         else:
-            counts, edges = np.histogram(im_block[~ind[start_0:end_0, start_1:end_1]], bins='scott')
+            counts, edges = np.histogram(im_block[~mask[start_0:end_0, start_1:end_1]], bins='scott')
 
         total_sum_zoom1 = np.sum(im_block)
 
@@ -857,10 +917,10 @@ def update(image, metadata):
         r0 = np.arange(start_0, end_0) + 0.5
         r1 = np.arange(start_1, end_1) + 0.5
 
-        if ind is None:
+        if mask is None:
             counts, edges = np.histogram(im_block, bins='scott')
         else:
-            counts, edges = np.histogram(im_block[~ind[start_0:end_0, start_1:end_1]], bins='scott')
+            counts, edges = np.histogram(im_block[~mask[start_0:end_0, start_1:end_1]], bins='scott')
 
         total_sum_zoom2 = np.sum(im_block)
 
@@ -905,7 +965,7 @@ def update(image, metadata):
 
 
 def internal_periodic_callback():
-    global current_image, current_metadata
+    global current_image, current_metadata, current_mask
     if main_image_plot.inner_width is None:
         # wait for the initialization to finish, thus skip this periodic callback
         return
@@ -925,9 +985,10 @@ def internal_periodic_callback():
                 image_buffer_slider.value = len(receiver.data_buffer) - 1
 
             if len(receiver.data_buffer) > 0:
-                current_metadata, current_image = receiver.data_buffer[-1]
+                current_metadata, current_image, current_mask = receiver.data_buffer[-1]
 
     if current_image.shape != (1, 1):
-        doc.add_next_tick_callback(partial(update, image=current_image, metadata=current_metadata))
+        doc.add_next_tick_callback(partial(update, image=current_image, metadata=current_metadata,
+                                           mask=current_mask))
 
 doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)
