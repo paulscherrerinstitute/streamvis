@@ -16,11 +16,11 @@ requirements:
     - python
     - setuptools
   run:
-    - python
-    - bokeh
+    - python>=3.6
+    - bokeh>=0.12.13
     - pyzmq
     - matplotlib
-    - pillow
+    - pillow>=4.3
     - colorcet
     - h5py
 
