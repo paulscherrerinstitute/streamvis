@@ -67,6 +67,15 @@ ZOOM_INIT_HEIGHT = image_size_y
 ZOOM1_INIT_X = (ZOOM_INIT_WIDTH + 6) * 2
 ZOOM2_INIT_X = (ZOOM_INIT_WIDTH + 6) * 6
 
+# Initial values (can be changed through the gui)
+threshold_flag = False
+threshold = 0
+
+aggregate_flag = False
+aggregated_image = 0
+aggregate_time = np.Inf
+aggregate_counter = 0
+
 
 # Main plot
 main_image_plot = Plot(
@@ -377,58 +386,62 @@ zoom2_hist_plot.add_glyph(hist2_source,
 
 # Intensity threshold toggle button
 def threshold_button_callback(state):
+    global threshold_flag
     if state:
-        receiver.threshold_flag = True
+        threshold_flag = True
         threshold_button.button_type = 'warning'
     else:
-        receiver.threshold_flag = False
+        threshold_flag = False
         threshold_button.button_type = 'default'
 
-threshold_button = Toggle(label="Apply Thresholding", active=receiver.threshold_flag,
+threshold_button = Toggle(label="Apply Thresholding", active=threshold_flag,
                           button_type='default', width=250)
 threshold_button.on_click(threshold_button_callback)
 
 
 # Intensity threshold value textinput
 def threshold_textinput_callback(attr, old, new):
+    global threshold
     try:
-        receiver.threshold = float(new)
+        threshold = float(new)
 
     except ValueError:
         threshold_textinput.value = old
 
-threshold_textinput = TextInput(title='Intensity threshold:', value=str(receiver.threshold))
+threshold_textinput = TextInput(title='Intensity threshold:', value=str(threshold))
 threshold_textinput.on_change('value', threshold_textinput_callback)
 
 
 # Aggregation time toggle button
 def aggregate_button_callback(state):
+    global aggregate_flag, aggregate_counter
     if state:
-        receiver.aggregate_flag = True
-        receiver.aggregate_counter = 1
+        aggregate_flag = True
+        aggregate_counter = 1
         aggregate_button.button_type = 'warning'
     else:
-        receiver.aggregate_flag = False
+        aggregate_flag = False
         aggregate_button.button_type = 'default'
 
-aggregate_button = Toggle(label="Average Aggregate", active=receiver.aggregate_flag,
+aggregate_button = Toggle(label="Average Aggregate", active=aggregate_flag,
                           button_type='default', width=250)
 aggregate_button.on_click(aggregate_button_callback)
 
 
 # Aggregation time value textinput
 def aggregate_time_textinput_callback(attr, old, new):
+    global aggregate_time
     try:
         new_value = float(new)
         if new_value >= 1:
-            receiver.aggregate_time = new_value
+            aggregate_time = new_value
         else:
             aggregate_time_textinput.value = old
 
     except ValueError:
         aggregate_time_textinput.value = old
 
-aggregate_time_textinput = TextInput(title='Average Aggregate Time:', value=str(receiver.aggregate_time))
+aggregate_time_textinput = TextInput(title='Average Aggregate Time:', value=str(aggregate_time))
 aggregate_time_textinput.on_change('value', aggregate_time_textinput_callback)
 
 
@@ -948,7 +961,7 @@ def update(image, metadata, mask):
 
 
 def internal_periodic_callback():
-    global current_image, current_metadata, current_mask
+    global current_image, current_metadata, current_mask, aggregate_counter
     if main_image_plot.inner_width is None:
         # wait for the initialization to finish, thus skip this periodic callback
         return
@@ -963,7 +976,27 @@ def internal_periodic_callback():
             stream_button.button_type = 'success'
 
             if len(receiver.data_buffer) > 0:
-                current_metadata, current_image, current_mask = receiver.data_buffer[-1]
+                current_metadata, image = receiver.data_buffer[-1]
+                image = image.copy()  # make a copy so that other clients could still use it
+
+                # TODO: find a better place to do thresholding/aggregation per client
+                if threshold_flag:
+                    current_mask = image < threshold
+                    image[current_mask] = 0
+                else:
+                    current_mask = None
+
+                if aggregate_flag:
+                    current_mask = None
+                    if aggregate_counter >= aggregate_time:
+                        aggregate_counter = 1
+
+                    else:
+                        image += current_image * aggregate_counter
+                        aggregate_counter += 1
+                        image /= aggregate_counter
+
+                current_image = image
 
     if current_image.shape != (1, 1):
         doc.add_next_tick_callback(partial(update, image=current_image, metadata=current_metadata,
