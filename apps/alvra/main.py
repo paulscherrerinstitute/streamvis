@@ -459,7 +459,7 @@ total_intensity_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(dimension
 
 # ---- axes
 total_intensity_plot.add_layout(LinearAxis(axis_label="Total intensity"), place='left')
-total_intensity_plot.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='below')
+total_intensity_plot.add_layout(LinearAxis(), place='below')
 
 # ---- grid lines
 total_intensity_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
