@@ -368,7 +368,9 @@ zoom2_hist_plot = Plot(
 )
 
 # ---- tools
-zoom2_hist_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool())
+# share 'pan', 'box zoom', and 'wheel zoom' with the first histogram plot
+zoom2_hist_plot.add_tools(zoom1_hist_plot.tools[0], zoom1_hist_plot.tools[1], zoom1_hist_plot.tools[2],
+                          SaveTool(), ResetTool())
 
 # ---- axes
 zoom2_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
