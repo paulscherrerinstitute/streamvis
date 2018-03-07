@@ -181,10 +181,15 @@ zoom1_plot_agg_x = Plot(
     title=Title(text="Zoom Area 1"),
     x_range=zoom1_image_plot.x_range,
     y_range=DataRange1d(),
-    plot_height=agg_plot_size,
+    plot_height=hist_plot_size,
     plot_width=zoom1_image_plot.plot_width,
-    toolbar_location=None,
+    toolbar_location='left',
+    logo=None,
 )
+
+# ---- tools
+zoom1_plot_agg_x.add_tools(PanTool(dimensions='height'), WheelZoomTool(dimensions='height'),
+                           SaveTool(), ResetTool())
 
 # ---- axes
 zoom1_plot_agg_x.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
@@ -199,7 +204,7 @@ zoom1_agg_x_source = ColumnDataSource(
     dict(x=np.arange(image_size_x) + 0.5,  # shift to a pixel center
          y=np.zeros(image_size_x)))
 
-zoom1_plot_agg_x.add_glyph(zoom1_agg_x_source, Line(x='x', y='y', line_color='steelblue'))
+zoom1_plot_agg_x.add_glyph(zoom1_agg_x_source, Line(x='x', y='y', line_color='steelblue', line_width=2))
 
 
 # aggregate zoom1 plot along y axis
@@ -231,7 +236,7 @@ zoom1_plot_agg_y.add_glyph(zoom1_agg_y_source, Line(x='x', y='y', line_color='st
 zoom1_hist_plot = Plot(
     x_range=DataRange1d(),
     y_range=DataRange1d(),
-    plot_height=hist_plot_size,
+    plot_height=agg_plot_size+100,
     plot_width=zoom1_image_plot.plot_width,
     toolbar_location='left',
     logo=None,
@@ -242,7 +247,7 @@ zoom1_hist_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(),
 
 # ---- axes
 zoom1_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
-zoom1_hist_plot.add_layout(LinearAxis(axis_label="Counts"), place='right')
+zoom1_hist_plot.add_layout(LinearAxis(axis_label="Counts", major_label_orientation='vertical'), place='right')
 
 # ---- grid lines
 zoom1_hist_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
@@ -311,10 +316,14 @@ zoom2_plot_agg_x = Plot(
     title=Title(text="Zoom Area 2"),
     x_range=zoom2_image_plot.x_range,
     y_range=DataRange1d(),
-    plot_height=agg_plot_size,
+    plot_height=hist_plot_size,
     plot_width=zoom2_image_plot.plot_width,
-    toolbar_location=None,
+    toolbar_location='left',
+    logo=None,
 )
+
+# ---- tools
+zoom2_plot_agg_x.add_tools(zoom1_plot_agg_x.tools[0], zoom1_plot_agg_x.tools[1], SaveTool(), ResetTool())
 
 # ---- axes
 zoom2_plot_agg_x.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
@@ -329,7 +338,7 @@ zoom2_agg_x_source = ColumnDataSource(
     dict(x=np.arange(image_size_x) + 0.5,  # shift to a pixel center
          y=np.zeros(image_size_x)))
 
-zoom2_plot_agg_x.add_glyph(zoom2_agg_x_source, Line(x='x', y='y', line_color='steelblue'))
+zoom2_plot_agg_x.add_glyph(zoom2_agg_x_source, Line(x='x', y='y', line_color='steelblue', line_width=2))
 
 
 # aggregate zoom2 plot along y axis
@@ -361,7 +370,7 @@ zoom2_plot_agg_y.add_glyph(zoom2_agg_y_source, Line(x='x', y='y', line_color='st
 zoom2_hist_plot = Plot(
     x_range=DataRange1d(),
     y_range=DataRange1d(),
-    plot_height=hist_plot_size,
+    plot_height=agg_plot_size+100,
     plot_width=zoom2_image_plot.plot_width,
     toolbar_location='left',
     logo=None,
@@ -374,7 +383,7 @@ zoom2_hist_plot.add_tools(zoom1_hist_plot.tools[0], zoom1_hist_plot.tools[1], zo
 
 # ---- axes
 zoom2_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
-zoom2_hist_plot.add_layout(LinearAxis(axis_label="Counts"), place='right')
+zoom2_hist_plot.add_layout(LinearAxis(axis_label="Counts", major_label_orientation='vertical'), place='right')
 
 # ---- grid lines
 zoom2_hist_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
@@ -749,7 +758,7 @@ metadata_table = DataTable(
     source=metadata_table_source,
     columns=[TableColumn(field='metadata', title="Metadata Name"), TableColumn(field='value', title="Value")],
     width=500,
-    height=378,
+    height=420,
     row_headers=False,
     selectable=False,
 )
