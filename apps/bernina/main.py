@@ -37,8 +37,8 @@ current_metadata = dict(shape=[image_size_y, image_size_x])
 connected = False
 
 # Currently in bokeh it's possible to control only a canvas size, but not a size of the plotting area.
-MAIN_CANVAS_WIDTH = 1500 + 54
-MAIN_CANVAS_HEIGHT = 514 + 94
+MAIN_CANVAS_WIDTH = 1024 + 54
+MAIN_CANVAS_HEIGHT = 1536 + 94
 
 ZOOM_CANVAS_WIDTH = 1030 + 54
 ZOOM_CANVAS_HEIGHT = 514 + 29
@@ -564,13 +564,10 @@ layout_controls = column(colormap_panel, data_source_tabs)
 
 layout_metadata = column(metadata_table, row(Spacer(width=250, height=0), metadata_issues_dropdown))
 
-final_layout = column(layout_main, Spacer(width=0, height=0),
-                      row(layout_zoom, Spacer(width=0, height=0),
-                          column(layout_utility, Spacer(width=0, height=10),
-                                 row(layout_controls, Spacer(width=30, height=0), layout_metadata)
-                                 )
-                          )
-                      )
+final_layout = row(layout_main, Spacer(width=0, height=0),
+                   column(layout_zoom, Spacer(width=0, height=0),
+                          column(layout_utility, Spacer(width=0, height=10))),
+                   row(layout_controls, Spacer(width=30, height=0), layout_metadata))
 
 doc.add_root(final_layout)
 
