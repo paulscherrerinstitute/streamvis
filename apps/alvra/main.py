@@ -74,7 +74,7 @@ threshold = 0
 aggregate_flag = False
 aggregated_image = 0
 aggregate_time = np.Inf
-aggregate_counter = 0
+aggregate_counter = 1
 
 
 # Main plot
@@ -894,15 +894,16 @@ def update(image, metadata, mask):
     else:
         im_block = image[start_0:end_0, start_1:end_1]
 
-        agg1 = np.mean(im_block, axis=0)
-        agg0 = np.mean(im_block, axis=1)
+        agg1 = np.sum(im_block, axis=0)
+        agg0 = np.sum(im_block, axis=1)
         r0 = np.arange(start_0, end_0) + 0.5
         r1 = np.arange(start_1, end_1) + 0.5
 
         if mask is None:
-            counts, edges = np.histogram(im_block, bins='scott')
+            counts, edges = np.histogram(im_block/aggregate_counter, bins='scott')
         else:
-            counts, edges = np.histogram(im_block[~mask[start_0:end_0, start_1:end_1]], bins='scott')
+            counts, edges = np.histogram(im_block[~mask[start_0:end_0, start_1:end_1]]/aggregate_counter,
+                                         bins='scott')
 
         total_sum_zoom1 = np.sum(im_block)
 
@@ -919,15 +920,16 @@ def update(image, metadata, mask):
     else:
         im_block = image[start_0:end_0, start_1:end_1]
 
-        agg1 = np.mean(im_block, axis=0)
-        agg0 = np.mean(im_block, axis=1)
+        agg1 = np.sum(im_block, axis=0)
+        agg0 = np.sum(im_block, axis=1)
         r0 = np.arange(start_0, end_0) + 0.5
         r1 = np.arange(start_1, end_1) + 0.5
 
         if mask is None:
-            counts, edges = np.histogram(im_block, bins='scott')
+            counts, edges = np.histogram(im_block/aggregate_counter, bins='scott')
         else:
-            counts, edges = np.histogram(im_block[~mask[start_0:end_0, start_1:end_1]], bins='scott')
+            counts, edges = np.histogram(im_block[~mask[start_0:end_0, start_1:end_1]]/aggregate_counter,
+                                         bins='scott')
 
         total_sum_zoom2 = np.sum(im_block)
 
@@ -1003,9 +1005,8 @@ def internal_periodic_callback():
                         aggregate_counter = 1
 
                     else:
-                        image += current_image * aggregate_counter
+                        image += current_image
                         aggregate_counter += 1
-                        image /= aggregate_counter
 
                 current_image = image
 
