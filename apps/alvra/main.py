@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from functools import partial
 
 import numpy as np
@@ -75,6 +76,9 @@ aggregate_flag = False
 aggregated_image = 0
 aggregate_time = np.Inf
 aggregate_counter = 1
+
+current_spectrum = None
+saved_spectra = dict()
 
 
 # Main plot
@@ -456,6 +460,28 @@ aggregate_time_textinput = TextInput(title='Average Aggregate Time:', value=str(
 aggregate_time_textinput.on_change('value', aggregate_time_textinput_callback)
 
 
+# Saved spectrum lines
+zoom1_spectrum_line_source = ColumnDataSource(dict(x=[], y=[]))
+zoom2_spectrum_line_source = ColumnDataSource(dict(x=[], y=[]))
+zoom1_plot_agg_x.add_glyph(zoom1_spectrum_line_source, Line(x='x', y='y', line_color='maroon', line_width=2))
+zoom2_plot_agg_x.add_glyph(zoom2_spectrum_line_source, Line(x='x', y='y', line_color='maroon', line_width=2))
+
+
+# Save spectrum button
+def save_spectrum_button_callback():
+    if current_spectrum is not None:
+        timenow = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        saved_spectra[timenow] = current_spectrum
+        save_spectrum_select.options = [*save_spectrum_select.options, timenow]
+        save_spectrum_select.value = timenow
+
+save_spectrum_button = Button(label='Save Spectrum')
+save_spectrum_button.on_click(save_spectrum_button_callback)
+
+# Saved spectrum select
+save_spectrum_select = Select(title='Saved Spectra:', options=['None'], value='None')
+
+
 # Total intensity plot
 total_intensity_plot = Plot(
     title=Title(text="Total Image Intensity"),
@@ -777,7 +803,8 @@ layout_zoom2 = column(zoom2_plot_agg_x,
                       row(Spacer(width=0, height=0), zoom2_hist_plot, Spacer(width=0, height=0)))
 
 layout_thr_agg = row(column(threshold_button, threshold_textinput),
-                     column(aggregate_button, aggregate_time_textinput))
+                     column(aggregate_button, aggregate_time_textinput),
+                     column(save_spectrum_button, save_spectrum_select))
 
 layout_utility = column(gridplot([total_intensity_plot, zoom1_intensity_plot, zoom2_intensity_plot],
                                  ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
@@ -801,7 +828,7 @@ doc.add_root(final_layout)
 
 @gen.coroutine
 def update(image, metadata, mask):
-    global stream_t, disp_min, disp_max, image_size_x, image_size_y
+    global stream_t, disp_min, disp_max, image_size_x, image_size_y, current_spectrum
     main_image_height = main_image_plot.inner_height
     main_image_width = main_image_plot.inner_width
     zoom1_image_height = zoom1_image_plot.inner_height
@@ -911,6 +938,12 @@ def update(image, metadata, mask):
     zoom1_agg_y_source.data.update(x=agg0, y=r0)
     zoom1_agg_x_source.data.update(x=r1, y=agg1)
 
+    if save_spectrum_select.value == 'None':
+        zoom1_spectrum_line_source.data.update(x=[], y=[])
+    else:
+        spectrum = saved_spectra[save_spectrum_select.value]
+        zoom1_spectrum_line_source.data.update(x=r1, y=spectrum[start_1:end_1])
+
     start_0 = max(int(np.floor(zoom2_start_0)), 0)
     end_0 = min(int(np.ceil(zoom2_end_0)), im_size_0)
     start_1 = max(int(np.floor(zoom2_start_1)), 0)
@@ -937,6 +970,12 @@ def update(image, metadata, mask):
     zoom2_agg_y_source.data.update(x=agg0, y=r0)
     zoom2_agg_x_source.data.update(x=r1, y=agg1)
 
+    if save_spectrum_select.value == 'None':
+        zoom2_spectrum_line_source.data.update(x=[], y=[])
+    else:
+        spectrum = saved_spectra[save_spectrum_select.value]
+        zoom2_spectrum_line_source.data.update(x=r1, y=spectrum[start_1:end_1])
+
     if connected and receiver.state == 'receiving':
         stream_t += 1
         total_sum_source.stream(new_data=dict(x=[stream_t], y=[np.sum(image, dtype=np.float)]),
@@ -947,6 +986,9 @@ def update(image, metadata, mask):
     # Unpack metadata
     metadata_table_source.data.update(
         metadata=list(map(str, metadata.keys())), value=list(map(str, metadata.values())))
+
+    # Save spectrum
+    current_spectrum = np.sum(image, axis=0)
 
     # Check metadata for issues
     new_menu = []
