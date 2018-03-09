@@ -77,7 +77,7 @@ aggregated_image = 0
 aggregate_time = np.Inf
 aggregate_counter = 1
 
-current_spectrum = None
+current_spectra = None
 saved_spectra = dict()
 
 
@@ -461,25 +461,46 @@ aggregate_time_textinput.on_change('value', aggregate_time_textinput_callback)
 
 
 # Saved spectrum lines
-zoom1_spectrum_line_source = ColumnDataSource(dict(x=[], y=[]))
-zoom2_spectrum_line_source = ColumnDataSource(dict(x=[], y=[]))
-zoom1_plot_agg_x.add_glyph(zoom1_spectrum_line_source, Line(x='x', y='y', line_color='maroon', line_width=2))
-zoom2_plot_agg_x.add_glyph(zoom2_spectrum_line_source, Line(x='x', y='y', line_color='maroon', line_width=2))
+zoom1_spectrum_x_source = ColumnDataSource(dict(x=[], y=[]))
+zoom1_spectrum_y_source = ColumnDataSource(dict(x=[], y=[]))
+zoom2_spectrum_x_source = ColumnDataSource(dict(x=[], y=[]))
+zoom2_spectrum_y_source = ColumnDataSource(dict(x=[], y=[]))
+
+zoom1_plot_agg_x.add_glyph(zoom1_spectrum_x_source, Line(x='x', y='y', line_color='maroon', line_width=2))
+zoom1_plot_agg_y.add_glyph(zoom1_spectrum_y_source, Line(x='x', y='y', line_color='maroon', line_width=1))
+zoom2_plot_agg_x.add_glyph(zoom2_spectrum_x_source, Line(x='x', y='y', line_color='maroon', line_width=2))
+zoom2_plot_agg_y.add_glyph(zoom2_spectrum_y_source, Line(x='x', y='y', line_color='maroon', line_width=1))
 
 
 # Save spectrum button
 def save_spectrum_button_callback():
-    if current_spectrum is not None:
+    if current_spectra is not None:
         timenow = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        saved_spectra[timenow] = current_spectrum
+        saved_spectra[timenow] = current_spectra
         save_spectrum_select.options = [*save_spectrum_select.options, timenow]
         save_spectrum_select.value = timenow
 
 save_spectrum_button = Button(label='Save Spectrum')
 save_spectrum_button.on_click(save_spectrum_button_callback)
 
+
 # Saved spectrum select
+def save_spectrum_select_callback(attr, old, new):
+    if new == 'None':
+        zoom1_spectrum_x_source.data.update(x=[], y=[])
+        zoom1_spectrum_y_source.data.update(x=[], y=[])
+        zoom2_spectrum_x_source.data.update(x=[], y=[])
+        zoom2_spectrum_y_source.data.update(x=[], y=[])
+
+    else:
+        (agg0_1, r0_1, agg1_1, r1_1, agg0_2, r0_2, agg1_2, r1_2) = saved_spectra[new]
+        zoom1_spectrum_y_source.data.update(x=agg0_1, y=r0_1)
+        zoom1_spectrum_x_source.data.update(x=r1_1, y=agg1_1)
+        zoom2_spectrum_y_source.data.update(x=agg0_2, y=r0_2)
+        zoom2_spectrum_x_source.data.update(x=r1_2, y=agg1_2)
+
 save_spectrum_select = Select(title='Saved Spectra:', options=['None'], value='None')
+save_spectrum_select.on_change('value', save_spectrum_select_callback)
 
 
 # Total intensity plot
@@ -828,7 +849,7 @@ doc.add_root(final_layout)
 
 @gen.coroutine
 def update(image, metadata, mask):
-    global stream_t, disp_min, disp_max, image_size_x, image_size_y, current_spectrum
+    global stream_t, disp_min, disp_max, image_size_x, image_size_y, current_spectra
     main_image_height = main_image_plot.inner_height
     main_image_width = main_image_plot.inner_width
     zoom1_image_height = zoom1_image_plot.inner_height
@@ -917,14 +938,14 @@ def update(image, metadata, mask):
     start_1 = max(int(np.floor(zoom1_start_1)), 0)
     end_1 = min(int(np.ceil(zoom1_end_1)), im_size_1)
     if start_0 > end_0 or start_1 > end_1:
-        agg0, r0, agg1, r1, counts, edges, total_sum_zoom1 = [0], [0], [0], [0], [0], [0, 1], 0
+        agg0_1, r0_1, agg1_1, r1_1, counts, edges, total_sum_zoom1 = [0], [0], [0], [0], [0], [0, 1], 0
     else:
         im_block = image[start_0:end_0, start_1:end_1]
 
-        agg1 = np.sum(im_block, axis=0)
-        agg0 = np.sum(im_block, axis=1)
-        r0 = np.arange(start_0, end_0) + 0.5
-        r1 = np.arange(start_1, end_1) + 0.5
+        agg1_1 = np.sum(im_block, axis=0)
+        agg0_1 = np.sum(im_block, axis=1)
+        r0_1 = np.arange(start_0, end_0) + 0.5
+        r1_1 = np.arange(start_1, end_1) + 0.5
 
         if mask is None:
             counts, edges = np.histogram(im_block/aggregate_counter, bins='scott')
@@ -935,28 +956,22 @@ def update(image, metadata, mask):
         total_sum_zoom1 = np.sum(im_block)
 
     hist1_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
-    zoom1_agg_y_source.data.update(x=agg0, y=r0)
-    zoom1_agg_x_source.data.update(x=r1, y=agg1)
-
-    if save_spectrum_select.value == 'None':
-        zoom1_spectrum_line_source.data.update(x=[], y=[])
-    else:
-        spectrum = saved_spectra[save_spectrum_select.value]
-        zoom1_spectrum_line_source.data.update(x=r1, y=spectrum[start_1:end_1])
+    zoom1_agg_y_source.data.update(x=agg0_1, y=r0_1)
+    zoom1_agg_x_source.data.update(x=r1_1, y=agg1_1)
 
     start_0 = max(int(np.floor(zoom2_start_0)), 0)
     end_0 = min(int(np.ceil(zoom2_end_0)), im_size_0)
     start_1 = max(int(np.floor(zoom2_start_1)), 0)
     end_1 = min(int(np.ceil(zoom2_end_1)), im_size_1)
     if start_0 > end_0 or start_1 > end_1:
-        agg0, r0, agg1, r1, counts, edges, total_sum_zoom2 = [0], [0], [0], [0], [0], [0, 1], 0
+        agg0_2, r0_2, agg1_2, r1_2, counts, edges, total_sum_zoom2 = [0], [0], [0], [0], [0], [0, 1], 0
     else:
         im_block = image[start_0:end_0, start_1:end_1]
 
-        agg1 = np.sum(im_block, axis=0)
-        agg0 = np.sum(im_block, axis=1)
-        r0 = np.arange(start_0, end_0) + 0.5
-        r1 = np.arange(start_1, end_1) + 0.5
+        agg1_2 = np.sum(im_block, axis=0)
+        agg0_2 = np.sum(im_block, axis=1)
+        r0_2 = np.arange(start_0, end_0) + 0.5
+        r1_2 = np.arange(start_1, end_1) + 0.5
 
         if mask is None:
             counts, edges = np.histogram(im_block/aggregate_counter, bins='scott')
@@ -967,14 +982,8 @@ def update(image, metadata, mask):
         total_sum_zoom2 = np.sum(im_block)
 
     hist2_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
-    zoom2_agg_y_source.data.update(x=agg0, y=r0)
-    zoom2_agg_x_source.data.update(x=r1, y=agg1)
-
-    if save_spectrum_select.value == 'None':
-        zoom2_spectrum_line_source.data.update(x=[], y=[])
-    else:
-        spectrum = saved_spectra[save_spectrum_select.value]
-        zoom2_spectrum_line_source.data.update(x=r1, y=spectrum[start_1:end_1])
+    zoom2_agg_y_source.data.update(x=agg0_2, y=r0_2)
+    zoom2_agg_x_source.data.update(x=r1_2, y=agg1_2)
 
     if connected and receiver.state == 'receiving':
         stream_t += 1
@@ -988,7 +997,7 @@ def update(image, metadata, mask):
         metadata=list(map(str, metadata.keys())), value=list(map(str, metadata.values())))
 
     # Save spectrum
-    current_spectrum = np.sum(image, axis=0)
+    current_spectra = (agg0_1, r0_1, agg1_1, r1_1, agg0_2, r0_2, agg1_2, r1_2)
 
     # Check metadata for issues
     new_menu = []
