@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name="streamvis",
-      version="0.1.3",
+      version="0.1.4",
       author="Ivan Usov",
       author_email="ivan.usov@psi.ch",
       description="Stream visualization of JF data.",
