@@ -112,7 +112,7 @@ main_image_plot.js_on_event(events.Reset, CustomJS(
     args=dict(source=main_image_plot, image_source=main_image_source), code=jscode_reset))
 
 
-# Zoom plot
+# Zoom 1 plot
 zoom1_image_plot = Plot(
     x_range=Range1d(ZOOM1_INIT_X, ZOOM1_INIT_X + ZOOM_INIT_WIDTH, bounds=(0, image_size_x)),
     y_range=Range1d(0, image_size_y, bounds=(0, image_size_y)),
@@ -168,6 +168,57 @@ zoom1_image_plot.x_range.callback = CustomJS(
 
 zoom1_image_plot.y_range.callback = CustomJS(
     args=dict(source=zoom1_area_source), code=jscode_move_rect % ('y', 'height'))
+
+
+# Zoom 2 plot
+zoom2_image_plot = Plot(
+    x_range=Range1d(ZOOM1_INIT_X, ZOOM1_INIT_X + ZOOM_INIT_WIDTH, bounds=(0, image_size_x)),
+    y_range=Range1d(0, image_size_y, bounds=(0, image_size_y)),
+    plot_height=ZOOM_CANVAS_HEIGHT,
+    plot_width=ZOOM_CANVAS_WIDTH,
+    toolbar_location='left',
+    logo=None,
+)
+
+# ---- tools
+# share 'pan' and 'wheel zoom' with the main plot, but 'save' and 'reset' keep separate
+zoom2_image_plot.add_tools(main_image_plot.tools[0], main_image_plot.tools[1], SaveTool(), ResetTool())
+
+# ---- axes
+zoom2_image_plot.add_layout(LinearAxis(), place='above')
+zoom2_image_plot.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
+
+# ---- grid lines
+zoom2_image_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
+zoom2_image_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
+
+# ---- rgba image glyph
+zoom2_image_source = ColumnDataSource(
+    dict(image=[current_image], x=[0], y=[0], dw=[image_size_x], dh=[image_size_y],
+         full_dw=[image_size_x], full_dh=[image_size_y]))
+
+zoom2_image_plot.add_glyph(zoom2_image_source, ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh'))
+
+# ---- overwrite reset tool behavior
+# reuse js code from the main plot
+zoom2_image_plot.js_on_event(events.Reset, CustomJS(
+    args=dict(source=zoom2_image_plot, image_source=zoom2_image_source), code=jscode_reset))
+
+# ---- add rectangle glyph of zoom area to the main plot
+zoom2_area_source = ColumnDataSource(
+    dict(x=[ZOOM1_INIT_X + ZOOM_INIT_WIDTH / 2], y=[ZOOM_INIT_HEIGHT / 2],
+         width=[ZOOM_INIT_WIDTH], height=[image_size_y]))
+
+rect_green = Rect(x='x', y='y', width='width', height='height', line_color='green', line_width=2,
+                  fill_alpha=0)
+main_image_plot.add_glyph(zoom2_area_source, rect_green)
+
+# reuse 'jscode_move_rect' code from the first zoom image plot
+zoom2_image_plot.x_range.callback = CustomJS(
+    args=dict(source=zoom2_area_source), code=jscode_move_rect % ('x', 'width'))
+
+zoom2_image_plot.y_range.callback = CustomJS(
+    args=dict(source=zoom2_area_source), code=jscode_move_rect % ('y', 'height'))
 
 
 # Total intensity plot
@@ -455,7 +506,7 @@ metadata_issues_dropdown = Dropdown(label="Metadata Issues", button_type='defaul
 # Final layouts
 layout_main = column(main_image_plot)
 
-layout_zoom = column(zoom1_image_plot)
+layout_zoom = column(zoom1_image_plot, zoom2_image_plot)
 
 layout_utility = column(gridplot([total_intensity_plot, zoom1_intensity_plot],
                                  ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
@@ -479,12 +530,15 @@ def update(image, metadata):
     main_image_width = main_image_plot.inner_width
     zoom1_image_height = zoom1_image_plot.inner_height
     zoom1_image_width = zoom1_image_plot.inner_width
+    zoom2_image_height = zoom2_image_plot.inner_height
+    zoom2_image_width = zoom2_image_plot.inner_width
 
     if 'shape' in metadata and metadata['shape'] != [image_size_y, image_size_x]:
         image_size_y = metadata['shape'][0]
         image_size_x = metadata['shape'][1]
         main_image_source.data.update(full_dw=[image_size_x], full_dh=[image_size_y])
         zoom1_image_source.data.update(full_dw=[image_size_x], full_dh=[image_size_y])
+        zoom2_image_source.data.update(full_dw=[image_size_x], full_dh=[image_size_y])
 
         main_image_plot.y_range.start = 0
         main_image_plot.x_range.start = 0
@@ -500,6 +554,13 @@ def update(image, metadata):
         zoom1_image_plot.x_range.bounds = (0, image_size_x)
         zoom1_image_plot.y_range.bounds = (0, image_size_y)
 
+        zoom2_image_plot.y_range.start = 0
+        zoom2_image_plot.x_range.start = 0
+        zoom2_image_plot.y_range.end = image_size_y
+        zoom2_image_plot.x_range.end = image_size_x
+        zoom2_image_plot.x_range.bounds = (0, image_size_x)
+        zoom2_image_plot.y_range.bounds = (0, image_size_y)
+
     main_start_0 = main_image_plot.y_range.start
     main_end_0 = main_image_plot.y_range.end
     main_start_1 = main_image_plot.x_range.start
@@ -509,6 +570,11 @@ def update(image, metadata):
     zoom1_end_0 = zoom1_image_plot.y_range.end
     zoom1_start_1 = zoom1_image_plot.x_range.start
     zoom1_end_1 = zoom1_image_plot.x_range.end
+
+    zoom2_start_0 = zoom2_image_plot.y_range.start
+    zoom2_end_0 = zoom2_image_plot.y_range.end
+    zoom2_start_1 = zoom2_image_plot.x_range.start
+    zoom2_end_1 = zoom2_image_plot.x_range.end
 
     if colormap_auto_toggle.active:
         disp_min = int(np.min(image))
@@ -530,6 +596,11 @@ def update(image, metadata):
                       box=(zoom1_start_1, zoom1_start_0, zoom1_end_1, zoom1_end_0),
                       resample=PIL_Image.NEAREST))
 
+    zoom2_image = np.asarray(
+        pil_im.resize(size=(zoom2_image_width, zoom2_image_height),
+                      box=(zoom2_start_1, zoom2_start_0, zoom2_end_1, zoom2_end_0),
+                      resample=PIL_Image.NEAREST))
+
     main_image_source.data.update(
         image=[image_color_mapper.to_rgba(main_image, bytes=True)],
         x=[main_start_1], y=[main_start_0],
@@ -539,6 +610,11 @@ def update(image, metadata):
         image=[image_color_mapper.to_rgba(zoom1_image, bytes=True)],
         x=[zoom1_start_1], y=[zoom1_start_0],
         dw=[zoom1_end_1 - zoom1_start_1], dh=[zoom1_end_0 - zoom1_start_0])
+
+    zoom2_image_source.data.update(
+        image=[image_color_mapper.to_rgba(zoom2_image, bytes=True)],
+        x=[zoom2_start_1], y=[zoom2_start_0],
+        dw=[zoom2_end_1 - zoom2_start_1], dh=[zoom2_end_0 - zoom2_start_0])
 
     # Statistics
     im_size_0, im_size_1 = image.shape
