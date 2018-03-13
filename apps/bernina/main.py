@@ -171,57 +171,6 @@ zoom1_image_plot.y_range.callback = CustomJS(
     args=dict(source=zoom1_area_source), code=jscode_move_rect % ('y', 'height'))
 
 
-# aggregate zoom1 plot along x axis
-zoom1_plot_agg_x = Plot(
-    title=Title(text="Zoom Area 1"),
-    x_range=zoom1_image_plot.x_range,
-    y_range=DataRange1d(),
-    plot_height=agg_plot_size,
-    plot_width=zoom1_image_plot.plot_width,
-    toolbar_location=None,
-)
-
-# ---- axes
-zoom1_plot_agg_x.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
-zoom1_plot_agg_x.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='below')
-
-# ---- grid lines
-zoom1_plot_agg_x.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-zoom1_plot_agg_x.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-# ---- line glyph
-zoom1_agg_x_source = ColumnDataSource(
-    dict(x=np.arange(image_size_x) + 0.5,  # shift to a pixel center
-         y=np.zeros(image_size_x)))
-
-zoom1_plot_agg_x.add_glyph(zoom1_agg_x_source, Line(x='x', y='y', line_color='steelblue'))
-
-
-# aggregate zoom1 plot along y axis
-zoom1_plot_agg_y = Plot(
-    x_range=DataRange1d(),
-    y_range=zoom1_image_plot.y_range,
-    plot_height=zoom1_image_plot.plot_height,
-    plot_width=agg_plot_size,
-    toolbar_location=None,
-)
-
-# ---- axes
-zoom1_plot_agg_y.add_layout(LinearAxis(), place='above')
-zoom1_plot_agg_y.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='left')
-
-# ---- grid lines
-zoom1_plot_agg_y.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-zoom1_plot_agg_y.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-# ---- line glyph
-zoom1_agg_y_source = ColumnDataSource(
-    dict(x=np.zeros(image_size_y),
-         y=np.arange(image_size_y) + 0.5))  # shift to a pixel center
-
-zoom1_plot_agg_y.add_glyph(zoom1_agg_y_source, Line(x='x', y='y', line_color='steelblue'))
-
-
 # Total intensity plot
 total_intensity_plot = Plot(
     title=Title(text="Total Image Intensity"),
@@ -507,8 +456,7 @@ metadata_issues_dropdown = Dropdown(label="Metadata Issues", button_type='defaul
 # Final layouts
 layout_main = column(main_image_plot)
 
-layout_zoom = column(zoom1_plot_agg_x,
-                     row(zoom1_image_plot, zoom1_plot_agg_y))
+layout_zoom = column(zoom1_image_plot)
 
 layout_utility = column(gridplot([total_intensity_plot, zoom1_intensity_plot],
                                  ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
@@ -595,27 +543,16 @@ def update(image, metadata):
         dw=[zoom1_end_1 - zoom1_start_1], dh=[zoom1_end_0 - zoom1_start_0])
 
     # Statistics
-    ind = None
-
     im_size_0, im_size_1 = image.shape
     start_0 = max(int(np.floor(zoom1_start_0)), 0)
     end_0 = min(int(np.ceil(zoom1_end_0)), im_size_0)
     start_1 = max(int(np.floor(zoom1_start_1)), 0)
     end_1 = min(int(np.ceil(zoom1_end_1)), im_size_1)
     if start_0 > end_0 or start_1 > end_1:
-        agg0, r0, agg1, r1, total_sum = [0], [0], [0], [0], 0
+        total_sum = 0
     else:
         im_block = image[start_0:end_0, start_1:end_1]
-
-        agg1 = np.mean(im_block, axis=0)
-        agg0 = np.mean(im_block, axis=1)
-        r0 = np.arange(start_0, end_0) + 0.5
-        r1 = np.arange(start_1, end_1) + 0.5
-
         total_sum = np.sum(im_block)
-
-    zoom1_agg_y_source.data.update(x=agg0, y=r0)
-    zoom1_agg_x_source.data.update(x=r1, y=agg1)
 
     stream_t = datetime.now()
     zoom1_sum_source.stream(new_data=dict(x=[stream_t], y=[total_sum]), rollover=STREAM_ROLLOVER)
