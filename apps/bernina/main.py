@@ -54,7 +54,7 @@ HDF5_FILE_PATH_UPDATE_PERIOD = 10000  # ms
 HDF5_DATASET_PATH = '/entry/data/data'
 hdf5_file_data = []
 
-util_plot_size = 150
+util_plot_size = 160
 
 # Initial values
 disp_min = 0
@@ -444,8 +444,8 @@ metadata_table_source = ColumnDataSource(dict(metadata=['', '', ''], value=['', 
 metadata_table = DataTable(
     source=metadata_table_source,
     columns=[TableColumn(field='metadata', title="Metadata Name"), TableColumn(field='value', title="Value")],
-    width=500,
-    height=378,
+    width=560,
+    height=100,
     row_headers=False,
     selectable=False,
 )
@@ -463,12 +463,11 @@ layout_utility = column(gridplot([total_intensity_plot, zoom1_intensity_plot],
 
 layout_controls = row(colormap_panel, data_source_tabs)
 
-layout_metadata = column(metadata_table, row(Spacer(width=250), metadata_issues_dropdown))
+layout_metadata = column(metadata_table, row(Spacer(width=310), metadata_issues_dropdown))
 
 final_layout = row(layout_main, Spacer(width=30),
-                   column(layout_zoom, Spacer(),
-                          column(layout_utility, Spacer(height=10))),
-                   column(layout_metadata, layout_controls))
+                   column(layout_zoom), Spacer(width=30),
+                   column(layout_metadata, layout_utility, layout_controls))
 
 doc.add_root(final_layout)
 
