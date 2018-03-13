@@ -9,7 +9,7 @@ from bokeh import events
 from bokeh.io import curdoc
 from bokeh.layouts import column, row, gridplot
 from bokeh.models import ColumnDataSource, Slider, Range1d, ColorBar, Spacer, Plot, DatetimeAxis, \
-    LinearAxis, DataRange1d, Line, CustomJS, Rect, Quad
+    LinearAxis, DataRange1d, Line, CustomJS, Rect
 from bokeh.models.annotations import Title
 from bokeh.models.glyphs import ImageRGBA
 from bokeh.models.grids import Grid
@@ -220,33 +220,6 @@ zoom1_agg_y_source = ColumnDataSource(
          y=np.arange(image_size_y) + 0.5))  # shift to a pixel center
 
 zoom1_plot_agg_y.add_glyph(zoom1_agg_y_source, Line(x='x', y='y', line_color='steelblue'))
-
-
-# histogram zoom1 plot
-zoom1_hist_plot = Plot(
-    x_range=DataRange1d(),
-    y_range=DataRange1d(),
-    plot_height=hist_plot_size,
-    plot_width=zoom1_image_plot.plot_width,
-    toolbar_location='left',
-    logo=None,
-)
-
-# ---- tools
-zoom1_hist_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool())
-
-# ---- axes
-zoom1_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
-zoom1_hist_plot.add_layout(LinearAxis(major_label_orientation='vertical', axis_label="Counts"), place='right')
-
-# ---- grid lines
-zoom1_hist_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-zoom1_hist_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-# ---- quad (single bin) glyph
-hist1_source = ColumnDataSource(dict(left=[], right=[], top=[]))
-zoom1_hist_plot.add_glyph(hist1_source,
-                          Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
 
 
 # Total intensity plot
@@ -535,8 +508,7 @@ metadata_issues_dropdown = Dropdown(label="Metadata Issues", button_type='defaul
 layout_main = column(main_image_plot)
 
 layout_zoom = column(zoom1_plot_agg_x,
-                     row(zoom1_image_plot, zoom1_plot_agg_y),
-                     row(Spacer(width=0, height=0), zoom1_hist_plot, Spacer(width=0, height=0)))
+                     row(zoom1_image_plot, zoom1_plot_agg_y))
 
 layout_utility = column(gridplot([total_intensity_plot, zoom1_intensity_plot],
                                  ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
@@ -631,7 +603,7 @@ def update(image, metadata):
     start_1 = max(int(np.floor(zoom1_start_1)), 0)
     end_1 = min(int(np.ceil(zoom1_end_1)), im_size_1)
     if start_0 > end_0 or start_1 > end_1:
-        agg0, r0, agg1, r1, counts, edges, total_sum = [0], [0], [0], [0], [0], [0, 1], 0
+        agg0, r0, agg1, r1, total_sum = [0], [0], [0], [0], 0
     else:
         im_block = image[start_0:end_0, start_1:end_1]
 
@@ -640,14 +612,8 @@ def update(image, metadata):
         r0 = np.arange(start_0, end_0) + 0.5
         r1 = np.arange(start_1, end_1) + 0.5
 
-        if ind is None:
-            counts, edges = np.histogram(im_block, bins='scott')
-        else:
-            counts, edges = np.histogram(im_block[~ind[start_0:end_0, start_1:end_1]], bins='scott')
-
         total_sum = np.sum(im_block)
 
-    hist1_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
     zoom1_agg_y_source.data.update(x=agg0, y=r0)
     zoom1_agg_x_source.data.update(x=r1, y=agg1)
 
