@@ -28,8 +28,8 @@ doc = curdoc()
 doc.title = "JF StreamVis"
 
 # initial image size to organize placeholders for actual data
-image_size_x = 100
-image_size_y = 100
+image_size_x = 1024
+image_size_y = 1536
 
 current_image = np.zeros((1, 1), dtype='float32')
 current_metadata = dict(shape=[image_size_y, image_size_x])
@@ -37,13 +37,13 @@ current_metadata = dict(shape=[image_size_y, image_size_x])
 connected = False
 
 # Currently in bokeh it's possible to control only a canvas size, but not a size of the plotting area.
-MAIN_CANVAS_WIDTH = 1024 + 54
-MAIN_CANVAS_HEIGHT = 1536 + 94
+MAIN_CANVAS_WIDTH = image_size_x//2 + 54
+MAIN_CANVAS_HEIGHT = image_size_y//2 + 93
 
-ZOOM_CANVAS_WIDTH = 1030 + 54
-ZOOM_CANVAS_HEIGHT = 514 + 29
+ZOOM_CANVAS_WIDTH = 400 + 54
+ZOOM_CANVAS_HEIGHT = 400 + 29
 
-DEBUG_INTENSITY_WIDTH = 1000
+DEBUG_INTENSITY_WIDTH = 550
 
 APP_FPS = 1
 stream_t = 0
@@ -54,8 +54,8 @@ HDF5_FILE_PATH_UPDATE_PERIOD = 10000  # ms
 HDF5_DATASET_PATH = '/entry/data/data'
 hdf5_file_data = []
 
-agg_plot_size = 200
-hist_plot_size = 400
+agg_plot_size = 150
+hist_plot_size = 150
 
 # Initial values
 disp_min = 0
@@ -560,14 +560,14 @@ layout_utility = column(gridplot([total_intensity_plot, zoom1_intensity_plot],
                                  ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
                         intensity_stream_reset_button)
 
-layout_controls = column(colormap_panel, data_source_tabs)
+layout_controls = row(colormap_panel, data_source_tabs)
 
 layout_metadata = column(metadata_table, row(Spacer(width=250, height=0), metadata_issues_dropdown))
 
 final_layout = row(layout_main, Spacer(width=0, height=0),
                    column(layout_zoom, Spacer(width=0, height=0),
                           column(layout_utility, Spacer(width=0, height=10))),
-                   row(layout_controls, Spacer(width=30, height=0), layout_metadata))
+                   column(layout_metadata, layout_controls))
 
 doc.add_root(final_layout)
 
