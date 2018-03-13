@@ -651,11 +651,10 @@ def update(image, metadata):
     zoom1_agg_y_source.data.update(x=agg0, y=r0)
     zoom1_agg_x_source.data.update(x=r1, y=agg1)
 
-    if connected and receiver.state == 'receiving':
-        stream_t = datetime.now()
-        zoom1_sum_source.stream(new_data=dict(x=[stream_t], y=[total_sum]), rollover=STREAM_ROLLOVER)
-        total_sum_source.stream(new_data=dict(x=[stream_t], y=[np.sum(image, dtype=np.float)]),
-                                rollover=STREAM_ROLLOVER)
+    stream_t = datetime.now()
+    zoom1_sum_source.stream(new_data=dict(x=[stream_t], y=[total_sum]), rollover=STREAM_ROLLOVER)
+    total_sum_source.stream(new_data=dict(x=[stream_t], y=[np.sum(image, dtype=np.float)]),
+                            rollover=STREAM_ROLLOVER)
 
     # Unpack metadata
     metadata_table_source.data.update(
