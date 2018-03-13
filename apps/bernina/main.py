@@ -26,7 +26,7 @@ from tornado import gen
 import receiver
 
 doc = curdoc()
-doc.title = "JF StreamVis"
+doc.title = "JF StreamVis Bernina"
 
 # initial image size to organize placeholders for actual data
 image_size_x = 1024
@@ -54,8 +54,7 @@ HDF5_FILE_PATH_UPDATE_PERIOD = 10000  # ms
 HDF5_DATASET_PATH = '/entry/data/data'
 hdf5_file_data = []
 
-agg_plot_size = 150
-hist_plot_size = 150
+util_plot_size = 150
 
 # Initial values
 disp_min = 0
@@ -176,7 +175,7 @@ total_intensity_plot = Plot(
     title=Title(text="Total Image Intensity"),
     x_range=DataRange1d(),
     y_range=DataRange1d(),
-    plot_height=agg_plot_size,
+    plot_height=util_plot_size,
     plot_width=DEBUG_INTENSITY_WIDTH,
 )
 
@@ -185,7 +184,7 @@ total_intensity_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(dimension
 
 # ---- axes
 total_intensity_plot.add_layout(LinearAxis(axis_label="Total intensity"), place='left')
-total_intensity_plot.add_layout(DatetimeAxis(major_label_text_font_size='0pt'), place='below')
+total_intensity_plot.add_layout(DatetimeAxis(), place='below')
 
 # ---- grid lines
 total_intensity_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
@@ -201,7 +200,7 @@ zoom1_intensity_plot = Plot(
     title=Title(text="Zoom Area 1 Total Intensity"),
     x_range=total_intensity_plot.x_range,
     y_range=DataRange1d(),
-    plot_height=agg_plot_size,
+    plot_height=util_plot_size,
     plot_width=DEBUG_INTENSITY_WIDTH,
 )
 
@@ -464,11 +463,11 @@ layout_utility = column(gridplot([total_intensity_plot, zoom1_intensity_plot],
 
 layout_controls = row(colormap_panel, data_source_tabs)
 
-layout_metadata = column(metadata_table, row(Spacer(width=250, height=0), metadata_issues_dropdown))
+layout_metadata = column(metadata_table, row(Spacer(width=250), metadata_issues_dropdown))
 
-final_layout = row(layout_main, Spacer(width=0, height=0),
-                   column(layout_zoom, Spacer(width=0, height=0),
-                          column(layout_utility, Spacer(width=0, height=10))),
+final_layout = row(layout_main, Spacer(width=30),
+                   column(layout_zoom, Spacer(),
+                          column(layout_utility, Spacer(height=10))),
                    column(layout_metadata, layout_controls))
 
 doc.add_root(final_layout)
