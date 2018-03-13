@@ -311,22 +311,6 @@ intensity_stream_reset_button.on_click(intensity_stream_reset_button_callback)
 
 
 # Stream panel
-# ---- image buffer slider
-def image_buffer_slider_callback(attr, old, new):
-    md, image = receiver.data_buffer[round(new['value'][0])]
-    doc.add_next_tick_callback(partial(update, image=image, metadata=md))
-
-image_buffer_slider_source = ColumnDataSource(dict(value=[]))
-image_buffer_slider_source.on_change('data', image_buffer_slider_callback)
-
-image_buffer_slider = Slider(start=0, end=1, value=0, step=1, title="Buffered Image",
-                             callback_policy='mouseup')
-
-image_buffer_slider.callback = CustomJS(
-    args=dict(source=image_buffer_slider_source),
-    code="""source.data = {value: [cb_obj.value]}""")
-
-
 # ---- connect toggle button
 def stream_button_callback(state):
     global connected
@@ -346,8 +330,7 @@ stream_button.on_click(stream_button_callback)
 
 
 # assemble
-tab_stream = Panel(child=column(image_buffer_slider, stream_button),
-                   title="Stream")
+tab_stream = Panel(child=column(stream_button), title="Stream")
 
 
 # HDF5 File panel
@@ -718,11 +701,6 @@ def internal_periodic_callback():
         elif receiver.state == 'receiving':
             stream_button.label = 'Receiving'
             stream_button.button_type = 'success'
-
-            # Set slider to the right-most position
-            if len(receiver.data_buffer) > 1:
-                image_buffer_slider.end = len(receiver.data_buffer) - 1
-                image_buffer_slider.value = len(receiver.data_buffer) - 1
 
             if len(receiver.data_buffer) > 0:
                 current_metadata, current_image = receiver.data_buffer[-1]
