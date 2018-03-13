@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from functools import partial
 
 import numpy as np
@@ -7,7 +8,7 @@ import colorcet as cc
 from bokeh import events
 from bokeh.io import curdoc
 from bokeh.layouts import column, row, gridplot
-from bokeh.models import ColumnDataSource, Slider, Range1d, ColorBar, Spacer, Plot, \
+from bokeh.models import ColumnDataSource, Slider, Range1d, ColorBar, Spacer, Plot, DatetimeAxis, \
     LinearAxis, DataRange1d, Line, CustomJS, Rect, Quad
 from bokeh.models.annotations import Title
 from bokeh.models.glyphs import ImageRGBA
@@ -46,7 +47,6 @@ ZOOM_CANVAS_HEIGHT = 400 + 29
 DEBUG_INTENSITY_WIDTH = 550
 
 APP_FPS = 1
-stream_t = 0
 STREAM_ROLLOVER = 3600
 
 HDF5_FILE_PATH = '/filepath'
@@ -237,7 +237,7 @@ zoom1_hist_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(),
 
 # ---- axes
 zoom1_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
-zoom1_hist_plot.add_layout(LinearAxis(axis_label="Counts"), place='right')
+zoom1_hist_plot.add_layout(LinearAxis(major_label_orientation='vertical', axis_label="Counts"), place='right')
 
 # ---- grid lines
 zoom1_hist_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
@@ -263,7 +263,7 @@ total_intensity_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(dimension
 
 # ---- axes
 total_intensity_plot.add_layout(LinearAxis(axis_label="Total intensity"), place='left')
-total_intensity_plot.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='below')
+total_intensity_plot.add_layout(DatetimeAxis(major_label_text_font_size='0pt'), place='below')
 
 # ---- grid lines
 total_intensity_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
@@ -288,7 +288,7 @@ zoom1_intensity_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(dimension
 
 # ---- axes
 zoom1_intensity_plot.add_layout(LinearAxis(axis_label="Intensity"), place='left')
-zoom1_intensity_plot.add_layout(LinearAxis(), place='below')
+zoom1_intensity_plot.add_layout(DatetimeAxis(), place='below')
 
 # ---- grid lines
 zoom1_intensity_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
@@ -301,10 +301,9 @@ zoom1_intensity_plot.add_glyph(zoom1_sum_source, Line(x='x', y='y', line_color='
 
 # Intensity stream reset button
 def intensity_stream_reset_button_callback():
-    global stream_t
-    stream_t = 1  # keep the latest point in order to prevent full axis reset
-    total_sum_source.data.update(x=[1], y=[total_sum_source.data['y'][-1]])
-    zoom1_sum_source.data.update(x=[1], y=[zoom1_sum_source.data['y'][-1]])
+    stream_t = datetime.now()  # keep the latest point in order to prevent full axis reset
+    total_sum_source.data.update(x=[stream_t], y=[total_sum_source.data['y'][-1]])
+    zoom1_sum_source.data.update(x=[stream_t], y=[zoom1_sum_source.data['y'][-1]])
 
 intensity_stream_reset_button = Button(label="Reset", button_type='default', width=250)
 intensity_stream_reset_button.on_click(intensity_stream_reset_button_callback)
@@ -557,7 +556,7 @@ doc.add_root(final_layout)
 
 @gen.coroutine
 def update(image, metadata):
-    global stream_t, disp_min, disp_max, image_size_x, image_size_y
+    global disp_min, disp_max, image_size_x, image_size_y
     main_image_height = main_image_plot.inner_height
     main_image_width = main_image_plot.inner_width
     zoom1_image_height = zoom1_image_plot.inner_height
@@ -653,7 +652,7 @@ def update(image, metadata):
     zoom1_agg_x_source.data.update(x=r1, y=agg1)
 
     if connected and receiver.state == 'receiving':
-        stream_t += 1
+        stream_t = datetime.now()
         zoom1_sum_source.stream(new_data=dict(x=[stream_t], y=[total_sum]), rollover=STREAM_ROLLOVER)
         total_sum_source.stream(new_data=dict(x=[stream_t], y=[np.sum(image, dtype=np.float)]),
                                 rollover=STREAM_ROLLOVER)
