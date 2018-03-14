@@ -29,8 +29,8 @@ doc = curdoc()
 doc.title = "JF StreamVis Bernina"
 
 # initial image size to organize placeholders for actual data
-image_size_x = 1024
-image_size_y = 1536
+image_size_x = 1030
+image_size_y = 2074
 
 current_image = np.zeros((1, 1), dtype='float32')
 current_metadata = dict(shape=[image_size_y, image_size_x])
@@ -42,7 +42,7 @@ MAIN_CANVAS_WIDTH = image_size_x//2 + 54
 MAIN_CANVAS_HEIGHT = image_size_y//2 + 93
 
 ZOOM_CANVAS_WIDTH = 400 + 54
-ZOOM_CANVAS_HEIGHT = 400 + 29
+ZOOM_CANVAS_HEIGHT = 530 + 29
 
 DEBUG_INTENSITY_WIDTH = 550
 
@@ -67,7 +67,6 @@ ZOOM1_INIT_X = 0
 
 # Main plot
 main_image_plot = Plot(
-    title=Title(text="Detector Image"),
     x_range=Range1d(0, image_size_x, bounds=(0, image_size_x)),
     y_range=Range1d(0, image_size_y, bounds=(0, image_size_y)),
     plot_height=MAIN_CANVAS_HEIGHT,
@@ -86,7 +85,7 @@ main_image_plot.add_layout(LinearAxis(major_label_orientation='vertical'), place
 # ---- colormap
 lin_colormapper = LinearColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
 log_colormapper = LogColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
-color_bar = ColorBar(color_mapper=lin_colormapper, location=(0, -5), orientation='horizontal', height=20,
+color_bar = ColorBar(color_mapper=lin_colormapper, location=(0, -5), orientation='horizontal', height=10,
                      width=MAIN_CANVAS_WIDTH // 2, padding=0)
 
 main_image_plot.add_layout(color_bar, place='below')
