@@ -44,7 +44,7 @@ MAIN_CANVAS_HEIGHT = image_size_y//2 - 150 + 54
 ZOOM_CANVAS_WIDTH = 400 + 54
 ZOOM_CANVAS_HEIGHT = 400 + 58
 
-DEBUG_INTENSITY_WIDTH = 650
+DEBUG_INTENSITY_WIDTH = 700
 
 APP_FPS = 1
 STREAM_ROLLOVER = 36000
@@ -506,8 +506,8 @@ metadata_table_source = ColumnDataSource(dict(metadata=['', '', ''], value=['', 
 metadata_table = DataTable(
     source=metadata_table_source,
     columns=[TableColumn(field='metadata', title="Metadata Name"), TableColumn(field='value', title="Value")],
-    width=660,
-    height=100,
+    width=710,
+    height=130,
     row_headers=False,
     selectable=False,
 )
@@ -525,7 +525,7 @@ layout_utility = column(gridplot([total_intensity_plot, zoom1_intensity_plot],
 
 layout_controls = row(colormap_panel, data_source_tabs)
 
-layout_metadata = column(metadata_table, row(Spacer(width=410), metadata_issues_dropdown))
+layout_metadata = column(metadata_table, row(Spacer(width=460), metadata_issues_dropdown))
 
 final_layout = row(layout_main, Spacer(width=30),
                    column(layout_zoom), Spacer(width=30),
