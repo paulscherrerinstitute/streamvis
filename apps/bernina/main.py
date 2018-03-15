@@ -139,12 +139,20 @@ zoom1_image_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 # ---- rgba image glyph
 zoom1_image_source = ColumnDataSource(
     dict(image=[current_image], x=[0], y=[0], dw=[image_size_x], dh=[image_size_y],
-         full_dw=[image_size_x], full_dh=[image_size_y]))
+         dw0=[ZOOM1_INIT_X], dw1=[ZOOM_INIT_WIDTH], dh0=[ZOOM1_INIT_Y], dh1=[ZOOM_INIT_HEIGHT]))
 
 zoom1_image_plot.add_glyph(zoom1_image_source, ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh'))
 
 # ---- overwrite reset tool behavior
-# reuse js code from the main plot
+jscode_reset = """
+    // reset to the current image size area, instead of a default reset to the initial plot ranges
+    source.x_range.start = dw0[0];
+    source.x_range.end = image_source.data.dw1[0];
+    source.y_range.start = dh0[0];
+    source.y_range.end = image_source.data.dh1[0];
+    source.change.emit();
+"""
+
 zoom1_image_plot.js_on_event(events.Reset, CustomJS(
     args=dict(source=zoom1_image_plot, image_source=zoom1_image_source), code=jscode_reset))
 
@@ -198,12 +206,12 @@ zoom2_image_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 # ---- rgba image glyph
 zoom2_image_source = ColumnDataSource(
     dict(image=[current_image], x=[0], y=[0], dw=[image_size_x], dh=[image_size_y],
-         full_dw=[image_size_x], full_dh=[image_size_y]))
+         dw0=[ZOOM2_INIT_X], dw1=[ZOOM_INIT_WIDTH], dh0=[ZOOM2_INIT_Y], dh1=[ZOOM_INIT_HEIGHT]))
 
 zoom2_image_plot.add_glyph(zoom2_image_source, ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh'))
 
 # ---- overwrite reset tool behavior
-# reuse js code from the main plot
+# reuse js code from the zoom1 plot
 zoom2_image_plot.js_on_event(events.Reset, CustomJS(
     args=dict(source=zoom2_image_plot, image_source=zoom2_image_source), code=jscode_reset))
 
