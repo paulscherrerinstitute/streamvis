@@ -247,7 +247,7 @@ total_intensity_plot.add_glyph(total_sum_source, Line(x='x', y='y'))
 
 # Zoom1 intensity plot
 zoom1_intensity_plot = Plot(
-    title=Title(text="Zoom Area 1 Total Intensity"),
+    title=Title(text="Signal-Background Intensity"),
     x_range=total_intensity_plot.x_range,
     y_range=DataRange1d(),
     plot_height=util_plot_size,
@@ -583,6 +583,33 @@ def update(image, metadata):
         disp_max = int(np.max(image))
         colormap_display_max.value = str(disp_max)
 
+    # Signal area
+    im_size_0, im_size_1 = image.shape
+    sig_start_0 = max(int(np.floor(zoom1_start_0)), 0)
+    sig_end_0 = min(int(np.ceil(zoom1_end_0)), im_size_0)
+    sig_start_1 = max(int(np.floor(zoom1_start_1)), 0)
+    sig_end_1 = min(int(np.ceil(zoom1_end_1)), im_size_1)
+    sig_sum = np.sum(image[sig_start_0:sig_end_0, sig_start_1:sig_end_1], dtype=np.float)
+    sig_sum /= (sig_end_0 - sig_start_0) * (sig_end_1 - sig_start_1)  # normalize by the area
+
+    # Background area
+    bkg_start_0 = max(int(np.floor(zoom2_start_0)), 0)
+    bkg_end_0 = min(int(np.ceil(zoom2_end_0)), im_size_0)
+    bkg_start_1 = max(int(np.floor(zoom2_start_1)), 0)
+    bkg_end_1 = min(int(np.ceil(zoom2_end_1)), im_size_1)
+    bkg_sum = np.sum(image[bkg_start_0:bkg_end_0, bkg_start_1:bkg_end_1], dtype=np.float)
+    bkg_area = (bkg_end_0 - bkg_start_0) * (bkg_end_1 - bkg_start_1)
+
+    # correct the backgroud area sum by subtracting overlap area sum
+    overlap_start_0 = max(sig_start_0, bkg_start_0)
+    overlap_end_0 = min(sig_end_0, bkg_end_0)
+    overlap_start_1 = max(sig_start_1, bkg_start_1)
+    overlap_end_1 = min(sig_end_1, bkg_end_1)
+    if (overlap_end_0 - overlap_start_0 > 0) and (overlap_end_1 - overlap_start_1 > 0):  # else no overlap
+        bkg_sum -= np.sum(image[overlap_start_0:overlap_end_0, overlap_start_1:overlap_end_1], dtype=np.float)
+        bkg_area -= (overlap_end_0 - overlap_start_0) * (overlap_end_1 - overlap_start_1)
+    bkg_sum /= bkg_area
+
     pil_im = PIL_Image.fromarray(image)
 
     main_image = np.asarray(
@@ -615,22 +642,10 @@ def update(image, metadata):
         x=[zoom2_start_1], y=[zoom2_start_0],
         dw=[zoom2_end_1 - zoom2_start_1], dh=[zoom2_end_0 - zoom2_start_0])
 
-    # Statistics
-    im_size_0, im_size_1 = image.shape
-    start_0 = max(int(np.floor(zoom1_start_0)), 0)
-    end_0 = min(int(np.ceil(zoom1_end_0)), im_size_0)
-    start_1 = max(int(np.floor(zoom1_start_1)), 0)
-    end_1 = min(int(np.ceil(zoom1_end_1)), im_size_1)
-    if start_0 > end_0 or start_1 > end_1:
-        total_sum = 0
-    else:
-        im_block = image[start_0:end_0, start_1:end_1]
-        total_sum = np.sum(im_block)
-
     stream_t = datetime.now()
-    zoom1_sum_source.stream(new_data=dict(x=[stream_t], y=[total_sum]), rollover=STREAM_ROLLOVER)
     total_sum_source.stream(new_data=dict(x=[stream_t], y=[np.sum(image, dtype=np.float)]),
                             rollover=STREAM_ROLLOVER)
+    zoom1_sum_source.stream(new_data=dict(x=[stream_t], y=[sig_sum-bkg_sum]), rollover=STREAM_ROLLOVER)
 
     # Unpack metadata
     metadata_table_source.data.update(
