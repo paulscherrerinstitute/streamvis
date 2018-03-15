@@ -587,24 +587,26 @@ def update(image, metadata):
         disp_max = int(np.max(image))
         colormap_display_max.value = str(disp_max)
 
-    # Signal area
+    # Signal roi and intensity
     im_size_0, im_size_1 = image.shape
     sig_start_0 = max(int(np.floor(zoom1_start_0)), 0)
     sig_end_0 = min(int(np.ceil(zoom1_end_0)), im_size_0)
     sig_start_1 = max(int(np.floor(zoom1_start_1)), 0)
     sig_end_1 = min(int(np.ceil(zoom1_end_1)), im_size_1)
-    sig_sum = np.sum(image[sig_start_0:sig_end_0, sig_start_1:sig_end_1], dtype=np.float)
-    sig_sum /= (sig_end_0 - sig_start_0) * (sig_end_1 - sig_start_1)  # normalize by the area
 
-    # Background area
+    sig_sum = np.sum(image[sig_start_0:sig_end_0, sig_start_1:sig_end_1], dtype=np.float)
+    sig_area = (sig_end_0 - sig_start_0) * (sig_end_1 - sig_start_1)
+
+    # Background roi and intensity
     bkg_start_0 = max(int(np.floor(zoom2_start_0)), 0)
     bkg_end_0 = min(int(np.ceil(zoom2_end_0)), im_size_0)
     bkg_start_1 = max(int(np.floor(zoom2_start_1)), 0)
     bkg_end_1 = min(int(np.ceil(zoom2_end_1)), im_size_1)
+
     bkg_sum = np.sum(image[bkg_start_0:bkg_end_0, bkg_start_1:bkg_end_1], dtype=np.float)
     bkg_area = (bkg_end_0 - bkg_start_0) * (bkg_end_1 - bkg_start_1)
 
-    # correct the backgroud area sum by subtracting overlap area sum
+    # correct the backgroud roi sum by subtracting overlap area sum
     overlap_start_0 = max(sig_start_0, bkg_start_0)
     overlap_end_0 = min(sig_end_0, bkg_end_0)
     overlap_start_1 = max(sig_start_1, bkg_start_1)
@@ -613,10 +615,14 @@ def update(image, metadata):
         bkg_sum -= np.sum(image[overlap_start_0:overlap_end_0, overlap_start_1:overlap_end_1], dtype=np.float)
         bkg_area -= (overlap_end_0 - overlap_start_0) * (overlap_end_1 - overlap_start_1)
 
-    if bkg_area == 0:  # background area is fully surrounded by signal area
-        bkg_sum = 0
+    if bkg_area == 0:
+        # background area is fully surrounded by signal area
+        bkg_int = 0
     else:
-        bkg_sum /= bkg_area
+        bkg_int = bkg_sum / bkg_area
+
+    # Corrected signal intensity
+    sig_sum -= bkg_int * sig_area
 
     pil_im = PIL_Image.fromarray(image)
 
@@ -653,7 +659,7 @@ def update(image, metadata):
     stream_t = datetime.now()
     total_sum_source.stream(new_data=dict(x=[stream_t], y=[np.sum(image, dtype=np.float)]),
                             rollover=STREAM_ROLLOVER)
-    zoom1_sum_source.stream(new_data=dict(x=[stream_t], y=[sig_sum-bkg_sum]), rollover=STREAM_ROLLOVER)
+    zoom1_sum_source.stream(new_data=dict(x=[stream_t], y=[sig_sum]), rollover=STREAM_ROLLOVER)
 
     # Unpack metadata
     metadata_table_source.data.update(
