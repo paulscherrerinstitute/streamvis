@@ -79,6 +79,7 @@ main_image_plot = Plot(
 
 # ---- tools
 main_image_plot.add_tools(PanTool(), WheelZoomTool(), SaveTool(), ResetTool())
+main_image_plot.toolbar.active_scroll = main_image_plot.tools[1]
 
 # ---- axes
 main_image_plot.add_layout(LinearAxis(), place='above')
@@ -127,6 +128,7 @@ zoom1_image_plot = Plot(
 # ---- tools
 # share 'pan' and 'wheel zoom' with the main plot, but 'save' and 'reset' keep separate
 zoom1_image_plot.add_tools(main_image_plot.tools[0], main_image_plot.tools[1], SaveTool(), ResetTool())
+zoom1_image_plot.toolbar.active_scroll = zoom1_image_plot.tools[1]
 
 # ---- axes
 zoom1_image_plot.add_layout(LinearAxis(), place='above')
@@ -194,6 +196,7 @@ zoom2_image_plot = Plot(
 # ---- tools
 # share 'pan' and 'wheel zoom' with the main plot, but 'save' and 'reset' keep separate
 zoom2_image_plot.add_tools(main_image_plot.tools[0], main_image_plot.tools[1], SaveTool(), ResetTool())
+zoom2_image_plot.toolbar.active_scroll = zoom2_image_plot.tools[1]
 
 # ---- axes
 zoom2_image_plot.add_layout(LinearAxis(), place='above')
