@@ -478,9 +478,9 @@ def colormap_display_max_callback(attr, old, new):
     except ValueError:
         colormap_display_max.value = old
 
-colormap_display_min = TextInput(title='Min Display Value:', value=str(disp_min), disabled=True)
+colormap_display_min = TextInput(title='Min Display Value:', value=str(disp_min), disabled=True, width=250)
 colormap_display_min.on_change('value', colormap_display_min_callback)
-colormap_display_max = TextInput(title='Max Display Value:', value=str(disp_max), disabled=True)
+colormap_display_max = TextInput(title='Max Display Value:', value=str(disp_max), disabled=True, width=250)
 colormap_display_max.on_change('value', colormap_display_max_callback)
 
 
