@@ -60,10 +60,12 @@ util_plot_size = 160
 disp_min = 0
 disp_max = 1000
 
-ZOOM_INIT_WIDTH = image_size_x
-ZOOM_INIT_HEIGHT = image_size_y
-ZOOM1_INIT_X = 0
-
+ZOOM_INIT_WIDTH = 500
+ZOOM_INIT_HEIGHT = 500
+ZOOM1_INIT_X = 265
+ZOOM1_INIT_Y = 800
+ZOOM2_INIT_X = 265
+ZOOM2_INIT_Y = 200
 
 # Main plot
 main_image_plot = Plot(
@@ -114,7 +116,7 @@ main_image_plot.js_on_event(events.Reset, CustomJS(
 # Zoom 1 plot
 zoom1_image_plot = Plot(
     x_range=Range1d(ZOOM1_INIT_X, ZOOM1_INIT_X + ZOOM_INIT_WIDTH, bounds=(0, image_size_x)),
-    y_range=Range1d(0, image_size_y, bounds=(0, image_size_y)),
+    y_range=Range1d(ZOOM1_INIT_Y, ZOOM1_INIT_Y + ZOOM_INIT_HEIGHT, bounds=(0, image_size_y)),
     plot_height=ZOOM_CANVAS_HEIGHT,
     plot_width=ZOOM_CANVAS_WIDTH,
     toolbar_location='left',
@@ -147,8 +149,8 @@ zoom1_image_plot.js_on_event(events.Reset, CustomJS(
 
 # ---- add rectangle glyph of zoom area to the main plot
 zoom1_area_source = ColumnDataSource(
-    dict(x=[ZOOM1_INIT_X + ZOOM_INIT_WIDTH / 2], y=[ZOOM_INIT_HEIGHT / 2],
-         width=[ZOOM_INIT_WIDTH], height=[image_size_y]))
+    dict(x=[ZOOM1_INIT_X + ZOOM_INIT_WIDTH / 2], y=[ZOOM1_INIT_Y + ZOOM_INIT_HEIGHT / 2],
+         width=[ZOOM_INIT_WIDTH], height=[ZOOM_INIT_HEIGHT]))
 
 rect_red = Rect(x='x', y='y', width='width', height='height', line_color='red', line_width=2, fill_alpha=0)
 main_image_plot.add_glyph(zoom1_area_source, rect_red)
@@ -171,8 +173,8 @@ zoom1_image_plot.y_range.callback = CustomJS(
 
 # Zoom 2 plot
 zoom2_image_plot = Plot(
-    x_range=Range1d(ZOOM1_INIT_X, ZOOM1_INIT_X + ZOOM_INIT_WIDTH, bounds=(0, image_size_x)),
-    y_range=Range1d(0, image_size_y, bounds=(0, image_size_y)),
+    x_range=Range1d(ZOOM2_INIT_X, ZOOM2_INIT_X + ZOOM_INIT_WIDTH, bounds=(0, image_size_x)),
+    y_range=Range1d(ZOOM2_INIT_Y, ZOOM2_INIT_Y + ZOOM_INIT_HEIGHT, bounds=(0, image_size_y)),
     plot_height=ZOOM_CANVAS_HEIGHT,
     plot_width=ZOOM_CANVAS_WIDTH,
     toolbar_location='left',
@@ -205,8 +207,8 @@ zoom2_image_plot.js_on_event(events.Reset, CustomJS(
 
 # ---- add rectangle glyph of zoom area to the main plot
 zoom2_area_source = ColumnDataSource(
-    dict(x=[ZOOM1_INIT_X + ZOOM_INIT_WIDTH / 2], y=[ZOOM_INIT_HEIGHT / 2],
-         width=[ZOOM_INIT_WIDTH], height=[image_size_y]))
+    dict(x=[ZOOM2_INIT_X + ZOOM_INIT_WIDTH / 2], y=[ZOOM2_INIT_Y + ZOOM_INIT_HEIGHT / 2],
+         width=[ZOOM_INIT_WIDTH], height=[ZOOM_INIT_HEIGHT]))
 
 rect_green = Rect(x='x', y='y', width='width', height='height', line_color='green', line_width=2,
                   fill_alpha=0)
