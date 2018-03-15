@@ -30,7 +30,7 @@ doc.title = "JF StreamVis Bernina"
 
 # initial image size to organize placeholders for actual data
 image_size_x = 1030
-image_size_y = 2074 - 350
+image_size_y = 2074
 
 current_image = np.zeros((1, 1), dtype='float32')
 current_metadata = dict(shape=[image_size_y, image_size_x])
@@ -39,7 +39,7 @@ connected = False
 
 # Currently in bokeh it's possible to control only a canvas size, but not a size of the plotting area.
 MAIN_CANVAS_WIDTH = image_size_x//2 + 54
-MAIN_CANVAS_HEIGHT = image_size_y//2 + 78
+MAIN_CANVAS_HEIGHT = (image_size_y - 350)//2 + 78
 
 ZOOM_CANVAS_WIDTH = 440 + 54
 ZOOM_CANVAS_HEIGHT = 440 + 29
