@@ -115,7 +115,7 @@ main_image_plot.js_on_event(events.Reset, CustomJS(
 
 # Zoom 1 plot
 zoom1_image_plot = Plot(
-    title=Title(text='Signal'),
+    title=Title(text='Signal roi', text_color='red'),
     x_range=Range1d(ZOOM1_INIT_X, ZOOM1_INIT_X + ZOOM_INIT_WIDTH, bounds=(0, image_size_x)),
     y_range=Range1d(ZOOM1_INIT_Y, ZOOM1_INIT_Y + ZOOM_INIT_HEIGHT, bounds=(0, image_size_y)),
     plot_height=ZOOM_CANVAS_HEIGHT,
@@ -174,7 +174,7 @@ zoom1_image_plot.y_range.callback = CustomJS(
 
 # Zoom 2 plot
 zoom2_image_plot = Plot(
-    title=Title(text='Background'),
+    title=Title(text='Background roi', text_color='green'),
     x_range=Range1d(ZOOM2_INIT_X, ZOOM2_INIT_X + ZOOM_INIT_WIDTH, bounds=(0, image_size_x)),
     y_range=Range1d(ZOOM2_INIT_Y, ZOOM2_INIT_Y + ZOOM_INIT_HEIGHT, bounds=(0, image_size_y)),
     plot_height=ZOOM_CANVAS_HEIGHT,
@@ -234,7 +234,7 @@ total_intensity_plot = Plot(
 )
 
 # ---- tools
-total_intensity_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool())
+total_intensity_plot.add_tools(PanTool(), WheelZoomTool(dimensions='width'), ResetTool())
 
 # ---- axes
 total_intensity_plot.add_layout(LinearAxis(axis_label="Total intensity"), place='left')
@@ -259,7 +259,7 @@ zoom1_intensity_plot = Plot(
 )
 
 # ---- tools
-zoom1_intensity_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool())
+zoom1_intensity_plot.add_tools(PanTool(), WheelZoomTool(dimensions='width'), ResetTool())
 
 # ---- axes
 zoom1_intensity_plot.add_layout(LinearAxis(axis_label="Intensity"), place='left')
