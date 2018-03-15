@@ -608,7 +608,11 @@ def update(image, metadata):
     if (overlap_end_0 - overlap_start_0 > 0) and (overlap_end_1 - overlap_start_1 > 0):  # else no overlap
         bkg_sum -= np.sum(image[overlap_start_0:overlap_end_0, overlap_start_1:overlap_end_1], dtype=np.float)
         bkg_area -= (overlap_end_0 - overlap_start_0) * (overlap_end_1 - overlap_start_1)
-    bkg_sum /= bkg_area
+
+    if bkg_area == 0:  # background area is fully surrounded by signal area
+        bkg_sum = 0
+    else:
+        bkg_sum /= bkg_area
 
     pil_im = PIL_Image.fromarray(image)
 
