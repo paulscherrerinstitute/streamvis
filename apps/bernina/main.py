@@ -39,10 +39,10 @@ connected = False
 
 # Currently in bokeh it's possible to control only a canvas size, but not a size of the plotting area.
 MAIN_CANVAS_WIDTH = image_size_x//2 + 54
-MAIN_CANVAS_HEIGHT = (image_size_y - 350)//2 + 78
+MAIN_CANVAS_HEIGHT = image_size_y//2 - 150 + 54
 
-ZOOM_CANVAS_WIDTH = 440 + 54
-ZOOM_CANVAS_HEIGHT = 440 + 29
+ZOOM_CANVAS_WIDTH = 400 + 54
+ZOOM_CANVAS_HEIGHT = 400 + 58
 
 DEBUG_INTENSITY_WIDTH = 650
 
@@ -115,6 +115,7 @@ main_image_plot.js_on_event(events.Reset, CustomJS(
 
 # Zoom 1 plot
 zoom1_image_plot = Plot(
+    title=Title(text='Signal'),
     x_range=Range1d(ZOOM1_INIT_X, ZOOM1_INIT_X + ZOOM_INIT_WIDTH, bounds=(0, image_size_x)),
     y_range=Range1d(ZOOM1_INIT_Y, ZOOM1_INIT_Y + ZOOM_INIT_HEIGHT, bounds=(0, image_size_y)),
     plot_height=ZOOM_CANVAS_HEIGHT,
@@ -173,6 +174,7 @@ zoom1_image_plot.y_range.callback = CustomJS(
 
 # Zoom 2 plot
 zoom2_image_plot = Plot(
+    title=Title(text='Background'),
     x_range=Range1d(ZOOM2_INIT_X, ZOOM2_INIT_X + ZOOM_INIT_WIDTH, bounds=(0, image_size_x)),
     y_range=Range1d(ZOOM2_INIT_Y, ZOOM2_INIT_Y + ZOOM_INIT_HEIGHT, bounds=(0, image_size_y)),
     plot_height=ZOOM_CANVAS_HEIGHT,
@@ -249,7 +251,7 @@ total_intensity_plot.add_glyph(total_sum_source, Line(x='x', y='y'))
 
 # Zoom1 intensity plot
 zoom1_intensity_plot = Plot(
-    title=Title(text="Signal-Background Intensity"),
+    title=Title(text="Normalized signal−background Intensity"),
     x_range=total_intensity_plot.x_range,
     y_range=DataRange1d(),
     plot_height=util_plot_size,
@@ -505,9 +507,9 @@ metadata_table = DataTable(
 metadata_issues_dropdown = Dropdown(label="Metadata Issues", button_type='default', menu=[], width=250)
 
 # Final layouts
-layout_main = column(main_image_plot)
+layout_main = column(Spacer(), main_image_plot)
 
-layout_zoom = column(zoom1_image_plot, zoom2_image_plot)
+layout_zoom = column(zoom1_image_plot, zoom2_image_plot, Spacer())
 
 layout_utility = column(gridplot([total_intensity_plot, zoom1_intensity_plot],
                                  ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
