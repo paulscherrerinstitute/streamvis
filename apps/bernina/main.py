@@ -333,7 +333,7 @@ doc.add_periodic_callback(hdf5_file_path_update, HDF5_FILE_PATH_UPDATE_PERIOD)
 
 
 # ---- folder path text input
-def hdf5_file_path_callback(attr, old, new):
+def hdf5_file_path_callback(_attr, _old, _new):
     hdf5_file_path_update()
 
 hdf5_file_path = TextInput(title="Folder Path:", value=HDF5_FILE_PATH, width=250)
@@ -373,7 +373,7 @@ load_file_button.on_click(load_file_button_callback)
 
 
 # ---- pulse number slider
-def hdf5_pulse_slider_callback(attr, old, new):
+def hdf5_pulse_slider_callback(_attr, _old, new):
     global hdf5_file_data, current_image, current_metadata
     current_image, current_metadata = hdf5_file_data(i=new['value'][0])
     update(current_image, current_metadata)
@@ -404,7 +404,7 @@ image_color_mapper = ScalarMappable(norm=color_lin_norm, cmap='plasma')
 
 
 # ---- colormap selector
-def colormap_select_callback(attr, old, new):
+def colormap_select_callback(_attr, _old, new):
     image_color_mapper.set_cmap(new)
     if new == 'gray_r':
         lin_colormapper.palette = Greys256[::-1]
@@ -456,7 +456,7 @@ colormap_scale_radiobuttongroup.on_click(colormap_scale_radiobuttongroup_callbac
 
 
 # ---- colormap min/max values
-def colormap_display_min_callback(attr, old, new):
+def colormap_display_min_callback(_attr, old, new):
     global disp_min
     try:
         new_value = float(new)
@@ -475,7 +475,7 @@ def colormap_display_min_callback(attr, old, new):
         colormap_display_min.value = old
 
 
-def colormap_display_max_callback(attr, old, new):
+def colormap_display_max_callback(_attr, old, new):
     global disp_max
     try:
         new_value = float(new)
