@@ -15,7 +15,7 @@ from bokeh.models.glyphs import ImageRGBA
 from bokeh.models.grids import Grid
 from bokeh.models.mappers import LinearColorMapper, LogColorMapper
 from bokeh.models.tickers import BasicTicker
-from bokeh.models.tools import PanTool, BoxZoomTool, WheelZoomTool, SaveTool, ResetTool
+from bokeh.models.tools import PanTool, WheelZoomTool, SaveTool, ResetTool
 from bokeh.models.widgets import Button, Toggle, Panel, Tabs, Dropdown, Select, RadioButtonGroup, TextInput, \
     DataTable, TableColumn
 from bokeh.palettes import Greys256, Plasma256
@@ -700,7 +700,6 @@ def update(image, metadata):
     else:
         metadata_issues_dropdown.button_type = 'default'
 
-
 def internal_periodic_callback():
     global current_image, current_metadata
     if main_image_plot.inner_width is None:
@@ -716,7 +715,7 @@ def internal_periodic_callback():
             stream_button.label = 'Receiving'
             stream_button.button_type = 'success'
 
-            if len(receiver.data_buffer) > 0:
+            if receiver.data_buffer:
                 current_metadata, current_image = receiver.data_buffer[-1]
 
     if current_image.shape != (1, 1):

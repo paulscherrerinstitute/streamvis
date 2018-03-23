@@ -839,10 +839,10 @@ final_layout = column(layout_main, Spacer(width=0, height=0),
                       row(layout_zoom1, Spacer(width=0, height=0), layout_zoom2, Spacer(width=0, height=0),
                           column(layout_utility, Spacer(width=0, height=10),
                                  row(layout_controls, Spacer(width=30, height=0), layout_metadata)
-                                 )
-                          ),
+                                )
+                         ),
                       layout_thr_agg,
-                      )
+                     )
 
 doc.add_root(final_layout)
 
@@ -1039,7 +1039,7 @@ def internal_periodic_callback():
             stream_button.label = 'Receiving'
             stream_button.button_type = 'success'
 
-            if len(receiver.data_buffer) > 0:
+            if receiver.data_buffer:
                 current_metadata, image = receiver.data_buffer[-1]
                 image = image.copy()  # make a copy so that other clients could still use it
 
