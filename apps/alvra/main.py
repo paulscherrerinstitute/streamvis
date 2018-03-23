@@ -661,7 +661,7 @@ def load_file_button_callback():
     file_name = os.path.join(hdf5_file_path.value, saved_runs_dropdown.label)
     hdf5_file_data = partial(mx_image, file=file_name, dataset=hdf5_dataset_path.value)
     current_image, current_metadata = hdf5_file_data(i=hdf5_pulse_slider.value)
-    update(current_image, current_metadata)
+    update(current_image, current_metadata, None)
 
 load_file_button = Button(label="Load", button_type='default', width=250)
 load_file_button.on_click(load_file_button_callback)
@@ -671,7 +671,7 @@ load_file_button.on_click(load_file_button_callback)
 def hdf5_pulse_slider_callback(attr, old, new):
     global hdf5_file_data, current_image, current_metadata
     current_image, current_metadata = hdf5_file_data(i=new['value'][0])
-    update(current_image, current_metadata)
+    update(current_image, current_metadata, None)
 
 hdf5_pulse_slider_source = ColumnDataSource(dict(value=[]))
 hdf5_pulse_slider_source.on_change('data', hdf5_pulse_slider_callback)
