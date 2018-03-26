@@ -14,7 +14,7 @@ from bokeh.models.annotations import Title
 from bokeh.models.glyphs import ImageRGBA
 from bokeh.models.grids import Grid
 from bokeh.models.mappers import LinearColorMapper, LogColorMapper
-from bokeh.models.tickers import BasicTicker
+from bokeh.models.tickers import BasicTicker, LogTicker
 from bokeh.models.tools import PanTool, WheelZoomTool, SaveTool, ResetTool
 from bokeh.models.widgets import Button, Toggle, Panel, Tabs, Dropdown, Select, RadioButtonGroup, TextInput, \
     DataTable, TableColumn
@@ -442,11 +442,13 @@ colormap_auto_toggle.on_click(colormap_auto_toggle_callback)
 def colormap_scale_radiobuttongroup_callback(selection):
     if selection == 0:  # Linear
         color_bar.color_mapper = lin_colormapper
+        color_bar.ticker = BasicTicker()
         image_color_mapper.norm = color_lin_norm
 
     else:  # Logarithmic
         if disp_min > 0:
             color_bar.color_mapper = log_colormapper
+            color_bar.ticker = LogTicker()
             image_color_mapper.norm = color_log_norm
         else:
             colormap_scale_radiobuttongroup.active = 0
