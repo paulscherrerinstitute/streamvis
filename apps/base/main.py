@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from functools import partial
 
 import numpy as np
@@ -7,13 +8,13 @@ import colorcet as cc
 from bokeh import events
 from bokeh.io import curdoc
 from bokeh.layouts import column, row, gridplot
-from bokeh.models import ColumnDataSource, Slider, Range1d, ColorBar, Spacer, Plot, \
+from bokeh.models import ColumnDataSource, Slider, Range1d, ColorBar, Spacer, Plot, DatetimeAxis, \
     LinearAxis, DataRange1d, Line, CustomJS, Rect, Quad
 from bokeh.models.annotations import Title
 from bokeh.models.glyphs import ImageRGBA
 from bokeh.models.grids import Grid
 from bokeh.models.mappers import LinearColorMapper, LogColorMapper
-from bokeh.models.tickers import BasicTicker
+from bokeh.models.tickers import BasicTicker, LogTicker
 from bokeh.models.tools import PanTool, BoxZoomTool, WheelZoomTool, SaveTool, ResetTool
 from bokeh.models.widgets import Button, Toggle, Panel, Tabs, Dropdown, Select, RadioButtonGroup, TextInput, \
     DataTable, TableColumn
@@ -46,8 +47,7 @@ ZOOM_CANVAS_HEIGHT = 514 + 29
 DEBUG_INTENSITY_WIDTH = 1000
 
 APP_FPS = 1
-stream_t = 0
-STREAM_ROLLOVER = 3600
+STREAM_ROLLOVER = 36000
 
 HDF5_FILE_PATH = '/filepath'
 HDF5_FILE_PATH_UPDATE_PERIOD = 10000  # ms
@@ -237,7 +237,7 @@ zoom1_hist_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(),
 
 # ---- axes
 zoom1_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
-zoom1_hist_plot.add_layout(LinearAxis(axis_label="Counts"), place='right')
+zoom1_hist_plot.add_layout(LinearAxis(major_label_orientation='vertical', axis_label="Counts"), place='right')
 
 # ---- grid lines
 zoom1_hist_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
@@ -263,7 +263,7 @@ total_intensity_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(dimension
 
 # ---- axes
 total_intensity_plot.add_layout(LinearAxis(axis_label="Total intensity"), place='left')
-total_intensity_plot.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='below')
+total_intensity_plot.add_layout(DatetimeAxis(major_label_text_font_size='0pt'), place='below')
 
 # ---- grid lines
 total_intensity_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
@@ -288,7 +288,7 @@ zoom1_intensity_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(dimension
 
 # ---- axes
 zoom1_intensity_plot.add_layout(LinearAxis(axis_label="Intensity"), place='left')
-zoom1_intensity_plot.add_layout(LinearAxis(), place='below')
+zoom1_intensity_plot.add_layout(DatetimeAxis(), place='below')
 
 # ---- grid lines
 zoom1_intensity_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
@@ -301,10 +301,9 @@ zoom1_intensity_plot.add_glyph(zoom1_sum_source, Line(x='x', y='y', line_color='
 
 # Intensity stream reset button
 def intensity_stream_reset_button_callback():
-    global stream_t
-    stream_t = 1  # keep the latest point in order to prevent full axis reset
-    total_sum_source.data.update(x=[1], y=[total_sum_source.data['y'][-1]])
-    zoom1_sum_source.data.update(x=[1], y=[zoom1_sum_source.data['y'][-1]])
+    stream_t = datetime.now()  # keep the latest point in order to prevent full axis reset
+    total_sum_source.data.update(x=[stream_t], y=[total_sum_source.data['y'][-1]])
+    zoom1_sum_source.data.update(x=[stream_t], y=[zoom1_sum_source.data['y'][-1]])
 
 intensity_stream_reset_button = Button(label="Reset", button_type='default', width=250)
 intensity_stream_reset_button.on_click(intensity_stream_reset_button_callback)
@@ -312,7 +311,7 @@ intensity_stream_reset_button.on_click(intensity_stream_reset_button_callback)
 
 # Stream panel
 # ---- image buffer slider
-def image_buffer_slider_callback(attr, old, new):
+def image_buffer_slider_callback(_attr, _old, new):
     md, image = receiver.data_buffer[round(new['value'][0])]
     doc.add_next_tick_callback(partial(update, image=image, metadata=md))
 
@@ -365,7 +364,7 @@ doc.add_periodic_callback(hdf5_file_path_update, HDF5_FILE_PATH_UPDATE_PERIOD)
 
 
 # ---- folder path text input
-def hdf5_file_path_callback(attr, old, new):
+def hdf5_file_path_callback(_attr, _old, _new):
     hdf5_file_path_update()
 
 hdf5_file_path = TextInput(title="Folder Path:", value=HDF5_FILE_PATH, width=250)
@@ -405,7 +404,7 @@ load_file_button.on_click(load_file_button_callback)
 
 
 # ---- pulse number slider
-def hdf5_pulse_slider_callback(attr, old, new):
+def hdf5_pulse_slider_callback(_attr, _old, new):
     global hdf5_file_data, current_image, current_metadata
     current_image, current_metadata = hdf5_file_data(i=new['value'][0])
     update(current_image, current_metadata)
@@ -436,7 +435,7 @@ image_color_mapper = ScalarMappable(norm=color_lin_norm, cmap='plasma')
 
 
 # ---- colormap selector
-def colormap_select_callback(attr, old, new):
+def colormap_select_callback(_attr, _old, new):
     image_color_mapper.set_cmap(new)
     if new == 'gray_r':
         lin_colormapper.palette = Greys256[::-1]
@@ -474,11 +473,13 @@ colormap_auto_toggle.on_click(colormap_auto_toggle_callback)
 def colormap_scale_radiobuttongroup_callback(selection):
     if selection == 0:  # Linear
         color_bar.color_mapper = lin_colormapper
+        color_bar.ticker = BasicTicker()
         image_color_mapper.norm = color_lin_norm
 
     else:  # Logarithmic
         if disp_min > 0:
             color_bar.color_mapper = log_colormapper
+            color_bar.ticker = LogTicker()
             image_color_mapper.norm = color_log_norm
         else:
             colormap_scale_radiobuttongroup.active = 0
@@ -488,7 +489,7 @@ colormap_scale_radiobuttongroup.on_click(colormap_scale_radiobuttongroup_callbac
 
 
 # ---- colormap min/max values
-def colormap_display_min_callback(attr, old, new):
+def colormap_display_min_callback(_attr, old, new):
     global disp_min
     try:
         new_value = float(new)
@@ -507,7 +508,7 @@ def colormap_display_min_callback(attr, old, new):
         colormap_display_min.value = old
 
 
-def colormap_display_max_callback(attr, old, new):
+def colormap_display_max_callback(_attr, old, new):
     global disp_max
     try:
         new_value = float(new)
@@ -525,9 +526,9 @@ def colormap_display_max_callback(attr, old, new):
     except ValueError:
         colormap_display_max.value = old
 
-colormap_display_min = TextInput(title='Min Display Value:', value=str(disp_min), disabled=True)
+colormap_display_min = TextInput(title='Min Display Value:', value=str(disp_min), disabled=True, width=250)
 colormap_display_min.on_change('value', colormap_display_min_callback)
-colormap_display_max = TextInput(title='Max Display Value:', value=str(disp_max), disabled=True)
+colormap_display_max = TextInput(title='Max Display Value:', value=str(disp_max), disabled=True, width=250)
 colormap_display_max.on_change('value', colormap_display_max_callback)
 
 
@@ -568,16 +569,16 @@ final_layout = column(layout_main, Spacer(width=0, height=0),
                       row(layout_zoom, Spacer(width=0, height=0),
                           column(layout_utility, Spacer(width=0, height=10),
                                  row(layout_controls, Spacer(width=30, height=0), layout_metadata)
-                                 )
-                          )
-                      )
+                                )
+                         )
+                     )
 
 doc.add_root(final_layout)
 
 
 @gen.coroutine
 def update(image, metadata):
-    global stream_t, disp_min, disp_max, image_size_x, image_size_y
+    global disp_min, disp_max, image_size_x, image_size_y
     main_image_height = main_image_plot.inner_height
     main_image_width = main_image_plot.inner_width
     zoom1_image_height = zoom1_image_plot.inner_height
@@ -672,11 +673,10 @@ def update(image, metadata):
     zoom1_agg_y_source.data.update(x=agg0, y=r0)
     zoom1_agg_x_source.data.update(x=r1, y=agg1)
 
-    if connected and receiver.state == 'receiving':
-        stream_t += 1
-        zoom1_sum_source.stream(new_data=dict(x=[stream_t], y=[total_sum]), rollover=STREAM_ROLLOVER)
-        total_sum_source.stream(new_data=dict(x=[stream_t], y=[np.sum(image, dtype=np.float)]),
-                                rollover=STREAM_ROLLOVER)
+    stream_t = datetime.now()
+    zoom1_sum_source.stream(new_data=dict(x=[stream_t], y=[total_sum]), rollover=STREAM_ROLLOVER)
+    total_sum_source.stream(new_data=dict(x=[stream_t], y=[np.sum(image, dtype=np.float)]),
+                            rollover=STREAM_ROLLOVER)
 
     # Unpack metadata
     metadata_table_source.data.update(
@@ -727,7 +727,7 @@ def internal_periodic_callback():
                 image_buffer_slider.end = len(receiver.data_buffer) - 1
                 image_buffer_slider.value = len(receiver.data_buffer) - 1
 
-            if len(receiver.data_buffer) > 0:
+            if receiver.data_buffer:
                 current_metadata, current_image = receiver.data_buffer[-1]
 
     if current_image.shape != (1, 1):
