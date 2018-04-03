@@ -72,7 +72,7 @@ main_image_plot = Plot(
 )
 
 # ---- tools
-main_image_plot.add_tools(PanTool(), WheelZoomTool(), SaveTool(), ResetTool())
+main_image_plot.add_tools(PanTool(), WheelZoomTool(maintain_focus=False), SaveTool(), ResetTool())
 
 # ---- axes
 main_image_plot.add_layout(LinearAxis(), place='above')
