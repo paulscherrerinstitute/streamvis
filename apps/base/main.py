@@ -2,25 +2,19 @@ import os
 from datetime import datetime
 from functools import partial
 
-import numpy as np
-from PIL import Image as PIL_Image
 import colorcet as cc
-from bokeh import events
+import numpy as np
+from bokeh.events import Reset
 from bokeh.io import curdoc
-from bokeh.layouts import column, row, gridplot
-from bokeh.models import ColumnDataSource, Slider, Range1d, ColorBar, Spacer, Plot, DatetimeAxis, \
-    LinearAxis, DataRange1d, Line, CustomJS, Rect, Quad
-from bokeh.models.annotations import Title
-from bokeh.models.glyphs import ImageRGBA
-from bokeh.models.grids import Grid
-from bokeh.models.mappers import LinearColorMapper, LogColorMapper
-from bokeh.models.tickers import BasicTicker, LogTicker
-from bokeh.models.tools import PanTool, BoxZoomTool, WheelZoomTool, SaveTool, ResetTool
-from bokeh.models.widgets import Button, Toggle, Panel, Tabs, Dropdown, Select, RadioButtonGroup, TextInput, \
-    DataTable, TableColumn
+from bokeh.layouts import column, gridplot, row
+from bokeh.models import BasicTicker, BoxZoomTool, Button, ColorBar, ColumnDataSource, CustomJS, \
+    DataRange1d, DataTable, DatetimeAxis, Dropdown, Grid, ImageRGBA, Line, LinearAxis, LinearColorMapper, \
+    LogColorMapper, LogTicker, Panel, PanTool, Plot, Quad, RadioButtonGroup, Range1d, Rect, ResetTool, \
+    SaveTool, Select, Slider, Spacer, TableColumn, Tabs, TextInput, Title, Toggle, WheelZoomTool
 from bokeh.palettes import Greys256, Plasma256
 from matplotlib.cm import ScalarMappable
-from matplotlib.colors import Normalize, LogNorm
+from matplotlib.colors import LogNorm, Normalize
+from PIL import Image as PIL_Image
 from tornado import gen
 
 import receiver
@@ -109,7 +103,7 @@ jscode_reset = """
     source.change.emit();
 """
 
-main_image_plot.js_on_event(events.Reset, CustomJS(
+main_image_plot.js_on_event(Reset, CustomJS(
     args=dict(source=main_image_plot, image_source=main_image_source), code=jscode_reset))
 
 
@@ -144,7 +138,7 @@ zoom1_image_plot.add_glyph(zoom1_image_source, ImageRGBA(image='image', x='x', y
 
 # ---- overwrite reset tool behavior
 # reuse js code from the main plot
-zoom1_image_plot.js_on_event(events.Reset, CustomJS(
+zoom1_image_plot.js_on_event(Reset, CustomJS(
     args=dict(source=zoom1_image_plot, image_source=zoom1_image_source), code=jscode_reset))
 
 # ---- add rectangle glyph of zoom area to the main plot
