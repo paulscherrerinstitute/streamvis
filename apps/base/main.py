@@ -538,7 +538,7 @@ metadata_table = DataTable(
     columns=[TableColumn(field='metadata', title="Metadata Name"), TableColumn(field='value', title="Value")],
     width=500,
     height=378,
-    row_headers=False,
+    index_position=None,
     selectable=False,
 )
 
