@@ -769,6 +769,11 @@ def update(image, metadata):
         disp_max = int(np.max(image))
         colormap_display_max.value = str(disp_max)
 
+    if hist_radiobuttongroup.active == 0:  # automatic
+        kwarg = dict(bins='scott')
+    else:  # manual
+        kwarg = dict(bins=hist_nbins, range=(hist_lower, hist_upper))
+
     # Signal roi and intensity
     im_size_0, im_size_1 = image.shape
     sig_start_0 = max(int(np.floor(zoom1_start_0)), 0)
@@ -779,7 +784,7 @@ def update(image, metadata):
     im_block = image[sig_start_0:sig_end_0, sig_start_1:sig_end_1]
     sig_sum = np.sum(im_block, dtype=np.float)
     sig_area = (sig_end_0 - sig_start_0) * (sig_end_1 - sig_start_1)
-    counts, edges = np.histogram(im_block, bins='scott')
+    counts, edges = np.histogram(im_block, **kwarg)
     zoom1_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
 
     # Background roi and intensity
@@ -791,16 +796,15 @@ def update(image, metadata):
     im_block = image[bkg_start_0:bkg_end_0, bkg_start_1:bkg_end_1]
     bkg_sum = np.sum(im_block, dtype=np.float)
     bkg_area = (bkg_end_0 - bkg_start_0) * (bkg_end_1 - bkg_start_1)
-    counts, edges = np.histogram(im_block, bins='scott')
+    counts, edges = np.histogram(im_block, **kwarg)
     zoom2_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
 
     # histograms for full image and i0
     if image.shape == (2074, 1030):
-        counts, edges = np.histogram(image[:1537, :], bins='scott')
+        counts, edges = np.histogram(image[:1537, :], **kwarg)
         full_im_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
-        counts, edges = np.histogram(image[1537:, :], bins='scott')
+        counts, edges = np.histogram(image[1537:, :], **kwarg)
         i0_im_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
-
 
     # correct the backgroud roi sum by subtracting overlap area sum
     overlap_start_0 = max(sig_start_0, bkg_start_0)
