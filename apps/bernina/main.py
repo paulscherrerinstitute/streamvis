@@ -339,7 +339,7 @@ i0_im_hist_plot.add_glyph(i0_im_source,
 
 # histogram zoom1 plot
 zoom1_hist_plot = Plot(
-    title=Title(text="Signal roi"),
+    title=Title(text="Signal roi", text_color='red'),
     x_range=DataRange1d(),
     y_range=DataRange1d(),
     plot_height=HIST_CANVAS_HEIGHT,
@@ -366,7 +366,7 @@ zoom1_hist_plot.add_glyph(zoom1_source,
 
 # histogram zoom2 plot
 zoom2_hist_plot = Plot(
-    title=Title(text="Background roi"),
+    title=Title(text="Background roi", text_color='green'),
     x_range=DataRange1d(),
     y_range=DataRange1d(),
     plot_height=HIST_CANVAS_HEIGHT,
