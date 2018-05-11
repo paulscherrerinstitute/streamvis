@@ -717,8 +717,11 @@ def update(image, metadata):
     sig_start_1 = max(int(np.floor(zoom1_start_1)), 0)
     sig_end_1 = min(int(np.ceil(zoom1_end_1)), im_size_1)
 
-    sig_sum = np.sum(image[sig_start_0:sig_end_0, sig_start_1:sig_end_1], dtype=np.float)
+    im_block = image[sig_start_0:sig_end_0, sig_start_1:sig_end_1]
+    sig_sum = np.sum(im_block, dtype=np.float)
     sig_area = (sig_end_0 - sig_start_0) * (sig_end_1 - sig_start_1)
+    counts, edges = np.histogram(im_block, bins='scott')
+    zoom_sig_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
 
     # Background roi and intensity
     bkg_start_0 = max(int(np.floor(zoom2_start_0)), 0)
@@ -726,8 +729,19 @@ def update(image, metadata):
     bkg_start_1 = max(int(np.floor(zoom2_start_1)), 0)
     bkg_end_1 = min(int(np.ceil(zoom2_end_1)), im_size_1)
 
-    bkg_sum = np.sum(image[bkg_start_0:bkg_end_0, bkg_start_1:bkg_end_1], dtype=np.float)
+    im_block = image[bkg_start_0:bkg_end_0, bkg_start_1:bkg_end_1]
+    bkg_sum = np.sum(im_block, dtype=np.float)
     bkg_area = (bkg_end_0 - bkg_start_0) * (bkg_end_1 - bkg_start_1)
+    counts, edges = np.histogram(im_block, bins='scott')
+    zoom_bkg_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
+
+    # histograms for full image and i0
+    if image.shape == (2074, 1030):
+        counts, edges = np.histogram(image[:1537, :], bins='scott')
+        full_im_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
+        counts, edges = np.histogram(image[1537:, :], bins='scott')
+        i0_im_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
+
 
     # correct the backgroud roi sum by subtracting overlap area sum
     overlap_start_0 = max(sig_start_0, bkg_start_0)
