@@ -57,6 +57,10 @@ util_plot_size = 160
 disp_min = 0
 disp_max = 1000
 
+hist_lower = 0
+hist_upper = 1000
+hist_nbins = 100
+
 ZOOM_INIT_WIDTH = 500
 ZOOM_INIT_HEIGHT = 500
 ZOOM1_INIT_X = 265
@@ -380,6 +384,70 @@ zoom2_hist_plot.add_glyph(zoom2_source,
                           Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
 
 
+# Histogram controls
+# ---- histogram radio button
+def hist_radiobuttongroup_callback(selection):
+    if selection == 0:  # Automatic
+        hist_lower_textinput.disabled = True
+        hist_upper_textinput.disabled = True
+        hist_nbins_textinput.disabled = True
+
+    else:  # Manual
+        hist_lower_textinput.disabled = False
+        hist_upper_textinput.disabled = False
+        hist_nbins_textinput.disabled = False
+
+hist_radiobuttongroup = RadioButtonGroup(labels=["Automatic", "Manual"], active=0)
+hist_radiobuttongroup.on_click(hist_radiobuttongroup_callback)
+
+# ---- histogram lower range
+def hist_lower_callback(_attr, old, new):
+    global hist_lower
+    try:
+        new_value = float(new)
+        if new_value < hist_upper:
+            hist_lower = new_value
+        else:
+            hist_lower_textinput.value = old
+
+    except ValueError:
+        hist_lower_textinput.value = old
+
+# ---- histogram upper range
+def hist_upper_callback(_attr, old, new):
+    global hist_upper
+    try:
+        new_value = float(new)
+        if new_value > hist_lower:
+            hist_upper = new_value
+        else:
+            hist_upper_textinput.value = old
+
+    except ValueError:
+        hist_upper_textinput.value = old
+
+# ---- histogram number of bins
+def hist_nbins_callback(_attr, old, new):
+    global hist_nbins
+    try:
+        new_value = int(new)
+        if new_value > 0:
+            hist_nbins = new_value
+        else:
+            hist_nbins_textinput.value = old
+
+    except ValueError:
+        hist_nbins_textinput.value = old
+
+# ---- histogram text imputs
+hist_lower_textinput = TextInput(title='Lower Range:', value=str(hist_lower), disabled=True)
+hist_lower_textinput.on_change('value', hist_lower_callback)
+hist_upper_textinput = TextInput(title='Upper Range:', value=str(hist_upper), disabled=True)
+hist_upper_textinput.on_change('value', hist_upper_callback)
+hist_nbins_textinput = TextInput(title='Number of Bins:', value=str(hist_nbins), disabled=True)
+hist_nbins_textinput.on_change('value', hist_nbins_callback)
+
+
 # Intensity stream reset button
 def intensity_stream_reset_button_callback():
     stream_t = datetime.now()  # keep the latest point in order to prevent full axis reset
@@ -621,6 +689,9 @@ layout_zoom = column(zoom1_image_plot, zoom2_image_plot, Spacer())
 
 hist_layout = row(full_im_hist_plot, i0_im_hist_plot, zoom1_hist_plot, zoom2_hist_plot)
 
+hist_controls = row(Spacer(width=20), column(Spacer(height=15), hist_radiobuttongroup),
+                    hist_lower_textinput, hist_upper_textinput, hist_nbins_textinput)
+
 layout_utility = column(gridplot([total_intensity_plot, zoom1_intensity_plot],
                                  ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
                         intensity_stream_reset_button)
@@ -632,7 +703,7 @@ layout_metadata = column(metadata_table, row(Spacer(width=460), metadata_issues_
 final_layout = column(row(layout_main, Spacer(width=30),
                           column(layout_zoom), Spacer(width=30),
                           column(layout_metadata, layout_utility, layout_controls)),
-                      hist_layout)
+                      column(hist_layout, hist_controls))
 
 doc.add_root(final_layout)
 
