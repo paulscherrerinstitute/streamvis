@@ -9,7 +9,7 @@ from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
 from bokeh.models import BasicTicker, Button, ColorBar, ColumnDataSource, CustomJS, DataRange1d, \
     DataTable, DatetimeAxis, Dropdown, Grid, ImageRGBA, Line, LinearAxis, LinearColorMapper, \
-    LogColorMapper, LogTicker, Panel, PanTool, Plot, RadioButtonGroup, Range1d, Rect, ResetTool, \
+    LogColorMapper, LogTicker, Panel, PanTool, Plot, Quad, RadioButtonGroup, Range1d, Rect, ResetTool, \
     SaveTool, Select, Slider, Spacer, TableColumn, Tabs, TextInput, Title, Toggle, WheelZoomTool
 from bokeh.palettes import Greys256, Plasma256
 from matplotlib.cm import ScalarMappable
@@ -37,6 +37,9 @@ MAIN_CANVAS_HEIGHT = image_size_y//2 - 150 + 54
 
 ZOOM_CANVAS_WIDTH = 400 + 54
 ZOOM_CANVAS_HEIGHT = 400 + 58
+
+HIST_CANVAS_WIDTH = 450
+HIST_CANVAS_HEIGHT = 300
 
 DEBUG_INTENSITY_WIDTH = 700
 
@@ -279,6 +282,116 @@ zoom1_sum_source = ColumnDataSource(dict(x=[], y=[]))
 zoom1_intensity_plot.add_glyph(zoom1_sum_source, Line(x='x', y='y', line_color='red'))
 
 
+# histogram full image plot
+full_im_hist_plot = Plot(
+    title=Title(text="Full image"),
+    x_range=DataRange1d(),
+    y_range=DataRange1d(),
+    plot_height=HIST_CANVAS_HEIGHT,
+    plot_width=HIST_CANVAS_WIDTH,
+    toolbar_location='left',
+    logo=None,
+)
+
+# ---- tools
+full_im_hist_plot.add_tools(PanTool(), WheelZoomTool(), SaveTool(), ResetTool())
+
+# ---- axes
+full_im_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
+full_im_hist_plot.add_layout(LinearAxis(axis_label="Counts", major_label_orientation='vertical'), place='right')
+
+# ---- grid lines
+full_im_hist_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
+full_im_hist_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
+
+# ---- quad (single bin) glyph
+full_im_source = ColumnDataSource(dict(left=[], right=[], top=[]))
+full_im_hist_plot.add_glyph(full_im_source,
+                            Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
+
+# histogram i0 image plot
+i0_im_hist_plot = Plot(
+    title=Title(text="I0 image"),
+    x_range=DataRange1d(),
+    y_range=DataRange1d(),
+    plot_height=HIST_CANVAS_HEIGHT,
+    plot_width=HIST_CANVAS_WIDTH,
+    toolbar_location='left',
+    logo=None,
+)
+
+# ---- tools
+i0_im_hist_plot.add_tools(PanTool(), WheelZoomTool(), SaveTool(), ResetTool())
+
+# ---- axes
+i0_im_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
+i0_im_hist_plot.add_layout(LinearAxis(axis_label="Counts", major_label_orientation='vertical'), place='right')
+
+# ---- grid lines
+i0_im_hist_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
+i0_im_hist_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
+
+# ---- quad (single bin) glyph
+i0_im_source = ColumnDataSource(dict(left=[], right=[], top=[]))
+i0_im_hist_plot.add_glyph(i0_im_source,
+                          Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
+
+
+# histogram zoom signal plot
+zoom_sig_hist_plot = Plot(
+    title=Title(text="Signal roi"),
+    x_range=DataRange1d(),
+    y_range=DataRange1d(),
+    plot_height=HIST_CANVAS_HEIGHT,
+    plot_width=HIST_CANVAS_WIDTH,
+    toolbar_location='left',
+    logo=None,
+)
+
+# ---- tools
+zoom_sig_hist_plot.add_tools(PanTool(), WheelZoomTool(), SaveTool(), ResetTool())
+
+# ---- axes
+zoom_sig_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
+zoom_sig_hist_plot.add_layout(LinearAxis(axis_label="Counts", major_label_orientation='vertical'), place='right')
+
+# ---- grid lines
+zoom_sig_hist_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
+zoom_sig_hist_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
+
+# ---- quad (single bin) glyph
+zoom_sig_source = ColumnDataSource(dict(left=[], right=[], top=[]))
+zoom_sig_hist_plot.add_glyph(zoom_sig_source,
+                             Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
+
+# histogram zoom background plot
+zoom_bkg_hist_plot = Plot(
+    title=Title(text="Background roi"),
+    x_range=DataRange1d(),
+    y_range=DataRange1d(),
+    plot_height=HIST_CANVAS_HEIGHT,
+    plot_width=HIST_CANVAS_WIDTH,
+    toolbar_location='left',
+    logo=None,
+)
+
+# ---- tools
+zoom_bkg_hist_plot.add_tools(PanTool(), WheelZoomTool(), SaveTool(), ResetTool())
+
+# ---- axes
+zoom_bkg_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
+zoom_bkg_hist_plot.add_layout(LinearAxis(axis_label="Counts", major_label_orientation='vertical'), place='right')
+
+# ---- grid lines
+zoom_bkg_hist_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
+zoom_bkg_hist_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
+
+# ---- quad (single bin) glyph
+zoom_bkg_source = ColumnDataSource(dict(left=[], right=[], top=[]))
+zoom_bkg_hist_plot.add_glyph(zoom_bkg_source,
+                             Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
+
+
 # Intensity stream reset button
 def intensity_stream_reset_button_callback():
     stream_t = datetime.now()  # keep the latest point in order to prevent full axis reset
@@ -518,6 +631,8 @@ layout_main = column(Spacer(), main_image_plot)
 
 layout_zoom = column(zoom1_image_plot, zoom2_image_plot, Spacer())
 
+hist_layout = row(full_im_hist_plot, i0_im_hist_plot, zoom_sig_hist_plot, zoom_bkg_hist_plot)
+
 layout_utility = column(gridplot([total_intensity_plot, zoom1_intensity_plot],
                                  ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
                         intensity_stream_reset_button)
@@ -526,9 +641,10 @@ layout_controls = row(colormap_panel, data_source_tabs)
 
 layout_metadata = column(metadata_table, row(Spacer(width=460), metadata_issues_dropdown))
 
-final_layout = row(layout_main, Spacer(width=30),
-                   column(layout_zoom), Spacer(width=30),
-                   column(layout_metadata, layout_utility, layout_controls))
+final_layout = column(row(layout_main, Spacer(width=30),
+                          column(layout_zoom), Spacer(width=30),
+                          column(layout_metadata, layout_utility, layout_controls)),
+                      hist_layout)
 
 doc.add_root(final_layout)
 
