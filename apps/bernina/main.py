@@ -337,8 +337,8 @@ i0_im_hist_plot.add_glyph(i0_im_source,
                           Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
 
 
-# histogram zoom signal plot
-zoom_sig_hist_plot = Plot(
+# histogram zoom1 plot
+zoom1_hist_plot = Plot(
     title=Title(text="Signal roi"),
     x_range=DataRange1d(),
     y_range=DataRange1d(),
@@ -349,23 +349,23 @@ zoom_sig_hist_plot = Plot(
 )
 
 # ---- tools
-zoom_sig_hist_plot.add_tools(PanTool(), WheelZoomTool(), SaveTool(), ResetTool())
+zoom1_hist_plot.add_tools(PanTool(), WheelZoomTool(), SaveTool(), ResetTool())
 
 # ---- axes
-zoom_sig_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
-zoom_sig_hist_plot.add_layout(LinearAxis(axis_label="Counts", major_label_orientation='vertical'), place='right')
+zoom1_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
+zoom1_hist_plot.add_layout(LinearAxis(axis_label="Counts", major_label_orientation='vertical'), place='right')
 
 # ---- grid lines
-zoom_sig_hist_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-zoom_sig_hist_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
+zoom1_hist_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
+zoom1_hist_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
 # ---- quad (single bin) glyph
-zoom_sig_source = ColumnDataSource(dict(left=[], right=[], top=[]))
-zoom_sig_hist_plot.add_glyph(zoom_sig_source,
-                             Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
+zoom1_source = ColumnDataSource(dict(left=[], right=[], top=[]))
+zoom1_hist_plot.add_glyph(zoom1_source,
+                          Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
 
-# histogram zoom background plot
-zoom_bkg_hist_plot = Plot(
+# histogram zoom2 plot
+zoom2_hist_plot = Plot(
     title=Title(text="Background roi"),
     x_range=DataRange1d(),
     y_range=DataRange1d(),
@@ -376,20 +376,20 @@ zoom_bkg_hist_plot = Plot(
 )
 
 # ---- tools
-zoom_bkg_hist_plot.add_tools(PanTool(), WheelZoomTool(), SaveTool(), ResetTool())
+zoom2_hist_plot.add_tools(PanTool(), WheelZoomTool(), SaveTool(), ResetTool())
 
 # ---- axes
-zoom_bkg_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
-zoom_bkg_hist_plot.add_layout(LinearAxis(axis_label="Counts", major_label_orientation='vertical'), place='right')
+zoom2_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
+zoom2_hist_plot.add_layout(LinearAxis(axis_label="Counts", major_label_orientation='vertical'), place='right')
 
 # ---- grid lines
-zoom_bkg_hist_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-zoom_bkg_hist_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
+zoom2_hist_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
+zoom2_hist_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
 # ---- quad (single bin) glyph
-zoom_bkg_source = ColumnDataSource(dict(left=[], right=[], top=[]))
-zoom_bkg_hist_plot.add_glyph(zoom_bkg_source,
-                             Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
+zoom2_source = ColumnDataSource(dict(left=[], right=[], top=[]))
+zoom2_hist_plot.add_glyph(zoom2_source,
+                          Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
 
 
 # Intensity stream reset button
@@ -631,7 +631,7 @@ layout_main = column(Spacer(), main_image_plot)
 
 layout_zoom = column(zoom1_image_plot, zoom2_image_plot, Spacer())
 
-hist_layout = row(full_im_hist_plot, i0_im_hist_plot, zoom_sig_hist_plot, zoom_bkg_hist_plot)
+hist_layout = row(full_im_hist_plot, i0_im_hist_plot, zoom1_hist_plot, zoom2_hist_plot)
 
 layout_utility = column(gridplot([total_intensity_plot, zoom1_intensity_plot],
                                  ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
@@ -721,7 +721,7 @@ def update(image, metadata):
     sig_sum = np.sum(im_block, dtype=np.float)
     sig_area = (sig_end_0 - sig_start_0) * (sig_end_1 - sig_start_1)
     counts, edges = np.histogram(im_block, bins='scott')
-    zoom_sig_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
+    zoom1_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
 
     # Background roi and intensity
     bkg_start_0 = max(int(np.floor(zoom2_start_0)), 0)
@@ -733,7 +733,7 @@ def update(image, metadata):
     bkg_sum = np.sum(im_block, dtype=np.float)
     bkg_area = (bkg_end_0 - bkg_start_0) * (bkg_end_1 - bkg_start_1)
     counts, edges = np.histogram(im_block, bins='scott')
-    zoom_bkg_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
+    zoom2_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
 
     # histograms for full image and i0
     if image.shape == (2074, 1030):
