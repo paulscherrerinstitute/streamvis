@@ -293,9 +293,6 @@ full_im_hist_plot = Plot(
     logo=None,
 )
 
-# ---- tools
-full_im_hist_plot.add_tools(PanTool(), WheelZoomTool(), SaveTool(), ResetTool())
-
 # ---- axes
 full_im_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
 full_im_hist_plot.add_layout(LinearAxis(axis_label="Counts", major_label_orientation='vertical'), place='right')
@@ -319,9 +316,6 @@ i0_im_hist_plot = Plot(
     toolbar_location='left',
     logo=None,
 )
-
-# ---- tools
-i0_im_hist_plot.add_tools(PanTool(), WheelZoomTool(), SaveTool(), ResetTool())
 
 # ---- axes
 i0_im_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
@@ -348,9 +342,6 @@ zoom1_hist_plot = Plot(
     logo=None,
 )
 
-# ---- tools
-zoom1_hist_plot.add_tools(PanTool(), WheelZoomTool(), SaveTool(), ResetTool())
-
 # ---- axes
 zoom1_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
 zoom1_hist_plot.add_layout(LinearAxis(axis_label="Counts", major_label_orientation='vertical'), place='right')
@@ -374,9 +365,6 @@ zoom2_hist_plot = Plot(
     toolbar_location='left',
     logo=None,
 )
-
-# ---- tools
-zoom2_hist_plot.add_tools(PanTool(), WheelZoomTool(), SaveTool(), ResetTool())
 
 # ---- axes
 zoom2_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
