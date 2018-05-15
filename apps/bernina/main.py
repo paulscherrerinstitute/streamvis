@@ -801,9 +801,9 @@ def update(image, metadata):
 
     # histograms for full image and i0
     if image.shape == (2074, 1030):
-        counts, edges = np.histogram(image[:1537, :], **kwarg)
+        counts, edges = np.histogram(image[:1558, :], **kwarg)
         full_im_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
-        counts, edges = np.histogram(image[1537:, :], **kwarg)
+        counts, edges = np.histogram(image[1558:, :], **kwarg)
         i0_im_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
 
     # correct the backgroud roi sum by subtracting overlap area sum
