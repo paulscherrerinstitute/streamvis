@@ -865,9 +865,17 @@ def update(image, metadata, mask):
         main_image_plot.x_range.bounds = (0, image_size_x)
         main_image_plot.y_range.bounds = (0, image_size_y)
 
+        zoom1_image_plot.y_range.start = 0
+        zoom1_image_plot.x_range.start = 0
+        zoom1_image_plot.y_range.end = image_size_y
+        zoom1_image_plot.x_range.end = image_size_x
         zoom1_image_plot.x_range.bounds = (0, image_size_x)
         zoom1_image_plot.y_range.bounds = (0, image_size_y)
 
+        zoom2_image_plot.y_range.start = 0
+        zoom2_image_plot.x_range.start = 0
+        zoom2_image_plot.y_range.end = image_size_y
+        zoom2_image_plot.x_range.end = image_size_x
         zoom2_image_plot.x_range.bounds = (0, image_size_x)
         zoom2_image_plot.y_range.bounds = (0, image_size_y)
 
