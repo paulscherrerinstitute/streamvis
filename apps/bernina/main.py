@@ -22,9 +22,13 @@ import receiver
 doc = curdoc()
 doc.title = "JF StreamVis Bernina"
 
+# Expected image sizes for the detector
+IMAGE_SIZE_X = 1030
+IMAGE_SIZE_Y = 2074
+
 # initial image size to organize placeholders for actual data
-image_size_x = 1030
-image_size_y = 2074
+image_size_x = IMAGE_SIZE_X
+image_size_y = IMAGE_SIZE_Y
 
 current_image = np.zeros((1, 1), dtype='float32')
 current_metadata = dict(shape=[image_size_y, image_size_x])
@@ -882,6 +886,10 @@ def update(image, metadata):
     if 'is_good_frame' in metadata.keys():
         if not metadata['is_good_frame']:
             new_menu.append(('Frame is not good', '4'))
+
+    if 'shape' in metadata.keys():
+        if metadata['shape'][0] != IMAGE_SIZE_Y or metadata['shape'][1] != IMAGE_SIZE_X:
+            new_menu.append((f'Expected image shape is {(IMAGE_SIZE_Y, IMAGE_SIZE_X)}', '5'))
 
     metadata_issues_dropdown.menu = new_menu
     if new_menu:
