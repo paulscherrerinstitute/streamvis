@@ -643,8 +643,6 @@ def update(image, metadata):
         dw=[zoom1_end_1 - zoom1_start_1], dh=[zoom1_end_0 - zoom1_start_0])
 
     # Statistics
-    ind = None
-
     start_0 = int(np.floor(zoom1_start_0))
     end_0 = int(np.ceil(zoom1_end_0))
     start_1 = int(np.floor(zoom1_start_1))
@@ -657,11 +655,7 @@ def update(image, metadata):
     r0 = np.arange(start_0, end_0) + 0.5
     r1 = np.arange(start_1, end_1) + 0.5
 
-    if ind is None:
-        counts, edges = np.histogram(im_block, bins='scott')
-    else:
-        counts, edges = np.histogram(im_block[~ind[start_0:end_0, start_1:end_1]], bins='scott')
-
+    counts, edges = np.histogram(im_block, bins='scott')
     total_sum = np.sum(im_block)
 
     hist1_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
