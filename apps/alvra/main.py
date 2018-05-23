@@ -943,55 +943,49 @@ def update(image, metadata, mask):
         dw=[zoom2_end_1 - zoom2_start_1], dh=[zoom2_end_0 - zoom2_start_0])
 
     # Statistics
-    im_size_0, im_size_1 = image.shape
+    start_0 = int(np.floor(zoom1_start_0))
+    end_0 = int(np.ceil(zoom1_end_0))
+    start_1 = int(np.floor(zoom1_start_1))
+    end_1 = int(np.ceil(zoom1_end_1))
 
-    start_0 = max(int(np.floor(zoom1_start_0)), 0)
-    end_0 = min(int(np.ceil(zoom1_end_0)), im_size_0)
-    start_1 = max(int(np.floor(zoom1_start_1)), 0)
-    end_1 = min(int(np.ceil(zoom1_end_1)), im_size_1)
-    if start_0 > end_0 or start_1 > end_1:
-        agg0_1, r0_1, agg1_1, r1_1, counts, edges, total_sum_zoom1 = [0], [0], [0], [0], [0], [0, 1], 0
+    im_block = image[start_0:end_0, start_1:end_1]
+
+    agg1_1 = np.sum(im_block, axis=0)
+    agg0_1 = np.sum(im_block, axis=1)
+    r0_1 = np.arange(start_0, end_0) + 0.5
+    r1_1 = np.arange(start_1, end_1) + 0.5
+
+    if mask is None:
+        counts, edges = np.histogram(im_block/aggregate_counter, bins='scott')
     else:
-        im_block = image[start_0:end_0, start_1:end_1]
+        counts, edges = np.histogram(im_block[~mask[start_0:end_0, start_1:end_1]]/aggregate_counter,
+                                     bins='scott')
 
-        agg1_1 = np.sum(im_block, axis=0)
-        agg0_1 = np.sum(im_block, axis=1)
-        r0_1 = np.arange(start_0, end_0) + 0.5
-        r1_1 = np.arange(start_1, end_1) + 0.5
-
-        if mask is None:
-            counts, edges = np.histogram(im_block/aggregate_counter, bins='scott')
-        else:
-            counts, edges = np.histogram(im_block[~mask[start_0:end_0, start_1:end_1]]/aggregate_counter,
-                                         bins='scott')
-
-        total_sum_zoom1 = np.sum(im_block)
+    total_sum_zoom1 = np.sum(im_block)
 
     hist1_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
     zoom1_agg_y_source.data.update(x=agg0_1, y=r0_1)
     zoom1_agg_x_source.data.update(x=r1_1, y=agg1_1)
 
-    start_0 = max(int(np.floor(zoom2_start_0)), 0)
-    end_0 = min(int(np.ceil(zoom2_end_0)), im_size_0)
-    start_1 = max(int(np.floor(zoom2_start_1)), 0)
-    end_1 = min(int(np.ceil(zoom2_end_1)), im_size_1)
-    if start_0 > end_0 or start_1 > end_1:
-        agg0_2, r0_2, agg1_2, r1_2, counts, edges, total_sum_zoom2 = [0], [0], [0], [0], [0], [0, 1], 0
+    start_0 = int(np.floor(zoom2_start_0))
+    end_0 = int(np.ceil(zoom2_end_0))
+    start_1 = int(np.floor(zoom2_start_1))
+    end_1 = int(np.ceil(zoom2_end_1))
+
+    im_block = image[start_0:end_0, start_1:end_1]
+
+    agg1_2 = np.sum(im_block, axis=0)
+    agg0_2 = np.sum(im_block, axis=1)
+    r0_2 = np.arange(start_0, end_0) + 0.5
+    r1_2 = np.arange(start_1, end_1) + 0.5
+
+    if mask is None:
+        counts, edges = np.histogram(im_block/aggregate_counter, bins='scott')
     else:
-        im_block = image[start_0:end_0, start_1:end_1]
+        counts, edges = np.histogram(im_block[~mask[start_0:end_0, start_1:end_1]]/aggregate_counter,
+                                     bins='scott')
 
-        agg1_2 = np.sum(im_block, axis=0)
-        agg0_2 = np.sum(im_block, axis=1)
-        r0_2 = np.arange(start_0, end_0) + 0.5
-        r1_2 = np.arange(start_1, end_1) + 0.5
-
-        if mask is None:
-            counts, edges = np.histogram(im_block/aggregate_counter, bins='scott')
-        else:
-            counts, edges = np.histogram(im_block[~mask[start_0:end_0, start_1:end_1]]/aggregate_counter,
-                                         bins='scott')
-
-        total_sum_zoom2 = np.sum(im_block)
+    total_sum_zoom2 = np.sum(im_block)
 
     hist2_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
     zoom2_agg_y_source.data.update(x=agg0_2, y=r0_2)

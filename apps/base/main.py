@@ -645,27 +645,24 @@ def update(image, metadata):
     # Statistics
     ind = None
 
-    im_size_0, im_size_1 = image.shape
-    start_0 = max(int(np.floor(zoom1_start_0)), 0)
-    end_0 = min(int(np.ceil(zoom1_end_0)), im_size_0)
-    start_1 = max(int(np.floor(zoom1_start_1)), 0)
-    end_1 = min(int(np.ceil(zoom1_end_1)), im_size_1)
-    if start_0 > end_0 or start_1 > end_1:
-        agg0, r0, agg1, r1, counts, edges, total_sum = [0], [0], [0], [0], [0], [0, 1], 0
+    start_0 = int(np.floor(zoom1_start_0))
+    end_0 = int(np.ceil(zoom1_end_0))
+    start_1 = int(np.floor(zoom1_start_1))
+    end_1 = int(np.ceil(zoom1_end_1))
+
+    im_block = image[start_0:end_0, start_1:end_1]
+
+    agg1 = np.mean(im_block, axis=0)
+    agg0 = np.mean(im_block, axis=1)
+    r0 = np.arange(start_0, end_0) + 0.5
+    r1 = np.arange(start_1, end_1) + 0.5
+
+    if ind is None:
+        counts, edges = np.histogram(im_block, bins='scott')
     else:
-        im_block = image[start_0:end_0, start_1:end_1]
+        counts, edges = np.histogram(im_block[~ind[start_0:end_0, start_1:end_1]], bins='scott')
 
-        agg1 = np.mean(im_block, axis=0)
-        agg0 = np.mean(im_block, axis=1)
-        r0 = np.arange(start_0, end_0) + 0.5
-        r1 = np.arange(start_1, end_1) + 0.5
-
-        if ind is None:
-            counts, edges = np.histogram(im_block, bins='scott')
-        else:
-            counts, edges = np.histogram(im_block[~ind[start_0:end_0, start_1:end_1]], bins='scott')
-
-        total_sum = np.sum(im_block)
+    total_sum = np.sum(im_block)
 
     hist1_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
     zoom1_agg_y_source.data.update(x=agg0, y=r0)

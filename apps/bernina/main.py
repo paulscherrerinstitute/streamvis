@@ -783,11 +783,10 @@ def update(image, metadata):
         kwarg = dict(bins=hist_nbins, range=(hist_lower, hist_upper))
 
     # Signal roi and intensity
-    im_size_0, im_size_1 = image.shape
-    sig_start_0 = max(int(np.floor(zoom1_start_0)), 0)
-    sig_end_0 = min(int(np.ceil(zoom1_end_0)), im_size_0)
-    sig_start_1 = max(int(np.floor(zoom1_start_1)), 0)
-    sig_end_1 = min(int(np.ceil(zoom1_end_1)), im_size_1)
+    sig_start_0 = int(np.floor(zoom1_start_0))
+    sig_end_0 = int(np.ceil(zoom1_end_0))
+    sig_start_1 = int(np.floor(zoom1_start_1))
+    sig_end_1 = int(np.ceil(zoom1_end_1))
 
     im_block = image[sig_start_0:sig_end_0, sig_start_1:sig_end_1]
     sig_sum = np.sum(im_block, dtype=np.float)
@@ -796,10 +795,10 @@ def update(image, metadata):
     zoom1_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
 
     # Background roi and intensity
-    bkg_start_0 = max(int(np.floor(zoom2_start_0)), 0)
-    bkg_end_0 = min(int(np.ceil(zoom2_end_0)), im_size_0)
-    bkg_start_1 = max(int(np.floor(zoom2_start_1)), 0)
-    bkg_end_1 = min(int(np.ceil(zoom2_end_1)), im_size_1)
+    bkg_start_0 = int(np.floor(zoom2_start_0))
+    bkg_end_0 = int(np.ceil(zoom2_end_0))
+    bkg_start_1 = int(np.floor(zoom2_start_1))
+    bkg_end_1 = int(np.ceil(zoom2_end_1))
 
     im_block = image[bkg_start_0:bkg_end_0, bkg_start_1:bkg_end_1]
     bkg_sum = np.sum(im_block, dtype=np.float)
