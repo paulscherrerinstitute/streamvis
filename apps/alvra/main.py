@@ -20,7 +20,7 @@ from tornado import gen
 import receiver
 
 doc = curdoc()
-doc.title = "JF StreamVis Alvra"
+doc.title = "JF-Alvra - StreamVis"
 
 # Expected image sizes for the detector
 IMAGE_SIZE_X = 9216 + (9 - 1) * 6 + 2 * 3 * 9

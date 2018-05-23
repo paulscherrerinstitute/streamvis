@@ -20,7 +20,7 @@ from tornado import gen
 import receiver
 
 doc = curdoc()
-doc.title = "JF StreamVis"
+doc.title = "StreamVis"
 
 # initial image size to organize placeholders for actual data
 image_size_x = 100
