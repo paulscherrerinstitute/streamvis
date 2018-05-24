@@ -822,11 +822,11 @@ layout_main = column(main_image_plot)
 
 layout_zoom1 = column(zoom1_plot_agg_x,
                       row(zoom1_image_plot, zoom1_plot_agg_y),
-                      row(Spacer(width=0, height=0), zoom1_hist_plot, Spacer(width=0, height=0)))
+                      row(Spacer(), zoom1_hist_plot, Spacer()))
 
 layout_zoom2 = column(zoom2_plot_agg_x,
                       row(zoom2_image_plot, zoom2_plot_agg_y),
-                      row(Spacer(width=0, height=0), zoom2_hist_plot, Spacer(width=0, height=0)))
+                      row(Spacer(), zoom2_hist_plot, Spacer()))
 
 layout_thr_agg = row(column(threshold_button, threshold_textinput),
                      column(aggregate_button, aggregate_time_textinput),
@@ -838,12 +838,12 @@ layout_utility = column(gridplot([total_intensity_plot, zoom1_intensity_plot, zo
 
 layout_controls = column(colormap_panel, data_source_tabs)
 
-layout_metadata = column(metadata_table, row(Spacer(width=250, height=0), metadata_issues_dropdown))
+layout_metadata = column(metadata_table, row(Spacer(width=250), metadata_issues_dropdown))
 
-final_layout = column(layout_main, Spacer(width=0, height=0),
-                      row(layout_zoom1, Spacer(width=0, height=0), layout_zoom2, Spacer(width=0, height=0),
-                          column(layout_utility, Spacer(width=0, height=10),
-                                 row(layout_controls, Spacer(width=30, height=0), layout_metadata)
+final_layout = column(layout_main, Spacer(),
+                      row(layout_zoom1, Spacer(), layout_zoom2, Spacer(),
+                          column(layout_utility, Spacer(height=10),
+                                 row(layout_controls, Spacer(width=30), layout_metadata)
                                 )
                          ),
                       layout_thr_agg,

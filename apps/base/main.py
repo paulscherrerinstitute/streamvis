@@ -554,7 +554,7 @@ layout_main = column(main_image_plot)
 
 layout_zoom = column(zoom1_plot_agg_x,
                      row(zoom1_image_plot, zoom1_plot_agg_y),
-                     row(Spacer(width=0, height=0), zoom1_hist_plot, Spacer(width=0, height=0)))
+                     row(Spacer(), zoom1_hist_plot, Spacer()))
 
 layout_utility = column(gridplot([total_intensity_plot, zoom1_intensity_plot],
                                  ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
@@ -562,12 +562,12 @@ layout_utility = column(gridplot([total_intensity_plot, zoom1_intensity_plot],
 
 layout_controls = column(colormap_panel, data_source_tabs)
 
-layout_metadata = column(metadata_table, row(Spacer(width=250, height=0), metadata_issues_dropdown))
+layout_metadata = column(metadata_table, row(Spacer(width=250), metadata_issues_dropdown))
 
-final_layout = column(layout_main, Spacer(width=0, height=0),
-                      row(layout_zoom, Spacer(width=0, height=0),
-                          column(layout_utility, Spacer(width=0, height=10),
-                                 row(layout_controls, Spacer(width=30, height=0), layout_metadata)
+final_layout = column(layout_main, Spacer(),
+                      row(layout_zoom, Spacer(),
+                          column(layout_utility, Spacer(height=10),
+                                 row(layout_controls, Spacer(width=30), layout_metadata)
                                 )
                          )
                      )
