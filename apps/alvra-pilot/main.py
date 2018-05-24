@@ -13,7 +13,7 @@ from bokeh.io import curdoc
 from bokeh.document import without_document_lock
 from bokeh.layouts import column, row, gridplot
 from bokeh.models import ColumnDataSource, Slider, Range1d, ColorBar, Spacer, Plot, \
-    LinearAxis, DataRange1d, Line, CustomJS, Rect, Quad
+    LinearAxis, DataRange1d, Line, CustomJS, Rect, Quad, Div
 from bokeh.palettes import Inferno256, Magma256, Greys256, Viridis256, Plasma256
 from bokeh.models.mappers import LinearColorMapper, LogColorMapper
 from bokeh.models.tools import PanTool, BoxZoomTool, WheelZoomTool, SaveTool, ResetTool
@@ -32,7 +32,7 @@ import zmq
 from tornado import gen
 
 doc = curdoc()
-doc.title = "JF 4.5M ImageVis"
+doc.title = "(deprecated) JF-Alvra-pilot - StreamVis)"
 
 DETECTOR_SERVER_ADDRESS = "tcp://127.0.0.1:9001"
 
@@ -74,6 +74,9 @@ buffer = deque(maxlen=BUFFER_SIZE)
 
 aggregated_image = np.zeros((IMAGE_SIZE_Y, IMAGE_SIZE_X), dtype=np.float32)
 at = 0
+
+# Deprecation warning
+deprecation_div = Div(text="<h1>This version is deprecated. Use 'streamvis alvra' instead</h1>", width=1000)
 
 # Arrange the layout_main
 main_image_plot = Plot(
@@ -752,7 +755,7 @@ layout_controls = row(column(colormap_panel, data_source_tabs),
                       Spacer(width=30, height=1),
                       column(metadata_table, row(Spacer(width=250, height=1), metadata_issues_dropdown)))
 doc.add_root(
-    column(layout_main, Spacer(width=1, height=1),
+    column(deprecation_div, layout_main, Spacer(width=1, height=1),
            row(layout_zoom, Spacer(width=1, height=1),
                column(layout_intensities, Spacer(width=1, height=10), layout_controls))))
 

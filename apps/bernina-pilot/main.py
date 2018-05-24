@@ -13,7 +13,7 @@ from bokeh.layouts import column, row, gridplot, WidgetBox
 from bokeh.transform import linear_cmap
 from bokeh.events import MouseEnter
 from bokeh.models import ColumnDataSource, Slider, Range1d, ColorBar, Spacer, Plot, \
-    LinearAxis, DataRange1d, Line, CustomJS, Rect
+    LinearAxis, DataRange1d, Line, CustomJS, Rect, Div
 from bokeh.palettes import Inferno256, Magma256, Greys256, Greys8, Viridis256, Plasma256
 from bokeh.models.mappers import LinearColorMapper, LogColorMapper
 from bokeh.models.tools import PanTool, BoxZoomTool, WheelZoomTool, SaveTool, ResetTool
@@ -35,7 +35,7 @@ import zmq
 from tornado import gen
 
 doc = curdoc()
-doc.title = "ImageVis"
+doc.title = "(deprecated) JF-Bernina-pilot - StreamVis"
 
 DETECTOR_SERVER_ADDRESS = "tcp://127.0.0.1:9001"
 
@@ -76,6 +76,9 @@ agg_plot_size = 200
 # Initial values
 disp_min = 0
 disp_max = 1000
+
+# Deprecation warning
+deprecation_div = Div(text="<h1>This version is deprecated. Use 'streamvis bernina' instead</h1>", width=1000)
 
 # Arrange the layout_main
 main_image_plot = Plot(
@@ -628,8 +631,8 @@ layout_controls = row(column(colormap_panel, Spacer(width=1, height=30), data_so
 layout_azim_integ = column(azimuthal_integ1d_plot, azimuthal_integ2d_plot, Spacer(width=1, height=30),
                            row(column(sample2det_dist_textinput, poni1_textinput, poni2_textinput),
                                column(unit_select, wavelength_textinput)))
-doc.add_root(row(layout_main, Spacer(width=30, height=1), layout_zoom, Spacer(width=80, height=1),
-                 column(layout_azim_integ, Spacer(width=1, height=30), layout_controls)))
+doc.add_root(column(deprecation_div, row(layout_main, Spacer(width=30, height=1), layout_zoom, Spacer(width=80, height=1),
+                 column(layout_azim_integ, Spacer(width=1, height=30), layout_controls))))
 
 ctx = zmq.Context()
 skt = ctx.socket(zmq.SUB)
