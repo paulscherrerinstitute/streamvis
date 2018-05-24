@@ -11,7 +11,7 @@ from bokeh.models import BasicTicker, BoxZoomTool, Button, ColorBar, ColumnDataS
     DataRange1d, DataTable, Dropdown, Grid, ImageRGBA, Line, LinearAxis, LinearColorMapper, \
     LogColorMapper, LogTicker, Panel, PanTool, Plot, Quad, RadioButtonGroup, Range1d, Rect, ResetTool, \
     SaveTool, Select, Slider, Spacer, TableColumn, Tabs, TextInput, Title, Toggle, WheelZoomTool
-from bokeh.palettes import Cividis256, Greys256, Plasma256
+from bokeh.palettes import Cividis256, Greys256, Plasma256  # pylint: disable=E0611
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LogNorm, Normalize
 from PIL import Image as PIL_Image
@@ -646,10 +646,11 @@ hdf5_dataset_path = TextInput(title="Dataset Path:", value=HDF5_DATASET_PATH, wi
 
 # ---- load button
 def mx_image(file, dataset, i):
-    import hdf5plugin  # required to be loaded prior to h5py
+    # hdf5plugin is required to be loaded prior to h5py without a follow-up use
+    import hdf5plugin  # pylint: disable=W0612
     import h5py
     with h5py.File(file, 'r') as f:
-        image = f[dataset][i, :, :].astype(np.float32)
+        image = f[dataset][i, :, :].astype('float32')
         metadata = dict(shape=list(image.shape))
         return image, metadata
 
@@ -1053,7 +1054,6 @@ def internal_periodic_callback():
                 current_metadata, image = receiver.data_buffer[-1]
                 image = image.copy()  # make a copy so that other clients could still use it
 
-                # TODO: find a better place to do thresholding/aggregation per client
                 if threshold_flag:
                     current_mask = image < threshold
                     image[current_mask] = 0
