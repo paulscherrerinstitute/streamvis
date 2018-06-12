@@ -4,7 +4,7 @@ import zmq
 
 DETECTOR_SERVER_ADDRESS = "tcp://127.0.0.1:9001"
 
-BUFFER_SIZE = 100
+BUFFER_SIZE = 1
 data_buffer = deque(maxlen=BUFFER_SIZE)
 
 state = 'polling'
