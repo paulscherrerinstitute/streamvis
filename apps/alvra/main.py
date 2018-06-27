@@ -11,7 +11,7 @@ from bokeh.models import BasicTicker, BoxZoomTool, Button, ColorBar, ColumnDataS
     DataRange1d, DataTable, Dropdown, Grid, ImageRGBA, Line, LinearAxis, LinearColorMapper, \
     LogColorMapper, LogTicker, Panel, PanTool, Plot, Quad, RadioButtonGroup, Range1d, Rect, ResetTool, \
     SaveTool, Select, Slider, Spacer, TableColumn, Tabs, TextInput, Title, Toggle, WheelZoomTool
-from bokeh.palettes import Greys256, Plasma256 # pylint: disable=E0611
+from bokeh.palettes import Cividis256, Greys256, Plasma256  # pylint: disable=E0611
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LogNorm, Normalize
 from PIL import Image as PIL_Image
@@ -91,7 +91,7 @@ main_image_plot = Plot(
 )
 
 # ---- tools
-main_image_plot.add_tools(PanTool(), WheelZoomTool(), SaveTool(), ResetTool())
+main_image_plot.add_tools(PanTool(), WheelZoomTool(maintain_focus=False), SaveTool(), ResetTool())
 
 # ---- axes
 main_image_plot.add_layout(LinearAxis(), place='above')
@@ -712,9 +712,13 @@ def colormap_select_callback(_attr, _old, new):
         lin_colormapper.palette = cc.coolwarm
         log_colormapper.palette = cc.coolwarm
 
+    elif new == 'cividis':
+        lin_colormapper.palette = Cividis256
+        log_colormapper.palette = Cividis256
+
 colormap_select = Select(
     title="Colormap:", value='plasma', width=260,
-    options=['gray_r', 'plasma', 'coolwarm']
+    options=['gray_r', 'plasma', 'coolwarm', 'cividis']
 )
 colormap_select.on_change('value', colormap_select_callback)
 
@@ -807,7 +811,7 @@ metadata_table = DataTable(
     columns=[TableColumn(field='metadata', title="Metadata Name"), TableColumn(field='value', title="Value")],
     width=500,
     height=420,
-    row_headers=False,
+    index_position=None,
     selectable=False,
 )
 
