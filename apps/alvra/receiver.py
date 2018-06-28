@@ -1,8 +1,12 @@
+import argparse
 from collections import deque
+
 import numpy as np
 import zmq
 
-DETECTOR_SERVER_ADDRESS = "tcp://127.0.0.1:9001"
+parser = argparse.ArgumentParser()
+parser.add_argument('--detector-backend-address', default='tcp://127.0.0.1:9001')
+args = parser.parse_args()
 
 BUFFER_SIZE = 1
 data_buffer = deque(maxlen=BUFFER_SIZE)
@@ -12,7 +16,7 @@ state = 'polling'
 zmq_context = zmq.Context()
 zmq_socket = zmq_context.socket(zmq.SUB)
 zmq_socket.setsockopt_string(zmq.SUBSCRIBE, "")
-zmq_socket.connect(DETECTOR_SERVER_ADDRESS)
+zmq_socket.connect(args.detector_backend_address)
 
 poller = zmq.Poller()
 poller.register(zmq_socket, zmq.POLLIN)
