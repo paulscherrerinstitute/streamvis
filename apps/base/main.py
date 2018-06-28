@@ -541,8 +541,8 @@ metadata_table_source = ColumnDataSource(dict(metadata=['', '', ''], value=['', 
 metadata_table = DataTable(
     source=metadata_table_source,
     columns=[TableColumn(field='metadata', title="Metadata Name"), TableColumn(field='value', title="Value")],
-    width=500,
-    height=378,
+    width=700,
+    height=450,
     index_position=None,
     selectable=False,
 )
@@ -562,12 +562,12 @@ layout_utility = column(gridplot([total_intensity_plot, zoom1_intensity_plot],
 
 layout_controls = column(colormap_panel, data_source_tabs)
 
-layout_metadata = column(metadata_table, row(Spacer(width=250), metadata_issues_dropdown))
+layout_metadata = column(metadata_table, row(Spacer(width=450), metadata_issues_dropdown))
 
-final_layout = column(layout_main, Spacer(),
+final_layout = column(row(layout_main, Spacer(width=30), column(Spacer(height=30), layout_metadata)),
                       row(layout_zoom, Spacer(),
                           column(layout_utility, Spacer(height=10),
-                                 row(layout_controls, Spacer(width=30), layout_metadata)
+                                 row(layout_controls)
                                 )
                          )
                      )
