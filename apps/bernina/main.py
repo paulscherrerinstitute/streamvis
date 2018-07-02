@@ -869,23 +869,23 @@ def update(image, metadata):
 
     # Check metadata for issues
     new_menu = []
-    if 'pulse_id_diff' in metadata.keys():
+    if 'pulse_id_diff' in metadata:
         if any(metadata['pulse_id_diff']):
             new_menu.append(('Not all pulse_id_diff are 0', '1'))
 
-    if 'missing_packets_1' in metadata.keys():
+    if 'missing_packets_1' in metadata:
         if any(metadata['missing_packets_1']):
             new_menu.append(('There are missing packets 1', '2'))
 
-    if 'missing_packets_2' in metadata.keys():
+    if 'missing_packets_2' in metadata:
         if any(metadata['missing_packets_2']):
             new_menu.append(('There are missing packets 2', '3'))
 
-    if 'is_good_frame' in metadata.keys():
+    if 'is_good_frame' in metadata:
         if not metadata['is_good_frame']:
             new_menu.append(('Frame is not good', '4'))
 
-    if 'shape' in metadata.keys():
+    if 'shape' in metadata:
         if metadata['shape'][0] != IMAGE_SIZE_Y or metadata['shape'][1] != IMAGE_SIZE_X:
             new_menu.append((f'Expected image shape is {(IMAGE_SIZE_Y, IMAGE_SIZE_X)}', '5'))
 
