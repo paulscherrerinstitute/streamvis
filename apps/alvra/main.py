@@ -798,8 +798,8 @@ colormap_display_min.on_change('value', colormap_display_min_callback)
 
 
 # assemble
-colormap_panel = column(colormap_select, colormap_scale_radiobuttongroup, colormap_auto_toggle,
-                        colormap_display_max, colormap_display_min)
+colormap_panel = column(colormap_select, Spacer(height=10), colormap_scale_radiobuttongroup,
+                        Spacer(height=10), colormap_auto_toggle, colormap_display_max, colormap_display_min)
 
 
 # Metadata table
