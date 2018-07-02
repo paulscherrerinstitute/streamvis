@@ -177,7 +177,7 @@ zoom1_image_plot.y_range.callback = CustomJS(
     args=dict(source=zoom1_area_source), code=jscode_move_rect % ('y', 'height'))
 
 
-# aggregate zoom1 plot along x axis
+# Aggregate zoom1 plot along x axis
 zoom1_plot_agg_x = Plot(
     title=Title(text="Zoom Area 1"),
     x_range=zoom1_image_plot.x_range,
@@ -208,7 +208,7 @@ zoom1_agg_x_source = ColumnDataSource(
 zoom1_plot_agg_x.add_glyph(zoom1_agg_x_source, Line(x='x', y='y', line_color='steelblue', line_width=2))
 
 
-# aggregate zoom1 plot along y axis
+# Aggregate zoom1 plot along y axis
 zoom1_plot_agg_y = Plot(
     x_range=DataRange1d(),
     y_range=zoom1_image_plot.y_range,
@@ -233,7 +233,7 @@ zoom1_agg_y_source = ColumnDataSource(
 zoom1_plot_agg_y.add_glyph(zoom1_agg_y_source, Line(x='x', y='y', line_color='steelblue'))
 
 
-# histogram zoom1 plot
+# Histogram zoom1 plot
 zoom1_hist_plot = Plot(
     x_range=DataRange1d(),
     y_range=DataRange1d(),
@@ -312,7 +312,7 @@ zoom2_image_plot.y_range.callback = CustomJS(
     args=dict(source=zoom2_area_source), code=jscode_move_rect % ('y', 'height'))
 
 
-# aggregate zoom2 plot along x axis
+# Aggregate zoom2 plot along x axis
 zoom2_plot_agg_x = Plot(
     title=Title(text="Zoom Area 2"),
     x_range=zoom2_image_plot.x_range,
@@ -342,7 +342,7 @@ zoom2_agg_x_source = ColumnDataSource(
 zoom2_plot_agg_x.add_glyph(zoom2_agg_x_source, Line(x='x', y='y', line_color='steelblue', line_width=2))
 
 
-# aggregate zoom2 plot along y axis
+# Aggregate zoom2 plot along y axis
 zoom2_plot_agg_y = Plot(
     x_range=DataRange1d(),
     y_range=zoom2_image_plot.y_range,
@@ -367,7 +367,7 @@ zoom2_agg_y_source = ColumnDataSource(
 zoom2_plot_agg_y.add_glyph(zoom2_agg_y_source, Line(x='x', y='y', line_color='steelblue'))
 
 
-# histogram zoom2 plot
+# Histogram zoom2 plot
 zoom2_hist_plot = Plot(
     x_range=DataRange1d(),
     y_range=DataRange1d(),
@@ -605,7 +605,6 @@ def stream_button_callback(state):
 stream_button = Toggle(label="Connect", button_type='default')
 stream_button.on_click(stream_button_callback)
 
-
 # assemble
 tab_stream = Panel(child=column(stream_button), title="Stream")
 
@@ -623,14 +622,12 @@ def hdf5_file_path_update():
 
 doc.add_periodic_callback(hdf5_file_path_update, HDF5_FILE_PATH_UPDATE_PERIOD)
 
-
 # ---- folder path text input
 def hdf5_file_path_callback(_attr, _old, _new):
     hdf5_file_path_update()
 
 hdf5_file_path = TextInput(title="Folder Path:", value=HDF5_FILE_PATH)
 hdf5_file_path.on_change('value', hdf5_file_path_callback)
-
 
 # ---- saved runs dropdown menu
 def saved_runs_dropdown_callback(selection):
@@ -642,7 +639,6 @@ saved_runs_dropdown.on_click(saved_runs_dropdown_callback)
 # ---- dataset path text input
 hdf5_dataset_path = TextInput(title="Dataset Path:", value=HDF5_DATASET_PATH)
 
-
 # ---- load button
 def mx_image(file, dataset, i):
     # hdf5plugin is required to be loaded prior to h5py without a follow-up use
@@ -653,7 +649,6 @@ def mx_image(file, dataset, i):
         metadata = dict(shape=list(image.shape))
         return image, metadata
 
-
 def load_file_button_callback():
     global hdf5_file_data, current_image, current_metadata
     file_name = os.path.join(hdf5_file_path.value, saved_runs_dropdown.label)
@@ -663,7 +658,6 @@ def load_file_button_callback():
 
 load_file_button = Button(label="Load", button_type='default')
 load_file_button.on_click(load_file_button_callback)
-
 
 # ---- pulse number slider
 def hdf5_pulse_slider_callback(_attr, _old, new):
@@ -681,7 +675,6 @@ hdf5_pulse_slider.callback = CustomJS(
     args=dict(source=hdf5_pulse_slider_source),
     code="""source.data = {value: [cb_obj.value]}""")
 
-
 # assemble
 tab_hdf5file = Panel(
     child=column(hdf5_file_path, saved_runs_dropdown, hdf5_dataset_path, load_file_button, hdf5_pulse_slider),
@@ -694,7 +687,6 @@ data_source_tabs = Tabs(tabs=[tab_stream, tab_hdf5file])
 color_lin_norm = Normalize()
 color_log_norm = LogNorm()
 image_color_mapper = ScalarMappable(norm=color_lin_norm, cmap='plasma')
-
 
 # ---- colormap selector
 def colormap_select_callback(_attr, _old, new):
@@ -721,7 +713,6 @@ colormap_select = Select(
 )
 colormap_select.on_change('value', colormap_select_callback)
 
-
 # ---- colormap auto toggle button
 def colormap_auto_toggle_callback(state):
     if state:
@@ -733,7 +724,6 @@ def colormap_auto_toggle_callback(state):
 
 colormap_auto_toggle = Toggle(label="Auto Range", active=True, button_type='default')
 colormap_auto_toggle.on_click(colormap_auto_toggle_callback)
-
 
 # ---- colormap scale radiobutton group
 def colormap_scale_radiobuttongroup_callback(selection):
@@ -752,7 +742,6 @@ def colormap_scale_radiobuttongroup_callback(selection):
 
 colormap_scale_radiobuttongroup = RadioButtonGroup(labels=["Linear", "Logarithmic"], active=0)
 colormap_scale_radiobuttongroup.on_click(colormap_scale_radiobuttongroup_callback)
-
 
 # ---- colormap min/max values
 def colormap_display_max_callback(_attr, old, new):
@@ -796,7 +785,6 @@ colormap_display_max.on_change('value', colormap_display_max_callback)
 colormap_display_min = TextInput(title='Minimal Display Value:', value=str(disp_min), disabled=True)
 colormap_display_min.on_change('value', colormap_display_min_callback)
 
-
 # assemble
 colormap_panel = column(colormap_select, Spacer(height=10), colormap_scale_radiobuttongroup,
                         Spacer(height=10), colormap_auto_toggle, colormap_display_max, colormap_display_min)
@@ -814,6 +802,7 @@ metadata_table = DataTable(
 )
 
 metadata_issues_dropdown = Dropdown(label="Metadata Issues", button_type='default', menu=[])
+
 
 # Final layouts
 layout_main = column(main_image_plot)
@@ -1050,7 +1039,7 @@ def internal_periodic_callback():
 
             if receiver.data_buffer:
                 current_metadata, image = receiver.data_buffer[-1]
-                image = image.copy()  # make a copy so that other clients could still use it
+                image = image.copy()  # make a copy, so that other clients could still use it
 
                 if threshold_flag:
                     current_mask = image < threshold
