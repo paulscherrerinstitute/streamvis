@@ -630,25 +630,6 @@ colormap_scale_radiobuttongroup.on_click(colormap_scale_radiobuttongroup_callbac
 
 
 # ---- colormap min/max values
-def colormap_display_min_callback(_attr, old, new):
-    global disp_min
-    try:
-        new_value = float(new)
-        if new_value < disp_max:
-            if new_value <= 0:
-                colormap_scale_radiobuttongroup.active = 0
-            disp_min = new_value
-            color_lin_norm.vmin = disp_min
-            color_log_norm.vmin = disp_min
-            lin_colormapper.low = disp_min
-            log_colormapper.low = disp_min
-        else:
-            colormap_display_min.value = old
-
-    except ValueError:
-        colormap_display_min.value = old
-
-
 def colormap_display_max_callback(_attr, old, new):
     global disp_max
     try:
@@ -667,15 +648,33 @@ def colormap_display_max_callback(_attr, old, new):
     except ValueError:
         colormap_display_max.value = old
 
-colormap_display_min = TextInput(title='Min Display Value:', value=str(disp_min), disabled=True, width=250)
-colormap_display_min.on_change('value', colormap_display_min_callback)
-colormap_display_max = TextInput(title='Max Display Value:', value=str(disp_max), disabled=True, width=250)
+def colormap_display_min_callback(_attr, old, new):
+    global disp_min
+    try:
+        new_value = float(new)
+        if new_value < disp_max:
+            if new_value <= 0:
+                colormap_scale_radiobuttongroup.active = 0
+            disp_min = new_value
+            color_lin_norm.vmin = disp_min
+            color_log_norm.vmin = disp_min
+            lin_colormapper.low = disp_min
+            log_colormapper.low = disp_min
+        else:
+            colormap_display_min.value = old
+
+    except ValueError:
+        colormap_display_min.value = old
+
+colormap_display_max = TextInput(title='Maximal Display Value:', value=str(disp_max), disabled=True, width=250)
 colormap_display_max.on_change('value', colormap_display_max_callback)
+colormap_display_min = TextInput(title='Minimal Display Value:', value=str(disp_min), disabled=True, width=250)
+colormap_display_min.on_change('value', colormap_display_min_callback)
 
 
 # assemble
 colormap_panel = column(colormap_select, colormap_scale_radiobuttongroup, colormap_auto_toggle,
-                        colormap_display_min, colormap_display_max)
+                        colormap_display_max, colormap_display_min)
 
 
 # Metadata table
