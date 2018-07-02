@@ -81,7 +81,6 @@ saved_spectra = dict()
 
 # Main plot
 main_image_plot = Plot(
-    title=Title(text="Detector Image"),
     x_range=Range1d(0, image_size_x, bounds=(0, image_size_x)),
     y_range=Range1d(0, image_size_y, bounds=(0, image_size_y)),
     plot_height=MAIN_CANVAS_HEIGHT,
@@ -421,7 +420,7 @@ def threshold_textinput_callback(_attr, old, new):
     except ValueError:
         threshold_textinput.value = old
 
-threshold_textinput = TextInput(title='Intensity threshold:', value=str(threshold))
+threshold_textinput = TextInput(title='Intensity Threshold:', value=str(threshold))
 threshold_textinput.on_change('value', threshold_textinput_callback)
 
 
@@ -503,7 +502,7 @@ save_spectrum_select.on_change('value', save_spectrum_select_callback)
 
 # Total intensity plot
 total_intensity_plot = Plot(
-    title=Title(text="Total Image Intensity"),
+    title=Title(text="Total Intensity"),
     x_range=DataRange1d(),
     y_range=DataRange1d(),
     plot_height=agg_plot_size,
@@ -732,7 +731,7 @@ def colormap_auto_toggle_callback(state):
         colormap_display_min.disabled = False
         colormap_display_max.disabled = False
 
-colormap_auto_toggle = Toggle(label="Auto", active=True, button_type='default')
+colormap_auto_toggle = Toggle(label="Auto Range", active=True, button_type='default')
 colormap_auto_toggle.on_click(colormap_auto_toggle_callback)
 
 
@@ -793,9 +792,9 @@ def colormap_display_max_callback(_attr, old, new):
     except ValueError:
         colormap_display_max.value = old
 
-colormap_display_min = TextInput(title='Min Display Value:', value=str(disp_min), disabled=True)
+colormap_display_min = TextInput(title='Minimal Display Value:', value=str(disp_min), disabled=True)
 colormap_display_min.on_change('value', colormap_display_min_callback)
-colormap_display_max = TextInput(title='Max Display Value:', value=str(disp_max), disabled=True)
+colormap_display_max = TextInput(title='Maximal Display Value:', value=str(disp_max), disabled=True)
 colormap_display_max.on_change('value', colormap_display_max_callback)
 
 
