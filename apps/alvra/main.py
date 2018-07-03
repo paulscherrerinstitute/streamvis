@@ -10,7 +10,7 @@ from bokeh.layouts import column, gridplot, row
 from bokeh.models import BasicTicker, BoxZoomTool, Button, ColorBar, ColumnDataSource, CustomJS, \
     DataRange1d, DataTable, Dropdown, Grid, ImageRGBA, Line, LinearAxis, LinearColorMapper, \
     LogColorMapper, LogTicker, Panel, PanTool, Plot, Quad, RadioButtonGroup, Range1d, Rect, ResetTool, \
-    SaveTool, Select, Slider, Spacer, TableColumn, Tabs, TextInput, Title, Toggle, WheelZoomTool
+    Select, Slider, Spacer, TableColumn, Tabs, TextInput, Title, Toggle, WheelZoomTool
 from bokeh.palettes import Cividis256, Greys256, Plasma256  # pylint: disable=E0611
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LogNorm, Normalize
@@ -90,7 +90,7 @@ main_image_plot = Plot(
 )
 
 # ---- tools
-main_image_plot.add_tools(PanTool(), WheelZoomTool(maintain_focus=False), SaveTool(), ResetTool())
+main_image_plot.add_tools(PanTool(), WheelZoomTool(maintain_focus=False), ResetTool())
 
 # ---- axes
 main_image_plot.add_layout(LinearAxis(), place='above')
@@ -137,7 +137,7 @@ zoom1_image_plot = Plot(
 
 # ---- tools
 # share 'pan' and 'wheel zoom' with the main plot, but 'save' and 'reset' keep separate
-zoom1_image_plot.add_tools(main_image_plot.tools[0], main_image_plot.tools[1], SaveTool(), ResetTool())
+zoom1_image_plot.add_tools(main_image_plot.tools[0], main_image_plot.tools[1], ResetTool())
 
 # ---- axes
 zoom1_image_plot.add_layout(LinearAxis(), place='above')
@@ -189,8 +189,7 @@ zoom1_plot_agg_x = Plot(
 )
 
 # ---- tools
-zoom1_plot_agg_x.add_tools(PanTool(dimensions='height'), WheelZoomTool(dimensions='height'),
-                           SaveTool(), ResetTool())
+zoom1_plot_agg_x.add_tools(PanTool(dimensions='height'), WheelZoomTool(dimensions='height'), ResetTool())
 
 # ---- axes
 zoom1_plot_agg_x.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
@@ -244,7 +243,7 @@ zoom1_hist_plot = Plot(
 )
 
 # ---- tools
-zoom1_hist_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool())
+zoom1_hist_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), ResetTool())
 
 # ---- axes
 zoom1_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
@@ -272,7 +271,7 @@ zoom2_image_plot = Plot(
 
 # ---- tools
 # share 'pan' and 'wheel zoom' with the main plot, but 'save' and 'reset' keep separate
-zoom2_image_plot.add_tools(main_image_plot.tools[0], main_image_plot.tools[1], SaveTool(), ResetTool())
+zoom2_image_plot.add_tools(main_image_plot.tools[0], main_image_plot.tools[1], ResetTool())
 
 # ---- axes
 zoom2_image_plot.add_layout(LinearAxis(), place='above')
@@ -324,7 +323,7 @@ zoom2_plot_agg_x = Plot(
 )
 
 # ---- tools
-zoom2_plot_agg_x.add_tools(zoom1_plot_agg_x.tools[0], zoom1_plot_agg_x.tools[1], SaveTool(), ResetTool())
+zoom2_plot_agg_x.add_tools(zoom1_plot_agg_x.tools[0], zoom1_plot_agg_x.tools[1], ResetTool())
 
 # ---- axes
 zoom2_plot_agg_x.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
@@ -380,7 +379,7 @@ zoom2_hist_plot = Plot(
 # ---- tools
 # share 'pan', 'box zoom', and 'wheel zoom' with the first histogram plot
 zoom2_hist_plot.add_tools(zoom1_hist_plot.tools[0], zoom1_hist_plot.tools[1], zoom1_hist_plot.tools[2],
-                          SaveTool(), ResetTool())
+                          ResetTool())
 
 # ---- axes
 zoom2_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
