@@ -426,9 +426,10 @@ threshold_textinput.on_change('value', threshold_textinput_callback)
 # Aggregation time toggle button
 def aggregate_button_callback(state):
     global aggregate_flag, aggregate_counter
+    aggregate_counter = 1
+    aggregate_time_counter_textinput.value = str(aggregate_counter)
     if state:
         aggregate_flag = True
-        aggregate_counter = 1
         aggregate_button.button_type = 'warning'
     else:
         aggregate_flag = False
@@ -454,6 +455,11 @@ def aggregate_time_textinput_callback(_attr, old, new):
 
 aggregate_time_textinput = TextInput(title='Average Aggregate Time:', value=str(aggregate_time))
 aggregate_time_textinput.on_change('value', aggregate_time_textinput_callback)
+
+
+# Aggregate time counter value textinput
+aggregate_time_counter_textinput = TextInput(title='Aggregate Time Counter:', value=str(aggregate_counter),
+                                             disabled=True)
 
 
 # Saved spectrum lines
@@ -815,8 +821,8 @@ layout_zoom2 = column(zoom2_plot_agg_x,
                       row(Spacer(), zoom2_hist_plot, Spacer()))
 
 layout_thr_agg = row(column(threshold_button, threshold_textinput), Spacer(width=30),
-                     column(aggregate_button, aggregate_time_textinput), Spacer(width=150),
-                     column(save_spectrum_button, save_spectrum_select))
+                     column(aggregate_button, aggregate_time_textinput, aggregate_time_counter_textinput),
+                     Spacer(width=150), column(save_spectrum_button, save_spectrum_select))
 
 layout_utility = column(gridplot([total_intensity_plot, zoom1_intensity_plot, zoom2_intensity_plot],
                                  ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
@@ -1054,6 +1060,8 @@ def internal_periodic_callback():
                     else:
                         image += current_image
                         aggregate_counter += 1
+
+                    aggregate_time_counter_textinput.value = str(aggregate_counter)
 
                 current_image = image
 
