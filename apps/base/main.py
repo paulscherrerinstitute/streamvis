@@ -299,7 +299,7 @@ def intensity_stream_reset_button_callback():
     total_sum_source.data.update(x=[stream_t], y=[total_sum_source.data['y'][-1]])
     zoom1_sum_source.data.update(x=[stream_t], y=[zoom1_sum_source.data['y'][-1]])
 
-intensity_stream_reset_button = Button(label="Reset", button_type='default', width=250)
+intensity_stream_reset_button = Button(label="Reset", button_type='default')
 intensity_stream_reset_button.on_click(intensity_stream_reset_button_callback)
 
 
@@ -333,7 +333,7 @@ def stream_button_callback(state):
         stream_button.button_type = 'default'
 
 
-stream_button = Toggle(label="Connect", button_type='default', width=250)
+stream_button = Toggle(label="Connect", button_type='default')
 stream_button.on_click(stream_button_callback)
 
 # assemble
@@ -358,18 +358,18 @@ doc.add_periodic_callback(hdf5_file_path_update, HDF5_FILE_PATH_UPDATE_PERIOD)
 def hdf5_file_path_callback(_attr, _old, _new):
     hdf5_file_path_update()
 
-hdf5_file_path = TextInput(title="Folder Path:", value=HDF5_FILE_PATH, width=250)
+hdf5_file_path = TextInput(title="Folder Path:", value=HDF5_FILE_PATH)
 hdf5_file_path.on_change('value', hdf5_file_path_callback)
 
 # ---- saved runs dropdown menu
 def saved_runs_dropdown_callback(selection):
     saved_runs_dropdown.label = selection
 
-saved_runs_dropdown = Dropdown(label="Saved Runs", button_type='primary', menu=[], width=250)
+saved_runs_dropdown = Dropdown(label="Saved Runs", button_type='primary', menu=[])
 saved_runs_dropdown.on_click(saved_runs_dropdown_callback)
 
 # ---- dataset path text input
-hdf5_dataset_path = TextInput(title="Dataset Path:", value=HDF5_DATASET_PATH, width=250)
+hdf5_dataset_path = TextInput(title="Dataset Path:", value=HDF5_DATASET_PATH)
 
 # ---- load button
 def mx_image(file, dataset, i):
@@ -388,7 +388,7 @@ def load_file_button_callback():
     current_image, current_metadata = hdf5_file_data(i=hdf5_pulse_slider.value)
     update(current_image, current_metadata)
 
-load_file_button = Button(label="Load", button_type='default', width=250)
+load_file_button = Button(label="Load", button_type='default')
 load_file_button.on_click(load_file_button_callback)
 
 # ---- pulse number slider
@@ -440,7 +440,7 @@ def colormap_select_callback(_attr, _old, new):
         log_colormapper.palette = Cividis256
 
 colormap_select = Select(
-    title="Colormap:", value='plasma', width=260,
+    title="Colormap:", value='plasma',
     options=['gray_r', 'plasma', 'coolwarm', 'cividis']
 )
 colormap_select.on_change('value', colormap_select_callback)
@@ -454,7 +454,7 @@ def colormap_auto_toggle_callback(state):
         colormap_display_min.disabled = False
         colormap_display_max.disabled = False
 
-colormap_auto_toggle = Toggle(label="Auto", active=True, button_type='default', width=250)
+colormap_auto_toggle = Toggle(label="Auto", active=True, button_type='default')
 colormap_auto_toggle.on_click(colormap_auto_toggle_callback)
 
 # ---- colormap scale radiobutton group
@@ -512,9 +512,9 @@ def colormap_display_min_callback(_attr, old, new):
     except ValueError:
         colormap_display_min.value = old
 
-colormap_display_max = TextInput(title='Maximal Display Value:', value=str(disp_max), disabled=True, width=250)
+colormap_display_max = TextInput(title='Maximal Display Value:', value=str(disp_max), disabled=True)
 colormap_display_max.on_change('value', colormap_display_max_callback)
-colormap_display_min = TextInput(title='Minimal Display Value:', value=str(disp_min), disabled=True, width=250)
+colormap_display_min = TextInput(title='Minimal Display Value:', value=str(disp_min), disabled=True)
 colormap_display_min.on_change('value', colormap_display_min_callback)
 
 # assemble
@@ -533,7 +533,7 @@ metadata_table = DataTable(
     selectable=False,
 )
 
-metadata_issues_dropdown = Dropdown(label="Metadata Issues", button_type='default', menu=[], width=250)
+metadata_issues_dropdown = Dropdown(label="Metadata Issues", button_type='default', menu=[])
 
 
 # Final layouts
@@ -549,7 +549,7 @@ layout_utility = column(gridplot([total_intensity_plot, zoom1_intensity_plot],
 
 layout_controls = column(colormap_panel, data_source_tabs)
 
-layout_metadata = column(metadata_table, row(Spacer(width=450), metadata_issues_dropdown))
+layout_metadata = column(metadata_table, row(Spacer(width=400), metadata_issues_dropdown))
 
 final_layout = column(row(layout_main, Spacer(width=30), column(Spacer(height=30), layout_metadata)),
                       row(layout_zoom, Spacer(),
