@@ -7,9 +7,9 @@ from bokeh.events import Reset
 from bokeh.io import curdoc
 from bokeh.layouts import column, row
 from bokeh.models import BasicTicker, Button, ColorBar, ColumnDataSource, CustomJS, \
-    DataTable, Dropdown, ImageRGBA, LinearAxis, LinearColorMapper, \
-    LogColorMapper, LogTicker, Panel, PanTool, Plot, RadioButtonGroup, Range1d, ResetTool, \
-    SaveTool, Select, Slider, Spacer, TableColumn, Tabs, TextInput, Title, Toggle, WheelZoomTool
+    DataTable, Dropdown, ImageRGBA, LinearAxis, LinearColorMapper, LogColorMapper, \
+    LogTicker, Panel, PanTool, Plot, RadioButtonGroup, Range1d, ResetTool, SaveTool, \
+    Select, Slider, Spacer, TableColumn, Tabs, TextInput, Toggle, WheelZoomTool
 from bokeh.palettes import Cividis256, Greys256, Plasma256  # pylint: disable=E0611
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LogNorm, Normalize
@@ -31,8 +31,8 @@ current_metadata = dict(shape=[image_size_y, image_size_x])
 connected = False
 
 # Currently in bokeh it's possible to control only a canvas size, but not a size of the plotting area.
-MAIN_CANVAS_WIDTH = 1500 + 54
-MAIN_CANVAS_HEIGHT = 514 + 94
+MAIN_CANVAS_WIDTH = 2000 + 55
+MAIN_CANVAS_HEIGHT = 2000 + 65
 
 APP_FPS = 1
 
@@ -48,7 +48,6 @@ disp_max = 1000
 
 # Main plot
 main_image_plot = Plot(
-    title=Title(text="Detector Image"),
     x_range=Range1d(0, image_size_x, bounds=(0, image_size_x)),
     y_range=Range1d(0, image_size_y, bounds=(0, image_size_y)),
     plot_height=MAIN_CANVAS_HEIGHT,
@@ -333,9 +332,8 @@ layout_controls = column(colormap_panel, data_source_tabs)
 
 layout_metadata = column(metadata_table, row(Spacer(width=450), metadata_issues_dropdown))
 
-final_layout = column(row(layout_main, Spacer(width=30), column(Spacer(height=30), layout_metadata)),
-                      row(layout_controls)
-                     )
+final_layout = row(layout_main, Spacer(width=30),
+                   column(Spacer(height=30), layout_metadata, layout_controls))
 
 doc.add_root(final_layout)
 
