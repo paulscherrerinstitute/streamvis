@@ -61,6 +61,10 @@ hist_plot_size = 400
 disp_min = 0
 disp_max = 1000
 
+hist_upper = 1000
+hist_lower = 0
+hist_nbins = 100
+
 ZOOM_INIT_WIDTH = 1030
 ZOOM_INIT_HEIGHT = image_size_y
 ZOOM1_INIT_X = (ZOOM_INIT_WIDTH + 6) * 2
@@ -505,6 +509,55 @@ save_spectrum_select = Select(title='Saved Spectra:', options=['None'], value='N
 save_spectrum_select.on_change('value', save_spectrum_select_callback)
 
 
+# Histogram controls
+# ---- histogram upper range
+def hist_upper_callback(_attr, old, new):
+    global hist_upper
+    try:
+        new_value = float(new)
+        if new_value > hist_lower:
+            hist_upper = new_value
+        else:
+            hist_upper_textinput.value = old
+
+    except ValueError:
+        hist_upper_textinput.value = old
+
+# ---- histogram lower range
+def hist_lower_callback(_attr, old, new):
+    global hist_lower
+    try:
+        new_value = float(new)
+        if new_value < hist_upper:
+            hist_lower = new_value
+        else:
+            hist_lower_textinput.value = old
+
+    except ValueError:
+        hist_lower_textinput.value = old
+
+# ---- histogram number of bins
+def hist_nbins_callback(_attr, old, new):
+    global hist_nbins
+    try:
+        new_value = int(new)
+        if new_value > 0:
+            hist_nbins = new_value
+        else:
+            hist_nbins_textinput.value = old
+
+    except ValueError:
+        hist_nbins_textinput.value = old
+
+# ---- histogram text imputs
+hist_upper_textinput = TextInput(title='Upper Range:', value=str(hist_upper))
+hist_upper_textinput.on_change('value', hist_upper_callback)
+hist_lower_textinput = TextInput(title='Lower Range:', value=str(hist_lower))
+hist_lower_textinput.on_change('value', hist_lower_callback)
+hist_nbins_textinput = TextInput(title='Number of Bins:', value=str(hist_nbins))
+hist_nbins_textinput.on_change('value', hist_nbins_callback)
+
+
 # Total intensity plot
 total_intensity_plot = Plot(
     title=Title(text="Total Intensity"),
@@ -820,9 +873,13 @@ layout_zoom2 = column(zoom2_plot_agg_x,
                       row(zoom2_image_plot, zoom2_plot_agg_y),
                       row(Spacer(), zoom2_hist_plot, Spacer()))
 
-layout_thr_agg = row(column(threshold_button, threshold_textinput), Spacer(width=30),
+layout_thr_agg = row(column(threshold_button, threshold_textinput),
+                     Spacer(width=30),
                      column(aggregate_button, aggregate_time_textinput, aggregate_time_counter_textinput),
-                     Spacer(width=150), column(save_spectrum_button, save_spectrum_select))
+                     Spacer(width=150),
+                     column(save_spectrum_button, save_spectrum_select),
+                     Spacer(width=200),
+                     column(hist_upper_textinput, hist_lower_textinput, hist_nbins_textinput))
 
 layout_utility = column(gridplot([total_intensity_plot, zoom1_intensity_plot, zoom2_intensity_plot],
                                  ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
