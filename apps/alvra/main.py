@@ -33,6 +33,7 @@ image_size_y = IMAGE_SIZE_Y
 current_image = np.zeros((1, 1), dtype='float32')
 current_metadata = dict(shape=[image_size_y, image_size_x])
 current_mask = None
+current_aggregate_counter = 0
 
 connected = False
 
@@ -70,15 +71,6 @@ ZOOM_INIT_WIDTH = 1030
 ZOOM_INIT_HEIGHT = image_size_y
 ZOOM1_INIT_X = (ZOOM_INIT_WIDTH + 6) * 2
 ZOOM2_INIT_X = (ZOOM_INIT_WIDTH + 6) * 6
-
-# Initial values (can be changed through the gui)
-threshold_flag = False
-threshold = 0
-
-aggregate_flag = False
-aggregated_image = 0
-aggregate_time = np.Inf
-aggregate_counter = 1
 
 current_spectra = None
 saved_spectra = dict()
@@ -405,68 +397,64 @@ zoom2_hist_plot.add_glyph(hist2_source,
 
 # Intensity threshold toggle button
 def threshold_button_callback(state):
-    global threshold_flag
     if state:
-        threshold_flag = True
+        receiver.threshold_flag = True
         threshold_button.button_type = 'warning'
     else:
-        threshold_flag = False
+        receiver.threshold_flag = False
         threshold_button.button_type = 'default'
 
-threshold_button = Toggle(label="Apply Thresholding", active=threshold_flag,
+threshold_button = Toggle(label="Apply Thresholding", active=receiver.threshold_flag,
                           button_type='default')
 threshold_button.on_click(threshold_button_callback)
 
 
 # Intensity threshold value textinput
 def threshold_textinput_callback(_attr, old, new):
-    global threshold
     try:
-        threshold = float(new)
+        receiver.threshold = float(new)
 
     except ValueError:
         threshold_textinput.value = old
 
-threshold_textinput = TextInput(title='Intensity Threshold:', value=str(threshold))
+threshold_textinput = TextInput(title='Intensity Threshold:', value=str(receiver.threshold))
 threshold_textinput.on_change('value', threshold_textinput_callback)
 
 
 # Aggregation time toggle button
 def aggregate_button_callback(state):
-    global aggregate_flag, aggregate_counter
-    aggregate_counter = 1
-    aggregate_time_counter_textinput.value = str(aggregate_counter)
+    receiver.aggregate_counter = 1  # reset if the button toggled
+    aggregate_time_counter_textinput.value = str(receiver.aggregate_counter)
     if state:
-        aggregate_flag = True
+        receiver.aggregate_flag = True
         aggregate_button.button_type = 'warning'
     else:
-        aggregate_flag = False
+        receiver.aggregate_flag = False
         aggregate_button.button_type = 'default'
 
-aggregate_button = Toggle(label="Average Aggregate", active=aggregate_flag,
+aggregate_button = Toggle(label="Average Aggregate", active=receiver.aggregate_flag,
                           button_type='default')
 aggregate_button.on_click(aggregate_button_callback)
 
 
 # Aggregation time value textinput
 def aggregate_time_textinput_callback(_attr, old, new):
-    global aggregate_time
     try:
         new_value = float(new)
         if new_value >= 1:
-            aggregate_time = new_value
+            receiver.aggregate_time = new_value
         else:
             aggregate_time_textinput.value = old
 
     except ValueError:
         aggregate_time_textinput.value = old
 
-aggregate_time_textinput = TextInput(title='Average Aggregate Time:', value=str(aggregate_time))
+aggregate_time_textinput = TextInput(title='Average Aggregate Time:', value=str(receiver.aggregate_time))
 aggregate_time_textinput.on_change('value', aggregate_time_textinput_callback)
 
 
 # Aggregate time counter value textinput
-aggregate_time_counter_textinput = TextInput(title='Aggregate Time Counter:', value=str(aggregate_counter),
+aggregate_time_counter_textinput = TextInput(title='Aggregate Counter:', value=str(receiver.aggregate_counter),
                                              disabled=True)
 
 
@@ -717,7 +705,7 @@ def load_file_button_callback():
     file_name = os.path.join(hdf5_file_path.value, saved_runs_dropdown.label)
     hdf5_file_data = partial(mx_image, file=file_name, dataset=hdf5_dataset_path.value)
     current_image, current_metadata = hdf5_file_data(i=hdf5_pulse_slider.value)
-    update(current_image, current_metadata, None)
+    update_client(current_image, current_metadata, None, 1)
 
 load_file_button = Button(label="Load", button_type='default')
 load_file_button.on_click(load_file_button_callback)
@@ -726,7 +714,7 @@ load_file_button.on_click(load_file_button_callback)
 def hdf5_pulse_slider_callback(_attr, _old, new):
     global hdf5_file_data, current_image, current_metadata
     current_image, current_metadata = hdf5_file_data(i=new['value'][0])
-    update(current_image, current_metadata, None)
+    update_client(current_image, current_metadata, None, 1)
 
 hdf5_pulse_slider_source = ColumnDataSource(dict(value=[]))
 hdf5_pulse_slider_source.on_change('data', hdf5_pulse_slider_callback)
@@ -909,7 +897,7 @@ doc.add_root(row(Spacer(width=20), final_layout))
 
 
 @gen.coroutine
-def update(image, metadata, mask):
+def update_client(image, metadata, mask, aggregate_counter):
     global stream_t, disp_min, disp_max, image_size_x, image_size_y, current_spectra
     main_image_height = main_image_plot.inner_height
     main_image_width = main_image_plot.inner_width
@@ -1092,7 +1080,7 @@ def update(image, metadata, mask):
 
 
 def internal_periodic_callback():
-    global current_image, current_metadata, current_mask, aggregate_counter
+    global current_image, current_metadata, current_mask, current_aggregate_counter
     if main_image_plot.inner_width is None:
         # wait for the initialization to finish, thus skip this periodic callback
         return
@@ -1106,31 +1094,16 @@ def internal_periodic_callback():
             stream_button.label = 'Receiving'
             stream_button.button_type = 'success'
 
-            if receiver.data_buffer:
-                current_metadata, image = receiver.data_buffer[-1]
-                image = image.copy()  # make a copy, so that other clients could still use it
+            # capture current values
+            current_image = receiver.current_image
+            current_mask = receiver.current_mask
+            current_metadata = receiver.current_metadata
+            current_aggregate_counter = receiver.aggregate_counter
 
-                if threshold_flag:
-                    current_mask = image < threshold
-                    image[current_mask] = 0
-                else:
-                    current_mask = None
-
-                if aggregate_flag:
-                    current_mask = None
-                    if aggregate_counter >= aggregate_time:
-                        aggregate_counter = 1
-
-                    else:
-                        image += current_image
-                        aggregate_counter += 1
-
-                    aggregate_time_counter_textinput.value = str(aggregate_counter)
-
-                current_image = image
+            aggregate_time_counter_textinput.value = str(current_aggregate_counter)
 
     if current_image.shape != (1, 1):
-        doc.add_next_tick_callback(partial(update, image=current_image, metadata=current_metadata,
-                                           mask=current_mask))
+        doc.add_next_tick_callback(partial(update_client, image=current_image, metadata=current_metadata,
+                                           mask=current_mask, aggregate_counter=current_aggregate_counter))
 
 doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)
