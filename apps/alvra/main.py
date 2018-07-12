@@ -43,7 +43,11 @@ MAIN_CANVAS_HEIGHT = 514 + 96
 ZOOM_CANVAS_WIDTH = 1030 + 55
 ZOOM_CANVAS_HEIGHT = 514 + 30
 
-DEBUG_INTENSITY_WIDTH = 1150
+ZOOM_AGG_Y_PLOT_WIDTH = 200
+ZOOM_AGG_X_PLOT_HEIGHT = 370
+ZOOM_HIST_PLOT_HEIGHT = 280
+TOTAL_INT_PLOT_HEIGHT = 200
+TOTAL_INT_PLOT_WIDTH = 1150
 
 APP_FPS = 1
 stream_t = 0
@@ -53,9 +57,6 @@ HDF5_FILE_PATH = '/filepath'
 HDF5_FILE_PATH_UPDATE_PERIOD = 10000  # ms
 HDF5_DATASET_PATH = '/entry/data/data'
 hdf5_file_data = []
-
-agg_plot_size = 200
-hist_plot_size = 400
 
 # Initial values
 disp_min = 0
@@ -186,7 +187,7 @@ zoom1_plot_agg_x = Plot(
     title=Title(text="Zoom Area 1"),
     x_range=zoom1_image_plot.x_range,
     y_range=DataRange1d(),
-    plot_height=hist_plot_size,
+    plot_height=ZOOM_AGG_X_PLOT_HEIGHT,
     plot_width=zoom1_image_plot.plot_width,
     toolbar_location='left',
     logo=None,
@@ -216,7 +217,7 @@ zoom1_plot_agg_y = Plot(
     x_range=DataRange1d(),
     y_range=zoom1_image_plot.y_range,
     plot_height=zoom1_image_plot.plot_height,
-    plot_width=agg_plot_size,
+    plot_width=ZOOM_AGG_Y_PLOT_WIDTH,
     toolbar_location=None,
 )
 
@@ -240,7 +241,7 @@ zoom1_plot_agg_y.add_glyph(zoom1_agg_y_source, Line(x='x', y='y', line_color='st
 zoom1_hist_plot = Plot(
     x_range=DataRange1d(),
     y_range=DataRange1d(),
-    plot_height=agg_plot_size+100,
+    plot_height=ZOOM_HIST_PLOT_HEIGHT,
     plot_width=zoom1_image_plot.plot_width,
     toolbar_location='left',
     logo=None,
@@ -320,7 +321,7 @@ zoom2_plot_agg_x = Plot(
     title=Title(text="Zoom Area 2"),
     x_range=zoom2_image_plot.x_range,
     y_range=DataRange1d(),
-    plot_height=hist_plot_size,
+    plot_height=ZOOM_AGG_X_PLOT_HEIGHT,
     plot_width=zoom2_image_plot.plot_width,
     toolbar_location='left',
     logo=None,
@@ -350,7 +351,7 @@ zoom2_plot_agg_y = Plot(
     x_range=DataRange1d(),
     y_range=zoom2_image_plot.y_range,
     plot_height=zoom2_image_plot.plot_height,
-    plot_width=agg_plot_size,
+    plot_width=ZOOM_AGG_Y_PLOT_WIDTH,
     toolbar_location=None,
 )
 
@@ -374,7 +375,7 @@ zoom2_plot_agg_y.add_glyph(zoom2_agg_y_source, Line(x='x', y='y', line_color='st
 zoom2_hist_plot = Plot(
     x_range=DataRange1d(),
     y_range=DataRange1d(),
-    plot_height=agg_plot_size+100,
+    plot_height=ZOOM_HIST_PLOT_HEIGHT,
     plot_width=zoom2_image_plot.plot_width,
     toolbar_location='left',
     logo=None,
@@ -563,8 +564,8 @@ total_intensity_plot = Plot(
     title=Title(text="Total Intensity"),
     x_range=DataRange1d(),
     y_range=DataRange1d(),
-    plot_height=agg_plot_size,
-    plot_width=DEBUG_INTENSITY_WIDTH,
+    plot_height=TOTAL_INT_PLOT_HEIGHT,
+    plot_width=TOTAL_INT_PLOT_WIDTH,
 )
 
 # ---- tools
@@ -588,8 +589,8 @@ zoom1_intensity_plot = Plot(
     title=Title(text="Zoom Area 1 Total Intensity"),
     x_range=total_intensity_plot.x_range,
     y_range=DataRange1d(),
-    plot_height=agg_plot_size,
-    plot_width=DEBUG_INTENSITY_WIDTH,
+    plot_height=TOTAL_INT_PLOT_HEIGHT,
+    plot_width=TOTAL_INT_PLOT_WIDTH,
 )
 
 # ---- tools
@@ -613,8 +614,8 @@ zoom2_intensity_plot = Plot(
     title=Title(text="Zoom Area 2 Total Intensity"),
     x_range=total_intensity_plot.x_range,
     y_range=DataRange1d(),
-    plot_height=agg_plot_size,
-    plot_width=DEBUG_INTENSITY_WIDTH,
+    plot_height=TOTAL_INT_PLOT_HEIGHT,
+    plot_width=TOTAL_INT_PLOT_WIDTH,
 )
 
 # ---- tools
@@ -875,11 +876,11 @@ layout_zoom2 = column(zoom2_plot_agg_x,
 
 layout_thr_agg = row(column(threshold_button, threshold_textinput),
                      Spacer(width=30),
-                     column(aggregate_button, aggregate_time_textinput, aggregate_time_counter_textinput),
-                     Spacer(width=150),
-                     column(save_spectrum_button, save_spectrum_select),
-                     Spacer(width=200),
-                     column(hist_upper_textinput, hist_lower_textinput, hist_nbins_textinput))
+                     column(aggregate_button, aggregate_time_textinput, aggregate_time_counter_textinput))
+
+layout_spectra = column(save_spectrum_button, save_spectrum_select)
+
+layout_hist_controls = column(hist_upper_textinput, hist_lower_textinput, hist_nbins_textinput)
 
 layout_utility = column(gridplot([total_intensity_plot, zoom1_intensity_plot, zoom2_intensity_plot],
                                  ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
@@ -895,10 +896,12 @@ final_layout = column(layout_main, Spacer(),
                                  row(layout_controls, Spacer(width=50), layout_metadata)
                                 )
                          ),
-                      layout_thr_agg,
+                      row(column(Spacer(height=20), layout_thr_agg), Spacer(width=150),
+                          column(Spacer(height=20), layout_spectra), Spacer(width=200),
+                          layout_hist_controls),
                      )
 
-doc.add_root(final_layout)
+doc.add_root(row(Spacer(width=20), final_layout))
 
 
 @gen.coroutine
