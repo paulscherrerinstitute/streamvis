@@ -932,20 +932,20 @@ def update_client(image, metadata, mask, aggregate_counter):
         zoom2_image_plot.x_range.bounds = (0, image_size_x)
         zoom2_image_plot.y_range.bounds = (0, image_size_y)
 
-    main_start_0 = main_image_plot.y_range.start
-    main_end_0 = main_image_plot.y_range.end
-    main_start_1 = main_image_plot.x_range.start
-    main_end_1 = main_image_plot.x_range.end
+    main_y_start = main_image_plot.y_range.start
+    main_y_end = main_image_plot.y_range.end
+    main_x_start = main_image_plot.x_range.start
+    main_x_end = main_image_plot.x_range.end
 
-    zoom1_start_0 = zoom1_image_plot.y_range.start
-    zoom1_end_0 = zoom1_image_plot.y_range.end
-    zoom1_start_1 = zoom1_image_plot.x_range.start
-    zoom1_end_1 = zoom1_image_plot.x_range.end
+    zoom1_y_start = zoom1_image_plot.y_range.start
+    zoom1_y_end = zoom1_image_plot.y_range.end
+    zoom1_x_start = zoom1_image_plot.x_range.start
+    zoom1_x_end = zoom1_image_plot.x_range.end
 
-    zoom2_start_0 = zoom2_image_plot.y_range.start
-    zoom2_end_0 = zoom2_image_plot.y_range.end
-    zoom2_start_1 = zoom2_image_plot.x_range.start
-    zoom2_end_1 = zoom2_image_plot.x_range.end
+    zoom2_y_start = zoom2_image_plot.y_range.start
+    zoom2_y_end = zoom2_image_plot.y_range.end
+    zoom2_x_start = zoom2_image_plot.x_range.start
+    zoom2_x_end = zoom2_image_plot.x_range.end
 
     if colormap_auto_toggle.active:
         disp_min = int(np.min(image))
@@ -959,82 +959,82 @@ def update_client(image, metadata, mask, aggregate_counter):
 
     main_image = np.asarray(
         pil_im.resize(size=(main_image_width, main_image_height),
-                      box=(main_start_1, main_start_0, main_end_1, main_end_0),
+                      box=(main_x_start, main_y_start, main_x_end, main_y_end),
                       resample=PIL_Image.NEAREST))
 
     zoom1_image = np.asarray(
         pil_im.resize(size=(zoom1_image_width, zoom1_image_height),
-                      box=(zoom1_start_1, zoom1_start_0, zoom1_end_1, zoom1_end_0),
+                      box=(zoom1_x_start, zoom1_y_start, zoom1_x_end, zoom1_y_end),
                       resample=PIL_Image.NEAREST))
 
     zoom2_image = np.asarray(
         pil_im.resize(size=(zoom2_image_width, zoom2_image_height),
-                      box=(zoom2_start_1, zoom2_start_0, zoom2_end_1, zoom2_end_0),
+                      box=(zoom2_x_start, zoom2_y_start, zoom2_x_end, zoom2_y_end),
                       resample=PIL_Image.NEAREST))
 
     main_image_source.data.update(
         image=[image_color_mapper.to_rgba(main_image, bytes=True)],
-        x=[main_start_1], y=[main_start_0],
-        dw=[main_end_1 - main_start_1], dh=[main_end_0 - main_start_0])
+        x=[main_x_start], y=[main_y_start],
+        dw=[main_x_end - main_x_start], dh=[main_y_end - main_y_start])
 
     zoom1_image_source.data.update(
         image=[image_color_mapper.to_rgba(zoom1_image, bytes=True)],
-        x=[zoom1_start_1], y=[zoom1_start_0],
-        dw=[zoom1_end_1 - zoom1_start_1], dh=[zoom1_end_0 - zoom1_start_0])
+        x=[zoom1_x_start], y=[zoom1_y_start],
+        dw=[zoom1_x_end - zoom1_x_start], dh=[zoom1_y_end - zoom1_y_start])
 
     zoom2_image_source.data.update(
         image=[image_color_mapper.to_rgba(zoom2_image, bytes=True)],
-        x=[zoom2_start_1], y=[zoom2_start_0],
-        dw=[zoom2_end_1 - zoom2_start_1], dh=[zoom2_end_0 - zoom2_start_0])
+        x=[zoom2_x_start], y=[zoom2_y_start],
+        dw=[zoom2_x_end - zoom2_x_start], dh=[zoom2_y_end - zoom2_y_start])
 
     # Statistics
-    start_0 = int(np.floor(zoom1_start_0))
-    end_0 = int(np.ceil(zoom1_end_0))
-    start_1 = int(np.floor(zoom1_start_1))
-    end_1 = int(np.ceil(zoom1_end_1))
+    y_start = int(np.floor(zoom1_y_start))
+    y_end = int(np.ceil(zoom1_y_end))
+    x_start = int(np.floor(zoom1_x_start))
+    x_end = int(np.ceil(zoom1_x_end))
 
-    im_block = image[start_0:end_0, start_1:end_1]
+    im_block = image[y_start:y_end, x_start:x_end]
 
-    agg1_1 = np.sum(im_block, axis=0)
-    agg0_1 = np.sum(im_block, axis=1)
-    r0_1 = np.arange(start_0, end_0) + 0.5
-    r1_1 = np.arange(start_1, end_1) + 0.5
+    zoom1_agg_y = np.sum(im_block, axis=1)
+    zoom1_agg_x = np.sum(im_block, axis=0)
+    zoom1_r_y = np.arange(y_start, y_end) + 0.5
+    zoom1_r_x = np.arange(x_start, x_end) + 0.5
 
     if mask is None:
         counts, edges = np.histogram(im_block/aggregate_counter, bins='scott')
     else:
-        counts, edges = np.histogram(im_block[~mask[start_0:end_0, start_1:end_1]]/aggregate_counter,
+        counts, edges = np.histogram(im_block[~mask[y_start:y_end, x_start:x_end]]/aggregate_counter,
                                      bins='scott')
 
     total_sum_zoom1 = np.sum(im_block)
 
     hist1_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
-    zoom1_agg_y_source.data.update(x=agg0_1, y=r0_1)
-    zoom1_agg_x_source.data.update(x=r1_1, y=agg1_1)
+    zoom1_agg_y_source.data.update(x=zoom1_agg_y, y=zoom1_r_y)
+    zoom1_agg_x_source.data.update(x=zoom1_r_x, y=zoom1_agg_x)
 
-    start_0 = int(np.floor(zoom2_start_0))
-    end_0 = int(np.ceil(zoom2_end_0))
-    start_1 = int(np.floor(zoom2_start_1))
-    end_1 = int(np.ceil(zoom2_end_1))
+    y_start = int(np.floor(zoom2_y_start))
+    y_end = int(np.ceil(zoom2_y_end))
+    x_start = int(np.floor(zoom2_x_start))
+    x_end = int(np.ceil(zoom2_x_end))
 
-    im_block = image[start_0:end_0, start_1:end_1]
+    im_block = image[y_start:y_end, x_start:x_end]
 
-    agg1_2 = np.sum(im_block, axis=0)
-    agg0_2 = np.sum(im_block, axis=1)
-    r0_2 = np.arange(start_0, end_0) + 0.5
-    r1_2 = np.arange(start_1, end_1) + 0.5
+    zoom2_agg_y = np.sum(im_block, axis=1)
+    zoom2_agg_x = np.sum(im_block, axis=0)
+    zoom2_r_y = np.arange(y_start, y_end) + 0.5
+    zoom2_r_x = np.arange(x_start, x_end) + 0.5
 
     if mask is None:
         counts, edges = np.histogram(im_block/aggregate_counter, bins='scott')
     else:
-        counts, edges = np.histogram(im_block[~mask[start_0:end_0, start_1:end_1]]/aggregate_counter,
+        counts, edges = np.histogram(im_block[~mask[y_start:y_end, x_start:x_end]]/aggregate_counter,
                                      bins='scott')
 
     total_sum_zoom2 = np.sum(im_block)
 
     hist2_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
-    zoom2_agg_y_source.data.update(x=agg0_2, y=r0_2)
-    zoom2_agg_x_source.data.update(x=r1_2, y=agg1_2)
+    zoom2_agg_y_source.data.update(x=zoom2_agg_y, y=zoom2_r_y)
+    zoom2_agg_x_source.data.update(x=zoom2_r_x, y=zoom2_agg_x)
 
     if connected and receiver.state == 'receiving':
         stream_t += 1
@@ -1048,7 +1048,8 @@ def update_client(image, metadata, mask, aggregate_counter):
         metadata=list(map(str, metadata.keys())), value=list(map(str, metadata.values())))
 
     # Save spectrum
-    current_spectra = (agg0_1, r0_1, agg1_1, r1_1, agg0_2, r0_2, agg1_2, r1_2)
+    current_spectra = (zoom1_agg_y, zoom1_r_y, zoom1_agg_x, zoom1_r_x,
+                       zoom2_agg_y, zoom2_r_y, zoom2_agg_x, zoom2_r_x)
 
     # Check metadata for issues
     new_menu = []

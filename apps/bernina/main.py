@@ -750,20 +750,20 @@ def update(image, metadata):
         zoom2_image_plot.x_range.bounds = (0, image_size_x)
         zoom2_image_plot.y_range.bounds = (0, image_size_y)
 
-    main_start_0 = main_image_plot.y_range.start
-    main_end_0 = main_image_plot.y_range.end
-    main_start_1 = main_image_plot.x_range.start
-    main_end_1 = main_image_plot.x_range.end
+    main_y_start = main_image_plot.y_range.start
+    main_y_end = main_image_plot.y_range.end
+    main_x_start = main_image_plot.x_range.start
+    main_x_end = main_image_plot.x_range.end
 
-    zoom1_start_0 = zoom1_image_plot.y_range.start
-    zoom1_end_0 = zoom1_image_plot.y_range.end
-    zoom1_start_1 = zoom1_image_plot.x_range.start
-    zoom1_end_1 = zoom1_image_plot.x_range.end
+    zoom1_y_start = zoom1_image_plot.y_range.start
+    zoom1_y_end = zoom1_image_plot.y_range.end
+    zoom1_x_start = zoom1_image_plot.x_range.start
+    zoom1_x_end = zoom1_image_plot.x_range.end
 
-    zoom2_start_0 = zoom2_image_plot.y_range.start
-    zoom2_end_0 = zoom2_image_plot.y_range.end
-    zoom2_start_1 = zoom2_image_plot.x_range.start
-    zoom2_end_1 = zoom2_image_plot.x_range.end
+    zoom2_y_start = zoom2_image_plot.y_range.start
+    zoom2_y_end = zoom2_image_plot.y_range.end
+    zoom2_x_start = zoom2_image_plot.x_range.start
+    zoom2_x_end = zoom2_image_plot.x_range.end
 
     if colormap_auto_toggle.active:
         disp_min = int(np.min(image))
@@ -779,26 +779,26 @@ def update(image, metadata):
         kwarg = dict(bins=hist_nbins, range=(hist_lower, hist_upper))
 
     # Signal roi and intensity
-    sig_start_0 = int(np.floor(zoom1_start_0))
-    sig_end_0 = int(np.ceil(zoom1_end_0))
-    sig_start_1 = int(np.floor(zoom1_start_1))
-    sig_end_1 = int(np.ceil(zoom1_end_1))
+    sig_y_start = int(np.floor(zoom1_y_start))
+    sig_y_end = int(np.ceil(zoom1_y_end))
+    sig_x_start = int(np.floor(zoom1_x_start))
+    sig_x_end = int(np.ceil(zoom1_x_end))
 
-    im_block = image[sig_start_0:sig_end_0, sig_start_1:sig_end_1]
+    im_block = image[sig_y_start:sig_y_end, sig_x_start:sig_x_end]
     sig_sum = np.sum(im_block, dtype=np.float)
-    sig_area = (sig_end_0 - sig_start_0) * (sig_end_1 - sig_start_1)
+    sig_area = (sig_y_end - sig_y_start) * (sig_x_end - sig_x_start)
     counts, edges = np.histogram(im_block, **kwarg)
     zoom1_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
 
     # Background roi and intensity
-    bkg_start_0 = int(np.floor(zoom2_start_0))
-    bkg_end_0 = int(np.ceil(zoom2_end_0))
-    bkg_start_1 = int(np.floor(zoom2_start_1))
-    bkg_end_1 = int(np.ceil(zoom2_end_1))
+    bkg_y_start = int(np.floor(zoom2_y_start))
+    bkg_y_end = int(np.ceil(zoom2_y_end))
+    bkg_x_start = int(np.floor(zoom2_x_start))
+    bkg_x_end = int(np.ceil(zoom2_x_end))
 
-    im_block = image[bkg_start_0:bkg_end_0, bkg_start_1:bkg_end_1]
+    im_block = image[bkg_y_start:bkg_y_end, bkg_x_start:bkg_x_end]
     bkg_sum = np.sum(im_block, dtype=np.float)
-    bkg_area = (bkg_end_0 - bkg_start_0) * (bkg_end_1 - bkg_start_1)
+    bkg_area = (bkg_y_end - bkg_y_start) * (bkg_x_end - bkg_x_start)
     counts, edges = np.histogram(im_block, **kwarg)
     zoom2_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
 
@@ -813,13 +813,13 @@ def update(image, metadata):
     i0_im_source.data.update(left=edges_i0_im[:-1], right=edges_i0_im[1:], top=counts_i0_im)
 
     # correct the backgroud roi sum by subtracting overlap area sum
-    overlap_start_0 = max(sig_start_0, bkg_start_0)
-    overlap_end_0 = min(sig_end_0, bkg_end_0)
-    overlap_start_1 = max(sig_start_1, bkg_start_1)
-    overlap_end_1 = min(sig_end_1, bkg_end_1)
-    if (overlap_end_0 - overlap_start_0 > 0) and (overlap_end_1 - overlap_start_1 > 0):  # else no overlap
-        bkg_sum -= np.sum(image[overlap_start_0:overlap_end_0, overlap_start_1:overlap_end_1], dtype=np.float)
-        bkg_area -= (overlap_end_0 - overlap_start_0) * (overlap_end_1 - overlap_start_1)
+    overlap_y_start = max(sig_y_start, bkg_y_start)
+    overlap_y_end = min(sig_y_end, bkg_y_end)
+    overlap_x_start = max(sig_x_start, bkg_x_start)
+    overlap_x_end = min(sig_x_end, bkg_x_end)
+    if (overlap_y_end - overlap_y_start > 0) and (overlap_x_end - overlap_x_start > 0):  # else no overlap
+        bkg_sum -= np.sum(image[overlap_y_start:overlap_y_end, overlap_x_start:overlap_x_end], dtype=np.float)
+        bkg_area -= (overlap_y_end - overlap_y_start) * (overlap_x_end - overlap_x_start)
 
     if bkg_area == 0:
         # background area is fully surrounded by signal area
@@ -834,33 +834,33 @@ def update(image, metadata):
 
     main_image = np.asarray(
         pil_im.resize(size=(main_image_width, main_image_height),
-                      box=(main_start_1, main_start_0, main_end_1, main_end_0),
+                      box=(main_x_start, main_y_start, main_x_end, main_y_end),
                       resample=PIL_Image.NEAREST))
 
     zoom1_image = np.asarray(
         pil_im.resize(size=(zoom1_image_width, zoom1_image_height),
-                      box=(zoom1_start_1, zoom1_start_0, zoom1_end_1, zoom1_end_0),
+                      box=(zoom1_x_start, zoom1_y_start, zoom1_x_end, zoom1_y_end),
                       resample=PIL_Image.NEAREST))
 
     zoom2_image = np.asarray(
         pil_im.resize(size=(zoom2_image_width, zoom2_image_height),
-                      box=(zoom2_start_1, zoom2_start_0, zoom2_end_1, zoom2_end_0),
+                      box=(zoom2_x_start, zoom2_y_start, zoom2_x_end, zoom2_y_end),
                       resample=PIL_Image.NEAREST))
 
     main_image_source.data.update(
         image=[image_color_mapper.to_rgba(main_image, bytes=True)],
-        x=[main_start_1], y=[main_start_0],
-        dw=[main_end_1 - main_start_1], dh=[main_end_0 - main_start_0])
+        x=[main_x_start], y=[main_y_start],
+        dw=[main_x_end - main_x_start], dh=[main_y_end - main_y_start])
 
     zoom1_image_source.data.update(
         image=[image_color_mapper.to_rgba(zoom1_image, bytes=True)],
-        x=[zoom1_start_1], y=[zoom1_start_0],
-        dw=[zoom1_end_1 - zoom1_start_1], dh=[zoom1_end_0 - zoom1_start_0])
+        x=[zoom1_x_start], y=[zoom1_y_start],
+        dw=[zoom1_x_end - zoom1_x_start], dh=[zoom1_y_end - zoom1_y_start])
 
     zoom2_image_source.data.update(
         image=[image_color_mapper.to_rgba(zoom2_image, bytes=True)],
-        x=[zoom2_start_1], y=[zoom2_start_0],
-        dw=[zoom2_end_1 - zoom2_start_1], dh=[zoom2_end_0 - zoom2_start_0])
+        x=[zoom2_x_start], y=[zoom2_y_start],
+        dw=[zoom2_x_end - zoom2_x_start], dh=[zoom2_y_end - zoom2_y_start])
 
     stream_t = datetime.now()
     total_sum_source.stream(new_data=dict(x=[stream_t], y=[np.sum(image, dtype=np.float)]),

@@ -595,15 +595,15 @@ def update(image, metadata):
         zoom1_image_plot.x_range.bounds = (0, image_size_x)
         zoom1_image_plot.y_range.bounds = (0, image_size_y)
 
-    main_start_0 = main_image_plot.y_range.start
-    main_end_0 = main_image_plot.y_range.end
-    main_start_1 = main_image_plot.x_range.start
-    main_end_1 = main_image_plot.x_range.end
+    main_y_start = main_image_plot.y_range.start
+    main_y_end = main_image_plot.y_range.end
+    main_x_start = main_image_plot.x_range.start
+    main_x_end = main_image_plot.x_range.end
 
-    zoom1_start_0 = zoom1_image_plot.y_range.start
-    zoom1_end_0 = zoom1_image_plot.y_range.end
-    zoom1_start_1 = zoom1_image_plot.x_range.start
-    zoom1_end_1 = zoom1_image_plot.x_range.end
+    zoom1_y_start = zoom1_image_plot.y_range.start
+    zoom1_y_end = zoom1_image_plot.y_range.end
+    zoom1_x_start = zoom1_image_plot.x_range.start
+    zoom1_x_end = zoom1_image_plot.x_range.end
 
     if colormap_auto_toggle.active:
         disp_min = int(np.min(image))
@@ -617,43 +617,43 @@ def update(image, metadata):
 
     main_image = np.asarray(
         pil_im.resize(size=(main_image_width, main_image_height),
-                      box=(main_start_1, main_start_0, main_end_1, main_end_0),
+                      box=(main_x_start, main_y_start, main_x_end, main_y_end),
                       resample=PIL_Image.NEAREST))
 
     zoom1_image = np.asarray(
         pil_im.resize(size=(zoom1_image_width, zoom1_image_height),
-                      box=(zoom1_start_1, zoom1_start_0, zoom1_end_1, zoom1_end_0),
+                      box=(zoom1_x_start, zoom1_y_start, zoom1_x_end, zoom1_y_end),
                       resample=PIL_Image.NEAREST))
 
     main_image_source.data.update(
         image=[image_color_mapper.to_rgba(main_image, bytes=True)],
-        x=[main_start_1], y=[main_start_0],
-        dw=[main_end_1 - main_start_1], dh=[main_end_0 - main_start_0])
+        x=[main_x_start], y=[main_y_start],
+        dw=[main_x_end - main_x_start], dh=[main_y_end - main_y_start])
 
     zoom1_image_source.data.update(
         image=[image_color_mapper.to_rgba(zoom1_image, bytes=True)],
-        x=[zoom1_start_1], y=[zoom1_start_0],
-        dw=[zoom1_end_1 - zoom1_start_1], dh=[zoom1_end_0 - zoom1_start_0])
+        x=[zoom1_x_start], y=[zoom1_y_start],
+        dw=[zoom1_x_end - zoom1_x_start], dh=[zoom1_y_end - zoom1_y_start])
 
     # Statistics
-    start_0 = int(np.floor(zoom1_start_0))
-    end_0 = int(np.ceil(zoom1_end_0))
-    start_1 = int(np.floor(zoom1_start_1))
-    end_1 = int(np.ceil(zoom1_end_1))
+    y_start = int(np.floor(zoom1_y_start))
+    y_end = int(np.ceil(zoom1_y_end))
+    x_start = int(np.floor(zoom1_x_start))
+    x_end = int(np.ceil(zoom1_x_end))
 
-    im_block = image[start_0:end_0, start_1:end_1]
+    im_block = image[y_start:y_end, x_start:x_end]
 
-    agg1 = np.mean(im_block, axis=0)
-    agg0 = np.mean(im_block, axis=1)
-    r0 = np.arange(start_0, end_0) + 0.5
-    r1 = np.arange(start_1, end_1) + 0.5
+    agg_y = np.mean(im_block, axis=1)
+    agg_x = np.mean(im_block, axis=0)
+    r_y = np.arange(y_start, y_end) + 0.5
+    r_x = np.arange(x_start, x_end) + 0.5
 
     counts, edges = np.histogram(im_block, bins='scott')
     total_sum = np.sum(im_block)
 
     hist1_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
-    zoom1_agg_y_source.data.update(x=agg0, y=r0)
-    zoom1_agg_x_source.data.update(x=r1, y=agg1)
+    zoom1_agg_y_source.data.update(x=agg_y, y=r_y)
+    zoom1_agg_x_source.data.update(x=r_x, y=agg_x)
 
     stream_t = datetime.now()
     zoom1_sum_source.stream(new_data=dict(x=[stream_t], y=[total_sum]), rollover=STREAM_ROLLOVER)

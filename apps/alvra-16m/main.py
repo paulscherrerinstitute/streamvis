@@ -356,10 +356,10 @@ def update(image, metadata):
         main_image_plot.x_range.bounds = (0, image_size_x)
         main_image_plot.y_range.bounds = (0, image_size_y)
 
-    main_start_0 = main_image_plot.y_range.start
-    main_end_0 = main_image_plot.y_range.end
-    main_start_1 = main_image_plot.x_range.start
-    main_end_1 = main_image_plot.x_range.end
+    main_y_start = main_image_plot.y_range.start
+    main_y_end = main_image_plot.y_range.end
+    main_x_start = main_image_plot.x_range.start
+    main_x_end = main_image_plot.x_range.end
 
     if colormap_auto_toggle.active:
         disp_min = int(np.min(image))
@@ -373,13 +373,13 @@ def update(image, metadata):
 
     main_image = np.asarray(
         pil_im.resize(size=(main_image_width, main_image_height),
-                      box=(main_start_1, main_start_0, main_end_1, main_end_0),
+                      box=(main_x_start, main_y_start, main_x_end, main_y_end),
                       resample=PIL_Image.NEAREST))
 
     main_image_source.data.update(
         image=[image_color_mapper.to_rgba(main_image, bytes=True)],
-        x=[main_start_1], y=[main_start_0],
-        dw=[main_end_1 - main_start_1], dh=[main_end_0 - main_start_0])
+        x=[main_x_start], y=[main_y_start],
+        dw=[main_x_end - main_x_start], dh=[main_y_end - main_y_start])
 
     # Unpack metadata
     metadata_table_source.data.update(
