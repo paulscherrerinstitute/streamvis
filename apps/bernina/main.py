@@ -7,8 +7,8 @@ import numpy as np
 from bokeh.events import Reset
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import BasicTicker, Button, ColorBar, ColumnDataSource, CustomJS, DataRange1d, \
-    DataTable, DatetimeAxis, Dropdown, Grid, ImageRGBA, Line, LinearAxis, LinearColorMapper, \
+from bokeh.models import BasicTicker, BasicTickFormatter, Button, ColorBar, ColumnDataSource, CustomJS, \
+    DataRange1d, DataTable, DatetimeAxis, Dropdown, Grid, ImageRGBA, Line, LinearAxis, LinearColorMapper, \
     LogColorMapper, LogTicker, Panel, PanTool, Plot, Quad, RadioButtonGroup, Range1d, Rect, ResetTool, \
     SaveTool, Select, Slider, Spacer, TableColumn, Tabs, TextInput, Title, Toggle, WheelZoomTool
 from bokeh.palettes import Cividis256, Greys256, Plasma256  # pylint: disable=E0611
@@ -71,6 +71,9 @@ ZOOM1_INIT_X = 265
 ZOOM1_INIT_Y = 800
 ZOOM2_INIT_X = 265
 ZOOM2_INIT_Y = 200
+
+# Custom tick formatter for displaying large numbers
+tick_formatter = BasicTickFormatter(precision=1)
 
 
 # Main plot
@@ -254,7 +257,8 @@ total_intensity_plot = Plot(
 total_intensity_plot.add_tools(PanTool(), WheelZoomTool(dimensions='width'), ResetTool())
 
 # ---- axes
-total_intensity_plot.add_layout(LinearAxis(axis_label="Total intensity"), place='left')
+total_intensity_plot.add_layout(LinearAxis(axis_label="Total intensity", formatter=tick_formatter),
+                                place='left')
 total_intensity_plot.add_layout(DatetimeAxis(), place='below')
 
 # ---- grid lines
@@ -279,7 +283,7 @@ zoom1_intensity_plot = Plot(
 zoom1_intensity_plot.add_tools(PanTool(), WheelZoomTool(dimensions='width'), ResetTool())
 
 # ---- axes
-zoom1_intensity_plot.add_layout(LinearAxis(axis_label="Intensity"), place='left')
+zoom1_intensity_plot.add_layout(LinearAxis(axis_label="Intensity", formatter=tick_formatter), place='left')
 zoom1_intensity_plot.add_layout(DatetimeAxis(), place='below')
 
 # ---- grid lines
@@ -353,7 +357,7 @@ zoom1_hist_plot = Plot(
 )
 
 # ---- axes
-zoom1_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
+zoom1_hist_plot.add_layout(LinearAxis(axis_label="Intensity", formatter=tick_formatter), place='below')
 zoom1_hist_plot.add_layout(LinearAxis(axis_label="Counts", major_label_orientation='vertical'), place='right')
 
 # ---- grid lines

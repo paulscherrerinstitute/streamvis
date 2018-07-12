@@ -7,10 +7,11 @@ import numpy as np
 from bokeh.events import Reset
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import BasicTicker, BoxZoomTool, Button, ColorBar, ColumnDataSource, CustomJS, \
-    DataRange1d, DataTable, DatetimeAxis, Dropdown, Grid, ImageRGBA, Line, LinearAxis, LinearColorMapper, \
-    LogColorMapper, LogTicker, Panel, PanTool, Plot, Quad, RadioButtonGroup, Range1d, Rect, ResetTool, \
-    SaveTool, Select, Slider, Spacer, TableColumn, Tabs, TextInput, Title, Toggle, WheelZoomTool
+from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, ColorBar, \
+    ColumnDataSource, CustomJS, DataRange1d, DataTable, DatetimeAxis, Dropdown, Grid, \
+    ImageRGBA, Line, LinearAxis, LinearColorMapper, LogColorMapper, LogTicker, Panel, \
+    PanTool, Plot, Quad, RadioButtonGroup, Range1d, Rect, ResetTool, SaveTool, Select, \
+    Slider, Spacer, TableColumn, Tabs, TextInput, Title, Toggle, WheelZoomTool
 from bokeh.palettes import Cividis256, Greys256, Plasma256  # pylint: disable=E0611
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LogNorm, Normalize
@@ -58,6 +59,9 @@ disp_max = 1000
 ZOOM_INIT_WIDTH = image_size_x
 ZOOM_INIT_HEIGHT = image_size_y
 ZOOM1_INIT_X = 0
+
+# Custom tick formatter for displaying large numbers
+tick_formatter = BasicTickFormatter(precision=1)
 
 
 # Main plot
@@ -256,7 +260,8 @@ total_intensity_plot = Plot(
 total_intensity_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool())
 
 # ---- axes
-total_intensity_plot.add_layout(LinearAxis(axis_label="Total intensity"), place='left')
+total_intensity_plot.add_layout(LinearAxis(axis_label="Total intensity", formatter=tick_formatter),
+                                place='left')
 total_intensity_plot.add_layout(DatetimeAxis(major_label_text_font_size='0pt'), place='below')
 
 # ---- grid lines
@@ -281,7 +286,7 @@ zoom1_intensity_plot = Plot(
 zoom1_intensity_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool())
 
 # ---- axes
-zoom1_intensity_plot.add_layout(LinearAxis(axis_label="Intensity"), place='left')
+zoom1_intensity_plot.add_layout(LinearAxis(axis_label="Intensity", formatter=tick_formatter), place='left')
 zoom1_intensity_plot.add_layout(DatetimeAxis(), place='below')
 
 # ---- grid lines
