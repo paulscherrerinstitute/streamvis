@@ -32,8 +32,7 @@ image_size_y = IMAGE_SIZE_Y
 
 current_image = np.zeros((1, 1), dtype='float32')
 current_metadata = dict(shape=[image_size_y, image_size_x])
-current_mask = None
-current_aggregate_counter = 0
+current_stats = None
 
 connected = False
 
@@ -62,10 +61,6 @@ hdf5_file_data = []
 # Initial values
 disp_min = 0
 disp_max = 1000
-
-hist_upper = 1000
-hist_lower = 0
-hist_nbins = 100
 
 ZOOM_INIT_WIDTH = 1030
 ZOOM_INIT_HEIGHT = image_size_y
@@ -504,11 +499,11 @@ save_spectrum_select.on_change('value', save_spectrum_select_callback)
 # Histogram controls
 # ---- histogram upper range
 def hist_upper_callback(_attr, old, new):
-    global hist_upper
     try:
         new_value = float(new)
-        if new_value > hist_lower:
-            hist_upper = new_value
+        if new_value > receiver.hist_lower:
+            receiver.hist_upper = new_value
+            receiver.force_reset = True
         else:
             hist_upper_textinput.value = old
 
@@ -517,11 +512,11 @@ def hist_upper_callback(_attr, old, new):
 
 # ---- histogram lower range
 def hist_lower_callback(_attr, old, new):
-    global hist_lower
     try:
         new_value = float(new)
-        if new_value < hist_upper:
-            hist_lower = new_value
+        if new_value < receiver.hist_upper:
+            receiver.hist_lower = new_value
+            receiver.force_reset = True
         else:
             hist_lower_textinput.value = old
 
@@ -530,11 +525,11 @@ def hist_lower_callback(_attr, old, new):
 
 # ---- histogram number of bins
 def hist_nbins_callback(_attr, old, new):
-    global hist_nbins
     try:
         new_value = int(new)
         if new_value > 0:
-            hist_nbins = new_value
+            receiver.hist_nbins = new_value
+            receiver.force_reset = True
         else:
             hist_nbins_textinput.value = old
 
@@ -542,11 +537,11 @@ def hist_nbins_callback(_attr, old, new):
         hist_nbins_textinput.value = old
 
 # ---- histogram text imputs
-hist_upper_textinput = TextInput(title='Upper Range:', value=str(hist_upper))
+hist_upper_textinput = TextInput(title='Upper Range:', value=str(receiver.hist_upper))
 hist_upper_textinput.on_change('value', hist_upper_callback)
-hist_lower_textinput = TextInput(title='Lower Range:', value=str(hist_lower))
+hist_lower_textinput = TextInput(title='Lower Range:', value=str(receiver.hist_lower))
 hist_lower_textinput.on_change('value', hist_lower_callback)
-hist_nbins_textinput = TextInput(title='Number of Bins:', value=str(hist_nbins))
+hist_nbins_textinput = TextInput(title='Number of Bins:', value=str(receiver.hist_nbins))
 hist_nbins_textinput.on_change('value', hist_nbins_callback)
 
 
@@ -705,7 +700,7 @@ def load_file_button_callback():
     file_name = os.path.join(hdf5_file_path.value, saved_runs_dropdown.label)
     hdf5_file_data = partial(mx_image, file=file_name, dataset=hdf5_dataset_path.value)
     current_image, current_metadata = hdf5_file_data(i=hdf5_pulse_slider.value)
-    update_client(current_image, current_metadata, None, 1)
+    update_client(current_image, current_metadata, (None, None, None))
 
 load_file_button = Button(label="Load", button_type='default')
 load_file_button.on_click(load_file_button_callback)
@@ -714,7 +709,7 @@ load_file_button.on_click(load_file_button_callback)
 def hdf5_pulse_slider_callback(_attr, _old, new):
     global hdf5_file_data, current_image, current_metadata
     current_image, current_metadata = hdf5_file_data(i=new['value'][0])
-    update_client(current_image, current_metadata, None, 1)
+    update_client(current_image, current_metadata, (None, None, None))
 
 hdf5_pulse_slider_source = ColumnDataSource(dict(value=[]))
 hdf5_pulse_slider_source.on_change('data', hdf5_pulse_slider_callback)
@@ -897,7 +892,7 @@ doc.add_root(row(Spacer(width=20), final_layout))
 
 
 @gen.coroutine
-def update_client(image, metadata, mask, aggregate_counter):
+def update_client(image, metadata, stats):
     global stream_t, disp_min, disp_max, image_size_x, image_size_y, current_spectra
     main_image_height = main_image_plot.inner_height
     main_image_width = main_image_plot.inner_width
@@ -947,6 +942,17 @@ def update_client(image, metadata, mask, aggregate_counter):
     zoom2_x_start = zoom2_image_plot.x_range.start
     zoom2_x_end = zoom2_image_plot.x_range.end
 
+    # update ranges for statistics calculation
+    receiver.zoom1_y_start = zoom1_y_start
+    receiver.zoom1_y_end = zoom1_y_end
+    receiver.zoom1_x_start = zoom1_x_start
+    receiver.zoom1_x_end = zoom1_x_end
+
+    receiver.zoom2_y_start = zoom2_y_start
+    receiver.zoom2_y_end = zoom2_y_end
+    receiver.zoom2_x_start = zoom2_x_start
+    receiver.zoom2_x_end = zoom2_x_end
+
     if colormap_auto_toggle.active:
         disp_min = int(np.min(image))
         if disp_min <= 0:  # switch to linear colormap
@@ -988,6 +994,8 @@ def update_client(image, metadata, mask, aggregate_counter):
         dw=[zoom2_x_end - zoom2_x_start], dh=[zoom2_y_end - zoom2_y_start])
 
     # Statistics
+    zoom1_counts, zoom2_counts, edges = stats
+
     y_start = int(np.floor(zoom1_y_start))
     y_end = int(np.ceil(zoom1_y_end))
     x_start = int(np.floor(zoom1_x_start))
@@ -1000,15 +1008,9 @@ def update_client(image, metadata, mask, aggregate_counter):
     zoom1_r_y = np.arange(y_start, y_end) + 0.5
     zoom1_r_x = np.arange(x_start, x_end) + 0.5
 
-    if mask is None:
-        counts, edges = np.histogram(im_block/aggregate_counter, bins='scott')
-    else:
-        counts, edges = np.histogram(im_block[~mask[y_start:y_end, x_start:x_end]]/aggregate_counter,
-                                     bins='scott')
-
     total_sum_zoom1 = np.sum(im_block)
-
-    hist1_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
+    if edges is not None:
+        hist1_source.data.update(left=edges[:-1], right=edges[1:], top=zoom1_counts)
     zoom1_agg_y_source.data.update(x=zoom1_agg_y, y=zoom1_r_y)
     zoom1_agg_x_source.data.update(x=zoom1_r_x, y=zoom1_agg_x)
 
@@ -1024,15 +1026,9 @@ def update_client(image, metadata, mask, aggregate_counter):
     zoom2_r_y = np.arange(y_start, y_end) + 0.5
     zoom2_r_x = np.arange(x_start, x_end) + 0.5
 
-    if mask is None:
-        counts, edges = np.histogram(im_block/aggregate_counter, bins='scott')
-    else:
-        counts, edges = np.histogram(im_block[~mask[y_start:y_end, x_start:x_end]]/aggregate_counter,
-                                     bins='scott')
-
     total_sum_zoom2 = np.sum(im_block)
-
-    hist2_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
+    if edges is not None:
+        hist2_source.data.update(left=edges[:-1], right=edges[1:], top=zoom2_counts)
     zoom2_agg_y_source.data.update(x=zoom2_agg_y, y=zoom2_r_y)
     zoom2_agg_x_source.data.update(x=zoom2_r_x, y=zoom2_agg_x)
 
@@ -1081,7 +1077,7 @@ def update_client(image, metadata, mask, aggregate_counter):
 
 
 def internal_periodic_callback():
-    global current_image, current_metadata, current_mask, current_aggregate_counter
+    global current_image, current_metadata, current_stats
     if main_image_plot.inner_width is None:
         # wait for the initialization to finish, thus skip this periodic callback
         return
@@ -1097,14 +1093,13 @@ def internal_periodic_callback():
 
             # capture current values
             current_image = receiver.current_image
-            current_mask = receiver.current_mask
+            current_stats = receiver.current_stats
             current_metadata = receiver.current_metadata
-            current_aggregate_counter = receiver.aggregate_counter
 
-            aggregate_time_counter_textinput.value = str(current_aggregate_counter)
+            aggregate_time_counter_textinput.value = str(receiver.aggregate_counter)
 
     if current_image.shape != (1, 1):
         doc.add_next_tick_callback(partial(update_client, image=current_image, metadata=current_metadata,
-                                           mask=current_mask, aggregate_counter=current_aggregate_counter))
+                                           stats=current_stats))
 
 doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)
