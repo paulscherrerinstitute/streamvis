@@ -7,10 +7,11 @@ import numpy as np
 from bokeh.events import Reset
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, ColorBar, ColumnDataSource, \
-    CustomJS, DataRange1d, DataTable, Dropdown, Grid, ImageRGBA, Line, LinearAxis, LinearColorMapper, \
-    LogColorMapper, LogTicker, Panel, PanTool, Plot, Quad, RadioButtonGroup, Range1d, Rect, ResetTool, \
-    Select, Slider, Spacer, TableColumn, Tabs, TextInput, Title, Toggle, WheelZoomTool
+from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, \
+    ColorBar, ColumnDataSource, CustomJS, DataRange1d, DataTable, Dropdown, Grid, \
+    ImageRGBA, Line, LinearAxis, LinearColorMapper, LogColorMapper, LogTicker, \
+    Panel, PanTool, Plot, Quad, RadioButtonGroup, Range1d, Rect, ResetTool, Select, \
+    Slider, Spacer, TableColumn, Tabs, TextInput, Title, Toggle, WheelZoomTool
 from bokeh.palettes import Cividis256, Greys256, Plasma256  # pylint: disable=E0611
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LogNorm, Normalize
@@ -36,7 +37,7 @@ current_stats = None
 
 connected = False
 
-# Currently in bokeh it's possible to control only a canvas size, but not a size of the plotting area.
+# Currently, it's possible to control only a canvas size, but not a size of the plotting area.
 MAIN_CANVAS_WIDTH = 3700 + 55
 MAIN_CANVAS_HEIGHT = 514 + 96
 
@@ -94,8 +95,9 @@ main_image_plot.add_layout(LinearAxis(major_label_orientation='vertical'), place
 # ---- colormap
 lin_colormapper = LinearColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
 log_colormapper = LogColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
-color_bar = ColorBar(color_mapper=lin_colormapper, location=(0, -5), orientation='horizontal', height=20,
-                     width=MAIN_CANVAS_WIDTH // 2, padding=0)
+color_bar = ColorBar(
+    color_mapper=lin_colormapper, location=(0, -5), orientation='horizontal', height=20,
+    width=MAIN_CANVAS_WIDTH // 2, padding=0)
 
 main_image_plot.add_layout(color_bar, place='below')
 
@@ -104,7 +106,8 @@ main_image_source = ColumnDataSource(
     dict(image=[current_image], x=[0], y=[0], dw=[image_size_x], dh=[image_size_y],
          full_dw=[image_size_x], full_dh=[image_size_y]))
 
-main_image_plot.add_glyph(main_image_source, ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh'))
+main_image_plot.add_glyph(
+    main_image_source, ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh'))
 
 # ---- overwrite reset tool behavior
 jscode_reset = """
@@ -146,14 +149,16 @@ zoom1_image_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 zoom1_image_source = ColumnDataSource(
     dict(image=[current_image], x=[0], y=[0], dw=[image_size_x], dh=[image_size_y]))
 
-zoom1_image_plot.add_glyph(zoom1_image_source, ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh'))
+zoom1_image_plot.add_glyph(
+    zoom1_image_source, ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh'))
 
 # ---- add rectangle glyph of zoom area to the main plot
 zoom1_area_source = ColumnDataSource(
     dict(x=[ZOOM1_INIT_X + ZOOM_INIT_WIDTH / 2], y=[ZOOM_INIT_HEIGHT / 2],
          width=[ZOOM_INIT_WIDTH], height=[image_size_y]))
 
-rect = Rect(x='x', y='y', width='width', height='height', line_color='red', line_width=2, fill_alpha=0)
+rect = Rect(
+    x='x', y='y', width='width', height='height', line_color='red', line_width=2, fill_alpha=0)
 main_image_plot.add_glyph(zoom1_area_source, rect)
 
 jscode_move_rect = """
@@ -184,7 +189,8 @@ zoom1_plot_agg_x = Plot(
 )
 
 # ---- tools
-zoom1_plot_agg_x.add_tools(PanTool(dimensions='height'), WheelZoomTool(dimensions='height'), ResetTool())
+zoom1_plot_agg_x.add_tools(
+    PanTool(dimensions='height'), WheelZoomTool(dimensions='height'), ResetTool())
 
 # ---- axes
 zoom1_plot_agg_x.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
@@ -199,7 +205,8 @@ zoom1_agg_x_source = ColumnDataSource(
     dict(x=np.arange(image_size_x) + 0.5,  # shift to a pixel center
          y=np.zeros(image_size_x)))
 
-zoom1_plot_agg_x.add_glyph(zoom1_agg_x_source, Line(x='x', y='y', line_color='steelblue', line_width=2))
+zoom1_plot_agg_x.add_glyph(
+    zoom1_agg_x_source, Line(x='x', y='y', line_color='steelblue', line_width=2))
 
 
 # Aggregate zoom1 plot along y axis
@@ -242,7 +249,8 @@ zoom1_hist_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), ResetTool()
 
 # ---- axes
 zoom1_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
-zoom1_hist_plot.add_layout(LinearAxis(axis_label="Counts", major_label_orientation='vertical'), place='right')
+zoom1_hist_plot.add_layout(
+    LinearAxis(axis_label="Counts", major_label_orientation='vertical'), place='right')
 
 # ---- grid lines
 zoom1_hist_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
@@ -250,8 +258,8 @@ zoom1_hist_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
 # ---- quad (single bin) glyph
 hist1_source = ColumnDataSource(dict(left=[], right=[], top=[]))
-zoom1_hist_plot.add_glyph(hist1_source,
-                          Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
+zoom1_hist_plot.add_glyph(
+    hist1_source, Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
 
 
 # Zoom plot 2
@@ -280,14 +288,16 @@ zoom2_image_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 zoom2_image_source = ColumnDataSource(
     dict(image=[current_image], x=[0], y=[0], dw=[image_size_x], dh=[image_size_y]))
 
-zoom2_image_plot.add_glyph(zoom2_image_source, ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh'))
+zoom2_image_plot.add_glyph(
+    zoom2_image_source, ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh'))
 
 # ---- add rectangle glyph of zoom area to the main plot
 zoom2_area_source = ColumnDataSource(
     dict(x=[ZOOM2_INIT_X + ZOOM_INIT_WIDTH / 2], y=[ZOOM_INIT_HEIGHT / 2],
          width=[ZOOM_INIT_WIDTH], height=[image_size_y]))
 
-rect = Rect(x='x', y='y', width='width', height='height', line_color='green', line_width=2, fill_alpha=0)
+rect = Rect(
+    x='x', y='y', width='width', height='height', line_color='green', line_width=2, fill_alpha=0)
 main_image_plot.add_glyph(zoom2_area_source, rect)
 
 jscode_move_rect = """
@@ -333,7 +343,8 @@ zoom2_agg_x_source = ColumnDataSource(
     dict(x=np.arange(image_size_x) + 0.5,  # shift to a pixel center
          y=np.zeros(image_size_x)))
 
-zoom2_plot_agg_x.add_glyph(zoom2_agg_x_source, Line(x='x', y='y', line_color='steelblue', line_width=2))
+zoom2_plot_agg_x.add_glyph(
+    zoom2_agg_x_source, Line(x='x', y='y', line_color='steelblue', line_width=2))
 
 
 # Aggregate zoom2 plot along y axis
@@ -373,12 +384,13 @@ zoom2_hist_plot = Plot(
 
 # ---- tools
 # share 'pan', 'box zoom', and 'wheel zoom' with the first histogram plot
-zoom2_hist_plot.add_tools(zoom1_hist_plot.tools[0], zoom1_hist_plot.tools[1], zoom1_hist_plot.tools[2],
-                          ResetTool())
+zoom2_hist_plot.add_tools(
+    zoom1_hist_plot.tools[0], zoom1_hist_plot.tools[1], zoom1_hist_plot.tools[2], ResetTool())
 
 # ---- axes
 zoom2_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
-zoom2_hist_plot.add_layout(LinearAxis(axis_label="Counts", major_label_orientation='vertical'), place='right')
+zoom2_hist_plot.add_layout(
+    LinearAxis(axis_label="Counts", major_label_orientation='vertical'), place='right')
 
 # ---- grid lines
 zoom2_hist_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
@@ -386,8 +398,8 @@ zoom2_hist_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
 # ---- quad (single bin) glyph
 hist2_source = ColumnDataSource(dict(left=[], right=[], top=[]))
-zoom2_hist_plot.add_glyph(hist2_source,
-                          Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
+zoom2_hist_plot.add_glyph(
+    hist2_source, Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
 
 
 # Intensity threshold toggle button
@@ -399,8 +411,8 @@ def threshold_button_callback(state):
         receiver.threshold_flag = False
         threshold_button.button_type = 'default'
 
-threshold_button = Toggle(label="Apply Thresholding", active=receiver.threshold_flag,
-                          button_type='default')
+threshold_button = Toggle(
+    label="Apply Thresholding", active=receiver.threshold_flag, button_type='default')
 threshold_button.on_click(threshold_button_callback)
 
 
@@ -427,8 +439,8 @@ def aggregate_button_callback(state):
         receiver.aggregate_flag = False
         aggregate_button.button_type = 'default'
 
-aggregate_button = Toggle(label="Average Aggregate", active=receiver.aggregate_flag,
-                          button_type='default')
+aggregate_button = Toggle(
+    label="Average Aggregate", active=receiver.aggregate_flag, button_type='default')
 aggregate_button.on_click(aggregate_button_callback)
 
 
@@ -444,13 +456,14 @@ def aggregate_time_textinput_callback(_attr, old, new):
     except ValueError:
         aggregate_time_textinput.value = old
 
-aggregate_time_textinput = TextInput(title='Average Aggregate Time:', value=str(receiver.aggregate_time))
+aggregate_time_textinput = TextInput(
+    title='Average Aggregate Time:', value=str(receiver.aggregate_time))
 aggregate_time_textinput.on_change('value', aggregate_time_textinput_callback)
 
 
 # Aggregate time counter value textinput
-aggregate_time_counter_textinput = TextInput(title='Aggregate Counter:', value=str(receiver.aggregate_counter),
-                                             disabled=True)
+aggregate_time_counter_textinput = TextInput(
+    title='Aggregate Counter:', value=str(receiver.aggregate_counter), disabled=True)
 
 
 # Saved spectrum lines
@@ -555,11 +568,12 @@ total_intensity_plot = Plot(
 )
 
 # ---- tools
-total_intensity_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool())
+total_intensity_plot.add_tools(
+    PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool())
 
 # ---- axes
-total_intensity_plot.add_layout(LinearAxis(axis_label="Total intensity", formatter=tick_formatter),
-                                place='left')
+total_intensity_plot.add_layout(
+    LinearAxis(axis_label="Total intensity", formatter=tick_formatter), place='left')
 total_intensity_plot.add_layout(LinearAxis(), place='below')
 
 # ---- grid lines
@@ -581,10 +595,12 @@ zoom1_intensity_plot = Plot(
 )
 
 # ---- tools
-zoom1_intensity_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool())
+zoom1_intensity_plot.add_tools(
+    PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool())
 
 # ---- axes
-zoom1_intensity_plot.add_layout(LinearAxis(axis_label="Intensity", formatter=tick_formatter), place='left')
+zoom1_intensity_plot.add_layout(
+    LinearAxis(axis_label="Intensity", formatter=tick_formatter), place='left')
 zoom1_intensity_plot.add_layout(LinearAxis(), place='below')
 
 # ---- grid lines
@@ -606,10 +622,12 @@ zoom2_intensity_plot = Plot(
 )
 
 # ---- tools
-zoom2_intensity_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool())
+zoom2_intensity_plot.add_tools(
+    PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool())
 
 # ---- axes
-zoom2_intensity_plot.add_layout(LinearAxis(axis_label="Intensity", formatter=tick_formatter), place='left')
+zoom2_intensity_plot.add_layout(
+    LinearAxis(axis_label="Intensity", formatter=tick_formatter), place='left')
 zoom2_intensity_plot.add_layout(LinearAxis(), place='below')
 
 # ---- grid lines
@@ -663,7 +681,6 @@ def hdf5_file_path_update():
             for entry in it:
                 if entry.is_file() and entry.name.endswith(('.hdf5', '.h5')):
                     new_menu.append((entry.name, entry.name))
-
     saved_runs_dropdown.menu = sorted(new_menu)
 
 doc.add_periodic_callback(hdf5_file_path_update, HDF5_FILE_PATH_UPDATE_PERIOD)
@@ -693,7 +710,7 @@ def mx_image(file, dataset, i):
     with h5py.File(file, 'r') as f:
         image = f[dataset][i, :, :].astype('float32')
         metadata = dict(shape=list(image.shape))
-        return image, metadata
+    return image, metadata
 
 def load_file_button_callback():
     global hdf5_file_data, current_image, current_metadata
@@ -714,8 +731,8 @@ def hdf5_pulse_slider_callback(_attr, _old, new):
 hdf5_pulse_slider_source = ColumnDataSource(dict(value=[]))
 hdf5_pulse_slider_source.on_change('data', hdf5_pulse_slider_callback)
 
-hdf5_pulse_slider = Slider(start=0, end=99, value=0, step=1, title="Pulse Number",
-                           callback_policy='mouseup')
+hdf5_pulse_slider = Slider(
+    start=0, end=99, value=0, step=1, title="Pulse Number", callback_policy='mouseup')
 
 hdf5_pulse_slider.callback = CustomJS(
     args=dict(source=hdf5_pulse_slider_source),
@@ -723,7 +740,9 @@ hdf5_pulse_slider.callback = CustomJS(
 
 # assemble
 tab_hdf5file = Panel(
-    child=column(hdf5_file_path, saved_runs_dropdown, hdf5_dataset_path, load_file_button, hdf5_pulse_slider),
+    child=column(
+        hdf5_file_path, saved_runs_dropdown, hdf5_dataset_path, load_file_button,
+        hdf5_pulse_slider),
     title="HDF5 File")
 
 data_source_tabs = Tabs(tabs=[tab_stream, tab_hdf5file])
@@ -832,15 +851,17 @@ colormap_display_min = TextInput(title='Minimal Display Value:', value=str(disp_
 colormap_display_min.on_change('value', colormap_display_min_callback)
 
 # assemble
-colormap_panel = column(colormap_select, Spacer(height=10), colormap_scale_radiobuttongroup,
-                        Spacer(height=10), colormap_auto_toggle, colormap_display_max, colormap_display_min)
+colormap_panel = column(
+    colormap_select, Spacer(height=10), colormap_scale_radiobuttongroup, Spacer(height=10),
+    colormap_auto_toggle, colormap_display_max, colormap_display_min)
 
 
 # Metadata table
 metadata_table_source = ColumnDataSource(dict(metadata=['', '', ''], value=['', '', '']))
 metadata_table = DataTable(
     source=metadata_table_source,
-    columns=[TableColumn(field='metadata', title="Metadata Name"), TableColumn(field='value', title="Value")],
+    columns=[TableColumn(
+        field='metadata', title="Metadata Name"), TableColumn(field='value', title="Value")],
     width=800,
     height=420,
     index_position=None,
@@ -853,40 +874,43 @@ metadata_issues_dropdown = Dropdown(label="Metadata Issues", button_type='defaul
 # Final layouts
 layout_main = column(main_image_plot)
 
-layout_zoom1 = column(zoom1_plot_agg_x,
-                      row(zoom1_image_plot, zoom1_plot_agg_y),
-                      row(Spacer(), zoom1_hist_plot, Spacer()))
+layout_zoom1 = column(
+    zoom1_plot_agg_x,
+    row(zoom1_image_plot, zoom1_plot_agg_y),
+    row(Spacer(), zoom1_hist_plot, Spacer()))
 
-layout_zoom2 = column(zoom2_plot_agg_x,
-                      row(zoom2_image_plot, zoom2_plot_agg_y),
-                      row(Spacer(), zoom2_hist_plot, Spacer()))
+layout_zoom2 = column(
+    zoom2_plot_agg_x,
+    row(zoom2_image_plot, zoom2_plot_agg_y),
+    row(Spacer(), zoom2_hist_plot, Spacer()))
 
-layout_thr_agg = row(column(threshold_button, threshold_textinput),
-                     Spacer(width=30),
-                     column(aggregate_button, aggregate_time_textinput, aggregate_time_counter_textinput))
+layout_thr_agg = row(
+    column(threshold_button, threshold_textinput),
+    Spacer(width=30),
+    column(aggregate_button, aggregate_time_textinput, aggregate_time_counter_textinput))
 
 layout_spectra = column(save_spectrum_button, save_spectrum_select)
 
 layout_hist_controls = column(hist_upper_textinput, hist_lower_textinput, hist_nbins_textinput)
 
-layout_utility = column(gridplot([total_intensity_plot, zoom1_intensity_plot, zoom2_intensity_plot],
-                                 ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
-                        row(Spacer(width=850), intensity_stream_reset_button))
+layout_utility = column(
+    gridplot([total_intensity_plot, zoom1_intensity_plot, zoom2_intensity_plot],
+             ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
+    row(Spacer(width=850), intensity_stream_reset_button))
 
 layout_controls = column(colormap_panel, data_source_tabs)
 
 layout_metadata = column(metadata_table, row(Spacer(width=500), metadata_issues_dropdown))
 
-final_layout = column(layout_main, Spacer(),
-                      row(layout_zoom1, Spacer(), layout_zoom2, Spacer(),
-                          column(layout_utility, Spacer(height=10),
-                                 row(layout_controls, Spacer(width=50), layout_metadata)
-                                )
-                         ),
-                      row(column(Spacer(height=20), layout_thr_agg), Spacer(width=150),
-                          column(Spacer(height=20), layout_spectra), Spacer(width=200),
-                          layout_hist_controls),
-                     )
+final_layout = column(
+    layout_main,
+    Spacer(),
+    row(layout_zoom1, Spacer(), layout_zoom2, Spacer(),
+        column(layout_utility, Spacer(height=10),
+               row(layout_controls, Spacer(width=50), layout_metadata))),
+    row(column(Spacer(height=20), layout_thr_agg), Spacer(width=150),
+        column(Spacer(height=20), layout_spectra), Spacer(width=200),
+        layout_hist_controls))
 
 doc.add_root(row(Spacer(width=20), final_layout))
 
@@ -964,19 +988,22 @@ def update_client(image, metadata, stats):
     pil_im = PIL_Image.fromarray(image)
 
     main_image = np.asarray(
-        pil_im.resize(size=(main_image_width, main_image_height),
-                      box=(main_x_start, main_y_start, main_x_end, main_y_end),
-                      resample=PIL_Image.NEAREST))
+        pil_im.resize(
+            size=(main_image_width, main_image_height),
+            box=(main_x_start, main_y_start, main_x_end, main_y_end),
+            resample=PIL_Image.NEAREST))
 
     zoom1_image = np.asarray(
-        pil_im.resize(size=(zoom1_image_width, zoom1_image_height),
-                      box=(zoom1_x_start, zoom1_y_start, zoom1_x_end, zoom1_y_end),
-                      resample=PIL_Image.NEAREST))
+        pil_im.resize(
+            size=(zoom1_image_width, zoom1_image_height),
+            box=(zoom1_x_start, zoom1_y_start, zoom1_x_end, zoom1_y_end),
+            resample=PIL_Image.NEAREST))
 
     zoom2_image = np.asarray(
-        pil_im.resize(size=(zoom2_image_width, zoom2_image_height),
-                      box=(zoom2_x_start, zoom2_y_start, zoom2_x_end, zoom2_y_end),
-                      resample=PIL_Image.NEAREST))
+        pil_im.resize(
+            size=(zoom2_image_width, zoom2_image_height),
+            box=(zoom2_x_start, zoom2_y_start, zoom2_x_end, zoom2_y_end),
+            resample=PIL_Image.NEAREST))
 
     main_image_source.data.update(
         image=[image_color_mapper.to_rgba(main_image, bytes=True)],
@@ -1034,10 +1061,13 @@ def update_client(image, metadata, stats):
 
     if connected and receiver.state == 'receiving':
         stream_t += 1
-        total_sum_source.stream(new_data=dict(x=[stream_t], y=[np.sum(image, dtype=np.float)]),
-                                rollover=STREAM_ROLLOVER)
-        zoom1_sum_source.stream(new_data=dict(x=[stream_t], y=[total_sum_zoom1]), rollover=STREAM_ROLLOVER)
-        zoom2_sum_source.stream(new_data=dict(x=[stream_t], y=[total_sum_zoom2]), rollover=STREAM_ROLLOVER)
+        total_sum_source.stream(
+            new_data=dict(x=[stream_t], y=[np.sum(image, dtype=np.float)]),
+            rollover=STREAM_ROLLOVER)
+        zoom1_sum_source.stream(
+            new_data=dict(x=[stream_t], y=[total_sum_zoom1]), rollover=STREAM_ROLLOVER)
+        zoom2_sum_source.stream(
+            new_data=dict(x=[stream_t], y=[total_sum_zoom2]), rollover=STREAM_ROLLOVER)
 
     # Unpack metadata
     metadata_table_source.data.update(
@@ -1099,7 +1129,8 @@ def internal_periodic_callback():
             aggregate_time_counter_textinput.value = str(receiver.aggregate_counter)
 
     if current_image.shape != (1, 1):
-        doc.add_next_tick_callback(partial(update_client, image=current_image, metadata=current_metadata,
-                                           stats=current_stats))
+        doc.add_next_tick_callback(
+            partial(update_client, image=current_image, metadata=current_metadata,
+                    stats=current_stats))
 
 doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)

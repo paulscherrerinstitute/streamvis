@@ -30,7 +30,7 @@ current_metadata = dict(shape=[image_size_y, image_size_x])
 
 connected = False
 
-# Currently in bokeh it's possible to control only a canvas size, but not a size of the plotting area.
+# Currently, it's possible to control only a canvas size, but not a size of the plotting area.
 MAIN_CANVAS_WIDTH = 2000 + 55
 MAIN_CANVAS_HEIGHT = 2000 + 65
 
@@ -66,8 +66,9 @@ main_image_plot.add_layout(LinearAxis(major_label_orientation='vertical'), place
 # ---- colormap
 lin_colormapper = LinearColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
 log_colormapper = LogColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
-color_bar = ColorBar(color_mapper=lin_colormapper, location=(0, -5), orientation='horizontal', height=20,
-                     width=MAIN_CANVAS_WIDTH // 2, padding=0)
+color_bar = ColorBar(
+    color_mapper=lin_colormapper, location=(0, -5), orientation='horizontal', height=20,
+    width=MAIN_CANVAS_WIDTH // 2, padding=0)
 
 main_image_plot.add_layout(color_bar, place='below')
 
@@ -76,7 +77,8 @@ main_image_source = ColumnDataSource(
     dict(image=[current_image], x=[0], y=[0], dw=[image_size_x], dh=[image_size_y],
          full_dw=[image_size_x], full_dh=[image_size_y]))
 
-main_image_plot.add_glyph(main_image_source, ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh'))
+main_image_plot.add_glyph(
+    main_image_source, ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh'))
 
 # ---- overwrite reset tool behavior
 jscode_reset = """
@@ -126,8 +128,7 @@ stream_button = Toggle(label="Connect", button_type='default')
 stream_button.on_click(stream_button_callback)
 
 # assemble
-tab_stream = Panel(child=column(image_buffer_slider, stream_button),
-                   title="Stream")
+tab_stream = Panel(child=column(image_buffer_slider, stream_button), title="Stream")
 
 
 # HDF5 File panel
@@ -138,7 +139,6 @@ def hdf5_file_path_update():
             for entry in it:
                 if entry.is_file() and entry.name.endswith(('.hdf5', '.h5')):
                     new_menu.append((entry.name, entry.name))
-
     saved_runs_dropdown.menu = sorted(new_menu)
 
 doc.add_periodic_callback(hdf5_file_path_update, HDF5_FILE_PATH_UPDATE_PERIOD)
@@ -168,7 +168,7 @@ def mx_image(file, dataset, i):
     with h5py.File(file, 'r') as f:
         image = f[dataset][i, :, :].astype('float32')
         metadata = dict(shape=list(image.shape))
-        return image, metadata
+    return image, metadata
 
 def load_file_button_callback():
     global hdf5_file_data, current_image, current_metadata
@@ -189,8 +189,8 @@ def hdf5_pulse_slider_callback(_attr, _old, new):
 hdf5_pulse_slider_source = ColumnDataSource(dict(value=[]))
 hdf5_pulse_slider_source.on_change('data', hdf5_pulse_slider_callback)
 
-hdf5_pulse_slider = Slider(start=0, end=99, value=0, step=1, title="Pulse Number",
-                           callback_policy='mouseup')
+hdf5_pulse_slider = Slider(
+    start=0, end=99, value=0, step=1, title="Pulse Number", callback_policy='mouseup')
 
 hdf5_pulse_slider.callback = CustomJS(
     args=dict(source=hdf5_pulse_slider_source),
@@ -198,7 +198,9 @@ hdf5_pulse_slider.callback = CustomJS(
 
 # assemble
 tab_hdf5file = Panel(
-    child=column(hdf5_file_path, saved_runs_dropdown, hdf5_dataset_path, load_file_button, hdf5_pulse_slider),
+    child=column(
+        hdf5_file_path, saved_runs_dropdown, hdf5_dataset_path, load_file_button,
+        hdf5_pulse_slider),
     title="HDF5 File")
 
 data_source_tabs = Tabs(tabs=[tab_stream, tab_hdf5file])
@@ -307,15 +309,17 @@ colormap_display_min = TextInput(title='Minimal Display Value:', value=str(disp_
 colormap_display_min.on_change('value', colormap_display_min_callback)
 
 # assemble
-colormap_panel = column(colormap_select, Spacer(height=10), colormap_scale_radiobuttongroup,
-                        Spacer(height=10), colormap_auto_toggle, colormap_display_max, colormap_display_min)
+colormap_panel = column(
+    colormap_select, Spacer(height=10), colormap_scale_radiobuttongroup, Spacer(height=10),
+    colormap_auto_toggle, colormap_display_max, colormap_display_min)
 
 
 # Metadata table
 metadata_table_source = ColumnDataSource(dict(metadata=['', '', ''], value=['', '', '']))
 metadata_table = DataTable(
     source=metadata_table_source,
-    columns=[TableColumn(field='metadata', title="Metadata Name"), TableColumn(field='value', title="Value")],
+    columns=[TableColumn(
+        field='metadata', title="Metadata Name"), TableColumn(field='value', title="Value")],
     width=700,
     height=450,
     index_position=None,
@@ -332,8 +336,10 @@ layout_controls = column(colormap_panel, data_source_tabs)
 
 layout_metadata = column(metadata_table, row(Spacer(width=400), metadata_issues_dropdown))
 
-final_layout = row(layout_main, Spacer(width=30),
-                   column(Spacer(height=30), layout_metadata, layout_controls))
+final_layout = row(
+    layout_main,
+    Spacer(width=30),
+    column(Spacer(height=30), layout_metadata, layout_controls))
 
 doc.add_root(final_layout)
 
@@ -372,9 +378,10 @@ def update(image, metadata):
     pil_im = PIL_Image.fromarray(image)
 
     main_image = np.asarray(
-        pil_im.resize(size=(main_image_width, main_image_height),
-                      box=(main_x_start, main_y_start, main_x_end, main_y_end),
-                      resample=PIL_Image.NEAREST))
+        pil_im.resize(
+            size=(main_image_width, main_image_height),
+            box=(main_x_start, main_y_start, main_x_end, main_y_end),
+            resample=PIL_Image.NEAREST))
 
     main_image_source.data.update(
         image=[image_color_mapper.to_rgba(main_image, bytes=True)],
