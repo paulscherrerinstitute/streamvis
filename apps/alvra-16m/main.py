@@ -19,7 +19,7 @@ from tornado import gen
 import receiver
 
 doc = curdoc()
-doc.title = "JF-Alvra-16M - StreamVis"
+doc.title = receiver.args.page_title
 
 # initial image size to organize placeholders for actual data
 image_size_x = 100

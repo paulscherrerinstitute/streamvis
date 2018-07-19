@@ -21,7 +21,7 @@ from tornado import gen
 import receiver
 
 doc = curdoc()
-doc.title = "JF-Bernina - StreamVis"
+doc.title = receiver.args.page_title
 
 # Expected image sizes for the detector
 IMAGE_SIZE_X = 1030

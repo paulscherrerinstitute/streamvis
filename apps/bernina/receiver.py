@@ -6,6 +6,7 @@ import zmq
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--detector-backend-address', default='tcp://127.0.0.1:9001')
+parser.add_argument('--page-title', default="JF-Bernina - StreamVis")
 args = parser.parse_args()
 
 BUFFER_SIZE = 1
