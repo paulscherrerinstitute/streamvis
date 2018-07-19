@@ -31,8 +31,8 @@ current_metadata = dict(shape=[image_size_y, image_size_x])
 connected = False
 
 # Currently, it's possible to control only a canvas size, but not a size of the plotting area.
-MAIN_CANVAS_WIDTH = 2000 + 55
-MAIN_CANVAS_HEIGHT = 2000 + 65
+MAIN_CANVAS_WIDTH = 2250 + 55
+MAIN_CANVAS_HEIGHT = 1900 + 64
 
 APP_FPS = 1
 
@@ -341,7 +341,7 @@ final_layout = row(
     Spacer(width=30),
     column(Spacer(height=30), layout_metadata, layout_controls))
 
-doc.add_root(final_layout)
+doc.add_root(row(Spacer(width=50), final_layout))
 
 
 @gen.coroutine
@@ -422,7 +422,7 @@ def internal_periodic_callback():
     if main_image_plot.inner_width is None:
         # wait for the initialization to finish, thus skip this periodic callback
         return
-
+    print(main_image_plot.inner_height, main_image_plot.inner_width)
     if connected:
         if receiver.state == 'polling':
             stream_button.label = 'Polling'
