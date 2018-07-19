@@ -563,7 +563,7 @@ layout_zoom = column(
 layout_utility = column(
     gridplot([total_intensity_plot, zoom1_intensity_plot],
              ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
-    intensity_stream_reset_button)
+    row(Spacer(width=700), intensity_stream_reset_button))
 
 layout_controls = column(colormap_panel, data_source_tabs)
 
