@@ -696,7 +696,7 @@ layout_utility = column(
              ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
     row(Spacer(width=400), intensity_stream_reset_button))
 
-layout_controls = row(colormap_panel, data_source_tabs)
+layout_controls = row(Spacer(width=45), colormap_panel, Spacer(width=45), data_source_tabs)
 
 layout_metadata = column(metadata_table, row(Spacer(width=400), metadata_issues_dropdown))
 
