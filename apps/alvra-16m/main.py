@@ -422,7 +422,7 @@ def internal_periodic_callback():
     if main_image_plot.inner_width is None:
         # wait for the initialization to finish, thus skip this periodic callback
         return
-    print(main_image_plot.inner_height, main_image_plot.inner_width)
+
     if connected:
         if receiver.state == 'polling':
             stream_button.label = 'Polling'
