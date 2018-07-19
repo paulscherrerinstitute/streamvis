@@ -43,7 +43,7 @@ MAIN_CANVAS_HEIGHT = image_size_y//2 + 86 + 60
 ZOOM_CANVAS_WIDTH = 388 + 55
 ZOOM_CANVAS_HEIGHT = 388 + 62
 
-HIST_CANVAS_WIDTH = 450
+HIST_CANVAS_WIDTH = 600
 HIST_CANVAS_HEIGHT = 300
 
 DEBUG_INTENSITY_WIDTH = 700
@@ -329,32 +329,6 @@ full_im_hist_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 full_im_source = ColumnDataSource(dict(left=[], right=[], top=[]))
 full_im_hist_plot.add_glyph(
     full_im_source, Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
-
-
-# Histogram i0 image plot
-i0_im_hist_plot = Plot(
-    title=Title(text="I0 image"),
-    x_range=DataRange1d(),
-    y_range=DataRange1d(),
-    plot_height=HIST_CANVAS_HEIGHT,
-    plot_width=HIST_CANVAS_WIDTH,
-    toolbar_location='left',
-    logo=None,
-)
-
-# ---- axes
-i0_im_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
-i0_im_hist_plot.add_layout(
-    LinearAxis(axis_label="Counts", major_label_orientation='vertical'), place='right')
-
-# ---- grid lines
-i0_im_hist_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-i0_im_hist_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-# ---- quad (single bin) glyph
-i0_im_source = ColumnDataSource(dict(left=[], right=[], top=[]))
-i0_im_hist_plot.add_glyph(
-    i0_im_source, Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
 
 
 # Histogram zoom1 plot
@@ -712,7 +686,7 @@ layout_main = column(Spacer(), main_image_plot)
 
 layout_zoom = column(zoom1_image_plot, zoom2_image_plot, Spacer())
 
-hist_layout = row(full_im_hist_plot, i0_im_hist_plot, zoom1_hist_plot, zoom2_hist_plot)
+hist_layout = row(full_im_hist_plot, zoom1_hist_plot, zoom2_hist_plot)
 
 hist_controls = row(
     Spacer(width=20), column(Spacer(height=15), hist_radiobuttongroup),
@@ -825,15 +799,9 @@ def update(image, metadata):
     counts, edges = np.histogram(im_block, **kwarg)
     zoom2_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
 
-    # histograms for full image and i0
-    if image.shape == (2074, 1030):
-        counts_full_im, edges_full_im = np.histogram(image[:1558, :], **kwarg)
-        counts_i0_im, edges_i0_im = np.histogram(image[1558:, :], **kwarg)
-    else:
-        counts_full_im, edges_full_im = counts_i0_im, edges_i0_im = np.histogram([], **kwarg)
-
+    # histogram for full image
+    counts_full_im, edges_full_im = np.histogram(image, **kwarg)
     full_im_source.data.update(left=edges_full_im[:-1], right=edges_full_im[1:], top=counts_full_im)
-    i0_im_source.data.update(left=edges_i0_im[:-1], right=edges_i0_im[1:], top=counts_i0_im)
 
     # correct the backgroud roi sum by subtracting overlap area sum
     overlap_y_start = max(sig_y_start, bkg_y_start)
