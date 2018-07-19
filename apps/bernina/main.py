@@ -25,7 +25,7 @@ doc.title = "JF-Bernina - StreamVis"
 
 # Expected image sizes for the detector
 IMAGE_SIZE_X = 1030
-IMAGE_SIZE_Y = 2074
+IMAGE_SIZE_Y = 1554
 
 # initial image size to organize placeholders for actual data
 image_size_x = IMAGE_SIZE_X
@@ -37,11 +37,11 @@ current_metadata = dict(shape=[image_size_y, image_size_x])
 connected = False
 
 # Currently, it's possible to control only a canvas size, but not a size of the plotting area.
-MAIN_CANVAS_WIDTH = image_size_x//2 + 54
-MAIN_CANVAS_HEIGHT = image_size_y//2 - 150 + 54
+MAIN_CANVAS_WIDTH = image_size_x//2 + 55 + 40
+MAIN_CANVAS_HEIGHT = image_size_y//2 + 86 + 60
 
-ZOOM_CANVAS_WIDTH = 400 + 54
-ZOOM_CANVAS_HEIGHT = 400 + 58
+ZOOM_CANVAS_WIDTH = 388 + 55
+ZOOM_CANVAS_HEIGHT = 388 + 62
 
 HIST_CANVAS_WIDTH = 450
 HIST_CANVAS_HEIGHT = 300
@@ -79,6 +79,7 @@ tick_formatter = BasicTickFormatter(precision=1)
 
 # Main plot
 main_image_plot = Plot(
+    title=Title(text=' '),
     x_range=Range1d(0, image_size_x, bounds=(0, image_size_x)),
     y_range=Range1d(0, image_size_y, bounds=(0, image_size_y)),
     plot_height=MAIN_CANVAS_HEIGHT,
@@ -727,7 +728,7 @@ layout_controls = row(colormap_panel, data_source_tabs)
 layout_metadata = column(metadata_table, row(Spacer(width=460), metadata_issues_dropdown))
 
 final_layout = column(
-    row(layout_main, Spacer(width=30), column(layout_zoom), Spacer(width=30),
+    row(layout_main, Spacer(width=15), column(layout_zoom), Spacer(width=15),
         column(layout_metadata, layout_utility, layout_controls)),
     column(hist_layout, hist_controls))
 
