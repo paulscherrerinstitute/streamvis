@@ -58,6 +58,7 @@ main_image_plot = Plot(
 
 # ---- tools
 main_image_plot.add_tools(PanTool(), WheelZoomTool(maintain_focus=False), SaveTool(), ResetTool())
+main_image_plot.toolbar.active_scroll = main_image_plot.tools[1]
 
 # ---- axes
 main_image_plot.add_layout(LinearAxis(), place='above')
