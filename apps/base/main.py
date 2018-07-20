@@ -677,16 +677,24 @@ def update(image, metadata):
 
     # Check metadata for issues
     new_menu = []
+    if 'module_enabled' in metadata:
+        module_enabled = np.array(metadata['module_enabled'], dtype=bool)
+    else:
+        module_enabled = slice(None, None)
+
     if 'pulse_id_diff' in metadata:
-        if any(metadata['pulse_id_diff']):
+        pulse_id_diff = np.array(metadata['pulse_id_diff'])
+        if np.any(pulse_id_diff[module_enabled]):
             new_menu.append(('Not all pulse_id_diff are 0', '1'))
 
     if 'missing_packets_1' in metadata:
-        if any(metadata['missing_packets_1']):
+        missing_packets_1 = np.array(metadata['missing_packets_1'])
+        if np.any(missing_packets_1[module_enabled]):
             new_menu.append(('There are missing packets 1', '2'))
 
     if 'missing_packets_2' in metadata:
-        if any(metadata['missing_packets_2']):
+        missing_packets_2 = np.array(metadata['missing_packets_2'])
+        if np.any(missing_packets_2[module_enabled]):
             new_menu.append(('There are missing packets 2', '3'))
 
     if 'is_good_frame' in metadata:
