@@ -31,8 +31,8 @@ current_metadata = dict(shape=[image_size_y, image_size_x])
 connected = False
 
 # Currently, it's possible to control only a canvas size, but not a size of the plotting area.
-MAIN_CANVAS_WIDTH = 2250 + 55
-MAIN_CANVAS_HEIGHT = 1900 + 64
+MAIN_CANVAS_WIDTH = 2250 + 30
+MAIN_CANVAS_HEIGHT = 1900 + 94
 
 APP_FPS = 1
 
@@ -52,7 +52,7 @@ main_image_plot = Plot(
     y_range=Range1d(0, image_size_y, bounds=(0, image_size_y)),
     plot_height=MAIN_CANVAS_HEIGHT,
     plot_width=MAIN_CANVAS_WIDTH,
-    toolbar_location='left',
+    toolbar_location='below',
     logo=None,
 )
 
@@ -61,17 +61,17 @@ main_image_plot.add_tools(PanTool(), WheelZoomTool(maintain_focus=False), SaveTo
 main_image_plot.toolbar.active_scroll = main_image_plot.tools[1]
 
 # ---- axes
-main_image_plot.add_layout(LinearAxis(), place='above')
-main_image_plot.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
+main_image_plot.add_layout(LinearAxis(), place='below')
+main_image_plot.add_layout(LinearAxis(major_label_orientation='vertical'), place='left')
 
 # ---- colormap
 lin_colormapper = LinearColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
 log_colormapper = LogColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
 color_bar = ColorBar(
-    color_mapper=lin_colormapper, location=(0, -5), orientation='horizontal', height=20,
+    color_mapper=lin_colormapper, location=(0, 0), orientation='horizontal', height=20,
     width=MAIN_CANVAS_WIDTH // 2, padding=0)
 
-main_image_plot.add_layout(color_bar, place='below')
+main_image_plot.add_layout(color_bar, place='above')
 
 # ---- rgba image glyph
 main_image_source = ColumnDataSource(
