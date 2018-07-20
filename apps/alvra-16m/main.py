@@ -315,6 +315,32 @@ colormap_panel = column(
     colormap_auto_toggle, colormap_display_max, colormap_display_min)
 
 
+# Intensity threshold toggle button
+def threshold_button_callback(state):
+    if state:
+        receiver.threshold_flag = True
+        threshold_button.button_type = 'warning'
+    else:
+        receiver.threshold_flag = False
+        threshold_button.button_type = 'default'
+
+threshold_button = Toggle(
+    label="Apply Thresholding", active=receiver.threshold_flag, button_type='default')
+threshold_button.on_click(threshold_button_callback)
+
+
+# Intensity threshold value textinput
+def threshold_textinput_callback(_attr, old, new):
+    try:
+        receiver.threshold = float(new)
+
+    except ValueError:
+        threshold_textinput.value = old
+
+threshold_textinput = TextInput(title='Intensity Threshold:', value=str(receiver.threshold))
+threshold_textinput.on_change('value', threshold_textinput_callback)
+
+
 # Metadata table
 metadata_table_source = ColumnDataSource(dict(metadata=['', '', ''], value=['', '', '']))
 metadata_table = DataTable(
@@ -333,7 +359,12 @@ metadata_issues_dropdown = Dropdown(label="Metadata Issues", button_type='defaul
 # Final layouts
 layout_main = column(main_image_plot)
 
-layout_controls = column(colormap_panel, data_source_tabs)
+layout_threshold = column(threshold_button, threshold_textinput)
+
+layout_controls = column(
+    colormap_panel, Spacer(height=50),
+    layout_threshold, Spacer(height=50),
+    data_source_tabs)
 
 layout_metadata = column(metadata_table, row(Spacer(width=400), metadata_issues_dropdown))
 
