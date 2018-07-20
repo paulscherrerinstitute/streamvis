@@ -10,7 +10,7 @@ from bokeh.layouts import column, gridplot, row
 from bokeh.models import BasicTicker, BasicTickFormatter, Button, ColorBar, \
     ColumnDataSource, CustomJS, DataRange1d, DataTable, DatetimeAxis, Dropdown, Grid, \
     ImageRGBA, Line, LinearAxis, LinearColorMapper, LogColorMapper, LogTicker, Panel, \
-    PanTool, Plot, Quad, RadioButtonGroup, Range1d, Rect, ResetTool, SaveTool, Select, \
+    PanTool, Plot, Quad, RadioButtonGroup, Range1d, Rect, ResetTool, Select, \
     Slider, Spacer, TableColumn, Tabs, TextInput, Title, Toggle, WheelZoomTool
 from bokeh.palettes import Cividis256, Greys256, Plasma256  # pylint: disable=E0611
 from matplotlib.cm import ScalarMappable
@@ -89,7 +89,7 @@ main_image_plot = Plot(
 )
 
 # ---- tools
-main_image_plot.add_tools(PanTool(), WheelZoomTool(maintain_focus=False), SaveTool(), ResetTool())
+main_image_plot.add_tools(PanTool(), WheelZoomTool(maintain_focus=False), ResetTool())
 main_image_plot.toolbar.active_scroll = main_image_plot.tools[1]
 
 # ---- axes
@@ -141,7 +141,7 @@ zoom1_image_plot = Plot(
 # ---- tools
 # share 'pan' and 'wheel zoom' with the main plot, but 'save' and 'reset' keep separate
 zoom1_image_plot.add_tools(
-    main_image_plot.tools[0], main_image_plot.tools[1], SaveTool(), ResetTool())
+    main_image_plot.tools[0], main_image_plot.tools[1], ResetTool())
 zoom1_image_plot.toolbar.active_scroll = zoom1_image_plot.tools[1]
 
 # ---- axes
@@ -212,7 +212,7 @@ zoom2_image_plot = Plot(
 # ---- tools
 # share 'pan' and 'wheel zoom' with the main plot, but 'save' and 'reset' keep separate
 zoom2_image_plot.add_tools(
-    main_image_plot.tools[0], main_image_plot.tools[1], SaveTool(), ResetTool())
+    main_image_plot.tools[0], main_image_plot.tools[1], ResetTool())
 zoom2_image_plot.toolbar.active_scroll = zoom2_image_plot.tools[1]
 
 # ---- axes
