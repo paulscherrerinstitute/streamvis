@@ -104,8 +104,9 @@ def image_buffer_slider_callback(_attr, _old, new):
 image_buffer_slider_source = ColumnDataSource(dict(value=[]))
 image_buffer_slider_source.on_change('data', image_buffer_slider_callback)
 
-image_buffer_slider = Slider(start=0, end=1, value=0, step=1, title="Buffered Image",
-                             callback_policy='mouseup')
+image_buffer_slider = Slider(
+    start=0, end=1, value=0, step=1, title="Buffered Image", callback_policy='mouseup',
+    disabled=True)
 
 image_buffer_slider.callback = CustomJS(
     args=dict(source=image_buffer_slider_source),
