@@ -447,6 +447,22 @@ hist_upper_textinput.on_change('value', hist_upper_callback)
 hist_nbins_textinput = TextInput(title='Number of Bins:', value=str(hist_nbins), disabled=True)
 hist_nbins_textinput.on_change('value', hist_nbins_callback)
 
+# ---- histogram log10 of counts toggle button
+def log10counts_toggle_callback(state):
+    if state:
+        log10counts_toggle.button_type = 'warning'
+        full_im_hist_plot.yaxis[0].axis_label = 'log⏨(Counts)'
+        zoom1_hist_plot.yaxis[0].axis_label = 'log⏨(Counts)'
+        zoom2_hist_plot.yaxis[0].axis_label = 'log⏨(Counts)'
+    else:
+        log10counts_toggle.button_type = 'default'
+        full_im_hist_plot.yaxis[0].axis_label = 'Counts'
+        zoom1_hist_plot.yaxis[0].axis_label = 'Counts'
+        zoom2_hist_plot.yaxis[0].axis_label = 'Counts'
+
+log10counts_toggle = Toggle(label='log⏨(Counts)', button_type='default')
+log10counts_toggle.on_click(log10counts_toggle_callback)
+
 
 # Intensity stream reset button
 def intensity_stream_reset_button_callback():
@@ -688,8 +704,9 @@ layout_zoom = column(zoom1_image_plot, zoom2_image_plot, Spacer())
 hist_layout = row(full_im_hist_plot, zoom1_hist_plot, zoom2_hist_plot)
 
 hist_controls = row(
-    Spacer(width=20), column(Spacer(height=15), hist_radiobuttongroup),
-    hist_lower_textinput, hist_upper_textinput, hist_nbins_textinput)
+    Spacer(width=20), column(Spacer(height=19), hist_radiobuttongroup),
+    hist_lower_textinput, hist_upper_textinput, hist_nbins_textinput,
+    column(Spacer(height=19), log10counts_toggle))
 
 layout_utility = column(
     gridplot([total_intensity_plot, zoom1_intensity_plot],
@@ -784,6 +801,8 @@ def update(image, metadata):
     sig_sum = np.sum(im_block, dtype=np.float)
     sig_area = (sig_y_end - sig_y_start) * (sig_x_end - sig_x_start)
     counts, edges = np.histogram(im_block, **kwarg)
+    if log10counts_toggle.active:
+        counts = np.log10(counts, where=counts > 0)
     zoom1_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
 
     # Background roi and intensity
@@ -796,10 +815,14 @@ def update(image, metadata):
     bkg_sum = np.sum(im_block, dtype=np.float)
     bkg_area = (bkg_y_end - bkg_y_start) * (bkg_x_end - bkg_x_start)
     counts, edges = np.histogram(im_block, **kwarg)
+    if log10counts_toggle.active:
+        counts = np.log10(counts, where=counts > 0)
     zoom2_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
 
     # histogram for full image
     counts_full_im, edges_full_im = np.histogram(image, **kwarg)
+    if log10counts_toggle.active:
+        counts_full_im = np.log10(counts_full_im, where=counts_full_im > 0)
     full_im_source.data.update(left=edges_full_im[:-1], right=edges_full_im[1:], top=counts_full_im)
 
     # correct the backgroud roi sum by subtracting overlap area sum
