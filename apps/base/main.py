@@ -686,18 +686,33 @@ def update(image, metadata):
 
     if 'pulse_id_diff' in metadata:
         pulse_id_diff = np.array(metadata['pulse_id_diff'])
-        if np.any(pulse_id_diff[module_enabled]):
-            new_menu.append(('Not all pulse_id_diff are 0', '1'))
+        if isinstance(module_enabled, np.ndarray) and \
+            module_enabled.shape != pulse_id_diff.shape:
+            new_menu.append(
+                ("Shapes of 'pulse_id_diff' and 'module_enabled' are not the same", '1'))
+        else:
+            if np.any(pulse_id_diff[module_enabled]):
+                new_menu.append(('Not all pulse_id_diff are 0', '1'))
 
     if 'missing_packets_1' in metadata:
         missing_packets_1 = np.array(metadata['missing_packets_1'])
-        if np.any(missing_packets_1[module_enabled]):
-            new_menu.append(('There are missing packets 1', '2'))
+        if isinstance(module_enabled, np.ndarray) and \
+            module_enabled.shape != missing_packets_1.shape:
+            new_menu.append(
+                ("Shapes of 'missing_packets_1' and 'module_enabled' are not the same", '2'))
+        else:
+            if np.any(missing_packets_1[module_enabled]):
+                new_menu.append(('There are missing_packets_1', '2'))
 
     if 'missing_packets_2' in metadata:
         missing_packets_2 = np.array(metadata['missing_packets_2'])
-        if np.any(missing_packets_2[module_enabled]):
-            new_menu.append(('There are missing packets 2', '3'))
+        if isinstance(module_enabled, np.ndarray) and \
+            module_enabled.shape != missing_packets_2.shape:
+            new_menu.append(
+                ("Shapes of 'missing_packets_2' and 'module_enabled' are not the same", '3'))
+        else:
+            if np.any(missing_packets_2[module_enabled]):
+                new_menu.append(('There are missing_packets_2', '3'))
 
     if 'is_good_frame' in metadata:
         if not metadata['is_good_frame']:
