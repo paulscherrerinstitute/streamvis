@@ -34,6 +34,9 @@ connected = False
 MAIN_CANVAS_WIDTH = 2250 + 30
 MAIN_CANVAS_HEIGHT = 1900 + 94
 
+AGGR_CANVAS_WIDTH = 870 + 30
+AGGR_CANVAS_HEIGHT = 740 + 60
+
 APP_FPS = 1
 
 HDF5_FILE_PATH = '/filepath'
@@ -93,6 +96,38 @@ jscode_reset = """
 
 main_image_plot.js_on_event(Reset, CustomJS(
     args=dict(source=main_image_plot, image_source=main_image_source), code=jscode_reset))
+
+
+# Aggregation plot
+aggr_image_plot = Plot(
+    x_range=Range1d(0, image_size_x, bounds=(0, image_size_x)),
+    y_range=Range1d(0, image_size_y, bounds=(0, image_size_y)),
+    plot_height=AGGR_CANVAS_HEIGHT,
+    plot_width=AGGR_CANVAS_WIDTH,
+    toolbar_location='below',
+    logo=None,
+)
+
+# ---- tools
+aggr_image_plot.add_tools(
+    main_image_plot.tools[0], main_image_plot.tools[1], SaveTool(), ResetTool())
+aggr_image_plot.toolbar.active_scroll = aggr_image_plot.tools[1]
+
+# ---- axes
+aggr_image_plot.add_layout(LinearAxis(), place='below')
+aggr_image_plot.add_layout(LinearAxis(major_label_orientation='vertical'), place='left')
+
+# ---- rgba image glyph
+aggr_image_source = ColumnDataSource(
+    dict(image=[current_image], x=[0], y=[0], dw=[image_size_x], dh=[image_size_y],
+         full_dw=[image_size_x], full_dh=[image_size_y]))
+
+aggr_image_plot.add_glyph(
+    aggr_image_source, ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh'))
+
+# ---- overwrite reset tool behavior
+aggr_image_plot.js_on_event(Reset, CustomJS(
+    args=dict(source=aggr_image_plot, image_source=aggr_image_source), code=jscode_reset))
 
 
 # Stream panel
@@ -362,9 +397,10 @@ layout_main = column(main_image_plot)
 
 layout_threshold = column(threshold_button, threshold_textinput)
 
-layout_controls = column(
-    colormap_panel, Spacer(height=50),
-    layout_threshold, Spacer(height=50),
+layout_controls = row(
+    Spacer(width=45),
+    column(colormap_panel, Spacer(height=50), layout_threshold),
+    Spacer(width=45),
     data_source_tabs)
 
 layout_metadata = column(metadata_table, row(Spacer(width=400), metadata_issues_dropdown))
@@ -372,7 +408,7 @@ layout_metadata = column(metadata_table, row(Spacer(width=400), metadata_issues_
 final_layout = row(
     layout_main,
     Spacer(width=30),
-    column(Spacer(height=30), layout_metadata, layout_controls))
+    column(Spacer(height=30), layout_metadata, layout_controls, aggr_image_plot))
 
 doc.add_root(row(Spacer(width=50), final_layout))
 
@@ -382,11 +418,14 @@ def update(image, metadata):
     global disp_min, disp_max, image_size_x, image_size_y
     main_image_height = main_image_plot.inner_height
     main_image_width = main_image_plot.inner_width
+    aggr_image_height = aggr_image_plot.inner_height
+    aggr_image_width = aggr_image_plot.inner_width
 
     if 'shape' in metadata and metadata['shape'] != [image_size_y, image_size_x]:
         image_size_y = metadata['shape'][0]
         image_size_x = metadata['shape'][1]
         main_image_source.data.update(full_dw=[image_size_x], full_dh=[image_size_y])
+        aggr_image_source.data.update(full_dw=[image_size_x], full_dh=[image_size_y])
 
         main_image_plot.y_range.start = 0
         main_image_plot.x_range.start = 0
@@ -395,10 +434,22 @@ def update(image, metadata):
         main_image_plot.x_range.bounds = (0, image_size_x)
         main_image_plot.y_range.bounds = (0, image_size_y)
 
+        aggr_image_plot.y_range.start = 0
+        aggr_image_plot.x_range.start = 0
+        aggr_image_plot.y_range.end = image_size_y
+        aggr_image_plot.x_range.end = image_size_x
+        aggr_image_plot.x_range.bounds = (0, image_size_x)
+        aggr_image_plot.y_range.bounds = (0, image_size_y)
+
     main_y_start = main_image_plot.y_range.start
     main_y_end = main_image_plot.y_range.end
     main_x_start = main_image_plot.x_range.start
     main_x_end = main_image_plot.x_range.end
+
+    aggr_y_start = aggr_image_plot.y_range.start
+    aggr_y_end = aggr_image_plot.y_range.end
+    aggr_x_start = aggr_image_plot.x_range.start
+    aggr_x_end = aggr_image_plot.x_range.end
 
     if colormap_auto_toggle.active:
         disp_min = int(np.min(image))
@@ -416,10 +467,21 @@ def update(image, metadata):
             box=(main_x_start, main_y_start, main_x_end, main_y_end),
             resample=PIL_Image.NEAREST))
 
+    aggr_image = np.asarray(
+        pil_im.resize(
+            size=(aggr_image_width, aggr_image_height),
+            box=(aggr_x_start, aggr_y_start, aggr_x_end, aggr_y_end),
+            resample=PIL_Image.NEAREST))
+
     main_image_source.data.update(
         image=[image_color_mapper.to_rgba(main_image, bytes=True)],
         x=[main_x_start], y=[main_y_start],
         dw=[main_x_end - main_x_start], dh=[main_y_end - main_y_start])
+
+    aggr_image_source.data.update(
+        image=[image_color_mapper.to_rgba(aggr_image, bytes=True)],
+        x=[aggr_x_start], y=[aggr_y_start],
+        dw=[aggr_x_end - aggr_x_start], dh=[aggr_y_end - aggr_y_start])
 
     # Unpack metadata
     metadata_table_source.data.update(
