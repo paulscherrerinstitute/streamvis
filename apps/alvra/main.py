@@ -1132,6 +1132,7 @@ def update_client(image, metadata, stats):
         metadata_issues_dropdown.button_type = 'default'
 
 
+@gen.coroutine
 def internal_periodic_callback():
     global current_image, current_metadata, current_stats
     if main_image_plot.inner_width is None:
