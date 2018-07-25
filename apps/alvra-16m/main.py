@@ -7,9 +7,9 @@ from bokeh.events import Reset
 from bokeh.io import curdoc
 from bokeh.layouts import column, row
 from bokeh.models import BasicTicker, Button, ColorBar, ColumnDataSource, CustomJS, \
-    DataTable, Dropdown, ImageRGBA, LinearAxis, LinearColorMapper, LogColorMapper, \
-    LogTicker, Panel, PanTool, Plot, RadioButtonGroup, Range1d, ResetTool, SaveTool, \
-    Select, Slider, Spacer, TableColumn, Tabs, TextInput, Toggle, WheelZoomTool
+    DataRange1d, DataTable, Dropdown, Grid, ImageRGBA, Line, LinearAxis, LinearColorMapper, \
+    LogColorMapper, LogTicker, Panel, PanTool, Plot, RadioButtonGroup, Range1d, ResetTool, \
+    SaveTool, Select, Slider, Spacer, TableColumn, Tabs, TextInput, Toggle, WheelZoomTool
 from bokeh.palettes import Cividis256, Greys256, Plasma256  # pylint: disable=E0611
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LogNorm, Normalize
@@ -36,7 +36,9 @@ MAIN_CANVAS_WIDTH = 2250 + 30
 MAIN_CANVAS_HEIGHT = 1900 + 94
 
 AGGR_CANVAS_WIDTH = 870 + 30
-AGGR_CANVAS_HEIGHT = 740 + 60
+AGGR_CANVAS_HEIGHT = 736 + 55
+AGGR_PROJ_X_CANVAS_HEIGHT = 150 + 46
+AGGR_PROJ_Y_CANVAS_WIDTH = 150 + 31
 
 APP_FPS = 1
 
@@ -115,8 +117,8 @@ aggr_image_plot.add_tools(
 aggr_image_plot.toolbar.active_scroll = aggr_image_plot.tools[1]
 
 # ---- axes
-aggr_image_plot.add_layout(LinearAxis(), place='below')
-aggr_image_plot.add_layout(LinearAxis(major_label_orientation='vertical'), place='left')
+aggr_image_plot.add_layout(LinearAxis(), place='above')
+aggr_image_plot.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
 
 # ---- rgba image glyph
 aggr_image_source = ColumnDataSource(
@@ -129,6 +131,58 @@ aggr_image_plot.add_glyph(
 # ---- overwrite reset tool behavior
 aggr_image_plot.js_on_event(Reset, CustomJS(
     args=dict(source=aggr_image_plot, image_source=aggr_image_source), code=jscode_reset))
+
+
+# Projection of aggregate image onto x axis
+aggr_image_proj_x_plot = Plot(
+    x_range=aggr_image_plot.x_range,
+    y_range=DataRange1d(),
+    plot_height=AGGR_PROJ_X_CANVAS_HEIGHT,
+    plot_width=aggr_image_plot.plot_width,
+    toolbar_location=None,
+)
+
+# ---- axes
+aggr_image_proj_x_plot.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
+aggr_image_proj_x_plot.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='below')
+
+# ---- grid lines
+aggr_image_proj_x_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
+aggr_image_proj_x_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
+
+# ---- line glyph
+aggr_image_proj_x_source = ColumnDataSource(
+    dict(x=np.arange(image_size_x) + 0.5,  # shift to a pixel center
+         y=np.zeros(image_size_x)))
+
+aggr_image_proj_x_plot.add_glyph(
+    aggr_image_proj_x_source, Line(x='x', y='y', line_color='steelblue', line_width=2))
+
+
+# Projection of aggregate image onto x axis
+aggr_image_proj_y_plot = Plot(
+    x_range=DataRange1d(),
+    y_range=aggr_image_plot.y_range,
+    plot_height=aggr_image_plot.plot_height,
+    plot_width=AGGR_PROJ_Y_CANVAS_WIDTH,
+    toolbar_location=None,
+)
+
+# ---- axes
+aggr_image_proj_y_plot.add_layout(LinearAxis(), place='above')
+aggr_image_proj_y_plot.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='left')
+
+# ---- grid lines
+aggr_image_proj_y_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
+aggr_image_proj_y_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
+
+# ---- line glyph
+aggr_image_proj_y_source = ColumnDataSource(
+    dict(x=np.zeros(image_size_y),
+         y=np.arange(image_size_y) + 0.5))  # shift to a pixel center
+
+aggr_image_proj_y_plot.add_glyph(
+    aggr_image_proj_y_source, Line(x='x', y='y', line_color='steelblue', line_width=2))
 
 
 # Stream panel
@@ -431,6 +485,8 @@ metadata_issues_dropdown = Dropdown(label="Metadata Issues", button_type='defaul
 # Final layouts
 layout_main = column(main_image_plot)
 
+layout_aggr = column(aggr_image_proj_x_plot, row(aggr_image_plot, aggr_image_proj_y_plot))
+
 layout_threshold_aggr = row(
     column(threshold_button, threshold_textinput),
     Spacer(width=50),
@@ -441,7 +497,7 @@ layout_controls = column(colormap_panel, data_source_tabs)
 layout_metadata = column(metadata_table, row(Spacer(width=400), metadata_issues_dropdown))
 
 layout_side_panel = column(
-    aggr_image_plot,
+    layout_aggr,
     layout_threshold_aggr,
     Spacer(height=40),
     row(layout_controls, Spacer(width=50), layout_metadata))
@@ -513,6 +569,11 @@ def update_client(image, metadata, aggr_image):
             box=(aggr_x_start, aggr_y_start, aggr_x_end, aggr_y_end),
             resample=PIL_Image.NEAREST))
 
+    aggr_image_proj_x = aggr_image.mean(axis=0)
+    aggr_image_proj_y = aggr_image.mean(axis=1)
+    aggr_image_proj_r_y = np.linspace(aggr_y_start, aggr_y_end, aggr_image_height)
+    aggr_image_proj_r_x = np.linspace(aggr_x_start, aggr_x_end, aggr_image_width)
+
     main_image_source.data.update(
         image=[image_color_mapper.to_rgba(main_image, bytes=True)],
         x=[main_x_start], y=[main_y_start],
@@ -522,6 +583,9 @@ def update_client(image, metadata, aggr_image):
         image=[image_color_mapper.to_rgba(aggr_image, bytes=True)],
         x=[aggr_x_start], y=[aggr_y_start],
         dw=[aggr_x_end - aggr_x_start], dh=[aggr_y_end - aggr_y_start])
+
+    aggr_image_proj_y_source.data.update(x=aggr_image_proj_y, y=aggr_image_proj_r_y)
+    aggr_image_proj_x_source.data.update(x=aggr_image_proj_r_x, y=aggr_image_proj_x)
 
     # Unpack metadata
     metadata_table_source.data.update(
