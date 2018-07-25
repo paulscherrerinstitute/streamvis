@@ -27,6 +27,7 @@ image_size_y = 100
 
 current_image = np.zeros((1, 1), dtype='float32')
 current_metadata = dict(shape=[image_size_y, image_size_x])
+current_aggr_image = np.zeros((1, 1), dtype='float32')
 
 connected = False
 
@@ -134,7 +135,7 @@ aggr_image_plot.js_on_event(Reset, CustomJS(
 # ---- image buffer slider
 def image_buffer_slider_callback(_attr, _old, new):
     md, image = receiver.data_buffer[round(new['value'][0])]
-    doc.add_next_tick_callback(partial(update, image=image, metadata=md))
+    doc.add_next_tick_callback(partial(update_client, image=image, metadata=md, aggr_image=image))
 
 image_buffer_slider_source = ColumnDataSource(dict(value=[]))
 image_buffer_slider_source.on_change('data', image_buffer_slider_callback)
@@ -212,7 +213,7 @@ def load_file_button_callback():
     file_name = os.path.join(hdf5_file_path.value, saved_runs_dropdown.label)
     hdf5_file_data = partial(mx_image, file=file_name, dataset=hdf5_dataset_path.value)
     current_image, current_metadata = hdf5_file_data(i=hdf5_pulse_slider.value)
-    update(current_image, current_metadata)
+    update_client(current_image, current_metadata, current_image)
 
 load_file_button = Button(label="Load", button_type='default')
 load_file_button.on_click(load_file_button_callback)
@@ -221,7 +222,7 @@ load_file_button.on_click(load_file_button_callback)
 def hdf5_pulse_slider_callback(_attr, _old, new):
     global hdf5_file_data, current_image, current_metadata
     current_image, current_metadata = hdf5_file_data(i=new['value'][0])
-    update(current_image, current_metadata)
+    update_client(current_image, current_metadata, current_image)
 
 hdf5_pulse_slider_source = ColumnDataSource(dict(value=[]))
 hdf5_pulse_slider_source.on_change('data', hdf5_pulse_slider_callback)
@@ -377,6 +378,41 @@ threshold_textinput = TextInput(title='Intensity Threshold:', value=str(receiver
 threshold_textinput.on_change('value', threshold_textinput_callback)
 
 
+# Aggregation time toggle button
+def aggregate_button_callback(state):
+    if state:
+        receiver.aggregate_flag = True
+        aggregate_button.button_type = 'warning'
+    else:
+        receiver.aggregate_flag = False
+        aggregate_button.button_type = 'default'
+
+aggregate_button = Toggle(
+    label="Apply Aggregation", active=receiver.aggregate_flag, button_type='default')
+aggregate_button.on_click(aggregate_button_callback)
+
+
+# Aggregation time value textinput
+def aggregate_time_textinput_callback(_attr, old, new):
+    try:
+        new_value = float(new)
+        if new_value >= 1:
+            receiver.aggregate_time = new_value
+        else:
+            aggregate_time_textinput.value = old
+
+    except ValueError:
+        aggregate_time_textinput.value = old
+
+aggregate_time_textinput = TextInput(title='Aggregate Time:', value=str(receiver.aggregate_time))
+aggregate_time_textinput.on_change('value', aggregate_time_textinput_callback)
+
+
+# Aggregate time counter value textinput
+aggregate_time_counter_textinput = TextInput(
+    title='Aggregate Counter:', value=str(receiver.aggregate_counter), disabled=True)
+
+
 # Metadata table
 metadata_table_source = ColumnDataSource(dict(metadata=['', '', ''], value=['', '', '']))
 metadata_table = DataTable(
@@ -395,7 +431,10 @@ metadata_issues_dropdown = Dropdown(label="Metadata Issues", button_type='defaul
 # Final layouts
 layout_main = column(main_image_plot)
 
-layout_threshold = column(threshold_button, threshold_textinput)
+layout_threshold_aggr = row(
+    column(threshold_button, threshold_textinput),
+    Spacer(width=50),
+    column(aggregate_button, row(aggregate_time_textinput, aggregate_time_counter_textinput)))
 
 layout_controls = column(colormap_panel, data_source_tabs)
 
@@ -403,7 +442,7 @@ layout_metadata = column(metadata_table, row(Spacer(width=400), metadata_issues_
 
 layout_side_panel = column(
     aggr_image_plot,
-    layout_threshold,
+    layout_threshold_aggr,
     Spacer(height=40),
     row(layout_controls, Spacer(width=50), layout_metadata))
 
@@ -413,7 +452,7 @@ doc.add_root(row(Spacer(width=50), final_layout))
 
 
 @gen.coroutine
-def update(image, metadata):
+def update_client(image, metadata, aggr_image):
     global disp_min, disp_max, image_size_x, image_size_y
     main_image_height = main_image_plot.inner_height
     main_image_width = main_image_plot.inner_width
@@ -466,8 +505,10 @@ def update(image, metadata):
             box=(main_x_start, main_y_start, main_x_end, main_y_end),
             resample=PIL_Image.NEAREST))
 
+    aggr_pil_im = PIL_Image.fromarray(aggr_image)
+
     aggr_image = np.asarray(
-        pil_im.resize(
+        aggr_pil_im.resize(
             size=(aggr_image_width, aggr_image_height),
             box=(aggr_x_start, aggr_y_start, aggr_x_end, aggr_y_end),
             resample=PIL_Image.NEAREST))
@@ -536,7 +577,7 @@ def update(image, metadata):
 
 @gen.coroutine
 def internal_periodic_callback():
-    global current_image, current_metadata
+    global current_image, current_metadata, current_aggr_image
     if main_image_plot.inner_width is None:
         # wait for the initialization to finish, thus skip this periodic callback
         return
@@ -557,8 +598,13 @@ def internal_periodic_callback():
 
             if receiver.data_buffer:
                 current_metadata, current_image = receiver.data_buffer[-1]
+                current_aggr_image = receiver.aggregate_image.copy()
+
+            aggregate_time_counter_textinput.value = str(receiver.aggregate_counter)
 
     if current_image.shape != (1, 1):
-        doc.add_next_tick_callback(partial(update, image=current_image, metadata=current_metadata))
+        doc.add_next_tick_callback(partial(
+            update_client, image=current_image, metadata=current_metadata,
+            aggr_image=current_aggr_image))
 
 doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)

@@ -26,9 +26,15 @@ poller.register(zmq_socket, zmq.POLLIN)
 threshold_flag = False
 threshold = 0
 
+# aggregate data parameters
+aggregate_image = None
+aggregate_flag = False
+aggregate_time = np.Inf
+aggregate_counter = 1
+
 
 def stream_receive():
-    global state
+    global state, aggregate_image, aggregate_counter
     while True:
         events = dict(poller.poll(1000))
         if zmq_socket in events:
@@ -36,8 +42,17 @@ def stream_receive():
             image = zmq_socket.recv(flags=0, copy=True, track=False)
             image = np.frombuffer(image, dtype=metadata['type']).reshape(metadata['shape'])
             image.setflags(write=True)
+
             if threshold_flag:
                 image[image < threshold] = 0
+
+            if aggregate_flag and aggregate_counter < aggregate_time:
+                aggregate_image += image
+                aggregate_counter += 1
+            else:
+                aggregate_image = image
+                aggregate_counter = 1
+
             data_buffer.append((metadata, image))
             state = 'receiving'
 
