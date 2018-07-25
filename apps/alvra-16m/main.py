@@ -397,18 +397,17 @@ layout_main = column(main_image_plot)
 
 layout_threshold = column(threshold_button, threshold_textinput)
 
-layout_controls = row(
-    Spacer(width=45),
-    column(colormap_panel, Spacer(height=50), layout_threshold),
-    Spacer(width=45),
-    data_source_tabs)
+layout_controls = column(colormap_panel, data_source_tabs)
 
 layout_metadata = column(metadata_table, row(Spacer(width=400), metadata_issues_dropdown))
 
-final_layout = row(
-    layout_main,
-    Spacer(width=30),
-    column(Spacer(height=30), layout_metadata, layout_controls, aggr_image_plot))
+layout_side_panel = column(
+    aggr_image_plot,
+    layout_threshold,
+    Spacer(height=40),
+    row(layout_controls, Spacer(width=50), layout_metadata))
+
+final_layout = row(layout_main, Spacer(width=50), layout_side_panel)
 
 doc.add_root(row(Spacer(width=50), final_layout))
 
