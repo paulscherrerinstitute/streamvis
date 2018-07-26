@@ -539,6 +539,67 @@ colormap_panel = column(
     colormap_auto_toggle, colormap_display_max, colormap_display_min)
 
 
+# Intensity threshold toggle button
+def threshold_button_callback(state):
+    if state:
+        receiver.threshold_flag = True
+        threshold_button.button_type = 'warning'
+    else:
+        receiver.threshold_flag = False
+        threshold_button.button_type = 'default'
+
+threshold_button = Toggle(
+    label="Apply Thresholding", active=receiver.threshold_flag, button_type='default')
+threshold_button.on_click(threshold_button_callback)
+
+
+# Intensity threshold value textinput
+def threshold_textinput_callback(_attr, old, new):
+    try:
+        receiver.threshold = float(new)
+
+    except ValueError:
+        threshold_textinput.value = old
+
+threshold_textinput = TextInput(title='Intensity Threshold:', value=str(receiver.threshold))
+threshold_textinput.on_change('value', threshold_textinput_callback)
+
+
+# Aggregation time toggle button
+def aggregate_button_callback(state):
+    if state:
+        receiver.aggregate_flag = True
+        aggregate_button.button_type = 'warning'
+    else:
+        receiver.aggregate_flag = False
+        aggregate_button.button_type = 'default'
+
+aggregate_button = Toggle(
+    label="Apply Aggregation", active=receiver.aggregate_flag, button_type='default')
+aggregate_button.on_click(aggregate_button_callback)
+
+
+# Aggregation time value textinput
+def aggregate_time_textinput_callback(_attr, old, new):
+    try:
+        new_value = float(new)
+        if new_value >= 1:
+            receiver.aggregate_time = new_value
+        else:
+            aggregate_time_textinput.value = old
+
+    except ValueError:
+        aggregate_time_textinput.value = old
+
+aggregate_time_textinput = TextInput(title='Aggregate Time:', value=str(receiver.aggregate_time))
+aggregate_time_textinput.on_change('value', aggregate_time_textinput_callback)
+
+
+# Aggregate time counter value textinput
+aggregate_time_counter_textinput = TextInput(
+    title='Aggregate Counter:', value=str(receiver.aggregate_counter), disabled=True)
+
+
 # Metadata table
 metadata_table_source = ColumnDataSource(dict(metadata=['', '', ''], value=['', '', '']))
 metadata_table = DataTable(
@@ -569,11 +630,17 @@ layout_utility = column(
 
 layout_controls = column(colormap_panel, data_source_tabs)
 
+layout_threshold_aggr = column(
+    threshold_button, threshold_textinput,
+    Spacer(height=30),
+    aggregate_button, aggregate_time_textinput, aggregate_time_counter_textinput)
+
 layout_metadata = column(metadata_table, row(Spacer(width=400), metadata_issues_dropdown))
 
 final_layout = column(
     row(layout_main, Spacer(width=30), column(Spacer(height=30), layout_metadata)),
-    row(layout_zoom, Spacer(), column(layout_utility, Spacer(height=10), row(layout_controls))))
+    row(layout_zoom, Spacer(), column(layout_utility, Spacer(height=10), row(
+        layout_controls, Spacer(width=30), layout_threshold_aggr))))
 
 doc.add_root(final_layout)
 
@@ -747,6 +814,8 @@ def internal_periodic_callback():
                 image_buffer_slider.value = len(receiver.data_buffer) - 1
 
             current_metadata, current_image = receiver.data_buffer[-1]
+
+            aggregate_time_counter_textinput.value = str(receiver.aggregate_counter)
 
     if current_image.shape != (1, 1):
         doc.add_next_tick_callback(partial(update, image=current_image, metadata=current_metadata))
