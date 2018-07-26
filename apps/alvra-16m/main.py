@@ -662,7 +662,7 @@ def internal_periodic_callback():
 
             if receiver.data_buffer:
                 current_metadata, current_image = receiver.data_buffer[-1]
-                current_aggr_image = receiver.aggregate_image.copy()
+                current_aggr_image = receiver.proc_image.copy()
 
             aggregate_time_counter_textinput.value = str(receiver.aggregate_counter)
 
