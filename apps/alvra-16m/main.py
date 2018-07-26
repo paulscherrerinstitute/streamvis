@@ -587,6 +587,10 @@ def update_client(image, metadata, aggr_image):
     aggr_image_proj_y_source.data.update(x=aggr_image_proj_y, y=aggr_image_proj_r_y)
     aggr_image_proj_x_source.data.update(x=aggr_image_proj_r_x, y=aggr_image_proj_x)
 
+    # Number of saturated pixels
+    saturated_pixels = np.count_nonzero(image > 110_000)
+    metadata['saturated_pixels'] = saturated_pixels
+
     # Unpack metadata
     metadata_table_source.data.update(
         metadata=list(map(str, metadata.keys())), value=list(map(str, metadata.values())))
@@ -631,6 +635,10 @@ def update_client(image, metadata, aggr_image):
     if 'is_good_frame' in metadata:
         if not metadata['is_good_frame']:
             new_menu.append(('Frame is not good', '4'))
+
+    if 'saturated_pixels' in metadata:
+        if metadata['saturated_pixels']:
+            new_menu.append(('There are saturated pixels', '5'))
 
     metadata_issues_dropdown.menu = new_menu
     if new_menu:
