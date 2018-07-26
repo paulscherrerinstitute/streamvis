@@ -957,8 +957,7 @@ def internal_periodic_callback():
             stream_button.label = 'Receiving'
             stream_button.button_type = 'success'
 
-            if receiver.data_buffer:
-                current_metadata, current_image = receiver.data_buffer[-1]
+            current_metadata, current_image = receiver.data_buffer[-1]
 
     if current_image.shape != (1, 1):
         doc.add_next_tick_callback(partial(update, image=current_image, metadata=current_metadata))
