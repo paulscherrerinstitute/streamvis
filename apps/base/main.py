@@ -548,8 +548,11 @@ def threshold_button_callback(state):
         receiver.threshold_flag = False
         threshold_button.button_type = 'default'
 
-threshold_button = Toggle(
-    label="Apply Thresholding", active=receiver.threshold_flag, button_type='default')
+threshold_button = Toggle(label="Apply Thresholding", active=receiver.threshold_flag)
+if receiver.threshold_flag:
+    threshold_button.button_type = 'warning'
+else:
+    threshold_button.button_type = 'default'
 threshold_button.on_click(threshold_button_callback)
 
 
@@ -574,8 +577,11 @@ def aggregate_button_callback(state):
         receiver.aggregate_flag = False
         aggregate_button.button_type = 'default'
 
-aggregate_button = Toggle(
-    label="Apply Aggregation", active=receiver.aggregate_flag, button_type='default')
+aggregate_button = Toggle(label="Apply Aggregation", active=receiver.aggregate_flag)
+if receiver.aggregate_flag:
+    aggregate_button.button_type = 'warning'
+else:
+    aggregate_button.button_type = 'default'
 aggregate_button.on_click(aggregate_button_callback)
 
 
