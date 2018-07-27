@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from functools import partial
 
 import colorcet as cc
@@ -6,10 +7,11 @@ import numpy as np
 from bokeh.events import Reset
 from bokeh.io import curdoc
 from bokeh.layouts import column, row
-from bokeh.models import BasicTicker, Button, ColorBar, ColumnDataSource, CustomJS, \
-    DataRange1d, DataTable, Dropdown, Grid, ImageRGBA, Line, LinearAxis, LinearColorMapper, \
-    LogColorMapper, LogTicker, Panel, PanTool, Plot, RadioButtonGroup, Range1d, ResetTool, \
-    SaveTool, Select, Slider, Spacer, TableColumn, Tabs, TextInput, Toggle, WheelZoomTool
+from bokeh.models import BasicTicker, BasicTickFormatter, Button, ColorBar, \
+    ColumnDataSource, CustomJS, DataRange1d, DataTable, DatetimeAxis, Dropdown, \
+    Grid, ImageRGBA, Line, LinearAxis, LinearColorMapper, LogColorMapper, LogTicker, \
+    Panel, PanTool, Plot, RadioButtonGroup, Range1d, ResetTool, SaveTool, Select, \
+    Slider, Spacer, TableColumn, Tabs, TextInput, Toggle, WheelZoomTool
 from bokeh.palettes import Cividis256, Greys256, Plasma256  # pylint: disable=E0611
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LogNorm, Normalize
@@ -41,6 +43,7 @@ AGGR_PROJ_X_CANVAS_HEIGHT = 150 + 46
 AGGR_PROJ_Y_CANVAS_WIDTH = 150 + 31
 
 APP_FPS = 1
+STREAM_ROLLOVER = 36000
 
 HDF5_FILE_PATH = '/filepath'
 HDF5_FILE_PATH_UPDATE_PERIOD = 10000  # ms
@@ -50,6 +53,9 @@ hdf5_file_data = []
 # Initial values
 disp_min = 0
 disp_max = 1000
+
+# Custom tick formatter for displaying large numbers
+tick_formatter = BasicTickFormatter(precision=1)
 
 
 # Main plot
@@ -99,6 +105,42 @@ jscode_reset = """
 
 main_image_plot.js_on_event(Reset, CustomJS(
     args=dict(source=main_image_plot, image_source=main_image_source), code=jscode_reset))
+
+
+# Total sum intensity plot
+sum_intensity_plot = Plot(
+    x_range=DataRange1d(),
+    y_range=DataRange1d(),
+    plot_height=200,
+    plot_width=720,
+    toolbar_location='below',
+    logo=None,
+)
+
+# ---- tools
+sum_intensity_plot.add_tools(PanTool(), WheelZoomTool(dimensions='width'), ResetTool())
+
+# ---- axes
+sum_intensity_plot.add_layout(
+    LinearAxis(axis_label="Total intensity", formatter=tick_formatter), place='left')
+sum_intensity_plot.add_layout(DatetimeAxis(), place='below')
+
+# ---- grid lines
+sum_intensity_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
+sum_intensity_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
+
+# ---- line glyph
+sum_intensity_source = ColumnDataSource(dict(x=[], y=[]))
+sum_intensity_plot.add_glyph(sum_intensity_source, Line(x='x', y='y'))
+
+
+# Intensity stream reset button
+def sum_intensity_reset_button_callback():
+    stream_t = datetime.now()  # keep the latest point in order to prevent full axis reset
+    sum_intensity_source.data.update(x=[stream_t], y=[sum_intensity_source.data['y'][-1]])
+
+sum_intensity_reset_button = Button(label="Reset", button_type='default')
+sum_intensity_reset_button.on_click(sum_intensity_reset_button_callback)
 
 
 # Aggregation plot
@@ -493,6 +535,8 @@ layout_main = column(main_image_plot)
 
 layout_aggr = column(aggr_image_proj_x_plot, row(aggr_image_plot, aggr_image_proj_y_plot))
 
+layout_intensity = column(sum_intensity_plot, row(Spacer(width=400), sum_intensity_reset_button))
+
 layout_threshold_aggr = row(
     column(threshold_button, threshold_textinput),
     Spacer(width=50),
@@ -505,8 +549,9 @@ layout_metadata = column(metadata_table, row(Spacer(width=400), metadata_issues_
 layout_side_panel = column(
     layout_aggr,
     layout_threshold_aggr,
-    Spacer(height=40),
-    row(layout_controls, Spacer(width=50), layout_metadata))
+    Spacer(height=30),
+    row(layout_controls, Spacer(width=50), column(
+        layout_intensity, Spacer(height=20), layout_metadata)))
 
 final_layout = row(layout_main, Spacer(width=50), layout_side_panel)
 
@@ -592,6 +637,10 @@ def update_client(image, metadata, aggr_image):
 
     aggr_image_proj_y_source.data.update(x=aggr_image_proj_y, y=aggr_image_proj_r_y)
     aggr_image_proj_x_source.data.update(x=aggr_image_proj_r_x, y=aggr_image_proj_x)
+
+    stream_t = datetime.now()
+    sum_intensity_source.stream(
+        new_data=dict(x=[stream_t], y=[np.sum(image, dtype=np.float)]), rollover=STREAM_ROLLOVER)
 
     # Number of saturated pixels
     saturated_pixels = np.count_nonzero(image > 110_000)
