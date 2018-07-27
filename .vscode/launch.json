@@ -1,0 +1,57 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "base",
+            "type": "python",
+            "request": "launch",
+            "stopOnEntry": false,
+            "pythonPath": "${config:python.pythonPath}",
+            "module": "bokeh",
+            "cwd": "${workspaceFolder}",
+            "args": ["serve", "${workspaceFolder}/apps/base"],
+            "console": "none",
+            "env": {},
+            "debugOptions": ["RedirectOutput"]
+        },
+        {
+            "name": "alvra",
+            "type": "python",
+            "request": "launch",
+            "stopOnEntry": false,
+            "pythonPath": "${config:python.pythonPath}",
+            "module": "bokeh",
+            "cwd": "${workspaceFolder}",
+            "args": ["serve", "${workspaceFolder}/apps/alvra"],
+            "console": "none",
+            "env": {},
+            "debugOptions": ["RedirectOutput"]
+        },
+        {
+            "name": "bernina",
+            "type": "python",
+            "request": "launch",
+            "stopOnEntry": false,
+            "pythonPath": "${config:python.pythonPath}",
+            "module": "bokeh",
+            "cwd": "${workspaceFolder}",
+            "args": ["serve", "${workspaceFolder}/apps/bernina"],
+            "console": "none",
+            "env": {},
+            "debugOptions": ["RedirectOutput"]
+        },
+        {
+            "name": "alvra-16m",
+            "type": "python",
+            "request": "launch",
+            "stopOnEntry": false,
+            "pythonPath": "${config:python.pythonPath}",
+            "module": "bokeh",
+            "cwd": "${workspaceFolder}",
+            "args": ["serve", "${workspaceFolder}/apps/alvra-16m"],
+            "console": "none",
+            "env": {},
+            "debugOptions": ["RedirectOutput"]
+        },
+    ]
+}
