@@ -22,8 +22,8 @@ zmq_socket.connect(args.detector_backend_address)
 poller = zmq.Poller()
 poller.register(zmq_socket, zmq.POLLIN)
 
-current_image = None
-current_stats = None
+current_image = 0
+current_stats = (0, 0, 0)
 current_metadata = None
 
 # threshold data parameters
@@ -109,8 +109,8 @@ def process_data(image):
                                                range=(hist_lower, hist_upper), bins=hist_nbins)
 
     else:
-        zoom1_counts = None
-        zoom2_counts = None
+        zoom1_counts = 0
+        zoom2_counts = 0
         edges = None
 
     if aggregate_flag:

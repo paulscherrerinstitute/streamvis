@@ -31,7 +31,7 @@ aggregate_flag = False
 aggregate_time = np.Inf
 aggregate_counter = 1
 
-proc_image = None
+proc_image = 0
 
 def stream_receive():
     global state, proc_image, aggregate_counter
