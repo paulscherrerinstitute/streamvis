@@ -87,11 +87,12 @@ def process_data(image):
         im_block = image[y_start:y_end, x_start:x_end]
 
         if mask is None:
-            zoom1_counts, edges = np.histogram(im_block, range=(hist_lower, hist_upper),
-                                               bins=hist_nbins)
+            zoom1_counts, edges = np.histogram(
+                im_block, range=(hist_lower, hist_upper), bins=hist_nbins)
         else:
-            zoom1_counts, edges = np.histogram(im_block[~mask[y_start:y_end, x_start:x_end]],
-                                               range=(hist_lower, hist_upper), bins=hist_nbins)
+            zoom1_counts, edges = np.histogram(
+                im_block[~mask[y_start:y_end, x_start:x_end]], range=(hist_lower, hist_upper),
+                bins=hist_nbins)
 
         # zoom2
         y_start = int(np.floor(zoom2_y_start))
@@ -102,11 +103,12 @@ def process_data(image):
         im_block = image[y_start:y_end, x_start:x_end]
 
         if mask is None:
-            zoom2_counts, edges = np.histogram(im_block, range=(hist_lower, hist_upper),
-                                               bins=hist_nbins)
+            zoom2_counts, edges = np.histogram(
+                im_block, range=(hist_lower, hist_upper), bins=hist_nbins)
         else:
-            zoom2_counts, edges = np.histogram(im_block[~mask[y_start:y_end, x_start:x_end]],
-                                               range=(hist_lower, hist_upper), bins=hist_nbins)
+            zoom2_counts, edges = np.histogram(
+                im_block[~mask[y_start:y_end, x_start:x_end]], range=(hist_lower, hist_upper),
+                bins=hist_nbins)
 
     else:
         zoom1_counts = 0
