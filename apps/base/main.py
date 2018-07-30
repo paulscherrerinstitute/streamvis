@@ -323,7 +323,7 @@ intensity_stream_reset_button.on_click(intensity_stream_reset_button_callback)
 # ---- image buffer slider
 def image_buffer_slider_callback(_attr, _old, new):
     md, image = receiver.data_buffer[round(new['value'][0])]
-    doc.add_next_tick_callback(partial(update, image=image, metadata=md))
+    doc.add_next_tick_callback(partial(update_client, image=image, metadata=md))
 
 image_buffer_slider_source = ColumnDataSource(dict(value=[]))
 image_buffer_slider_source.on_change('data', image_buffer_slider_callback)
@@ -400,7 +400,7 @@ def load_file_button_callback():
     file_name = os.path.join(hdf5_file_path.value, saved_runs_dropdown.label)
     hdf5_file_data = partial(mx_image, file=file_name, dataset=hdf5_dataset_path.value)
     current_image, current_metadata = hdf5_file_data(i=hdf5_pulse_slider.value)
-    update(current_image, current_metadata)
+    update_client(current_image, current_metadata)
 
 load_file_button = Button(label="Load", button_type='default')
 load_file_button.on_click(load_file_button_callback)
@@ -409,7 +409,7 @@ load_file_button.on_click(load_file_button_callback)
 def hdf5_pulse_slider_callback(_attr, _old, new):
     global hdf5_file_data, current_image, current_metadata
     current_image, current_metadata = hdf5_file_data(i=new['value'][0])
-    update(current_image, current_metadata)
+    update_client(current_image, current_metadata)
 
 hdf5_pulse_slider_source = ColumnDataSource(dict(value=[]))
 hdf5_pulse_slider_source.on_change('data', hdf5_pulse_slider_callback)
@@ -652,7 +652,7 @@ doc.add_root(final_layout)
 
 
 @gen.coroutine
-def update(image, metadata):
+def update_client(image, metadata):
     global disp_min, disp_max, image_size_x, image_size_y
     main_image_height = main_image_plot.inner_height
     main_image_width = main_image_plot.inner_width
@@ -825,6 +825,7 @@ def internal_periodic_callback():
             aggregate_time_counter_textinput.value = str(receiver.aggregate_counter)
 
     if current_image.shape != (1, 1):
-        doc.add_next_tick_callback(partial(update, image=current_image, metadata=current_metadata))
+        doc.add_next_tick_callback(partial(
+            update_client, image=current_image, metadata=current_metadata))
 
 doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)
