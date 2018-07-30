@@ -42,6 +42,7 @@ def stream_receive():
             image = zmq_socket.recv(flags=0, copy=True, track=False)
             image = np.frombuffer(image, dtype=metadata['type']).reshape(metadata['shape'])
             image.setflags(write=True)
+            image = image.astype('float32', copy=False)
 
             if threshold_flag:
                 image[image < threshold] = 0
