@@ -586,15 +586,15 @@ def update_client(image, metadata, aggr_image):
         aggr_image_plot.x_range.bounds = (0, image_size_x)
         aggr_image_plot.y_range.bounds = (0, image_size_y)
 
-    main_y_start = main_image_plot.y_range.start
-    main_y_end = main_image_plot.y_range.end
-    main_x_start = main_image_plot.x_range.start
-    main_x_end = main_image_plot.x_range.end
+    main_y_start = max(main_image_plot.y_range.start, 0)
+    main_y_end = min(main_image_plot.y_range.end, image_size_y)
+    main_x_start = max(main_image_plot.x_range.start, 0)
+    main_x_end = min(main_image_plot.x_range.end, image_size_x)
 
-    aggr_y_start = aggr_image_plot.y_range.start
-    aggr_y_end = aggr_image_plot.y_range.end
-    aggr_x_start = aggr_image_plot.x_range.start
-    aggr_x_end = aggr_image_plot.x_range.end
+    aggr_y_start = max(aggr_image_plot.y_range.start, 0)
+    aggr_y_end = min(aggr_image_plot.y_range.end, image_size_y)
+    aggr_x_start = max(aggr_image_plot.x_range.start, 0)
+    aggr_x_end = min(aggr_image_plot.x_range.end, image_size_x)
 
     if colormap_auto_toggle.active:
         disp_min = int(np.min(image))

@@ -960,20 +960,20 @@ def update_client(image, metadata, stats):
         zoom2_image_plot.x_range.bounds = (0, image_size_x)
         zoom2_image_plot.y_range.bounds = (0, image_size_y)
 
-    main_y_start = main_image_plot.y_range.start
-    main_y_end = main_image_plot.y_range.end
-    main_x_start = main_image_plot.x_range.start
-    main_x_end = main_image_plot.x_range.end
+    main_y_start = max(main_image_plot.y_range.start, 0)
+    main_y_end = min(main_image_plot.y_range.end, image_size_y)
+    main_x_start = max(main_image_plot.x_range.start, 0)
+    main_x_end = min(main_image_plot.x_range.end, image_size_x)
 
-    zoom1_y_start = zoom1_image_plot.y_range.start
-    zoom1_y_end = zoom1_image_plot.y_range.end
-    zoom1_x_start = zoom1_image_plot.x_range.start
-    zoom1_x_end = zoom1_image_plot.x_range.end
+    zoom1_y_start = max(zoom1_image_plot.y_range.start, 0)
+    zoom1_y_end = min(zoom1_image_plot.y_range.end, image_size_y)
+    zoom1_x_start = max(zoom1_image_plot.x_range.start, 0)
+    zoom1_x_end = min(zoom1_image_plot.x_range.end, image_size_x)
 
-    zoom2_y_start = zoom2_image_plot.y_range.start
-    zoom2_y_end = zoom2_image_plot.y_range.end
-    zoom2_x_start = zoom2_image_plot.x_range.start
-    zoom2_x_end = zoom2_image_plot.x_range.end
+    zoom2_y_start = max(zoom2_image_plot.y_range.start, 0)
+    zoom2_y_end = min(zoom2_image_plot.y_range.end, image_size_y)
+    zoom2_x_start = max(zoom2_image_plot.x_range.start, 0)
+    zoom2_x_end = min(zoom2_image_plot.x_range.end, image_size_x)
 
     # update ranges for statistics calculation
     receiver.zoom1_y_start = zoom1_y_start
