@@ -25,7 +25,7 @@ requirements:
     - h5py
 
 about:
-  home: https://git.psi.ch/usov_i/streamvis
+  home: https://github.com/ivan-usov/streamvis
   summary: {{ data['description'] }}
   license: GNU GPLv3
   license_file: LICENSE
