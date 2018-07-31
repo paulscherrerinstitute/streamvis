@@ -46,8 +46,9 @@ def stream_receive():
 
             data_buffer.append((metadata, image))
 
+            image = image.copy()
+
             if threshold_flag:
-                image = image.copy()
                 image[image < threshold] = 0
 
             if aggregate_flag and aggregate_counter < aggregate_time:

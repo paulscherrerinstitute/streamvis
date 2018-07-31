@@ -1,4 +1,5 @@
 import os
+from collections import deque
 from datetime import datetime
 from functools import partial
 
@@ -44,6 +45,7 @@ AGGR_PROJ_Y_CANVAS_WIDTH = 150 + 31
 
 APP_FPS = 1
 STREAM_ROLLOVER = 36000
+image_buffer = deque(maxlen=60)
 
 HDF5_FILE_PATH = '/filepath'
 HDF5_FILE_PATH_UPDATE_PERIOD = 10000  # ms
@@ -230,8 +232,8 @@ aggr_image_proj_y_plot.add_glyph(
 # Stream panel
 # ---- image buffer slider
 def image_buffer_slider_callback(_attr, _old, new):
-    md, image = receiver.data_buffer[round(new['value'][0])]
-    doc.add_next_tick_callback(partial(update_client, image=image, metadata=md, aggr_image=image))
+    global current_metadata, current_image
+    current_metadata, current_image = image_buffer[round(new['value'][0])]
 
 image_buffer_slider_source = ColumnDataSource(dict(value=[]))
 image_buffer_slider_source.on_change('data', image_buffer_slider_callback)
@@ -251,12 +253,13 @@ def stream_button_callback(state):
         connected = True
         stream_button.label = 'Connecting'
         stream_button.button_type = 'default'
+        image_buffer_slider.disabled = True
 
     else:
         connected = False
         stream_button.label = 'Connect'
         stream_button.button_type = 'default'
-
+        image_buffer_slider.disabled = False
 
 stream_button = Toggle(label="Connect", button_type='default')
 stream_button.on_click(stream_button_callback)
@@ -718,13 +721,15 @@ def internal_periodic_callback():
             stream_button.label = 'Receiving'
             stream_button.button_type = 'success'
 
-            # Set slider to the right-most position
-            if len(receiver.data_buffer) > 1:
-                image_buffer_slider.end = len(receiver.data_buffer) - 1
-                image_buffer_slider.value = len(receiver.data_buffer) - 1
-
             current_metadata, current_image = receiver.data_buffer[-1]
             current_aggr_image = receiver.proc_image.copy()
+
+            image_buffer.append((current_metadata, current_image))
+
+            # Set slider to the right-most position
+            if len(image_buffer) > 1:
+                image_buffer_slider.end = len(image_buffer) - 1
+                image_buffer_slider.value = len(image_buffer) - 1
 
             aggregate_time_counter_textinput.value = str(receiver.aggregate_counter)
 
