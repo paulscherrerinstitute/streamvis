@@ -8,7 +8,7 @@ import numpy as np
 from bokeh.events import Reset
 from bokeh.io import curdoc
 from bokeh.layouts import column, row
-from bokeh.models import BasicTicker, BasicTickFormatter, Button, ColorBar, \
+from bokeh.models import BasicTicker, BasicTickFormatter, Button, Circle, ColorBar, \
     ColumnDataSource, CustomJS, DataRange1d, DataTable, DatetimeAxis, Dropdown, \
     Grid, ImageRGBA, Line, LinearAxis, LinearColorMapper, LogColorMapper, LogTicker, \
     Panel, PanTool, Plot, RadioButtonGroup, Range1d, ResetTool, SaveTool, Select, \
@@ -100,6 +100,11 @@ main_image_pvalue_source = ColumnDataSource(dict(x=[], y=[], text=[]))
 main_image_plot.add_glyph(
     main_image_pvalue_source, Text(
         x='x', y='y', text='text', text_align='center', text_baseline='middle', text_color='white'))
+
+# ---- peaks circle glyph
+main_image_peaks_source = ColumnDataSource(dict(x=[], y=[]))
+main_image_plot.add_glyph(
+    main_image_peaks_source, Circle(x='x', y='y', size=15, fill_color='white', line_width=3))
 
 # ---- overwrite reset tool behavior
 jscode_reset = """
@@ -639,6 +644,13 @@ def update_client(image, metadata, aggr_image):
 
     aggr_image_proj_y_source.data.update(x=aggr_image_proj_y, y=aggr_image_proj_r_y)
     aggr_image_proj_x_source.data.update(x=aggr_image_proj_r_x, y=aggr_image_proj_x)
+
+    if 'number_of_spots' in metadata:
+        spot_x = metadata['spot_x']
+        spot_y = metadata['spot_y']
+        main_image_peaks_source.data.update(x=spot_x, y=spot_y)
+    else:
+        main_image_peaks_source.data.update(x=[], y=[])
 
     if (main_x_end - main_x_start) * (main_y_end - main_y_start) < 1000:
         main_y_start = int(np.floor(main_y_start))
