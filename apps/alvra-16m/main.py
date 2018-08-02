@@ -233,18 +233,11 @@ aggr_image_proj_y_plot.add_glyph(
 # ---- image buffer slider
 def image_buffer_slider_callback(_attr, _old, new):
     global current_metadata, current_image
-    current_metadata, current_image = image_buffer[round(new['value'][0])]
-
-image_buffer_slider_source = ColumnDataSource(dict(value=[]))
-image_buffer_slider_source.on_change('data', image_buffer_slider_callback)
+    current_metadata, current_image = image_buffer[new]
 
 image_buffer_slider = Slider(
-    start=0, end=1, value=0, step=1, title="Buffered Image", callback_policy='mouseup',
-    disabled=True)
-
-image_buffer_slider.callback = CustomJS(
-    args=dict(source=image_buffer_slider_source),
-    code="""source.data = {value: [cb_obj.value]}""")
+    start=0, end=59, value=0, step=1, title="Buffered Image", disabled=True)
+image_buffer_slider.on_change('value', image_buffer_slider_callback)
 
 # ---- connect toggle button
 def stream_button_callback(state):
