@@ -12,7 +12,7 @@ from bokeh.models import BasicTicker, BasicTickFormatter, Button, ColorBar, \
     ColumnDataSource, CustomJS, DataRange1d, DataTable, DatetimeAxis, Dropdown, \
     Grid, ImageRGBA, Line, LinearAxis, LinearColorMapper, LogColorMapper, LogTicker, \
     Panel, PanTool, Plot, RadioButtonGroup, Range1d, ResetTool, SaveTool, Select, \
-    Slider, Spacer, TableColumn, Tabs, TextInput, Toggle, WheelZoomTool
+    Slider, Spacer, TableColumn, Tabs, Text, TextInput, Toggle, WheelZoomTool
 from bokeh.palettes import Cividis256, Greys256, Plasma256  # pylint: disable=E0611
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LogNorm, Normalize
@@ -94,6 +94,12 @@ main_image_source = ColumnDataSource(
 
 main_image_plot.add_glyph(
     main_image_source, ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh'))
+
+# ---- pixel value text glyph
+main_image_pvalue_source = ColumnDataSource(dict(x=[], y=[], text=[]))
+main_image_plot.add_glyph(
+    main_image_pvalue_source, Text(
+        x='x', y='y', text='text', text_align='center', text_baseline='middle', text_color='white'))
 
 # ---- overwrite reset tool behavior
 jscode_reset = """
@@ -633,6 +639,22 @@ def update_client(image, metadata, aggr_image):
 
     aggr_image_proj_y_source.data.update(x=aggr_image_proj_y, y=aggr_image_proj_r_y)
     aggr_image_proj_x_source.data.update(x=aggr_image_proj_r_x, y=aggr_image_proj_x)
+
+    if (main_x_end - main_x_start) * (main_y_end - main_y_start) < 1000:
+        main_y_start = int(np.floor(main_y_start))
+        main_x_start = int(np.floor(main_x_start))
+        main_y_end = int(np.ceil(main_y_end))
+        main_x_end = int(np.ceil(main_x_end))
+
+        textv = image[main_y_start:main_y_end+1, main_x_start:main_x_end+1].astype('int')
+        xv, yv = np.meshgrid(
+            np.arange(main_x_start, main_x_end+1), np.arange(main_y_start, main_y_end+1))
+        main_image_pvalue_source.data.update(
+            x=xv.flatten() + 0.5,
+            y=yv.flatten() + 0.5,
+            text=textv.flatten())
+    else:
+        main_image_pvalue_source.data.update(x=[], y=[], text=[])
 
     stream_t = datetime.now()
     sum_intensity_source.stream(
