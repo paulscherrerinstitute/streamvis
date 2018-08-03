@@ -104,7 +104,8 @@ main_image_plot.add_glyph(
 # ---- peaks circle glyph
 main_image_peaks_source = ColumnDataSource(dict(x=[], y=[]))
 main_image_plot.add_glyph(
-    main_image_peaks_source, Circle(x='x', y='y', size=15, fill_color='white', line_width=3))
+    main_image_peaks_source, Circle(
+        x='x', y='y', size=15, fill_alpha=0, line_width=3, line_color='white'))
 
 # ---- overwrite reset tool behavior
 jscode_reset = """
