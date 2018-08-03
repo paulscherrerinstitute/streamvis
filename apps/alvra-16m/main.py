@@ -9,9 +9,9 @@ from bokeh.events import Reset
 from bokeh.io import curdoc
 from bokeh.layouts import column, row
 from bokeh.models import BasicTicker, BasicTickFormatter, Button, Circle, ColorBar, \
-    ColumnDataSource, CustomJS, DataRange1d, DataTable, DatetimeAxis, Dropdown, \
-    Grid, ImageRGBA, Line, LinearAxis, LinearColorMapper, LogColorMapper, LogTicker, \
-    Panel, PanTool, Plot, RadioButtonGroup, Range1d, ResetTool, SaveTool, Select, \
+    ColumnDataSource, CustomJS, DataRange1d, DataTable, DatetimeAxis, Dropdown, Grid, \
+    ImageRGBA, Line, LinearAxis, LinearColorMapper, LogColorMapper, LogTicker, Panel, \
+    PanTool, Plot, RadioButtonGroup, Range1d, Rect, ResetTool, SaveTool, Select, \
     Slider, Spacer, TableColumn, Tabs, Text, TextInput, Toggle, WheelZoomTool
 from bokeh.palettes import Cividis256, Greys256, Plasma256  # pylint: disable=E0611
 from matplotlib.cm import ScalarMappable
@@ -186,6 +186,29 @@ aggr_image_plot.add_glyph(
 # ---- overwrite reset tool behavior
 aggr_image_plot.js_on_event(Reset, CustomJS(
     args=dict(source=aggr_image_plot, image_source=aggr_image_source), code=jscode_reset))
+
+# ---- add rectangle glyph of aggr area to the main plot
+aggr_area_source = ColumnDataSource(
+    dict(x=[image_size_x / 2], y=[image_size_y / 2], width=[image_size_x], height=[image_size_y]))
+
+rect = Rect(
+    x='x', y='y', width='width', height='height', line_color='white', line_width=2, fill_alpha=0)
+main_image_plot.add_glyph(aggr_area_source, rect)
+
+jscode_move_rect = """
+    var data = source.data;
+    var start = cb_obj.start;
+    var end = cb_obj.end;
+    data['%s'] = [start + (end - start) / 2];
+    data['%s'] = [end - start];
+    source.change.emit();
+"""
+
+aggr_image_plot.x_range.callback = CustomJS(
+    args=dict(source=aggr_area_source), code=jscode_move_rect % ('x', 'width'))
+
+aggr_image_plot.y_range.callback = CustomJS(
+    args=dict(source=aggr_area_source), code=jscode_move_rect % ('y', 'height'))
 
 
 # Projection of aggregate image onto x axis
