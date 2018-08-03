@@ -668,13 +668,6 @@ def update_client(image, metadata, aggr_image):
     aggr_image_proj_y_source.data.update(x=aggr_image_proj_y, y=aggr_image_proj_r_y)
     aggr_image_proj_x_source.data.update(x=aggr_image_proj_r_x, y=aggr_image_proj_x)
 
-    if 'number_of_spots' in metadata:
-        spot_x = metadata['spot_x']
-        spot_y = metadata['spot_y']
-        main_image_peaks_source.data.update(x=spot_x, y=spot_y)
-    else:
-        main_image_peaks_source.data.update(x=[], y=[])
-
     if (main_x_end - main_x_start) * (main_y_end - main_y_start) < 1000:
         main_y_start = int(np.floor(main_y_start))
         main_x_start = int(np.floor(main_x_start))
@@ -747,6 +740,17 @@ def update_client(image, metadata, aggr_image):
     if 'saturated_pixels' in metadata:
         if metadata['saturated_pixels']:
             new_menu.append(('There are saturated pixels', '5'))
+
+    if 'number_of_spots' in metadata and 'spot_x' in metadata and 'spot_y' in metadata:
+        spot_x = metadata['spot_x']
+        spot_y = metadata['spot_y']
+        if metadata['number_of_spots'] == len(spot_x) == len(spot_y):
+            main_image_peaks_source.data.update(x=spot_x, y=spot_y)
+        else:
+            main_image_peaks_source.data.update(x=[], y=[])
+            new_menu.append(('Spots data is inconsistent', '6'))
+    else:
+        main_image_peaks_source.data.update(x=[], y=[])
 
     metadata_issues_dropdown.menu = new_menu
     if new_menu:
