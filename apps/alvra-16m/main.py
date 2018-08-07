@@ -494,6 +494,17 @@ colormap_panel = column(
     colormap_auto_toggle, colormap_display_max, colormap_display_min)
 
 
+# Resolution rings toggle button
+def resolution_rings_toggle_callback(state):
+    if state:
+        resolution_rings_toggle.button_type = 'warning'
+    else:
+        resolution_rings_toggle.button_type = 'default'
+
+resolution_rings_toggle = Toggle(label="Resolution Rings", button_type='default')
+resolution_rings_toggle.on_click(resolution_rings_toggle_callback)
+
+
 # Intensity threshold toggle button
 def threshold_button_callback(state):
     if state:
@@ -588,7 +599,7 @@ layout_threshold_aggr = row(
     Spacer(width=50),
     column(aggregate_button, row(aggregate_time_textinput, aggregate_time_counter_textinput)))
 
-layout_controls = column(colormap_panel, data_source_tabs)
+layout_controls = column(colormap_panel, resolution_rings_toggle, data_source_tabs)
 
 layout_metadata = column(metadata_table, row(Spacer(width=400), metadata_issues_dropdown))
 
@@ -768,7 +779,8 @@ def update_client(image, metadata, aggr_image):
     else:
         main_image_peaks_source.data.update(x=[], y=[])
 
-    if 'detector_distance' in metadata and 'beam_energy' in metadata and \
+    if resolution_rings_toggle.active and \
+        'detector_distance' in metadata and 'beam_energy' in metadata and \
         'beam_center_x' in metadata and 'beam_center_y' in metadata:
         detector_distance = metadata['detector_distance']
         beam_energy = metadata['beam_energy']
