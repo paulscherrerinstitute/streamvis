@@ -2,6 +2,7 @@ import os
 from collections import deque
 from datetime import datetime
 from functools import partial
+from math import pi
 
 import colorcet as cc
 import numpy as np
@@ -9,9 +10,9 @@ from bokeh.events import Reset
 from bokeh.io import curdoc
 from bokeh.layouts import column, row
 from bokeh.models import BasicTicker, BasicTickFormatter, Button, Circle, ColorBar, \
-    ColumnDataSource, CustomJS, DataRange1d, DataTable, DatetimeAxis, Dropdown, Grid, \
-    ImageRGBA, Line, LinearAxis, LinearColorMapper, LogColorMapper, LogTicker, Panel, \
-    PanTool, Plot, RadioButtonGroup, Range1d, Rect, ResetTool, SaveTool, Select, \
+    ColumnDataSource, CustomJS, DataRange1d, DataTable, DatetimeAxis, Dropdown, Ellipse, \
+    Grid, ImageRGBA, Line, LinearAxis, LinearColorMapper, LogColorMapper, LogTicker, \
+    Panel, PanTool, Plot, RadioButtonGroup, Range1d, Rect, ResetTool, SaveTool, Select, \
     Slider, Spacer, TableColumn, Tabs, Text, TextInput, Toggle, WheelZoomTool
 from bokeh.palettes import Cividis256, Greys256, Plasma256  # pylint: disable=E0611
 from matplotlib.cm import ScalarMappable
@@ -51,6 +52,9 @@ HDF5_FILE_PATH = '/filepath'
 HDF5_FILE_PATH_UPDATE_PERIOD = 10000  # ms
 HDF5_DATASET_PATH = '/entry/data/data'
 hdf5_file_data = []
+
+# Resolution rings positions in angstroms
+RESOLUTION_RINGS_POS = np.array([3, 5, 10])
 
 # Initial values
 disp_min = 0
@@ -106,6 +110,17 @@ main_image_peaks_source = ColumnDataSource(dict(x=[], y=[]))
 main_image_plot.add_glyph(
     main_image_peaks_source, Circle(
         x='x', y='y', size=15, fill_alpha=0, line_width=3, line_color='white'))
+
+# ---- resolution rings
+main_image_rings_source = ColumnDataSource(dict(x=[], y=[], w=[], h=[]))
+main_image_plot.add_glyph(
+    main_image_rings_source, Ellipse(
+        x='x', y='y', width='w', height='h', fill_alpha=0, line_color='white'))
+
+main_image_rings_text_source = ColumnDataSource(dict(x=[], y=[], text=[]))
+main_image_plot.add_glyph(
+    main_image_rings_text_source, Text(
+        x='x', y='y', text='text', text_align='center', text_baseline='middle', text_color='white'))
 
 # ---- overwrite reset tool behavior
 jscode_reset = """
@@ -752,6 +767,22 @@ def update_client(image, metadata, aggr_image):
             new_menu.append(('Spots data is inconsistent', '6'))
     else:
         main_image_peaks_source.data.update(x=[], y=[])
+
+    if 'detector_distance' in metadata and 'beam_energy' in metadata and \
+        'beam_center_x' in metadata and 'beam_center_y' in metadata:
+        detector_distance = metadata['detector_distance']
+        beam_energy = metadata['beam_energy']
+        beam_center_x = metadata['beam_center_x'] * np.ones(len(RESOLUTION_RINGS_POS))
+        beam_center_y = metadata['beam_center_y'] * np.ones(len(RESOLUTION_RINGS_POS))
+        diams = 2*1.24*detector_distance*1e8 / (2*pi*75*beam_energy*RESOLUTION_RINGS_POS)
+        ring_text = [str(s) + ' Å' for s in RESOLUTION_RINGS_POS]
+
+        main_image_rings_source.data.update(x=beam_center_x, y=beam_center_y, h=diams, w=diams)
+        main_image_rings_text_source.data.update(
+            x=beam_center_x+diams/2, y=beam_center_y, text=ring_text)
+    else:
+        main_image_rings_source.data.update(x=[], y=[], h=[], w=[])
+        main_image_rings_text_source.data.update(x=[], y=[], text=[])
 
     metadata_issues_dropdown.menu = new_menu
     if new_menu:
