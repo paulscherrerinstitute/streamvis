@@ -53,7 +53,7 @@ HDF5_DATASET_PATH = '/entry/data/data'
 hdf5_file_data = []
 
 # Resolution rings positions in angstroms
-RESOLUTION_RINGS_POS = np.array([3, 5, 10])
+RESOLUTION_RINGS_POS = np.array([2, 2.2, 2.6, 3, 5, 10])
 
 # Initial values
 disp_min = 0
