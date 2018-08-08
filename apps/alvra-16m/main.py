@@ -9,8 +9,8 @@ from bokeh.events import Reset
 from bokeh.io import curdoc
 from bokeh.layouts import column, row
 from bokeh.models import BasicTicker, BasicTickFormatter, Button, Circle, ColorBar, \
-    ColumnDataSource, CustomJS, DataRange1d, DataTable, DatetimeAxis, Dropdown, Ellipse, \
-    Grid, ImageRGBA, Line, LinearAxis, LinearColorMapper, LogColorMapper, LogTicker, \
+    ColumnDataSource, Cross, CustomJS, DataRange1d, DataTable, DatetimeAxis, Dropdown, \
+    Ellipse, Grid, ImageRGBA, Line, LinearAxis, LinearColorMapper, LogColorMapper, LogTicker, \
     Panel, PanTool, Plot, RadioButtonGroup, Range1d, Rect, ResetTool, SaveTool, Select, \
     Slider, Spacer, TableColumn, Tabs, Text, TextInput, Toggle, WheelZoomTool
 from bokeh.palettes import Cividis256, Greys256, Plasma256  # pylint: disable=E0611
@@ -120,6 +120,11 @@ main_image_rings_text_source = ColumnDataSource(dict(x=[], y=[], text=[]))
 main_image_plot.add_glyph(
     main_image_rings_text_source, Text(
         x='x', y='y', text='text', text_align='center', text_baseline='middle', text_color='white'))
+
+main_image_rings_center_source = ColumnDataSource(dict(x=[], y=[]))
+main_image_plot.add_glyph(
+    main_image_rings_center_source, Cross(x='x', y='y', size=15, line_color='red'))
+
 
 # ---- overwrite reset tool behavior
 jscode_reset = """
@@ -792,13 +797,16 @@ def update_client(image, metadata, aggr_image):
             main_image_rings_source.data.update(x=beam_center_x, y=beam_center_y, h=diams, w=diams)
             main_image_rings_text_source.data.update(
                 x=beam_center_x+diams/2, y=beam_center_y, text=ring_text)
+            main_image_rings_center_source.data.update(x=beam_center_x, y=beam_center_y)
         else:
             main_image_rings_source.data.update(x=[], y=[], h=[], w=[])
             main_image_rings_text_source.data.update(x=[], y=[], text=[])
+            main_image_rings_center_source.data.update(x=[], y=[])
             new_menu.append(("Metadata does not contain all data for resolution rings", '7'))
     else:
         main_image_rings_source.data.update(x=[], y=[], h=[], w=[])
         main_image_rings_text_source.data.update(x=[], y=[], text=[])
+        main_image_rings_center_source.data.update(x=[], y=[])
 
     metadata_issues_dropdown.menu = new_menu
     if new_menu:
