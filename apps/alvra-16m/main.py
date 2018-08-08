@@ -790,8 +790,8 @@ def update_client(image, metadata, aggr_image):
             beam_energy = metadata['beam_energy']
             beam_center_x = metadata['beam_center_x'] * np.ones(len(RESOLUTION_RINGS_POS))
             beam_center_y = metadata['beam_center_y'] * np.ones(len(RESOLUTION_RINGS_POS))
-            theta = np.arcsin(1.24/beam_energy*1e-6 / (2 * RESOLUTION_RINGS_POS*1e-10))
-            diams = 2 * detector_distance*1e-3 * np.tan(2 * theta) / 75e-6
+            theta = np.arcsin(1.24/beam_energy / (2 * RESOLUTION_RINGS_POS*1e-4))  # 1e-6/1e-10
+            diams = 2 * detector_distance * np.tan(2 * theta) / 75e-6
             ring_text = [str(s) + ' Å' for s in RESOLUTION_RINGS_POS]
 
             main_image_rings_source.data.update(x=beam_center_x, y=beam_center_y, h=diams, w=diams)
