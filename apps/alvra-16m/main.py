@@ -2,7 +2,6 @@ import os
 from collections import deque
 from datetime import datetime
 from functools import partial
-from math import pi
 
 import colorcet as cc
 import numpy as np
@@ -786,7 +785,8 @@ def update_client(image, metadata, aggr_image):
             beam_energy = metadata['beam_energy']
             beam_center_x = metadata['beam_center_x'] * np.ones(len(RESOLUTION_RINGS_POS))
             beam_center_y = metadata['beam_center_y'] * np.ones(len(RESOLUTION_RINGS_POS))
-            diams = 2*1.24*detector_distance*1e8 / (2*pi*75*beam_energy*RESOLUTION_RINGS_POS)
+            theta = np.arcsin(1.24/beam_energy*1e-6 / (2 * RESOLUTION_RINGS_POS*1e-10))
+            diams = 2 * detector_distance*1e-3 * np.tan(2 * theta) / 75e-6
             ring_text = [str(s) + ' Å' for s in RESOLUTION_RINGS_POS]
 
             main_image_rings_source.data.update(x=beam_center_x, y=beam_center_y, h=diams, w=diams)
