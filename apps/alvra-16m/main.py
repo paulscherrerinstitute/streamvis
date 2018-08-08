@@ -398,7 +398,11 @@ image_color_mapper = ScalarMappable(norm=color_lin_norm, cmap='plasma')
 # ---- colormap selector
 def colormap_select_callback(_attr, _old, new):
     image_color_mapper.set_cmap(new)
-    if new == 'gray_r':
+    if new == 'gray':
+        lin_colormapper.palette = Greys256
+        log_colormapper.palette = Greys256
+
+    elif new == 'gray_r':
         lin_colormapper.palette = Greys256[::-1]
         log_colormapper.palette = Greys256[::-1]
 
@@ -416,7 +420,7 @@ def colormap_select_callback(_attr, _old, new):
 
 colormap_select = Select(
     title="Colormap:", value='plasma',
-    options=['gray_r', 'plasma', 'coolwarm', 'cividis']
+    options=['gray', 'gray_r', 'plasma', 'coolwarm', 'cividis']
 )
 colormap_select.on_change('value', colormap_select_callback)
 
