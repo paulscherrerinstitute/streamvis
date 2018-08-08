@@ -718,7 +718,7 @@ def update_client(image, metadata, aggr_image):
     aggr_image_proj_y_source.data.update(x=aggr_image_proj_y, y=aggr_image_proj_r_y)
     aggr_image_proj_x_source.data.update(x=aggr_image_proj_r_x, y=aggr_image_proj_x)
 
-    if (main_x_end - main_x_start) * (main_y_end - main_y_start) < 1000:
+    if (main_x_end - main_x_start) * (main_y_end - main_y_start) < 2000:
         main_y_start = int(np.floor(main_y_start))
         main_x_start = int(np.floor(main_x_start))
         main_y_end = int(np.ceil(main_y_end))
