@@ -627,6 +627,9 @@ def update_client(image, metadata, aggr_image):
     aggr_image_height = aggr_image_plot.inner_height
     aggr_image_width = aggr_image_plot.inner_width
 
+    # Metadata issues menu
+    new_menu = []
+
     if 'shape' in metadata and metadata['shape'] != [image_size_y, image_size_x]:
         image_size_y = metadata['shape'][0]
         image_size_x = metadata['shape'][1]
@@ -691,6 +694,18 @@ def update_client(image, metadata, aggr_image):
         x=[main_x_start], y=[main_y_start],
         dw=[main_x_end - main_x_start], dh=[main_y_end - main_y_start])
 
+    # Update spots locations
+    if 'number_of_spots' in metadata and 'spot_x' in metadata and 'spot_y' in metadata:
+        spot_x = metadata['spot_x']
+        spot_y = metadata['spot_y']
+        if metadata['number_of_spots'] == len(spot_x) == len(spot_y):
+            main_image_peaks_source.data.update(x=spot_x, y=spot_y)
+        else:
+            main_image_peaks_source.data.update(x=[], y=[])
+            new_menu.append(('Spots data is inconsistent', '6'))
+    else:
+        main_image_peaks_source.data.update(x=[], y=[])
+
     aggr_image_source.data.update(
         image=[image_color_mapper.to_rgba(aggr_image, bytes=True)],
         x=[aggr_x_start], y=[aggr_y_start],
@@ -728,7 +743,6 @@ def update_client(image, metadata, aggr_image):
         metadata=list(map(str, metadata.keys())), value=list(map(str, metadata.values())))
 
     # Check metadata for issues
-    new_menu = []
     if 'module_enabled' in metadata:
         module_enabled = np.array(metadata['module_enabled'], dtype=bool)
     else:
@@ -771,17 +785,6 @@ def update_client(image, metadata, aggr_image):
     if 'saturated_pixels' in metadata:
         if metadata['saturated_pixels']:
             new_menu.append(('There are saturated pixels', '5'))
-
-    if 'number_of_spots' in metadata and 'spot_x' in metadata and 'spot_y' in metadata:
-        spot_x = metadata['spot_x']
-        spot_y = metadata['spot_y']
-        if metadata['number_of_spots'] == len(spot_x) == len(spot_y):
-            main_image_peaks_source.data.update(x=spot_x, y=spot_y)
-        else:
-            main_image_peaks_source.data.update(x=[], y=[])
-            new_menu.append(('Spots data is inconsistent', '6'))
-    else:
-        main_image_peaks_source.data.update(x=[], y=[])
 
     if resolution_rings_toggle.active:
         if 'detector_distance' in metadata and 'beam_energy' in metadata and \
