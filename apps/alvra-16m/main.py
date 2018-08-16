@@ -584,8 +584,9 @@ aggregate_time_counter_textinput = TextInput(
 metadata_table_source = ColumnDataSource(dict(metadata=['', '', ''], value=['', '', '']))
 metadata_table = DataTable(
     source=metadata_table_source,
-    columns=[TableColumn(
-        field='metadata', title="Metadata Name"), TableColumn(field='value', title="Value")],
+    columns=[
+        TableColumn(field='metadata', title="Metadata Name"),
+        TableColumn(field='value', title="Value")],
     width=700,
     height=450,
     index_position=None,
