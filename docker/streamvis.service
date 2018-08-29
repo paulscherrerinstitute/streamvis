@@ -1,0 +1,15 @@
+[Unit]
+Description=streamvis service
+After=docker.service
+Requires=docker.service
+
+[Install]
+WantedBy=default.target
+
+[Service]
+TimeoutStartSec=0
+ExecStartPre=-/usr/bin/docker kill streamvis
+ExecStartPre=-/usr/bin/docker rm streamvis
+ExecStart=/usr/bin/docker run --name streamvis --net=host
+ExecStop=/usr/bin/docker stop streamvis
+Restart=always

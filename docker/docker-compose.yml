@@ -1,0 +1,8 @@
+version: '2.1'
+
+services:
+  streamvis:
+    image: streamvis
+    build: .
+    ports:
+      - 5006:5006

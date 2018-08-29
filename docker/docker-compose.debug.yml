@@ -1,0 +1,10 @@
+version: '2.1'
+
+services:
+  streamvis:
+    image: streamvis
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+        - 5006:5006
