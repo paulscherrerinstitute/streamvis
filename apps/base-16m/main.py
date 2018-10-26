@@ -145,7 +145,7 @@ sum_intensity_plot = Plot(
     x_range=DataRange1d(),
     y_range=DataRange1d(),
     plot_height=200,
-    plot_width=720,
+    plot_width=1420,
     toolbar_location='below',
     logo=None,
 )
@@ -587,7 +587,7 @@ metadata_table = DataTable(
     columns=[
         TableColumn(field='metadata', title="Metadata Name"),
         TableColumn(field='value', title="Value")],
-    width=700,
+    width=600,
     height=450,
     index_position=None,
     selectable=False,
@@ -601,23 +601,22 @@ layout_main = column(main_image_plot)
 
 layout_aggr = column(aggr_image_proj_x_plot, row(aggr_image_plot, aggr_image_proj_y_plot))
 
-layout_intensity = column(sum_intensity_plot, row(Spacer(width=400), sum_intensity_reset_button))
+layout_intensity = column(sum_intensity_plot, sum_intensity_reset_button)
 
-layout_threshold_aggr = row(
-    column(threshold_button, threshold_textinput),
-    Spacer(width=50),
-    column(aggregate_button, row(aggregate_time_textinput, aggregate_time_counter_textinput)))
+layout_threshold_aggr = column(
+    threshold_button, threshold_textinput,
+    aggregate_button, aggregate_time_textinput,
+    aggregate_time_counter_textinput)
 
 layout_controls = column(colormap_panel, resolution_rings_toggle, data_source_tabs)
 
-layout_metadata = column(metadata_table, row(Spacer(width=400), metadata_issues_dropdown))
+layout_metadata = column(metadata_table, metadata_issues_dropdown)
 
 layout_side_panel = column(
-    layout_aggr,
-    layout_threshold_aggr,
-    Spacer(height=30),
-    row(layout_controls, Spacer(width=50), column(
-        layout_intensity, Spacer(height=20), layout_metadata)))
+    layout_metadata,
+    layout_intensity,
+    row(column(layout_threshold_aggr, layout_controls), Spacer(width=50), layout_aggr)
+)
 
 final_layout = row(layout_main, Spacer(width=50), layout_side_panel)
 
