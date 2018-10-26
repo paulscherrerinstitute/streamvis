@@ -8,11 +8,11 @@ import numpy as np
 from bokeh.events import Reset
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, Circle, \
-    ColorBar, ColumnDataSource, Cross, CustomJS, DataRange1d, DataTable, DatetimeAxis, \
-    Dropdown, Ellipse, Grid, ImageRGBA, Line, LinearAxis, LinearColorMapper, LogColorMapper, \
-    LogTicker, Panel, PanTool, Plot, RadioButtonGroup, Range1d, Rect, ResetTool, SaveTool, \
-    Select, Slider, Spacer, TableColumn, Tabs, Text, TextInput, Toggle, WheelZoomTool
+from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, Circle, ColorBar, \
+    ColumnDataSource, Cross, CustomJS, DataRange1d, DataTable, DatetimeAxis, Dropdown, Ellipse, \
+    Grid, ImageRGBA, Line, LinearAxis, LinearColorMapper, LogColorMapper, LogTicker, Panel, \
+    PanTool, Plot, Quad, RadioButtonGroup, Range1d, Rect, ResetTool, SaveTool, Select, Slider, \
+    Spacer, TableColumn, Tabs, Text, TextInput, Toggle, WheelZoomTool
 from bokeh.palettes import Cividis256, Greys256, Plasma256  # pylint: disable=E0611
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LogNorm, Normalize
@@ -311,6 +311,33 @@ aggr_image_proj_y_source = ColumnDataSource(
 
 aggr_image_proj_y_plot.add_glyph(
     aggr_image_proj_y_source, Line(x='x', y='y', line_color='steelblue', line_width=2))
+
+
+# Histogram aggr plot
+aggr_hist_plot = Plot(
+    x_range=DataRange1d(),
+    y_range=DataRange1d(),
+    plot_height=500,
+    plot_width=800,
+    toolbar_location='left',
+    logo=None,
+)
+
+# ---- tools
+aggr_hist_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool())
+
+# ---- axes
+aggr_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
+#aggr_hist_plot.add_layout(LinearAxis(major_label_orientation='vertical'), place='left')
+
+# ---- grid lines
+aggr_hist_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
+aggr_hist_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
+
+# ---- quad (single bin) glyph
+aggr_hist_source = ColumnDataSource(dict(left=[], right=[], top=[]))
+aggr_hist_plot.add_glyph(
+    aggr_hist_source, Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
 
 
 # Stream panel
@@ -647,8 +674,8 @@ layout_controls = column(colormap_panel, resolution_rings_toggle, data_source_ta
 layout_metadata = column(metadata_table, metadata_issues_dropdown)
 
 layout_side_panel = column(
-    layout_metadata,
     layout_intensity,
+    row(layout_metadata, Spacer(width=30), aggr_hist_plot),
     row(column(layout_threshold_aggr, layout_controls), Spacer(width=50), layout_aggr)
 )
 
@@ -726,6 +753,9 @@ def update_client(image, metadata, aggr_image):
     aggr_image_proj_y = aggr_image.mean(axis=1)
     aggr_image_proj_r_y = np.linspace(aggr_y_start, aggr_y_end, aggr_image_height)
     aggr_image_proj_r_x = np.linspace(aggr_x_start, aggr_x_end, aggr_image_width)
+
+    counts, edges = np.histogram(aggr_image, bins='scott')
+    aggr_hist_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
 
     main_image_source.data.update(
         image=[image_color_mapper.to_rgba(main_image, bytes=True)],
