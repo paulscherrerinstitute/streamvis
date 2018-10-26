@@ -18,11 +18,11 @@ requirements:
   run:
     - python>=3.6
     - bokeh==0.13.0
-    - pyzmq
-    - matplotlib
+    - pyzmq>=17.0.0
+    - matplotlib>=2.2.2
     - pillow>=4.3
-    - colorcet
-    - h5py
+    - colorcet>=1.0.0
+    - h5py>=2.8.0
 
 about:
   home: https://github.com/ivan-usov/streamvis
