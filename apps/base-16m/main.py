@@ -7,12 +7,12 @@ import colorcet as cc
 import numpy as np
 from bokeh.events import Reset
 from bokeh.io import curdoc
-from bokeh.layouts import column, row
-from bokeh.models import BasicTicker, BasicTickFormatter, Button, Circle, ColorBar, \
-    ColumnDataSource, Cross, CustomJS, DataRange1d, DataTable, DatetimeAxis, Dropdown, \
-    Ellipse, Grid, ImageRGBA, Line, LinearAxis, LinearColorMapper, LogColorMapper, LogTicker, \
-    Panel, PanTool, Plot, RadioButtonGroup, Range1d, Rect, ResetTool, SaveTool, Select, \
-    Slider, Spacer, TableColumn, Tabs, Text, TextInput, Toggle, WheelZoomTool
+from bokeh.layouts import column, gridplot, row
+from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, Circle, \
+    ColorBar, ColumnDataSource, Cross, CustomJS, DataRange1d, DataTable, DatetimeAxis, \
+    Dropdown, Ellipse, Grid, ImageRGBA, Line, LinearAxis, LinearColorMapper, LogColorMapper, \
+    LogTicker, Panel, PanTool, Plot, RadioButtonGroup, Range1d, Rect, ResetTool, SaveTool, \
+    Select, Slider, Spacer, TableColumn, Tabs, Text, TextInput, Toggle, WheelZoomTool
 from bokeh.palettes import Cividis256, Greys256, Plasma256  # pylint: disable=E0611
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LogNorm, Normalize
@@ -141,7 +141,7 @@ main_image_plot.js_on_event(Reset, CustomJS(
 
 
 # Total sum intensity plot
-sum_intensity_plot = Plot(
+main_sum_intensity_plot = Plot(
     x_range=DataRange1d(),
     y_range=DataRange1d(),
     plot_height=200,
@@ -151,26 +151,56 @@ sum_intensity_plot = Plot(
 )
 
 # ---- tools
-sum_intensity_plot.add_tools(PanTool(), WheelZoomTool(dimensions='width'), ResetTool())
+main_sum_intensity_plot.add_tools(
+    PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool())
 
 # ---- axes
-sum_intensity_plot.add_layout(
+main_sum_intensity_plot.add_layout(
     LinearAxis(axis_label="Total intensity", formatter=tick_formatter), place='left')
-sum_intensity_plot.add_layout(DatetimeAxis(), place='below')
+main_sum_intensity_plot.add_layout(DatetimeAxis(), place='below')
 
 # ---- grid lines
-sum_intensity_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-sum_intensity_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
+main_sum_intensity_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
+main_sum_intensity_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
 # ---- line glyph
-sum_intensity_source = ColumnDataSource(dict(x=[], y=[]))
-sum_intensity_plot.add_glyph(sum_intensity_source, Line(x='x', y='y'))
+main_sum_intensity_source = ColumnDataSource(dict(x=[], y=[]))
+main_sum_intensity_plot.add_glyph(main_sum_intensity_source, Line(x='x', y='y'))
+
+
+# Aggr total sum intensity plot
+aggr_sum_intensity_plot = Plot(
+    x_range=DataRange1d(),
+    y_range=DataRange1d(),
+    plot_height=200,
+    plot_width=1420,
+    toolbar_location='below',
+    logo=None,
+)
+
+# ---- tools
+aggr_sum_intensity_plot.add_tools(
+    PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool())
+
+# ---- axes
+aggr_sum_intensity_plot.add_layout(
+    LinearAxis(axis_label="Zoom total intensity", formatter=tick_formatter), place='left')
+aggr_sum_intensity_plot.add_layout(DatetimeAxis(), place='below')
+
+# ---- grid lines
+aggr_sum_intensity_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
+aggr_sum_intensity_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
+
+# ---- line glyph
+aggr_sum_intensity_source = ColumnDataSource(dict(x=[], y=[]))
+aggr_sum_intensity_plot.add_glyph(aggr_sum_intensity_source, Line(x='x', y='y'))
 
 
 # Intensity stream reset button
 def sum_intensity_reset_button_callback():
     stream_t = datetime.now()  # keep the latest point in order to prevent full axis reset
-    sum_intensity_source.data.update(x=[stream_t], y=[sum_intensity_source.data['y'][-1]])
+    main_sum_intensity_source.data.update(x=[stream_t], y=[main_sum_intensity_source.data['y'][-1]])
+    aggr_sum_intensity_source.data.update(x=[stream_t], y=[aggr_sum_intensity_source.data['y'][-1]])
 
 sum_intensity_reset_button = Button(label="Reset", button_type='default')
 sum_intensity_reset_button.on_click(sum_intensity_reset_button_callback)
@@ -601,7 +631,11 @@ layout_main = column(main_image_plot)
 
 layout_aggr = column(aggr_image_proj_x_plot, row(aggr_image_plot, aggr_image_proj_y_plot))
 
-layout_intensity = column(sum_intensity_plot, sum_intensity_reset_button)
+layout_intensity = column(
+    gridplot(
+        [main_sum_intensity_plot, aggr_sum_intensity_plot],
+        ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
+    sum_intensity_reset_button)
 
 layout_threshold_aggr = column(
     threshold_button, threshold_textinput,
@@ -734,9 +768,14 @@ def update_client(image, metadata, aggr_image):
     else:
         main_image_pvalue_source.data.update(x=[], y=[], text=[])
 
+    # Update total intensities plots
     stream_t = datetime.now()
-    sum_intensity_source.stream(
-        new_data=dict(x=[stream_t], y=[np.sum(image, dtype=np.float)]), rollover=STREAM_ROLLOVER)
+    main_sum_intensity_source.stream(
+        new_data=dict(x=[stream_t], y=[np.sum(image, dtype=np.float)]),
+        rollover=STREAM_ROLLOVER)
+    aggr_sum_intensity_source.stream(
+        new_data=dict(x=[stream_t], y=[np.sum(aggr_image, dtype=np.float)]),
+        rollover=STREAM_ROLLOVER)
 
     # Number of saturated pixels
     saturated_pixels = np.count_nonzero(image > 110_000)
