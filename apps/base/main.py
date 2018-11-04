@@ -11,7 +11,7 @@ from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, C
     ColumnDataSource, CustomJS, DataRange1d, DataTable, DatetimeAxis, Dropdown, Grid, \
     ImageRGBA, Line, LinearAxis, LinearColorMapper, LogColorMapper, LogTicker, Panel, \
     PanTool, Plot, Quad, RadioButtonGroup, Range1d, Rect, ResetTool, SaveTool, Select, \
-    Slider, Spacer, TableColumn, Tabs, TextInput, Title, Toggle, WheelZoomTool
+    Slider, Spacer, TableColumn, Tabs, TextInput, Toggle, WheelZoomTool
 from bokeh.palettes import Cividis256, Greys256, Plasma256  # pylint: disable=E0611
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LogNorm, Normalize
@@ -33,13 +33,13 @@ current_metadata = dict(shape=[image_size_y, image_size_x])
 connected = False
 
 # Currently, it's possible to control only a canvas size, but not a size of the plotting area.
-MAIN_CANVAS_WIDTH = 1500 + 54
-MAIN_CANVAS_HEIGHT = 514 + 94
+MAIN_CANVAS_WIDTH = 800 + 54
+MAIN_CANVAS_HEIGHT = 800 + 94
 
-ZOOM_CANVAS_WIDTH = 1030 + 54
-ZOOM_CANVAS_HEIGHT = 514 + 29
+ZOOM_CANVAS_WIDTH = 600 + 54
+ZOOM_CANVAS_HEIGHT = 600 + 29
 
-DEBUG_INTENSITY_WIDTH = 1000
+DEBUG_INTENSITY_WIDTH = 700
 
 APP_FPS = 1
 STREAM_ROLLOVER = 36000
@@ -66,7 +66,6 @@ tick_formatter = BasicTickFormatter(precision=1)
 
 # Main plot
 main_image_plot = Plot(
-    title=Title(text="Detector Image"),
     x_range=Range1d(0, image_size_x, bounds=(0, image_size_x)),
     y_range=Range1d(0, image_size_y, bounds=(0, image_size_y)),
     plot_height=MAIN_CANVAS_HEIGHT,
@@ -87,7 +86,7 @@ main_image_plot.add_layout(LinearAxis(major_label_orientation='vertical'), place
 lin_colormapper = LinearColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
 log_colormapper = LogColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
 color_bar = ColorBar(
-    color_mapper=lin_colormapper, location=(0, -5), orientation='horizontal', height=20,
+    color_mapper=lin_colormapper, location=(0, -5), orientation='horizontal', height=10,
     width=MAIN_CANVAS_WIDTH // 2, padding=0)
 
 main_image_plot.add_layout(color_bar, place='below')
@@ -178,7 +177,6 @@ zoom1_image_plot.y_range.callback = CustomJS(
 
 # Aggregate zoom1 plot along x axis
 zoom1_plot_agg_x = Plot(
-    title=Title(text="Zoom Area 1"),
     x_range=zoom1_image_plot.x_range,
     y_range=DataRange1d(),
     plot_height=agg_plot_size,
@@ -232,7 +230,7 @@ zoom1_hist_plot = Plot(
     x_range=DataRange1d(),
     y_range=DataRange1d(),
     plot_height=hist_plot_size,
-    plot_width=zoom1_image_plot.plot_width,
+    plot_width=700,
     toolbar_location='left',
 )
 
@@ -241,9 +239,9 @@ zoom1_hist_plot.toolbar.logo = None
 zoom1_hist_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool())
 
 # ---- axes
-zoom1_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
+zoom1_hist_plot.add_layout(LinearAxis(axis_label="Zoom Intensity"), place='below')
 zoom1_hist_plot.add_layout(
-    LinearAxis(major_label_orientation='vertical', axis_label="Counts"), place='right')
+    LinearAxis(major_label_orientation='vertical', axis_label="Counts"), place='left')
 
 # ---- grid lines
 zoom1_hist_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
@@ -257,7 +255,6 @@ zoom1_hist_plot.add_glyph(
 
 # Total intensity plot
 total_intensity_plot = Plot(
-    title=Title(text="Total Image Intensity"),
     x_range=DataRange1d(),
     y_range=DataRange1d(),
     plot_height=agg_plot_size,
@@ -270,7 +267,7 @@ total_intensity_plot.add_tools(
 
 # ---- axes
 total_intensity_plot.add_layout(
-    LinearAxis(axis_label="Total intensity", formatter=tick_formatter), place='left')
+    LinearAxis(axis_label="Image intensity", formatter=tick_formatter), place='left')
 total_intensity_plot.add_layout(DatetimeAxis(major_label_text_font_size='0pt'), place='below')
 
 # ---- grid lines
@@ -284,7 +281,6 @@ total_intensity_plot.add_glyph(total_sum_source, Line(x='x', y='y'))
 
 # Zoom1 intensity plot
 zoom1_intensity_plot = Plot(
-    title=Title(text="Zoom Area 1 Total Intensity"),
     x_range=total_intensity_plot.x_range,
     y_range=DataRange1d(),
     plot_height=agg_plot_size,
@@ -297,7 +293,7 @@ zoom1_intensity_plot.add_tools(
 
 # ---- axes
 zoom1_intensity_plot.add_layout(
-    LinearAxis(axis_label="Intensity", formatter=tick_formatter), place='left')
+    LinearAxis(axis_label="Zoom Intensity", formatter=tick_formatter), place='left')
 zoom1_intensity_plot.add_layout(DatetimeAxis(), place='below')
 
 # ---- grid lines
@@ -614,7 +610,7 @@ metadata_table = DataTable(
         TableColumn(field='metadata', title="Metadata Name"),
         TableColumn(field='value', title="Value")],
     width=700,
-    height=450,
+    height=300,
     index_position=None,
     selectable=False,
 )
@@ -627,13 +623,12 @@ layout_main = column(main_image_plot)
 
 layout_zoom = column(
     zoom1_plot_agg_x,
-    row(zoom1_image_plot, zoom1_plot_agg_y),
-    row(Spacer(), zoom1_hist_plot, Spacer()))
+    row(zoom1_image_plot, zoom1_plot_agg_y))
 
 layout_utility = column(
     gridplot([total_intensity_plot, zoom1_intensity_plot],
              ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
-    row(Spacer(width=700), intensity_stream_reset_button))
+    intensity_stream_reset_button)
 
 layout_controls = column(colormap_panel, data_source_tabs)
 
@@ -642,12 +637,11 @@ layout_threshold_aggr = column(
     Spacer(height=30),
     aggregate_button, aggregate_time_textinput, aggregate_time_counter_textinput)
 
-layout_metadata = column(metadata_table, row(Spacer(width=400), metadata_issues_dropdown))
+layout_metadata = column(metadata_table, metadata_issues_dropdown)
 
 final_layout = column(
-    row(layout_main, Spacer(width=30), column(Spacer(height=30), layout_metadata)),
-    row(layout_zoom, Spacer(), column(layout_utility, Spacer(height=10), row(
-        layout_controls, Spacer(width=30), layout_threshold_aggr))))
+    row(layout_main, layout_controls, column(layout_metadata, layout_utility)),
+    row(layout_zoom, layout_threshold_aggr, zoom1_hist_plot))
 
 doc.add_root(final_layout)
 
