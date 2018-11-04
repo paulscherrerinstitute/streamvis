@@ -82,10 +82,10 @@ main_image_plot = Plot(
     plot_height=MAIN_CANVAS_HEIGHT,
     plot_width=MAIN_CANVAS_WIDTH,
     toolbar_location='left',
-    logo=None,
 )
 
 # ---- tools
+main_image_plot.toolbar.logo = None
 main_image_plot.add_tools(PanTool(), WheelZoomTool(maintain_focus=False), ResetTool())
 main_image_plot.toolbar.active_scroll = main_image_plot.tools[1]
 
@@ -131,10 +131,10 @@ zoom1_image_plot = Plot(
     plot_height=ZOOM_CANVAS_HEIGHT,
     plot_width=ZOOM_CANVAS_WIDTH,
     toolbar_location='left',
-    logo=None,
 )
 
 # ---- tools
+zoom1_image_plot.toolbar.logo = None
 # share 'pan' and 'wheel zoom' with the main plot, but 'save' and 'reset' keep separate
 zoom1_image_plot.add_tools(main_image_plot.tools[0], main_image_plot.tools[1], ResetTool())
 zoom1_image_plot.toolbar.active_scroll = zoom1_image_plot.tools[1]
@@ -187,10 +187,10 @@ zoom1_plot_agg_x = Plot(
     plot_height=ZOOM_AGG_X_PLOT_HEIGHT,
     plot_width=zoom1_image_plot.plot_width,
     toolbar_location='left',
-    logo=None,
 )
 
 # ---- tools
+zoom1_plot_agg_x.toolbar.logo = None
 zoom1_plot_agg_x.add_tools(
     PanTool(dimensions='height'), WheelZoomTool(dimensions='height'), ResetTool())
 
@@ -243,10 +243,10 @@ zoom1_hist_plot = Plot(
     plot_height=ZOOM_HIST_PLOT_HEIGHT,
     plot_width=zoom1_image_plot.plot_width,
     toolbar_location='left',
-    logo=None,
 )
 
 # ---- tools
+zoom1_hist_plot.toolbar.logo = None
 zoom1_hist_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), ResetTool())
 
 # ---- axes
@@ -271,10 +271,10 @@ zoom2_image_plot = Plot(
     plot_height=ZOOM_CANVAS_HEIGHT,
     plot_width=ZOOM_CANVAS_WIDTH,
     toolbar_location='left',
-    logo=None,
 )
 
 # ---- tools
+zoom2_image_plot.toolbar.logo = None
 # share 'pan' and 'wheel zoom' with the main plot, but 'save' and 'reset' keep separate
 zoom2_image_plot.add_tools(main_image_plot.tools[0], main_image_plot.tools[1], ResetTool())
 zoom2_image_plot.toolbar.active_scroll = zoom2_image_plot.tools[1]
@@ -327,10 +327,10 @@ zoom2_plot_agg_x = Plot(
     plot_height=ZOOM_AGG_X_PLOT_HEIGHT,
     plot_width=zoom2_image_plot.plot_width,
     toolbar_location='left',
-    logo=None,
 )
 
 # ---- tools
+zoom2_plot_agg_x.toolbar.logo = None
 zoom2_plot_agg_x.add_tools(zoom1_plot_agg_x.tools[0], zoom1_plot_agg_x.tools[1], ResetTool())
 
 # ---- axes
@@ -382,10 +382,10 @@ zoom2_hist_plot = Plot(
     plot_height=ZOOM_HIST_PLOT_HEIGHT,
     plot_width=zoom2_image_plot.plot_width,
     toolbar_location='left',
-    logo=None,
 )
 
 # ---- tools
+zoom2_hist_plot.toolbar.logo = None
 # share 'pan', 'box zoom', and 'wheel zoom' with the first histogram plot
 zoom2_hist_plot.add_tools(
     zoom1_hist_plot.tools[0], zoom1_hist_plot.tools[1], zoom1_hist_plot.tools[2], ResetTool())

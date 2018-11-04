@@ -72,10 +72,10 @@ main_image_plot = Plot(
     plot_height=MAIN_CANVAS_HEIGHT,
     plot_width=MAIN_CANVAS_WIDTH,
     toolbar_location='left',
-    logo=None,
 )
 
 # ---- tools
+main_image_plot.toolbar.logo = None
 main_image_plot.add_tools(PanTool(), WheelZoomTool(maintain_focus=False), SaveTool(), ResetTool())
 main_image_plot.toolbar.active_scroll = main_image_plot.tools[1]
 
@@ -121,10 +121,10 @@ zoom1_image_plot = Plot(
     plot_height=ZOOM_CANVAS_HEIGHT,
     plot_width=ZOOM_CANVAS_WIDTH,
     toolbar_location='left',
-    logo=None,
 )
 
 # ---- tools
+zoom1_image_plot.toolbar.logo = None
 # share 'pan' and 'wheel zoom' with the main plot, but 'save' and 'reset' keep separate
 zoom1_image_plot.add_tools(
     main_image_plot.tools[0], main_image_plot.tools[1], SaveTool(), ResetTool())
@@ -234,10 +234,10 @@ zoom1_hist_plot = Plot(
     plot_height=hist_plot_size,
     plot_width=zoom1_image_plot.plot_width,
     toolbar_location='left',
-    logo=None,
 )
 
 # ---- tools
+zoom1_hist_plot.toolbar.logo = None
 zoom1_hist_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool())
 
 # ---- axes

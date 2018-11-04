@@ -70,10 +70,10 @@ main_image_plot = Plot(
     plot_height=MAIN_CANVAS_HEIGHT,
     plot_width=MAIN_CANVAS_WIDTH,
     toolbar_location='below',
-    logo=None,
 )
 
 # ---- tools
+main_image_plot.toolbar.logo = None
 main_image_plot.add_tools(PanTool(), WheelZoomTool(maintain_focus=False), SaveTool(), ResetTool())
 main_image_plot.toolbar.active_scroll = main_image_plot.tools[1]
 
@@ -147,10 +147,10 @@ main_sum_intensity_plot = Plot(
     plot_height=200,
     plot_width=1420,
     toolbar_location='below',
-    logo=None,
 )
 
 # ---- tools
+main_sum_intensity_plot.toolbar.logo = None
 main_sum_intensity_plot.add_tools(
     PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool())
 
@@ -175,10 +175,10 @@ aggr_sum_intensity_plot = Plot(
     plot_height=200,
     plot_width=1420,
     toolbar_location='below',
-    logo=None,
 )
 
 # ---- tools
+aggr_sum_intensity_plot.toolbar.logo = None
 aggr_sum_intensity_plot.add_tools(
     PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool())
 
@@ -213,10 +213,10 @@ aggr_image_plot = Plot(
     plot_height=AGGR_CANVAS_HEIGHT,
     plot_width=AGGR_CANVAS_WIDTH,
     toolbar_location='below',
-    logo=None,
 )
 
 # ---- tools
+aggr_image_plot.toolbar.logo = None
 aggr_image_plot.add_tools(
     main_image_plot.tools[0], main_image_plot.tools[1], SaveTool(), ResetTool())
 aggr_image_plot.toolbar.active_scroll = aggr_image_plot.tools[1]
@@ -320,10 +320,10 @@ aggr_hist_plot = Plot(
     plot_height=500,
     plot_width=800,
     toolbar_location='left',
-    logo=None,
 )
 
 # ---- tools
+aggr_hist_plot.toolbar.logo = None
 aggr_hist_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool())
 
 # ---- axes
