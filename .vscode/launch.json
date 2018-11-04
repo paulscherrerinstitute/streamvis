@@ -49,5 +49,17 @@
             "console": "none",
             "env": {},
         },
+        {
+            "name": "base-exp",
+            "type": "python",
+            "request": "launch",
+            "pythonPath": "${config:python.pythonPath}",
+            "module": "bokeh",
+            "cwd": "${workspaceFolder}",
+            "args": ["serve", "${workspaceFolder}/apps/base-exp"],
+            "stopOnEntry": false,
+            "console": "none",
+            "env": {},
+        },
     ]
 }
