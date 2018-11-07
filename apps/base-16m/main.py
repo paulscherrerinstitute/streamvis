@@ -940,7 +940,10 @@ def update_client(image, metadata, aggr_image):
 
     metadata_issues_dropdown.menu = new_menu
     if new_menu:
-        metadata_issues_dropdown.button_type = 'danger'
+        if ('There are saturated pixels', '5') in new_menu and len(new_menu) == 1:
+            metadata_issues_dropdown.button_type = 'warning'
+        else:
+            metadata_issues_dropdown.button_type = 'danger'
     else:
         metadata_issues_dropdown.button_type = 'default'
 
