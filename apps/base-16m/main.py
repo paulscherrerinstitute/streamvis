@@ -223,6 +223,7 @@ hovertool = HoverTool(
         ("intensity", "@intensity"),
         ("resolution", "@resolution Å")
     ],
+    names=['hovertool_image']
 )
 aggr_image_plot.add_tools(
     main_image_plot.tools[0], main_image_plot.tools[1], SaveTool(), ResetTool(), hovertool)
@@ -247,7 +248,20 @@ hovertool_image_source = ColumnDataSource(dict(
 
 aggr_image_plot.add_glyph(
     hovertool_image_source,
-    Image(image='intensity', x='x', y='y', dw='dw', dh='dh', global_alpha=0))
+    Image(image='intensity', x='x', y='y', dw='dw', dh='dh', global_alpha=0),
+    name='hovertool_image')
+
+# ---- resolution rings
+aggr_image_plot.add_glyph(
+    main_image_rings_source, Ellipse(
+        x='x', y='y', width='w', height='h', fill_alpha=0, line_color='white'))
+
+aggr_image_plot.add_glyph(
+    main_image_rings_text_source, Text(
+        x='x', y='y', text='text', text_align='center', text_baseline='middle', text_color='white'))
+
+aggr_image_plot.add_glyph(
+    main_image_rings_center_source, Cross(x='x', y='y', size=15, line_color='red'))
 
 # ---- overwrite reset tool behavior
 aggr_image_plot.js_on_event(Reset, CustomJS(
