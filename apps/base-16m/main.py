@@ -10,9 +10,10 @@ from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
 from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, Circle, ColorBar, \
     ColumnDataSource, Cross, CustomJS, DataRange1d, DataTable, DatetimeAxis, Dropdown, Ellipse, \
-    Grid, ImageRGBA, Line, LinearAxis, LinearColorMapper, LogColorMapper, LogTicker, Panel, \
-    PanTool, Plot, Quad, RadioButtonGroup, Range1d, Rect, ResetTool, SaveTool, Select, Slider, \
-    Spacer, TableColumn, Tabs, Text, TextInput, Toggle, WheelZoomTool
+    Grid, HoverTool, ImageRGBA, Line, LinearAxis, LinearColorMapper, LogColorMapper, LogTicker, \
+    Panel, PanTool, Plot, Quad, RadioButtonGroup, Range1d, Rect, ResetTool, SaveTool, Select, \
+    Slider, Spacer, TableColumn, Tabs, Text, TextInput, Toggle, WheelZoomTool
+from bokeh.models.glyphs import Image
 from bokeh.palettes import Cividis256, Greys256, Plasma256  # pylint: disable=E0611
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LogNorm, Normalize
@@ -217,8 +218,14 @@ aggr_image_plot = Plot(
 
 # ---- tools
 aggr_image_plot.toolbar.logo = None
+hovertool = HoverTool(
+    tooltips=[
+        ("intensity", "@intensity"),
+        ("resolution", "@resolution Å")
+    ],
+)
 aggr_image_plot.add_tools(
-    main_image_plot.tools[0], main_image_plot.tools[1], SaveTool(), ResetTool())
+    main_image_plot.tools[0], main_image_plot.tools[1], SaveTool(), ResetTool(), hovertool)
 aggr_image_plot.toolbar.active_scroll = aggr_image_plot.tools[1]
 
 # ---- axes
@@ -232,6 +239,15 @@ aggr_image_source = ColumnDataSource(
 
 aggr_image_plot.add_glyph(
     aggr_image_source, ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh'))
+
+# ---- invisible image glyph
+hovertool_image_source = ColumnDataSource(dict(
+    intensity=[current_image], resolution=[np.NaN],
+    x=[0], y=[0], dw=[image_size_x], dh=[image_size_y]))
+
+aggr_image_plot.add_glyph(
+    hovertool_image_source,
+    Image(image='intensity', x='x', y='y', dw='dw', dh='dh', global_alpha=0))
 
 # ---- overwrite reset tool behavior
 aggr_image_plot.js_on_event(Reset, CustomJS(
@@ -782,6 +798,30 @@ def update_client(image, metadata, aggr_image):
     aggr_image_proj_y_source.data.update(x=aggr_image_proj_y, y=aggr_image_proj_r_y)
     aggr_image_proj_x_source.data.update(x=aggr_image_proj_r_x, y=aggr_image_proj_x)
 
+    # Update hover tool values
+    if 'detector_distance' in metadata and 'beam_energy' in metadata and \
+        'beam_center_x' in metadata and 'beam_center_y' in metadata:
+        detector_distance = metadata['detector_distance']
+        beam_energy = metadata['beam_energy']
+        beam_center_x = metadata['beam_center_x']
+        beam_center_y = metadata['beam_center_y']
+
+        xi = np.linspace(aggr_x_start, aggr_x_end, aggr_image_width) - beam_center_x
+        yi = np.linspace(aggr_y_start, aggr_y_end, aggr_image_height) - beam_center_y
+        xv, yv = np.meshgrid(xi, yi, sparse=True)
+        theta = np.arctan(np.sqrt(xv**2 + yv**2) * 75e-6 / detector_distance) / 2
+        resolution = 1.24/beam_energy / np.sin(theta) / 2 / 1e-4
+        hovertool_image_source.data.update(
+            intensity=[aggr_image], resolution=[resolution],
+            x=[aggr_x_start], y=[aggr_y_start],
+            dw=[aggr_x_end - aggr_x_start], dh=[aggr_y_end - aggr_y_start])
+    else:
+        hovertool_image_source.data.update(
+            intensity=[aggr_image], resolution=[np.NaN],
+            x=[aggr_x_start], y=[aggr_y_start],
+            dw=[aggr_x_end - aggr_x_start], dh=[aggr_y_end - aggr_y_start])
+
+    # Draw numbers
     if (main_x_end - main_x_start) * (main_y_end - main_y_start) < 2000:
         main_y_start = int(np.floor(main_y_start))
         main_x_start = int(np.floor(main_x_start))
