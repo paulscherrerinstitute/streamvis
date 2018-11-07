@@ -26,12 +26,12 @@ doc = curdoc()
 doc.title = receiver.args.page_title
 
 # initial image size to organize placeholders for actual data
-image_size_x = 100
-image_size_y = 100
+image_size_x = 1
+image_size_y = 1
 
-current_image = np.zeros((1, 1), dtype='float32')
+current_image = np.zeros((image_size_y, image_size_x), dtype='float32')
 current_metadata = dict(shape=[image_size_y, image_size_x])
-current_aggr_image = np.zeros((1, 1), dtype='float32')
+current_aggr_image = np.zeros((image_size_y, image_size_x), dtype='float32')
 
 connected = False
 
@@ -41,7 +41,7 @@ MAIN_CANVAS_HEIGHT = 1900 + 94
 
 AGGR_CANVAS_WIDTH = 870 + 30
 AGGR_CANVAS_HEIGHT = 736 + 55
-AGGR_PROJ_X_CANVAS_HEIGHT = 150 + 46
+AGGR_PROJ_X_CANVAS_HEIGHT = 150 + 11
 AGGR_PROJ_Y_CANVAS_WIDTH = 150 + 31
 
 APP_FPS = 1
@@ -49,7 +49,7 @@ STREAM_ROLLOVER = 36000
 image_buffer = deque(maxlen=60)
 
 HDF5_FILE_PATH = '/filepath'
-HDF5_FILE_PATH_UPDATE_PERIOD = 10000  # ms
+HDF5_FILE_PATH_UPDATE_PERIOD = 5000  # ms
 HDF5_DATASET_PATH = '/entry/data/data'
 hdf5_file_data = []
 
@@ -838,7 +838,7 @@ def update_client(image, metadata, aggr_image):
         yi = np.linspace(aggr_y_start, aggr_y_end, aggr_image_height) - beam_center_y
         xv, yv = np.meshgrid(xi, yi, sparse=True)
         theta = np.arctan(np.sqrt(xv**2 + yv**2) * 75e-6 / detector_distance) / 2
-        resolution = 1.24/beam_energy / np.sin(theta) / 2 / 1e-4
+        resolution = 6200 / beam_energy / np.sin(theta)  # 6200 = 1.24 / 2 / 1e-4
         hovertool_image_source.data.update(
             intensity=[aggr_image], resolution=[resolution],
             x=[aggr_x_start], y=[aggr_y_start],
@@ -934,7 +934,7 @@ def update_client(image, metadata, aggr_image):
             beam_energy = metadata['beam_energy']
             beam_center_x = metadata['beam_center_x'] * np.ones(len(RESOLUTION_RINGS_POS))
             beam_center_y = metadata['beam_center_y'] * np.ones(len(RESOLUTION_RINGS_POS))
-            theta = np.arcsin(1.24/beam_energy / (2 * RESOLUTION_RINGS_POS*1e-4))  # 1e-6/1e-10
+            theta = np.arcsin(1.24/beam_energy / (2 * RESOLUTION_RINGS_POS*1e-4))  # 1e-4=1e-6/1e-10
             diams = 2 * detector_distance * np.tan(2 * theta) / 75e-6
             ring_text = [str(s) + ' Å' for s in RESOLUTION_RINGS_POS]
 
