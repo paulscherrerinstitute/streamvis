@@ -347,7 +347,7 @@ aggr_image_proj_y_plot.add_glyph(
 aggr_hist_plot = Plot(
     x_range=DataRange1d(),
     y_range=DataRange1d(),
-    plot_height=500,
+    plot_height=450,
     plot_width=800,
     toolbar_location='left',
 )
@@ -675,12 +675,27 @@ metadata_table = DataTable(
         TableColumn(field='metadata', title="Metadata Name"),
         TableColumn(field='value', title="Value")],
     width=600,
-    height=450,
+    height=400,
     index_position=None,
     selectable=False,
 )
 
 metadata_issues_dropdown = Dropdown(label="Metadata Issues", button_type='default', menu=[])
+
+
+# Custom tabs
+debug_tab = Panel(
+    child=row(aggr_hist_plot, Spacer(width=30), column(metadata_table, metadata_issues_dropdown)),
+    title="Debug",
+)
+
+scan_tab = Panel(
+    child=row(),
+    title="Scan",
+)
+
+# assemble
+custom_tabs = Tabs(tabs=[debug_tab, scan_tab], height=530, width=1430)
 
 
 # Final layouts
@@ -701,11 +716,9 @@ layout_threshold_aggr = column(
 
 layout_controls = column(colormap_panel, resolution_rings_toggle, data_source_tabs)
 
-layout_metadata = column(metadata_table, metadata_issues_dropdown)
-
 layout_side_panel = column(
     layout_intensity,
-    row(layout_metadata, Spacer(width=30), aggr_hist_plot),
+    custom_tabs,
     row(column(layout_threshold_aggr, layout_controls), Spacer(width=50), layout_aggr)
 )
 
@@ -784,8 +797,9 @@ def update_client(image, metadata, aggr_image):
     aggr_image_proj_r_y = np.linspace(aggr_y_start, aggr_y_end, aggr_image_height)
     aggr_image_proj_r_x = np.linspace(aggr_x_start, aggr_x_end, aggr_image_width)
 
-    counts, edges = np.histogram(aggr_image, bins='scott')
-    aggr_hist_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
+    if custom_tabs.tabs[custom_tabs.active].title == "Debug":
+        counts, edges = np.histogram(aggr_image, bins='scott')
+        aggr_hist_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
 
     main_image_source.data.update(
         image=[image_color_mapper.to_rgba(main_image, bytes=True)],
