@@ -12,7 +12,7 @@ from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, C
     ColumnDataSource, Cross, CustomJS, DataRange1d, DataTable, DatetimeAxis, Dropdown, Ellipse, \
     Grid, HoverTool, ImageRGBA, Line, LinearAxis, LinearColorMapper, LogColorMapper, LogTicker, \
     Panel, PanTool, Plot, Quad, RadioButtonGroup, Range1d, Rect, ResetTool, Select, Slider, \
-    Spacer, TableColumn, Tabs, Text, TextInput, Toggle, WheelZoomTool
+    Spacer, TableColumn, Tabs, TapTool, Text, TextInput, Toggle, WheelZoomTool
 from bokeh.models.glyphs import Image
 from bokeh.palettes import Cividis256, Greys256, Plasma256  # pylint: disable=E0611
 from matplotlib.cm import ScalarMappable
@@ -370,6 +370,46 @@ aggr_hist_plot.add_glyph(
     aggr_hist_source, Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
 
 
+# Trajectory plot
+trajectory_plot = Plot(
+    x_range=DataRange1d(),
+    y_range=DataRange1d(),
+    plot_height=450,
+    plot_width=600,
+    toolbar_location='left',
+)
+
+# ---- tools
+trajectory_plot.toolbar.logo = None
+taptool = TapTool(names=['trajectory_circle'])
+trajectory_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), ResetTool(), taptool)
+
+# ---- axes
+trajectory_plot.add_layout(LinearAxis(), place='below')
+trajectory_plot.add_layout(LinearAxis(major_label_orientation='vertical'), place='left')
+
+# ---- grid lines
+trajectory_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
+trajectory_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
+
+# ---- line glyph
+trajectory_line_source = ColumnDataSource(dict(x=[1, 2, 3], y=[1, 2, 1]))
+trajectory_plot.add_glyph(trajectory_line_source, Line(x='x', y='y'))
+
+# ---- trajectory circle glyph and selection callback
+trajectory_circle_source = ColumnDataSource(dict(x=[1, 2, 3], y=[1, 2, 1]))
+trajectory_plot.add_glyph(
+    trajectory_circle_source, Circle(x='x', y='y', size=10, line_width=0),
+    selection_glyph=Circle(line_color='red', line_width=2),
+    nonselection_glyph=Circle(line_width=0),
+    name='trajectory_circle',
+)
+
+def trajectory_circle_source_callback(_attr, _old, _new):
+    pass
+
+trajectory_circle_source.selected.on_change('indices', trajectory_circle_source_callback)
+
 # Stream panel
 # ---- image buffer slider
 def image_buffer_slider_callback(_attr, _old, new):
@@ -690,7 +730,7 @@ debug_tab = Panel(
 )
 
 scan_tab = Panel(
-    child=row(),
+    child=row(trajectory_plot),
     title="Scan",
 )
 
