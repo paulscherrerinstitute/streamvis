@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="streamvis",
-    version="0.4.1",
+    version="0.4.2",
     author="Ivan Usov",
     author_email="ivan.usov@psi.ch",
     description="Live stream visualization server for detectors at PSI",
