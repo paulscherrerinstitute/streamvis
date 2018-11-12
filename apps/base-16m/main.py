@@ -896,9 +896,9 @@ def update_client(image, metadata, aggr_image):
         main_y_end = int(np.ceil(main_y_end))
         main_x_end = int(np.ceil(main_x_end))
 
-        textv = image[main_y_start:main_y_end+1, main_x_start:main_x_end+1].astype('int')
+        textv = image[main_y_start:main_y_end, main_x_start:main_x_end].astype('int')
         xv, yv = np.meshgrid(
-            np.arange(main_x_start, main_x_end+1), np.arange(main_y_start, main_y_end+1))
+            np.arange(main_x_start, main_x_end), np.arange(main_y_start, main_y_end))
         main_image_pvalue_source.data.update(
             x=xv.flatten() + 0.5,
             y=yv.flatten() + 0.5,
