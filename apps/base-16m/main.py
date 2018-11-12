@@ -1104,7 +1104,7 @@ def internal_periodic_callback():
             stream_button.button_type = 'success'
 
             current_metadata, current_image = receiver.data_buffer[-1]
-            current_aggr_image = receiver.proc_image.copy()
+            current_aggr_image = receiver.proc_image
 
             image_buffer.append((current_metadata, current_image))
 
