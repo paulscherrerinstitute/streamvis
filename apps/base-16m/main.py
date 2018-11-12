@@ -86,7 +86,7 @@ main_image_plot.add_layout(LinearAxis(major_label_orientation='vertical'), place
 lin_colormapper = LinearColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
 log_colormapper = LogColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
 color_bar = ColorBar(
-    color_mapper=lin_colormapper, location=(0, 0), orientation='horizontal', height=20,
+    color_mapper=lin_colormapper, location=(0, 0), orientation='horizontal', height=15,
     width=MAIN_CANVAS_WIDTH // 2, padding=0)
 
 main_image_plot.add_layout(color_bar, place='above')
@@ -146,7 +146,7 @@ main_sum_intensity_plot = Plot(
     x_range=DataRange1d(),
     y_range=DataRange1d(),
     plot_height=200,
-    plot_width=1420,
+    plot_width=1400,
     toolbar_location='below',
 )
 
@@ -174,7 +174,7 @@ aggr_sum_intensity_plot = Plot(
     x_range=DataRange1d(),
     y_range=DataRange1d(),
     plot_height=200,
-    plot_width=1420,
+    plot_width=1400,
     toolbar_location='below',
 )
 
@@ -348,7 +348,7 @@ aggr_hist_plot = Plot(
     x_range=DataRange1d(),
     y_range=DataRange1d(),
     plot_height=450,
-    plot_width=800,
+    plot_width=750,
     toolbar_location='left',
 )
 
@@ -735,7 +735,7 @@ scan_tab = Panel(
 )
 
 # assemble
-custom_tabs = Tabs(tabs=[debug_tab, scan_tab], height=530, width=1430)
+custom_tabs = Tabs(tabs=[debug_tab, scan_tab], height=530, width=1400)
 
 
 # Final layouts
@@ -759,10 +759,10 @@ layout_controls = column(colormap_panel, resolution_rings_toggle, data_source_ta
 layout_side_panel = column(
     layout_intensity,
     custom_tabs,
-    row(column(layout_threshold_aggr, layout_controls), Spacer(width=50), layout_aggr)
+    row(column(layout_threshold_aggr, layout_controls), Spacer(width=30), layout_aggr)
 )
 
-final_layout = row(layout_main, Spacer(width=50), layout_side_panel)
+final_layout = row(layout_main, Spacer(width=30), layout_side_panel)
 
 doc.add_root(row(Spacer(width=50), final_layout))
 
