@@ -911,8 +911,14 @@ def update_client(image, metadata, aggr_image):
     main_sum_intensity_source.stream(
         new_data=dict(x=[stream_t], y=[np.sum(image, dtype=np.float)]),
         rollover=STREAM_ROLLOVER)
+    aggr_y_start = int(np.floor(aggr_y_start))
+    aggr_x_start = int(np.floor(aggr_x_start))
+    aggr_y_end = int(np.ceil(aggr_y_end))
+    aggr_x_end = int(np.ceil(aggr_x_end))
     aggr_sum_intensity_source.stream(
-        new_data=dict(x=[stream_t], y=[np.sum(aggr_image, dtype=np.float)]),
+        new_data=dict(
+            x=[stream_t],
+            y=[np.sum(image[aggr_y_start:aggr_y_end, aggr_x_start:aggr_x_end], dtype=np.float)]),
         rollover=STREAM_ROLLOVER)
 
     # Number of saturated pixels
