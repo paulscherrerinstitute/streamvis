@@ -15,8 +15,8 @@ data_buffer = deque(maxlen=BUFFER_SIZE)
 state = 'polling'
 
 zmq_context = zmq.Context()
-zmq_socket = zmq_context.socket(zmq.SUB)  # pylint: disable=E1101
-zmq_socket.setsockopt_string(zmq.SUBSCRIBE, "")  # pylint: disable=E1101
+zmq_socket = zmq_context.socket(zmq.SUB)
+zmq_socket.setsockopt_string(zmq.SUBSCRIBE, "")
 zmq_socket.connect(args.detector_backend_address)
 
 poller = zmq.Poller()
