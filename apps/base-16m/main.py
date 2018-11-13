@@ -177,7 +177,7 @@ main_sum_intensity_plot.add_glyph(main_sum_intensity_source, Line(x='x', y='y'))
 aggr_sum_intensity_plot = Plot(
     x_range=DataRange1d(),
     y_range=DataRange1d(),
-    plot_height=200,
+    plot_height=175,
     plot_width=1400,
     toolbar_location='below',
 )
@@ -815,7 +815,11 @@ custom_tabs = Tabs(tabs=[debug_tab, scan_tab], height=530, width=1400)
 # Final layouts
 layout_main = column(main_image_plot)
 
-layout_aggr = column(aggr_image_proj_x_plot, row(aggr_image_plot, aggr_image_proj_y_plot))
+layout_aggr = column(
+    aggr_image_proj_x_plot,
+    row(aggr_image_plot, aggr_image_proj_y_plot),
+    row(resolution_rings_toggle),
+)
 
 layout_intensity = column(
     gridplot(
@@ -828,12 +832,12 @@ layout_threshold_aggr = column(
     aggregate_button, aggregate_time_textinput,
     aggregate_time_counter_textinput)
 
-layout_controls = column(colormap_panel, resolution_rings_toggle, data_source_tabs)
+layout_controls = column(layout_threshold_aggr, colormap_panel, data_source_tabs)
 
 layout_side_panel = column(
     layout_intensity,
     custom_tabs,
-    row(column(layout_threshold_aggr, layout_controls), Spacer(width=30), layout_aggr)
+    row(layout_controls, Spacer(width=30), layout_aggr)
 )
 
 final_layout = row(layout_main, Spacer(width=30), layout_side_panel)
