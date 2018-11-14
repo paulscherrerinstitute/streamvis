@@ -1,6 +1,7 @@
 import argparse
 from collections import deque
 
+import h5py
 import numpy as np
 import zmq
 
@@ -33,8 +34,12 @@ aggregate_counter = 1
 
 proc_image = 0
 
+mask_file = ''
+mask = None
+update_mask = False
+
 def stream_receive():
-    global state, proc_image, aggregate_counter
+    global state, proc_image, aggregate_counter, mask_file, mask, update_mask
     while True:
         events = dict(poller.poll(1000))
         if zmq_socket in events:
@@ -45,6 +50,24 @@ def stream_receive():
             image = image.astype('float32', copy=False)
 
             data_buffer.append((metadata, image))
+
+            if 'pedestal_file' in metadata:
+                if mask_file != metadata['pedestal_file']:
+                    try:
+                        mask_file = metadata['pedestal_file']
+                        with h5py.File(mask_file) as h5f:
+                            mask_data = h5f['/pixel_mask'][:].astype(bool)
+
+                        # Prepare rgba mask
+                        mask = np.zeros((*mask_data.shape, 4), dtype='uint8')
+                        mask[:, :, 1] = 255
+                        mask[:, :, 3] = 255 * mask_data
+                        update_mask = True
+
+                    except Exception:
+                        mask_file = ''
+                        mask = None
+                        update_mask = False
 
             image = image.copy()
 

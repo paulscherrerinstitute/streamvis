@@ -32,6 +32,7 @@ image_size_y = 1
 current_image = np.zeros((image_size_y, image_size_x), dtype='float32')
 current_metadata = dict(shape=[image_size_y, image_size_x])
 current_aggr_image = np.zeros((image_size_y, image_size_x), dtype='float32')
+placeholder_mask = np.zeros((image_size_y, image_size_x, 4), dtype='uint8')
 
 connected = False
 
@@ -102,6 +103,13 @@ main_image_source = ColumnDataSource(
 
 main_image_plot.add_glyph(
     main_image_source, ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh'))
+
+# ---- mask rgba image glyph
+mask_source = ColumnDataSource(
+    dict(image=[placeholder_mask], x=[0], y=[0], dw=[image_size_x], dh=[image_size_y]))
+
+mask_rgba_glyph = ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh')
+main_image_plot.add_glyph(mask_source, mask_rgba_glyph)
 
 # ---- pixel value text glyph
 main_image_pvalue_source = ColumnDataSource(dict(x=[], y=[], text=[]))
@@ -244,6 +252,9 @@ aggr_image_source = ColumnDataSource(
 
 aggr_image_plot.add_glyph(
     aggr_image_source, ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh'))
+
+# ---- mask rgba image glyph (shared with main_image_plot)
+aggr_image_plot.add_glyph(mask_source, mask_rgba_glyph)
 
 # ---- invisible image glyph
 hovertool_image_source = ColumnDataSource(dict(
@@ -708,6 +719,24 @@ resolution_rings_toggle = Toggle(label="Resolution Rings", button_type='default'
 resolution_rings_toggle.on_click(resolution_rings_toggle_callback)
 
 
+# Mask toggle button
+def mask_toggle_callback(state):
+    if state:
+        if receiver.update_mask:
+            mask_source.data.update(image=[receiver.mask])
+            receiver.update_mask = False
+
+        mask_rgba_glyph.global_alpha = 1
+        mask_toggle.button_type = 'warning'
+
+    else:
+        mask_rgba_glyph.global_alpha = 0
+        mask_toggle.button_type = 'default'
+
+mask_toggle = Toggle(label="Mask", button_type='default')
+mask_toggle.on_click(mask_toggle_callback)
+
+
 # Intensity threshold toggle button
 def threshold_button_callback(state):
     if state:
@@ -818,7 +847,7 @@ layout_main = column(main_image_plot)
 layout_aggr = column(
     aggr_image_proj_x_plot,
     row(aggr_image_plot, aggr_image_proj_y_plot),
-    row(resolution_rings_toggle),
+    row(resolution_rings_toggle, mask_toggle),
 )
 
 layout_intensity = column(
@@ -861,6 +890,7 @@ def update_client(image, metadata, aggr_image):
         image_size_x = metadata['shape'][1]
         main_image_source.data.update(full_dw=[image_size_x], full_dh=[image_size_y])
         aggr_image_source.data.update(full_dw=[image_size_x], full_dh=[image_size_y])
+        mask_source.data.update(dw=[image_size_x], dh=[image_size_y])
 
         main_image_plot.y_range.start = 0
         main_image_plot.x_range.start = 0
