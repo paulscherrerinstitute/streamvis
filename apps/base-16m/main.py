@@ -722,13 +722,8 @@ resolution_rings_toggle.on_click(resolution_rings_toggle_callback)
 # Mask toggle button
 def mask_toggle_callback(state):
     if state:
-        if receiver.update_mask:
-            mask_source.data.update(image=[receiver.mask])
-            receiver.update_mask = False
-
         mask_rgba_glyph.global_alpha = 1
         mask_toggle.button_type = 'warning'
-
     else:
         mask_rgba_glyph.global_alpha = 0
         mask_toggle.button_type = 'default'
@@ -1042,6 +1037,11 @@ def update_client(image, metadata, aggr_image):
     metadata_table_source.data.update(
         metadata=list(map(str, metadata.keys())), value=list(map(str, metadata.values())))
 
+    # Update mask if it's needed
+    if receiver.update_mask and mask_toggle.active:
+        mask_source.data.update(image=[receiver.mask])
+        receiver.update_mask = False
+
     # Check metadata for issues
     if 'module_enabled' in metadata:
         module_enabled = np.array(metadata['module_enabled'], dtype=bool)
@@ -1085,6 +1085,9 @@ def update_client(image, metadata, aggr_image):
     if 'saturated_pixels' in metadata:
         if metadata['saturated_pixels']:
             new_menu.append(('There are saturated pixels', '5'))
+
+    if mask_toggle.active and receiver.mask is None:
+        new_menu.append(('No pedestal file has been provided', '6'))
 
     if resolution_rings_toggle.active:
         if 'detector_distance' in metadata and 'beam_energy' in metadata and \
