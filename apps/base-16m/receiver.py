@@ -38,6 +38,55 @@ mask_file = ''
 mask = None
 update_mask = False
 
+# TODO: generalize via jungfrau_utils
+modules_orig_y = [
+    0, 0, 10, 10, 520, 520, 530, 530,
+    1040, 1040, 1050, 1050, 1560, 1560, 1570, 1570,
+    2080, 2080, 2090, 2090, 2600, 2600, 2610, 2610,
+    3120, 3120, 3130, 3130, 3640, 3640, 3650, 3650,
+]
+
+modules_orig_x = [
+    0, 1040, 2080, 3120, 0, 1040, 2080, 3120,
+    0, 1040, 2080, 3120, 0, 1040, 2080, 3120,
+    0, 1040, 2080, 3120, 0, 1040, 2080, 3120,
+    0, 1040, 2080, 3120, 0, 1040, 2080, 3120,
+]
+
+def arrange_image_geometry(image_in):
+    chip_shape_x = 256
+    chip_shape_y = 256
+
+    chip_gap_x = 2
+    chip_gap_y = 2
+
+    chip_num_x = 4
+    chip_num_y = 2
+
+    module_shape_x = 1024
+    module_shape_y = 512
+
+    image_out_shape_x = max(modules_orig_x) + module_shape_x + (chip_num_x-1)*chip_gap_x
+    image_out_shape_y = max(modules_orig_y) + module_shape_y + (chip_num_y-1)*chip_gap_y
+    image_out = np.ones((image_out_shape_y, image_out_shape_x), dtype=image_in.dtype)
+
+    for i, (oy, ox) in enumerate(zip(modules_orig_y, modules_orig_x)):
+        module_in = image_in[i*module_shape_y:(i+1)*module_shape_y, :]
+        for j in range(chip_num_y):
+            for k in range(chip_num_x):
+                # reading positions
+                ry_s = j*chip_shape_y
+                rx_s = k*chip_shape_x
+
+                # writing positions
+                wy_s = oy + ry_s + j*chip_gap_y
+                wx_s = ox + rx_s + k*chip_gap_x
+
+                image_out[wy_s:wy_s+chip_shape_y, wx_s:wx_s+chip_shape_x] = \
+                    module_in[ry_s:ry_s+chip_shape_y, rx_s:rx_s+chip_shape_x]
+
+    return image_out
+
 def stream_receive():
     global state, proc_image, aggregate_counter, mask_file, mask, update_mask
     while True:
@@ -57,6 +106,8 @@ def stream_receive():
                         mask_file = metadata['pedestal_file']
                         with h5py.File(mask_file) as h5f:
                             mask_data = h5f['/pixel_mask'][:].astype(bool)
+
+                        mask_data = arrange_image_geometry(mask_data)
 
                         # Prepare rgba mask
                         mask = np.zeros((*mask_data.shape, 4), dtype='uint8')
