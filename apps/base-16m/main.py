@@ -11,8 +11,8 @@ from bokeh.layouts import column, gridplot, row
 from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, Circle, ColorBar, \
     ColumnDataSource, Cross, CustomJS, DataRange1d, DataTable, DatetimeAxis, Dropdown, Ellipse, \
     Grid, HoverTool, ImageRGBA, Line, LinearAxis, LinearColorMapper, LogColorMapper, LogTicker, \
-    Panel, PanTool, Plot, Quad, RadioButtonGroup, Range1d, Rect, ResetTool, Select, Slider, \
-    Spacer, TableColumn, Tabs, TapTool, Text, TextInput, Toggle, WheelZoomTool
+    Panel, PanTool, Plot, Quad, RadioButtonGroup, Range1d, Rect, ResetTool, SaveTool, Select, \
+    Slider, Spacer, TableColumn, Tabs, TapTool, Text, TextInput, Toggle, WheelZoomTool
 from bokeh.models.glyphs import Image
 from bokeh.palettes import Cividis256, Greys256, Plasma256  # pylint: disable=E0611
 from matplotlib.cm import ScalarMappable
@@ -80,7 +80,7 @@ main_image_plot = Plot(
 
 # ---- tools
 main_image_plot.toolbar.logo = None
-main_image_plot.add_tools(PanTool(), WheelZoomTool(maintain_focus=False), ResetTool())
+main_image_plot.add_tools(PanTool(), WheelZoomTool(maintain_focus=False), SaveTool(), ResetTool())
 main_image_plot.toolbar.active_scroll = main_image_plot.tools[1]
 
 # ---- axes
@@ -238,7 +238,7 @@ hovertool = HoverTool(
     names=['hovertool_image']
 )
 aggr_image_plot.add_tools(
-    main_image_plot.tools[0], main_image_plot.tools[1], ResetTool(), hovertool)
+    main_image_plot.tools[0], main_image_plot.tools[1], SaveTool(), ResetTool(), hovertool)
 aggr_image_plot.toolbar.active_scroll = aggr_image_plot.tools[1]
 
 # ---- axes
@@ -369,7 +369,7 @@ aggr_hist_plot = Plot(
 
 # ---- tools
 aggr_hist_plot.toolbar.logo = None
-aggr_hist_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), ResetTool())
+aggr_hist_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool())
 
 # ---- axes
 aggr_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
