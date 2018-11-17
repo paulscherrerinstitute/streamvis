@@ -375,7 +375,7 @@ hdf5_file_path.on_change('value', hdf5_file_path_callback)
 def saved_runs_dropdown_callback(selection):
     saved_runs_dropdown.label = selection
 
-saved_runs_dropdown = Dropdown(label="Saved Runs", button_type='primary', menu=[])
+saved_runs_dropdown = Dropdown(label="Saved Runs", menu=[])
 saved_runs_dropdown.on_click(saved_runs_dropdown_callback)
 
 # ---- dataset path text input
@@ -539,14 +539,14 @@ colormap_panel = column(
 def threshold_button_callback(state):
     if state:
         receiver.threshold_flag = True
-        threshold_button.button_type = 'warning'
+        threshold_button.button_type = 'primary'
     else:
         receiver.threshold_flag = False
         threshold_button.button_type = 'default'
 
 threshold_button = Toggle(label="Apply Thresholding", active=receiver.threshold_flag)
 if receiver.threshold_flag:
-    threshold_button.button_type = 'warning'
+    threshold_button.button_type = 'primary'
 else:
     threshold_button.button_type = 'default'
 threshold_button.on_click(threshold_button_callback)
@@ -568,14 +568,14 @@ threshold_textinput.on_change('value', threshold_textinput_callback)
 def aggregate_button_callback(state):
     if state:
         receiver.aggregate_flag = True
-        aggregate_button.button_type = 'warning'
+        aggregate_button.button_type = 'primary'
     else:
         receiver.aggregate_flag = False
         aggregate_button.button_type = 'default'
 
 aggregate_button = Toggle(label="Apply Aggregation", active=receiver.aggregate_flag)
 if receiver.aggregate_flag:
-    aggregate_button.button_type = 'warning'
+    aggregate_button.button_type = 'primary'
 else:
     aggregate_button.button_type = 'default'
 aggregate_button.on_click(aggregate_button_callback)

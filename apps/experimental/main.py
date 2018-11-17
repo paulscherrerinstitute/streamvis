@@ -145,7 +145,7 @@ hdf5_file_path.on_change('value', hdf5_file_path_callback)
 def saved_runs_dropdown_callback(selection):
     saved_runs_dropdown.label = selection
 
-saved_runs_dropdown = Dropdown(label="Saved Runs", button_type='primary', menu=[])
+saved_runs_dropdown = Dropdown(label="Saved Runs", menu=[])
 saved_runs_dropdown.on_click(saved_runs_dropdown_callback)
 
 # ---- dataset path text input

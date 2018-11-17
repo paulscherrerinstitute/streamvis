@@ -456,12 +456,10 @@ hist_nbins_textinput.on_change('value', hist_nbins_callback)
 # ---- histogram log10 of counts toggle button
 def log10counts_toggle_callback(state):
     if state:
-        log10counts_toggle.button_type = 'warning'
         full_im_hist_plot.yaxis[0].axis_label = 'log⏨(Counts)'
         zoom1_hist_plot.yaxis[0].axis_label = 'log⏨(Counts)'
         zoom2_hist_plot.yaxis[0].axis_label = 'log⏨(Counts)'
     else:
-        log10counts_toggle.button_type = 'default'
         full_im_hist_plot.yaxis[0].axis_label = 'Counts'
         zoom1_hist_plot.yaxis[0].axis_label = 'Counts'
         zoom2_hist_plot.yaxis[0].axis_label = 'Counts'
@@ -525,7 +523,7 @@ hdf5_file_path.on_change('value', hdf5_file_path_callback)
 def saved_runs_dropdown_callback(selection):
     saved_runs_dropdown.label = selection
 
-saved_runs_dropdown = Dropdown(label="Saved Runs", button_type='primary', menu=[])
+saved_runs_dropdown = Dropdown(label="Saved Runs", menu=[])
 saved_runs_dropdown.on_click(saved_runs_dropdown_callback)
 
 # ---- dataset path text input
