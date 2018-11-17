@@ -54,7 +54,7 @@ STREAM_ROLLOVER = 36000
 HDF5_FILE_PATH = '/filepath'
 HDF5_FILE_PATH_UPDATE_PERIOD = 10000  # ms
 HDF5_DATASET_PATH = '/entry/data/data'
-hdf5_file_data = []
+hdf5_file_data = lambda pulse: None
 
 util_plot_size = 160
 

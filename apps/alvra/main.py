@@ -57,7 +57,7 @@ STREAM_ROLLOVER = 3600
 HDF5_FILE_PATH = '/filepath'
 HDF5_FILE_PATH_UPDATE_PERIOD = 10000  # ms
 HDF5_DATASET_PATH = '/entry/data/data'
-hdf5_file_data = []
+hdf5_file_data = lambda pulse: None
 
 # Initial values
 disp_min = 0

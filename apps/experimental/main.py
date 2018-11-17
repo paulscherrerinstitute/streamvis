@@ -35,7 +35,7 @@ APP_FPS = 1
 HDF5_FILE_PATH = '/filepath'
 HDF5_FILE_PATH_UPDATE_PERIOD = 10000  # ms
 HDF5_DATASET_PATH = '/entry/data/data'
-hdf5_file_data = []
+hdf5_file_data = lambda pulse: None
 
 hist_plot_size = 400
 

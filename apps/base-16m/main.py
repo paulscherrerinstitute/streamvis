@@ -52,7 +52,7 @@ image_buffer = deque(maxlen=60)
 HDF5_FILE_PATH = '/filepath'
 HDF5_FILE_PATH_UPDATE_PERIOD = 5000  # ms
 HDF5_DATASET_PATH = '/entry/data/data'
-hdf5_file_data = []
+hdf5_file_data = lambda pulse: None
 
 # Resolution rings positions in angstroms
 RESOLUTION_RINGS_POS = np.array([2, 2.2, 2.6, 3, 5, 10])
