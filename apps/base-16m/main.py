@@ -811,6 +811,7 @@ metadata_table = DataTable(
 )
 
 metadata_issues_dropdown = Dropdown(label="Metadata Issues", button_type='default', menu=[])
+show_all_metadata_toggle = Toggle(label="Show All", button_type='default')
 
 
 # Custom tabs
@@ -821,7 +822,10 @@ layout_hist = column(
 )
 
 debug_tab = Panel(
-    child=row(layout_hist, Spacer(width=30), column(metadata_table, metadata_issues_dropdown)),
+    child=row(
+        layout_hist, Spacer(width=30),
+        column(metadata_table, row(metadata_issues_dropdown, show_all_metadata_toggle))
+    ),
     title="Debug",
 )
 
@@ -1031,14 +1035,24 @@ def update_client(image, metadata, aggr_image):
     saturated_pixels = np.count_nonzero(image > 110_000)
     metadata['saturated_pixels'] = saturated_pixels
 
-    # Unpack metadata
-    metadata_table_source.data.update(
-        metadata=list(map(str, metadata.keys())), value=list(map(str, metadata.values())))
-
     # Update mask if it's needed
     if receiver.update_mask and mask_toggle.active:
         mask_source.data.update(image=[receiver.mask])
         receiver.update_mask = False
+
+    # Prepare a dictionary with metadata entries to show
+    if show_all_metadata_toggle.active:
+        metadata_toshow = metadata
+    else:
+        # metadata entries shown by default:
+        default_entries = [
+            'frame',
+            'pulse_id',
+            'is_good_frame',
+            'saturated_pixels',
+        ]
+
+        metadata_toshow = {entry: metadata[entry] for entry in default_entries if entry in metadata}
 
     # Check metadata for issues
     if 'module_enabled' in metadata:
@@ -1052,9 +1066,16 @@ def update_client(image, metadata, aggr_image):
             module_enabled.shape != pulse_id_diff.shape:
             new_menu.append(
                 ("Shapes of 'pulse_id_diff' and 'module_enabled' are not the same", '1'))
+            metadata_toshow.update({
+                'module_enabled': metadata['module_enabled'],
+                'pulse_id_diff': metadata['pulse_id_diff'],
+            })
         else:
             if np.any(pulse_id_diff[module_enabled]):
                 new_menu.append(('Not all pulse_id_diff are 0', '1'))
+                metadata_toshow.update({
+                    'pulse_id_diff': metadata['pulse_id_diff'],
+                })
 
     if 'missing_packets_1' in metadata:
         missing_packets_1 = np.array(metadata['missing_packets_1'])
@@ -1062,9 +1083,16 @@ def update_client(image, metadata, aggr_image):
             module_enabled.shape != missing_packets_1.shape:
             new_menu.append(
                 ("Shapes of 'missing_packets_1' and 'module_enabled' are not the same", '2'))
+            metadata_toshow.update({
+                'module_enabled': metadata['module_enabled'],
+                'missing_packets_1': metadata['missing_packets_1'],
+            })
         else:
             if np.any(missing_packets_1[module_enabled]):
                 new_menu.append(('There are missing_packets_1', '2'))
+                metadata_toshow.update({
+                    'missing_packets_1': metadata['missing_packets_1'],
+                })
 
     if 'missing_packets_2' in metadata:
         missing_packets_2 = np.array(metadata['missing_packets_2'])
@@ -1072,17 +1100,30 @@ def update_client(image, metadata, aggr_image):
             module_enabled.shape != missing_packets_2.shape:
             new_menu.append(
                 ("Shapes of 'missing_packets_2' and 'module_enabled' are not the same", '3'))
+            metadata_toshow.update({
+                'module_enabled': metadata['module_enabled'],
+                'missing_packets_2': metadata['missing_packets_2'],
+            })
         else:
             if np.any(missing_packets_2[module_enabled]):
                 new_menu.append(('There are missing_packets_2', '3'))
+                metadata_toshow.update({
+                    'missing_packets_2': metadata['missing_packets_2'],
+                })
 
     if 'is_good_frame' in metadata:
         if not metadata['is_good_frame']:
             new_menu.append(('Frame is not good', '4'))
+            metadata_toshow.update({
+                'is_good_frame': metadata['is_good_frame'],
+            })
 
     if 'saturated_pixels' in metadata:
         if metadata['saturated_pixels']:
             new_menu.append(('There are saturated pixels', '5'))
+            metadata_toshow.update({
+                'saturated_pixels': metadata['saturated_pixels'],
+            })
 
     if mask_toggle.active and receiver.mask is None:
         new_menu.append(('No pedestal file has been provided', '6'))
@@ -1111,6 +1152,12 @@ def update_client(image, metadata, aggr_image):
         main_image_rings_source.data.update(x=[], y=[], h=[], w=[])
         main_image_rings_text_source.data.update(x=[], y=[], text=[])
         main_image_rings_center_source.data.update(x=[], y=[])
+
+    # Unpack metadata
+    metadata_table_source.data.update(
+        metadata=list(map(str, metadata_toshow.keys())),
+        value=list(map(str, metadata_toshow.values())),
+    )
 
     metadata_issues_dropdown.menu = new_menu
     if new_menu:
