@@ -948,7 +948,7 @@ def update_client(image, metadata, aggr_image):
         else:  # manual
             kwarg = dict(bins=hist_nbins, range=(hist_lower, hist_upper))
 
-        counts, edges = np.histogram(aggr_image, **kwarg)
+        counts, edges = np.histogram(aggr_image[aggr_image != 0], **kwarg)
         aggr_hist_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
 
     main_image_source.data.update(
