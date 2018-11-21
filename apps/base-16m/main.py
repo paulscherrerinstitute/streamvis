@@ -158,7 +158,7 @@ main_sum_intensity_plot = Plot(
     x_range=DataRange1d(),
     y_range=DataRange1d(),
     plot_height=200,
-    plot_width=1400,
+    plot_width=1350,
     toolbar_location='below',
 )
 
@@ -185,8 +185,8 @@ main_sum_intensity_plot.add_glyph(main_sum_intensity_source, Line(x='x', y='y'))
 aggr_sum_intensity_plot = Plot(
     x_range=DataRange1d(),
     y_range=DataRange1d(),
-    plot_height=175,
-    plot_width=1400,
+    plot_height=200,
+    plot_width=1350,
     toolbar_location='below',
 )
 
@@ -362,8 +362,8 @@ aggr_image_proj_y_plot.add_glyph(
 aggr_hist_plot = Plot(
     x_range=DataRange1d(),
     y_range=DataRange1d(),
-    plot_height=320,
-    plot_width=750,
+    plot_height=280,
+    plot_width=700,
     toolbar_location='left',
 )
 
@@ -372,7 +372,7 @@ aggr_hist_plot.toolbar.logo = None
 aggr_hist_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool())
 
 # ---- axes
-aggr_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
+aggr_hist_plot.add_layout(LinearAxis(axis_label="Zoom Intensity"), place='below')
 #aggr_hist_plot.add_layout(LinearAxis(major_label_orientation='vertical'), place='left')
 
 # ---- grid lines
@@ -804,8 +804,8 @@ metadata_table = DataTable(
     columns=[
         TableColumn(field='metadata', title="Metadata Name"),
         TableColumn(field='value', title="Value")],
-    width=600,
-    height=400,
+    width=650,
+    height=360,
     index_position=None,
     selectable=False,
 )
@@ -815,6 +815,12 @@ show_all_metadata_toggle = Toggle(label="Show All", button_type='default')
 
 
 # Custom tabs
+layout_intensity = column(
+    gridplot(
+        [main_sum_intensity_plot, aggr_sum_intensity_plot],
+        ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
+    sum_intensity_reset_button)
+
 layout_hist = column(
     aggr_hist_plot,
     row(hist_nbins_textinput, column(Spacer(height=19), hist_radiobuttongroup)),
@@ -822,9 +828,12 @@ layout_hist = column(
 )
 
 debug_tab = Panel(
-    child=row(
-        layout_hist, Spacer(width=30),
-        column(metadata_table, row(metadata_issues_dropdown, show_all_metadata_toggle))
+    child=column(
+        layout_intensity,
+        row(
+            layout_hist, Spacer(width=30),
+            column(metadata_table, row(metadata_issues_dropdown, show_all_metadata_toggle))
+        )
     ),
     title="Debug",
 )
@@ -835,7 +844,7 @@ scan_tab = Panel(
 )
 
 # assemble
-custom_tabs = Tabs(tabs=[debug_tab, scan_tab], height=530, width=1400)
+custom_tabs = Tabs(tabs=[debug_tab, scan_tab], height=960, width=1400)
 
 
 # Final layouts
@@ -847,12 +856,6 @@ layout_aggr = column(
     row(resolution_rings_toggle, mask_toggle),
 )
 
-layout_intensity = column(
-    gridplot(
-        [main_sum_intensity_plot, aggr_sum_intensity_plot],
-        ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
-    sum_intensity_reset_button)
-
 layout_threshold_aggr = column(
     threshold_button, threshold_textinput,
     aggregate_button, aggregate_time_textinput,
@@ -861,7 +864,6 @@ layout_threshold_aggr = column(
 layout_controls = column(layout_threshold_aggr, colormap_panel, data_source_tabs)
 
 layout_side_panel = column(
-    layout_intensity,
     custom_tabs,
     row(layout_controls, Spacer(width=30), layout_aggr)
 )
