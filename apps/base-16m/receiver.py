@@ -10,8 +10,13 @@ parser.add_argument('--detector-backend-address', default='tcp://127.0.0.1:9001'
 parser.add_argument('--page-title', default="JF-Base-16M - StreamVis")
 args = parser.parse_args()
 
-BUFFER_SIZE = 1
+BUFFER_SIZE = 2000
 data_buffer = deque(maxlen=BUFFER_SIZE)
+
+pos_x = []
+pos_y = []
+
+run_name = ''
 
 state = 'polling'
 
@@ -88,11 +93,24 @@ def arrange_image_geometry(image_in):
     return image_out
 
 def stream_receive():
-    global state, proc_image, aggregate_counter, mask_file, mask, update_mask
+    global state, proc_image, aggregate_counter, mask_file, mask, update_mask, run_name, \
+        pos_x, pos_y
     while True:
         events = dict(poller.poll(1000))
         if zmq_socket in events:
             metadata = zmq_socket.recv_json(flags=0)
+
+            if 'run_name' in metadata:
+                if metadata['run_name'] != run_name:
+                    data_buffer.clear()
+                    pos_x.clear()
+                    pos_y.clear()
+                    run_name = metadata['run_name']
+
+                if 'swissmx_trajectory_details_1' in metadata:
+                    pos_x.append(metadata['frame'] % metadata['swissmx_trajectory_details_1'])
+                    pos_y.append(metadata['frame'] // metadata['swissmx_trajectory_details_1'])
+
             image = zmq_socket.recv(flags=0, copy=True, track=False)
             image = np.frombuffer(image, dtype=metadata['type']).reshape(metadata['shape'])
             image.setflags(write=True)

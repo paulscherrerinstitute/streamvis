@@ -452,7 +452,7 @@ hist_nbins_textinput.on_change('value', hist_nbins_callback)
 # Trajectory plot
 trajectory_plot = Plot(
     x_range=DataRange1d(),
-    y_range=DataRange1d(),
+    y_range=DataRange1d(flipped=True),
     plot_height=450,
     plot_width=600,
     toolbar_location='left',
@@ -472,11 +472,11 @@ trajectory_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
 trajectory_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
 # ---- line glyph
-trajectory_line_source = ColumnDataSource(dict(x=[1, 2, 3], y=[1, 2, 1]))
+trajectory_line_source = ColumnDataSource(dict(x=[], y=[]))
 trajectory_plot.add_glyph(trajectory_line_source, Line(x='x', y='y'))
 
 # ---- trajectory circle glyph and selection callback
-trajectory_circle_source = ColumnDataSource(dict(x=[1, 2, 3], y=[1, 2, 1]))
+trajectory_circle_source = ColumnDataSource(dict(x=[], y=[]))
 trajectory_plot.add_glyph(
     trajectory_circle_source, Circle(x='x', y='y', size=10, line_width=0),
     selection_glyph=Circle(line_color='red', line_width=2),
@@ -1039,6 +1039,10 @@ def update_client(image, metadata, aggr_image):
     if receiver.update_mask and mask_toggle.active:
         mask_source.data.update(image=[receiver.mask])
         receiver.update_mask = False
+
+    # Update scan positions
+    if custom_tabs.tabs[custom_tabs.active].title == "Scan":
+        trajectory_circle_source.data.update(x=receiver.pos_x, y=receiver.pos_y)
 
     # Prepare a dictionary with metadata entries to show
     if show_all_metadata_toggle.active:
