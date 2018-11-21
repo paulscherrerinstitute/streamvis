@@ -6,7 +6,9 @@ import numpy as np
 import zmq
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--detector-backend-address', default='tcp://127.0.0.1:9001')
+group = parser.add_mutually_exclusive_group()
+group.add_argument('--detector-backend-address')
+group.add_argument('--streamvis-bind-address')
 parser.add_argument('--page-title', default="JF-Base-16M - StreamVis")
 args = parser.parse_args()
 
@@ -23,7 +25,12 @@ state = 'polling'
 zmq_context = zmq.Context()
 zmq_socket = zmq_context.socket(zmq.SUB)
 zmq_socket.setsockopt_string(zmq.SUBSCRIBE, "")
-zmq_socket.connect(args.detector_backend_address)
+if args.detector_backend_address:
+    zmq_socket.connect(args.detector_backend_address)
+elif args.streamvis_bind_address:
+    zmq_socket.bind(args.streamvis_bind_address)
+else:  # Initial default behaviour
+    zmq_socket.connect('tcp://127.0.0.1:9001')
 
 poller = zmq.Poller()
 poller.register(zmq_socket, zmq.POLLIN)
