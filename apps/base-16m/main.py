@@ -452,8 +452,8 @@ hist_nbins_textinput.on_change('value', hist_nbins_callback)
 trajectory_plot = Plot(
     x_range=DataRange1d(),
     y_range=DataRange1d(flipped=True),
-    plot_height=450,
-    plot_width=600,
+    plot_height=600,
+    plot_width=800,
     toolbar_location='left',
 )
 
@@ -772,7 +772,7 @@ debug_tab = Panel(
 
 scan_tab = Panel(
     child=row(trajectory_plot),
-    title="Scan",
+    title="swissmx",
 )
 
 # assemble
@@ -968,7 +968,7 @@ def update_client(image, metadata):
         receiver.update_mask = False
 
     # Update scan positions
-    if custom_tabs.tabs[custom_tabs.active].title == "Scan":
+    if custom_tabs.tabs[custom_tabs.active].title == "swissmx":
         trajectory_circle_source.data.update(x=receiver.pos_x, y=receiver.pos_y)
 
     # Prepare a dictionary with metadata entries to show

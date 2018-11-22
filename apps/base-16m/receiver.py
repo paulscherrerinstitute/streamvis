@@ -8,7 +8,7 @@ import zmq
 parser = argparse.ArgumentParser()
 group = parser.add_mutually_exclusive_group()
 group.add_argument('--detector-backend-address')
-group.add_argument('--streamvis-bind-address')
+group.add_argument('--bind-address')
 parser.add_argument('--page-title', default="JF-Base-16M - StreamVis")
 args = parser.parse_args()
 
