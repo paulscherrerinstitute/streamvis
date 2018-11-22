@@ -850,7 +850,7 @@ def update_client(image, metadata):
         disp_max = int(np.max(image))
         colormap_display_max.value = str(disp_max)
 
-    pil_im = PIL_Image.fromarray(image)
+    pil_im = PIL_Image.fromarray(image.astype('float32'))
 
     main_image = np.asarray(
         pil_im.resize(

@@ -106,10 +106,10 @@ def stream_receive():
                     pos_x.append(metadata['swissmx_x'])
                     pos_y.append(metadata['swissmx_y'])
 
-            image = zmq_socket.recv(flags=0, copy=True, track=False)
-            image = np.frombuffer(image, dtype=metadata['type']).reshape(metadata['shape'])
-            image.setflags(write=True)
-            image = image.astype('float32', copy=False)
+            image = zmq_socket.recv(flags=0, copy=False, track=True)
+            image = np.frombuffer(image.buffer, dtype=metadata['type']).reshape(metadata['shape'])
+            if image.dtype != np.dtype('float16') and image.dtype != np.dtype('float32'):
+                image = image.astype('float32', copy=True)
 
             data_buffer.append((metadata, image))
 
