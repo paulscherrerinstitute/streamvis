@@ -460,7 +460,9 @@ trajectory_plot = Plot(
 # ---- tools
 trajectory_plot.toolbar.logo = None
 taptool = TapTool(names=['trajectory_circle'])
-trajectory_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), ResetTool(), taptool)
+trajectory_plot.add_tools(
+    PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool(), taptool,
+)
 
 # ---- axes
 trajectory_plot.add_layout(LinearAxis(), place='below')
