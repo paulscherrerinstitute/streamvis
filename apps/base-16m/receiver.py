@@ -114,9 +114,9 @@ def stream_receive():
                     pos_y.clear()
                     run_name = metadata['run_name']
 
-                if 'swissmx_trajectory_details_1' in metadata:
-                    pos_x.append(metadata['frame'] % metadata['swissmx_trajectory_details_1'])
-                    pos_y.append(metadata['frame'] // metadata['swissmx_trajectory_details_1'])
+                if 'swissmx_x' in metadata and 'swissmx_y' in metadata:
+                    pos_x.append(metadata['swissmx_x'])
+                    pos_y.append(metadata['swissmx_y'])
 
             image = zmq_socket.recv(flags=0, copy=True, track=False)
             image = np.frombuffer(image, dtype=metadata['type']).reshape(metadata['shape'])
