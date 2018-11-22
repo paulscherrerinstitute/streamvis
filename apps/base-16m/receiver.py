@@ -27,8 +27,8 @@ zmq_socket = zmq_context.socket(zmq.SUB)
 zmq_socket.setsockopt_string(zmq.SUBSCRIBE, "")
 if args.detector_backend_address:
     zmq_socket.connect(args.detector_backend_address)
-elif args.streamvis_bind_address:
-    zmq_socket.bind(args.streamvis_bind_address)
+elif args.bind_address:
+    zmq_socket.bind(args.bind_address)
 else:  # Initial default behaviour
     zmq_socket.connect('tcp://127.0.0.1:9001')
 
