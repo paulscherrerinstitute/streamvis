@@ -31,7 +31,6 @@ image_size_y = 1
 
 current_image = np.zeros((image_size_y, image_size_x), dtype='float32')
 current_metadata = dict(shape=[image_size_y, image_size_x])
-current_aggr_image = np.zeros((image_size_y, image_size_x), dtype='float32')
 placeholder_mask = np.zeros((image_size_y, image_size_x, 4), dtype='uint8')
 
 connected = False
@@ -565,7 +564,7 @@ def load_file_button_callback():
     file_name = os.path.join(hdf5_file_path.value, saved_runs_dropdown.label)
     hdf5_file_data = partial(mx_image, file=file_name, dataset=hdf5_dataset_path.value)
     current_image, current_metadata = hdf5_file_data(i=hdf5_pulse_slider.value)
-    update_client(current_image, current_metadata, current_image)
+    update_client(current_image, current_metadata)
 
 load_file_button = Button(label="Load", button_type='default')
 load_file_button.on_click(load_file_button_callback)
@@ -574,7 +573,7 @@ load_file_button.on_click(load_file_button_callback)
 def hdf5_pulse_slider_callback(_attr, _old, new):
     global hdf5_file_data, current_image, current_metadata
     current_image, current_metadata = hdf5_file_data(i=new['value'][0])
-    update_client(current_image, current_metadata, current_image)
+    update_client(current_image, current_metadata)
 
 hdf5_pulse_slider_source = ColumnDataSource(dict(value=[]))
 hdf5_pulse_slider_source.on_change('data', hdf5_pulse_slider_callback)
@@ -730,73 +729,6 @@ mask_toggle = Toggle(label="Mask", button_type='default')
 mask_toggle.on_click(mask_toggle_callback)
 
 
-# Intensity threshold toggle button
-def threshold_button_callback(state):
-    if state:
-        receiver.threshold_flag = True
-        threshold_button.button_type = 'primary'
-    else:
-        receiver.threshold_flag = False
-        threshold_button.button_type = 'default'
-
-threshold_button = Toggle(label="Apply Thresholding", active=receiver.threshold_flag)
-if receiver.threshold_flag:
-    threshold_button.button_type = 'primary'
-else:
-    threshold_button.button_type = 'default'
-threshold_button.on_click(threshold_button_callback)
-
-
-# Intensity threshold value textinput
-def threshold_textinput_callback(_attr, old, new):
-    try:
-        receiver.threshold = float(new)
-
-    except ValueError:
-        threshold_textinput.value = old
-
-threshold_textinput = TextInput(title='Intensity Threshold:', value=str(receiver.threshold))
-threshold_textinput.on_change('value', threshold_textinput_callback)
-
-
-# Aggregation time toggle button
-def aggregate_button_callback(state):
-    if state:
-        receiver.aggregate_flag = True
-        aggregate_button.button_type = 'primary'
-    else:
-        receiver.aggregate_flag = False
-        aggregate_button.button_type = 'default'
-
-aggregate_button = Toggle(label="Apply Aggregation", active=receiver.aggregate_flag)
-if receiver.aggregate_flag:
-    aggregate_button.button_type = 'primary'
-else:
-    aggregate_button.button_type = 'default'
-aggregate_button.on_click(aggregate_button_callback)
-
-
-# Aggregation time value textinput
-def aggregate_time_textinput_callback(_attr, old, new):
-    try:
-        new_value = float(new)
-        if new_value >= 1:
-            receiver.aggregate_time = new_value
-        else:
-            aggregate_time_textinput.value = old
-
-    except ValueError:
-        aggregate_time_textinput.value = old
-
-aggregate_time_textinput = TextInput(title='Aggregate Time:', value=str(receiver.aggregate_time))
-aggregate_time_textinput.on_change('value', aggregate_time_textinput_callback)
-
-
-# Aggregate time counter value textinput
-aggregate_time_counter_textinput = TextInput(
-    title='Aggregate Counter:', value=str(receiver.aggregate_counter), disabled=True)
-
-
 # Metadata table
 metadata_table_source = ColumnDataSource(dict(metadata=['', '', ''], value=['', '', '']))
 metadata_table = DataTable(
@@ -856,12 +788,7 @@ layout_aggr = column(
     row(resolution_rings_toggle, mask_toggle),
 )
 
-layout_threshold_aggr = column(
-    threshold_button, threshold_textinput,
-    aggregate_button, aggregate_time_textinput,
-    aggregate_time_counter_textinput)
-
-layout_controls = column(layout_threshold_aggr, colormap_panel, data_source_tabs)
+layout_controls = column(colormap_panel, data_source_tabs)
 
 layout_side_panel = column(
     custom_tabs,
@@ -874,7 +801,7 @@ doc.add_root(row(Spacer(width=50), final_layout))
 
 
 @gen.coroutine
-def update_client(image, metadata, aggr_image):
+def update_client(image, metadata):
     global disp_min, disp_max, image_size_x, image_size_y
     main_image_height = main_image_plot.inner_height
     main_image_width = main_image_plot.inner_width
@@ -931,10 +858,8 @@ def update_client(image, metadata, aggr_image):
             box=(main_x_start, main_y_start, main_x_end, main_y_end),
             resample=PIL_Image.NEAREST))
 
-    aggr_pil_im = PIL_Image.fromarray(aggr_image)
-
     aggr_image = np.asarray(
-        aggr_pil_im.resize(
+        pil_im.resize(
             size=(aggr_image_width, aggr_image_height),
             box=(aggr_x_start, aggr_y_start, aggr_x_end, aggr_y_end),
             resample=PIL_Image.NEAREST))
@@ -1177,7 +1102,7 @@ def update_client(image, metadata, aggr_image):
 
 @gen.coroutine
 def internal_periodic_callback():
-    global current_image, current_metadata, current_aggr_image
+    global current_image, current_metadata
     if main_image_plot.inner_width is None:
         # wait for the initialization to finish, thus skip this periodic callback
         return
@@ -1192,7 +1117,6 @@ def internal_periodic_callback():
             stream_button.button_type = 'success'
 
             current_metadata, current_image = receiver.data_buffer[-1]
-            current_aggr_image = receiver.proc_image
 
             image_buffer.append((current_metadata, current_image))
 
@@ -1201,11 +1125,8 @@ def internal_periodic_callback():
                 image_buffer_slider.end = len(image_buffer) - 1
                 image_buffer_slider.value = len(image_buffer) - 1
 
-            aggregate_time_counter_textinput.value = str(receiver.aggregate_counter)
-
     if current_image.shape != (1, 1):
         doc.add_next_tick_callback(partial(
-            update_client, image=current_image, metadata=current_metadata,
-            aggr_image=current_aggr_image))
+            update_client, image=current_image, metadata=current_metadata))
 
 doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)

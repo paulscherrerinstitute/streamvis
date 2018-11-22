@@ -35,17 +35,6 @@ else:  # Initial default behaviour
 poller = zmq.Poller()
 poller.register(zmq_socket, zmq.POLLIN)
 
-# threshold data parameters
-threshold_flag = False
-threshold = 0
-
-# aggregate data parameters
-aggregate_flag = False
-aggregate_time = np.Inf
-aggregate_counter = 1
-
-proc_image = 0
-
 mask_file = ''
 mask = None
 update_mask = False
@@ -100,8 +89,7 @@ def arrange_image_geometry(image_in):
     return image_out
 
 def stream_receive():
-    global state, proc_image, aggregate_counter, mask_file, mask, update_mask, run_name, \
-        pos_x, pos_y
+    global state, mask_file, mask, update_mask, run_name, pos_x, pos_y
     while True:
         events = dict(poller.poll(1000))
         if zmq_socket in events:
@@ -144,18 +132,6 @@ def stream_receive():
                         mask_file = ''
                         mask = None
                         update_mask = False
-
-            image = image.copy()
-
-            if threshold_flag:
-                image[image < threshold] = 0
-
-            if aggregate_flag and aggregate_counter < aggregate_time:
-                proc_image += image
-                aggregate_counter += 1
-            else:
-                proc_image = image
-                aggregate_counter = 1
 
             state = 'receiving'
 
