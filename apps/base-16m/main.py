@@ -477,11 +477,12 @@ trajectory_line_source = ColumnDataSource(dict(x=[], y=[]))
 trajectory_plot.add_glyph(trajectory_line_source, Line(x='x', y='y'))
 
 # ---- trajectory circle glyph and selection callback
-trajectory_circle_source = ColumnDataSource(dict(x=[], y=[]))
+trajectory_circle_source = ColumnDataSource(dict(x=[], y=[], a=[]))
 trajectory_plot.add_glyph(
-    trajectory_circle_source, Circle(x='x', y='y', size=10, line_width=0),
-    selection_glyph=Circle(line_color='red', line_width=2),
-    nonselection_glyph=Circle(line_width=0),
+    trajectory_circle_source,
+    Circle(x='x', y='y', fill_alpha='a', fill_color='red', size=10),
+    selection_glyph=Circle(fill_alpha='a', fill_color='red', line_color='blue', line_width=3),
+    nonselection_glyph=Circle(fill_alpha='a', fill_color='red'),
     name='trajectory_circle',
 )
 
@@ -969,7 +970,7 @@ def update_client(image, metadata):
 
     # Update scan positions
     if custom_tabs.tabs[custom_tabs.active].title == "swissmx":
-        trajectory_circle_source.data.update(x=receiver.pos_x, y=receiver.pos_y)
+        trajectory_circle_source.data.update(x=receiver.pos_x, y=receiver.pos_y, a=receiver.alpha)
 
     # Prepare a dictionary with metadata entries to show
     if show_all_metadata_toggle.active:

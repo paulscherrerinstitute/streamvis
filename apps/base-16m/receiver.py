@@ -16,6 +16,7 @@ args = parser.parse_args()
 data_buffer = deque(maxlen=args.buffer_size)
 pos_x = deque(maxlen=args.buffer_size)
 pos_y = deque(maxlen=args.buffer_size)
+alpha = deque(maxlen=args.buffer_size)
 
 run_name = ''
 
@@ -96,7 +97,7 @@ def arrange_image_geometry(image_in):
     return image_out
 
 def stream_receive():
-    global state, mask_file, mask, update_mask, run_name, pos_x, pos_y
+    global state, mask_file, mask, update_mask, run_name, pos_x, pos_y, alpha
     while True:
         events = dict(poller.poll(1000))
         if zmq_socket in events:
@@ -107,11 +108,14 @@ def stream_receive():
                     data_buffer.clear()
                     pos_x.clear()
                     pos_y.clear()
+                    alpha.clear()
                     run_name = metadata['run_name']
 
-                if 'swissmx_x' in metadata and 'swissmx_y' in metadata:
+                if 'swissmx_x' in metadata and 'swissmx_y' in metadata and \
+                    'number_of_spots' in metadata:
                     pos_x.append(metadata['swissmx_x'])
                     pos_y.append(metadata['swissmx_y'])
+                    alpha.append(metadata['number_of_spots'] / 100)
 
             image = zmq_socket.recv(flags=0, copy=False, track=False)
             image = np.frombuffer(image.buffer, dtype=metadata['type']).reshape(metadata['shape'])
