@@ -962,10 +962,6 @@ def update_client(image, metadata):
             y=[np.sum(image[aggr_y_start:aggr_y_end, aggr_x_start:aggr_x_end], dtype=np.float)]),
         rollover=STREAM_ROLLOVER)
 
-    # Number of saturated pixels
-    saturated_pixels = np.count_nonzero(image > 110_000)
-    metadata['saturated_pixels'] = saturated_pixels
-
     # Update mask if it's needed
     if receiver.update_mask and mask_toggle.active:
         mask_source.data.update(image=[receiver.mask])
