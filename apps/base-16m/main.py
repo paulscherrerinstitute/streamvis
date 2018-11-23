@@ -485,8 +485,10 @@ trajectory_plot.add_glyph(
     name='trajectory_circle',
 )
 
-def trajectory_circle_source_callback(_attr, _old, _new):
-    pass
+def trajectory_circle_source_callback(_attr, _old, new):
+    global current_image, current_metadata
+    if new:
+        current_metadata, current_image = receiver.data_buffer[new[0]]
 
 trajectory_circle_source.selected.on_change('indices', trajectory_circle_source_callback)
 
@@ -1119,6 +1121,7 @@ def internal_periodic_callback():
             stream_button.button_type = 'success'
 
             current_metadata, current_image = receiver.data_buffer[-1]
+            trajectory_circle_source.selected.indices = []
 
             image_buffer.append((current_metadata, current_image))
 

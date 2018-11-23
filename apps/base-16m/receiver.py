@@ -14,9 +14,8 @@ args = parser.parse_args()
 
 BUFFER_SIZE = 2000
 data_buffer = deque(maxlen=BUFFER_SIZE)
-
-pos_x = []
-pos_y = []
+pos_x = deque(maxlen=BUFFER_SIZE)
+pos_y = deque(maxlen=BUFFER_SIZE)
 
 run_name = ''
 
