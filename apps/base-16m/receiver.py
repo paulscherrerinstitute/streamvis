@@ -22,7 +22,7 @@ run_name = ''
 
 state = 'polling'
 
-zmq_context = zmq.Context()
+zmq_context = zmq.Context(io_threads=2)
 zmq_socket = zmq_context.socket(zmq.SUB)
 zmq_socket.setsockopt_string(zmq.SUBSCRIBE, "")
 if args.detector_backend_address:
