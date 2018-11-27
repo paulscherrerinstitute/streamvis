@@ -970,7 +970,9 @@ def update_client(image, metadata):
 
     # Update scan positions
     if custom_tabs.tabs[custom_tabs.active].title == "swissmx":
-        trajectory_circle_source.data.update(x=receiver.pos_x, y=receiver.pos_y, a=receiver.alpha)
+        trajectory_circle_source.data.update(
+            x=list(receiver.pos_x), y=list(receiver.pos_y), a=list(receiver.alpha),
+        )
 
     # Prepare a dictionary with metadata entries to show
     if show_all_metadata_toggle.active:
