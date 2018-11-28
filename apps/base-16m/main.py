@@ -15,7 +15,8 @@ from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, C
     Panel, PanTool, Plot, Quad, RadioButtonGroup, Range1d, Rect, ResetTool, SaveTool, Select, \
     Slider, Spacer, TableColumn, Tabs, TapTool, Text, TextInput, Toggle, WheelZoomTool
 from bokeh.models.glyphs import Image
-from bokeh.palettes import Cividis256, Greys256, Plasma256  # pylint: disable=E0611
+from bokeh.palettes import Cividis256, Greys256, Plasma256, Reds9  # pylint: disable=E0611
+from bokeh.transform import linear_cmap
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LogNorm, Normalize
 from PIL import Image as PIL_Image
@@ -483,12 +484,13 @@ trajectory_line_source = ColumnDataSource(dict(x=[], y=[]))
 trajectory_plot.add_glyph(trajectory_line_source, Line(x='x', y='y'))
 
 # ---- trajectory circle glyph and selection callback
-trajectory_circle_source = ColumnDataSource(dict(x=[], y=[], a=[], frame=[], nspots=[]))
+circle_mapper = linear_cmap(field_name='nspots', palette=['#ffffff']+Reds9[::-1], low=0, high=100)
+trajectory_circle_source = ColumnDataSource(dict(x=[], y=[], frame=[], nspots=[]))
 trajectory_plot.add_glyph(
     trajectory_circle_source,
-    Circle(x='x', y='y', fill_alpha='a', fill_color='red', size=10),
-    selection_glyph=Circle(fill_alpha='a', fill_color='red', line_color='blue', line_width=3),
-    nonselection_glyph=Circle(fill_alpha='a', fill_color='red'),
+    Circle(x='x', y='y', fill_color=circle_mapper, size=12),
+    selection_glyph=Circle(fill_color=circle_mapper, line_color='blue', line_width=3),
+    nonselection_glyph=Circle(fill_color=circle_mapper),
     name='trajectory_circle',
 )
 
@@ -1020,7 +1022,7 @@ def update_client(image, metadata):
     # Update scan positions
     if custom_tabs.tabs[custom_tabs.active].title == "swissmx":
         trajectory_circle_source.data.update(
-            x=list(receiver.pos_x), y=list(receiver.pos_y), a=list(receiver.alpha),
+            x=list(receiver.pos_x), y=list(receiver.pos_y),
             frame=list(receiver.frame), nspots=list(receiver.nspots),
         )
 
