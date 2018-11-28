@@ -17,6 +17,8 @@ data_buffer = deque(maxlen=args.buffer_size)
 pos_x = deque(maxlen=args.buffer_size)
 pos_y = deque(maxlen=args.buffer_size)
 alpha = deque(maxlen=args.buffer_size)
+frame = deque(maxlen=args.buffer_size)
+nspots = deque(maxlen=args.buffer_size)
 
 run_name = ''
 
@@ -109,13 +111,17 @@ def stream_receive():
                     pos_x.clear()
                     pos_y.clear()
                     alpha.clear()
+                    frame.clear()
+                    nspots.clear()
                     run_name = metadata['run_name']
 
                 if 'swissmx_x' in metadata and 'swissmx_y' in metadata and \
-                    'number_of_spots' in metadata:
+                    'number_of_spots' in metadata and 'frame' in metadata:
                     pos_x.append(metadata['swissmx_x'])
                     pos_y.append(metadata['swissmx_y'])
                     alpha.append(metadata['number_of_spots'] / 100)
+                    frame.append(metadata['frame'])
+                    nspots.append(metadata['number_of_spots'])
 
             image = zmq_socket.recv(flags=0, copy=False, track=False)
             image = np.frombuffer(image.buffer, dtype=metadata['type']).reshape(metadata['shape'])

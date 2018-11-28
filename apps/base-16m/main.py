@@ -459,8 +459,15 @@ trajectory_plot = Plot(
 # ---- tools
 trajectory_plot.toolbar.logo = None
 taptool = TapTool(names=['trajectory_circle'])
+trajectory_ht = HoverTool(
+    tooltips=[
+        ("frame", "@frame"),
+        ("number of spots", "@nspots"),
+    ],
+    names=['trajectory_circle'],
+)
 trajectory_plot.add_tools(
-    PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool(), taptool,
+    PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool(), taptool, trajectory_ht,
 )
 
 # ---- axes
@@ -476,7 +483,7 @@ trajectory_line_source = ColumnDataSource(dict(x=[], y=[]))
 trajectory_plot.add_glyph(trajectory_line_source, Line(x='x', y='y'))
 
 # ---- trajectory circle glyph and selection callback
-trajectory_circle_source = ColumnDataSource(dict(x=[], y=[], a=[]))
+trajectory_circle_source = ColumnDataSource(dict(x=[], y=[], a=[], frame=[], nspots=[]))
 trajectory_plot.add_glyph(
     trajectory_circle_source,
     Circle(x='x', y='y', fill_alpha='a', fill_color='red', size=10),
@@ -1012,6 +1019,7 @@ def update_client(image, metadata):
     if custom_tabs.tabs[custom_tabs.active].title == "swissmx":
         trajectory_circle_source.data.update(
             x=list(receiver.pos_x), y=list(receiver.pos_y), a=list(receiver.alpha),
+            frame=list(receiver.frame), nspots=list(receiver.nspots),
         )
 
     # Prepare a dictionary with metadata entries to show
