@@ -690,7 +690,7 @@ def colormap_auto_toggle_callback(state):
         colormap_display_min.disabled = False
         colormap_display_max.disabled = False
 
-colormap_auto_toggle = Toggle(label="Auto", active=True, button_type='default')
+colormap_auto_toggle = Toggle(label="Auto", active=False, button_type='default')
 colormap_auto_toggle.on_click(colormap_auto_toggle_callback)
 
 # ---- colormap scale radiobutton group
@@ -748,9 +748,11 @@ def colormap_display_min_callback(_attr, old, new):
     except ValueError:
         colormap_display_min.value = old
 
-colormap_display_max = TextInput(title='Maximal Display Value:', value=str(disp_max), disabled=True)
+colormap_display_max = TextInput(
+    title='Maximal Display Value:', value=str(disp_max), disabled=colormap_auto_toggle.active)
 colormap_display_max.on_change('value', colormap_display_max_callback)
-colormap_display_min = TextInput(title='Minimal Display Value:', value=str(disp_min), disabled=True)
+colormap_display_min = TextInput(
+    title='Minimal Display Value:', value=str(disp_min), disabled=colormap_auto_toggle.active)
 colormap_display_min.on_change('value', colormap_display_min_callback)
 
 # assemble
