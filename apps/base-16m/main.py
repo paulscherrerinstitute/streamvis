@@ -48,9 +48,7 @@ APP_FPS = 1
 STREAM_ROLLOVER = 36000
 image_buffer = deque(maxlen=60)
 
-HDF5_FILE_PATH = '/filepath'
 HDF5_FILE_PATH_UPDATE_PERIOD = 5000  # ms
-HDF5_DATASET_PATH = '/entry/data/data'
 hdf5_file_data = lambda pulse: None
 
 # Resolution rings positions in angstroms
@@ -526,6 +524,27 @@ tab_stream = Panel(child=column(image_buffer_slider, stream_button), title="Stre
 
 
 # HDF5 File panel
+# ---- gain file path textinput
+def gain_file_path_update():
+    pass
+
+def gain_file_path_callback(_attr, _old, _new):
+    gain_file_path_update()
+
+gain_file_path = TextInput(title="Gain File:", value='')
+gain_file_path.on_change('value', gain_file_path_callback)
+
+# ---- pedestal file path textinput
+def pedestal_file_path_update():
+    pass
+
+def pedestal_file_path_callback(_attr, _old, _new):
+    pedestal_file_path_update()
+
+pedestal_file_path = TextInput(title="Pedestal File:", value='')
+pedestal_file_path.on_change('value', pedestal_file_path_callback)
+
+# ---- saved runs path textinput
 def hdf5_file_path_update():
     new_menu = []
     if os.path.isdir(hdf5_file_path.value):
@@ -537,11 +556,10 @@ def hdf5_file_path_update():
 
 doc.add_periodic_callback(hdf5_file_path_update, HDF5_FILE_PATH_UPDATE_PERIOD)
 
-# ---- folder path text input
 def hdf5_file_path_callback(_attr, _old, _new):
     hdf5_file_path_update()
 
-hdf5_file_path = TextInput(title="Folder Path:", value=HDF5_FILE_PATH)
+hdf5_file_path = TextInput(title="Saved Runs Folder:", value='')
 hdf5_file_path.on_change('value', hdf5_file_path_callback)
 
 # ---- saved runs dropdown menu
@@ -551,23 +569,20 @@ def saved_runs_dropdown_callback(selection):
 saved_runs_dropdown = Dropdown(label="Saved Runs", menu=[])
 saved_runs_dropdown.on_click(saved_runs_dropdown_callback)
 
-# ---- dataset path text input
-hdf5_dataset_path = TextInput(title="Dataset Path:", value=HDF5_DATASET_PATH)
-
 # ---- load button
-def mx_image(file, dataset, i):
+def mx_image(file, i):
     # hdf5plugin is required to be loaded prior to h5py without a follow-up use
     import hdf5plugin  # pylint: disable=W0612
     import h5py
     with h5py.File(file, 'r') as f:
-        image = f[dataset][i, :, :].astype('float32')
+        image = f['/entry/data/data'][i, :, :].astype('float32')
         metadata = dict(shape=list(image.shape))
     return image, metadata
 
 def load_file_button_callback():
     global hdf5_file_data, current_image, current_metadata
-    file_name = os.path.join(hdf5_file_path.value, saved_runs_dropdown.label)
-    hdf5_file_data = partial(mx_image, file=file_name, dataset=hdf5_dataset_path.value)
+    file_name = os.path.join(gain_file_path.value, saved_runs_dropdown.label)
+    hdf5_file_data = partial(mx_image, file=file_name)
     current_image, current_metadata = hdf5_file_data(i=hdf5_pulse_slider.value)
     update_client(current_image, current_metadata)
 
@@ -593,7 +608,7 @@ hdf5_pulse_slider.callback = CustomJS(
 # assemble
 tab_hdf5file = Panel(
     child=column(
-        hdf5_file_path, saved_runs_dropdown, hdf5_dataset_path, load_file_button,
+        gain_file_path, pedestal_file_path, hdf5_file_path, saved_runs_dropdown, load_file_button,
         hdf5_pulse_slider),
     title="HDF5 File")
 
