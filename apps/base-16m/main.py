@@ -1021,9 +1021,10 @@ def update_client(image, metadata):
 
     # Update scan positions
     if custom_tabs.tabs[custom_tabs.active].title == "swissmx":
+        peakfinder_buffer = np.array(receiver.peakfinder_buffer)
         trajectory_circle_source.data.update(
-            x=list(receiver.pos_x), y=list(receiver.pos_y),
-            frame=list(receiver.frame), nspots=list(receiver.nspots),
+            x=peakfinder_buffer[:, 0], y=peakfinder_buffer[:, 1],
+            frame=peakfinder_buffer[:, 2], nspots=peakfinder_buffer[:, 3],
         )
 
     # Prepare a dictionary with metadata entries to show

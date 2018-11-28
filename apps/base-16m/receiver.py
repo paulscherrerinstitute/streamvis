@@ -14,10 +14,7 @@ parser.add_argument('--buffer-size', type=int, default=1)
 args = parser.parse_args()
 
 data_buffer = deque(maxlen=args.buffer_size)
-pos_x = deque(maxlen=args.buffer_size)
-pos_y = deque(maxlen=args.buffer_size)
-frame = deque(maxlen=args.buffer_size)
-nspots = deque(maxlen=args.buffer_size)
+peakfinder_buffer = deque(maxlen=args.buffer_size)
 
 run_name = ''
 
@@ -98,7 +95,7 @@ def arrange_image_geometry(image_in):
     return image_out
 
 def stream_receive():
-    global state, mask_file, mask, update_mask, run_name, pos_x, pos_y
+    global state, mask_file, mask, update_mask, run_name
     while True:
         events = dict(poller.poll(1000))
         if zmq_socket in events:
@@ -107,18 +104,15 @@ def stream_receive():
             if 'run_name' in metadata:
                 if metadata['run_name'] != run_name:
                     data_buffer.clear()
-                    pos_x.clear()
-                    pos_y.clear()
-                    frame.clear()
-                    nspots.clear()
+                    peakfinder_buffer.clear()
                     run_name = metadata['run_name']
 
                 if 'swissmx_x' in metadata and 'swissmx_y' in metadata and \
                     'number_of_spots' in metadata and 'frame' in metadata:
-                    pos_x.append(metadata['swissmx_x'])
-                    pos_y.append(metadata['swissmx_y'])
-                    frame.append(metadata['frame'])
-                    nspots.append(metadata['number_of_spots'])
+                    peakfinder_buffer.append(np.array([
+                        metadata['swissmx_x'], metadata['swissmx_y'], metadata['frame'],
+                        metadata['number_of_spots'],
+                    ]))
 
             image = zmq_socket.recv(flags=0, copy=False, track=False)
             image = np.frombuffer(image.buffer, dtype=metadata['type']).reshape(metadata['shape'])
