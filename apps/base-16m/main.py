@@ -1,3 +1,4 @@
+import json
 import os
 from collections import deque
 from datetime import datetime
@@ -524,6 +525,30 @@ tab_stream = Panel(child=column(image_buffer_slider, stream_button), title="Stre
 
 
 # HDF5 File panel
+# ---- utility functions
+def read_motor_position_file(file):
+    data = np.load(file)
+    npts = data['pts'].shape[0]
+    triggers = np.where(np.diff(data['rec'][:, 4]) == 1)[0]
+    shot_pos = data['rec'][triggers[1:npts+1], :]  # cut off the first trigger
+    y_mes = shot_pos[:, 0]
+    x_mes = shot_pos[:, 1]
+    y_exp = shot_pos[:, 2]
+    x_exp = shot_pos[:, 3]
+
+    return x_mes, y_mes, x_exp, y_exp
+
+def read_peakfinder_file(file):
+     # read hitrate file
+    data = np.loadtxt(file + '.hitrate')
+    frames = data[:, 1]
+    npeaks = data[:, 2]
+    # read json metadata file
+    with open(file + '.json') as f:
+        metadata = json.load(f)
+
+    return frames, npeaks, metadata
+
 # ---- gain file path textinput
 def gain_file_path_update():
     pass
