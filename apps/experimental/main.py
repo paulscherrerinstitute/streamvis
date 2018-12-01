@@ -6,15 +6,17 @@ import numpy as np
 from bokeh.events import Reset
 from bokeh.io import curdoc
 from bokeh.layouts import column, row
-from bokeh.models import BasicTicker, BoxZoomTool, Button, ColorBar, ColumnDataSource, CustomJS, \
-    DataRange1d, DataTable, Dropdown, Grid, ImageRGBA, Line, LinearAxis, LinearColorMapper, \
-    LogColorMapper, LogTicker, Panel, PanTool, Plot, Quad, RadioButtonGroup, Range1d, ResetTool, \
-    SaveTool, Select, Slider, Spacer, TableColumn, Tabs, TextInput, Toggle, WheelZoomTool
+from bokeh.models import BasicTicker, Button, ColorBar, ColumnDataSource, CustomJS, \
+    DataTable, Dropdown, ImageRGBA, LinearAxis, LinearColorMapper, LogColorMapper, \
+    LogTicker, Panel, PanTool, Plot, RadioButtonGroup, Range1d, ResetTool, SaveTool, \
+    Select, Slider, Spacer, TableColumn, Tabs, TextInput, Toggle, WheelZoomTool
 from bokeh.palettes import Cividis256, Greys256, Plasma256  # pylint: disable=E0611
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LogNorm, Normalize
 from PIL import Image as PIL_Image
 from tornado import gen
+
+import streamvis.components as sv
 
 doc = curdoc()
 doc.title = 'StreamVis Experimental'
@@ -36,8 +38,6 @@ HDF5_FILE_PATH = '/filepath'
 HDF5_FILE_PATH_UPDATE_PERIOD = 10000  # ms
 HDF5_DATASET_PATH = '/entry/data/data'
 hdf5_file_data = lambda pulse: None
-
-hist_plot_size = 400
 
 # Initial values
 disp_min = 0
@@ -93,33 +93,8 @@ main_image_plot.js_on_event(Reset, CustomJS(
     args=dict(source=main_image_plot, image_source=main_image_source), code=jscode_reset))
 
 
-# Histogram main plot
-main_hist_plot = Plot(
-    x_range=DataRange1d(),
-    y_range=DataRange1d(),
-    plot_height=hist_plot_size,
-    plot_width=700,
-    toolbar_location='left',
-)
-
-# ---- tools
-main_hist_plot.toolbar.logo = None
-main_hist_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool())
-
-# ---- axes
-main_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
-main_hist_plot.add_layout(
-    LinearAxis(major_label_orientation='vertical', axis_label="Counts"), place='left')
-
-# ---- grid lines
-main_hist_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-main_hist_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-# ---- quad (single bin) glyph
-main_hist_plot_source = ColumnDataSource(dict(left=[], right=[], top=[]))
-main_hist_plot.add_glyph(
-    main_hist_plot_source,
-    Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
+# Histogram plot
+svhist = sv.Histogram(plot_height=400, plot_width=700)
 
 
 # HDF5 File panel
@@ -322,7 +297,7 @@ metadata_table = DataTable(
 # Final layouts
 layout_controls = column(data_source_tabs, colormap_panel)
 
-final_layout = row(layout_controls, main_image_plot, column(main_hist_plot, metadata_table))
+final_layout = row(layout_controls, main_image_plot, column(svhist.plots[0], metadata_table))
 
 doc.add_root(final_layout)
 
@@ -378,10 +353,7 @@ def update_client(image, metadata):
     x_end = int(np.ceil(main_x_end))
 
     im_block = image[y_start:y_end, x_start:x_end]
-
-    counts, edges = np.histogram(im_block, bins='scott')
-
-    main_hist_plot_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
+    svhist.update([im_block])
 
     # Unpack metadata
     metadata_table_source.data.update(

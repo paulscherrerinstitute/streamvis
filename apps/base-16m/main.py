@@ -12,8 +12,8 @@ from bokeh.layouts import column, gridplot, row
 from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, Circle, ColorBar, \
     ColumnDataSource, Cross, CustomJS, DataRange1d, DataTable, DatetimeAxis, Dropdown, Ellipse, \
     Grid, HoverTool, ImageRGBA, Line, LinearAxis, LinearColorMapper, LogColorMapper, LogTicker, \
-    Panel, PanTool, Plot, Quad, RadioButtonGroup, Range1d, Rect, ResetTool, SaveTool, Select, \
-    Slider, Spacer, TableColumn, Tabs, TapTool, Text, TextInput, Toggle, WheelZoomTool
+    Panel, PanTool, Plot, RadioButtonGroup, Range1d, Rect, ResetTool, SaveTool, Select, Slider, \
+    Spacer, TableColumn, Tabs, TapTool, Text, TextInput, Toggle, WheelZoomTool
 from bokeh.models.glyphs import Image
 from bokeh.palettes import Cividis256, Greys256, Plasma256, Reds9  # pylint: disable=E0611
 from bokeh.transform import linear_cmap
@@ -23,6 +23,7 @@ from PIL import Image as PIL_Image
 from tornado import gen
 
 import receiver
+import streamvis.components as sv
 
 doc = curdoc()
 doc.title = receiver.args.page_title
@@ -59,10 +60,6 @@ RESOLUTION_RINGS_POS = np.array([2, 2.2, 2.6, 3, 5, 10])
 # Initial values
 disp_min = 0
 disp_max = 1000
-
-hist_lower = 0
-hist_upper = 1000
-hist_nbins = 100
 
 # Custom tick formatter for displaying large numbers
 tick_formatter = BasicTickFormatter(precision=1)
@@ -357,95 +354,8 @@ aggr_image_proj_y_plot.add_glyph(
     aggr_image_proj_y_source, Line(x='x', y='y', line_color='steelblue', line_width=2))
 
 
-# Histogram aggr plot
-aggr_hist_plot = Plot(
-    x_range=DataRange1d(),
-    y_range=DataRange1d(),
-    plot_height=280,
-    plot_width=700,
-    toolbar_location='left',
-)
-
-# ---- tools
-aggr_hist_plot.toolbar.logo = None
-aggr_hist_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool())
-
-# ---- axes
-aggr_hist_plot.add_layout(LinearAxis(axis_label="Zoom Intensity"), place='below')
-#aggr_hist_plot.add_layout(LinearAxis(major_label_orientation='vertical'), place='left')
-
-# ---- grid lines
-aggr_hist_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-aggr_hist_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-# ---- quad (single bin) glyph
-aggr_hist_source = ColumnDataSource(dict(left=[], right=[], top=[]))
-aggr_hist_plot.add_glyph(
-    aggr_hist_source, Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
-
-
-# Histogram controls
-# ---- histogram radio button
-def hist_radiobuttongroup_callback(selection):
-    if selection == 0:  # Automatic
-        hist_lower_textinput.disabled = True
-        hist_upper_textinput.disabled = True
-        hist_nbins_textinput.disabled = True
-
-    else:  # Manual
-        hist_lower_textinput.disabled = False
-        hist_upper_textinput.disabled = False
-        hist_nbins_textinput.disabled = False
-
-hist_radiobuttongroup = RadioButtonGroup(labels=["Automatic", "Manual"], active=0, width=150)
-hist_radiobuttongroup.on_click(hist_radiobuttongroup_callback)
-
-# ---- histogram lower range
-def hist_lower_callback(_attr, old, new):
-    global hist_lower
-    try:
-        new_value = float(new)
-        if new_value < hist_upper:
-            hist_lower = new_value
-        else:
-            hist_lower_textinput.value = old
-
-    except ValueError:
-        hist_lower_textinput.value = old
-
-# ---- histogram upper range
-def hist_upper_callback(_attr, old, new):
-    global hist_upper
-    try:
-        new_value = float(new)
-        if new_value > hist_lower:
-            hist_upper = new_value
-        else:
-            hist_upper_textinput.value = old
-
-    except ValueError:
-        hist_upper_textinput.value = old
-
-# ---- histogram number of bins
-def hist_nbins_callback(_attr, old, new):
-    global hist_nbins
-    try:
-        new_value = int(new)
-        if new_value > 0:
-            hist_nbins = new_value
-        else:
-            hist_nbins_textinput.value = old
-
-    except ValueError:
-        hist_nbins_textinput.value = old
-
-# ---- histogram text imputs
-hist_lower_textinput = TextInput(title='Lower Range:', value=str(hist_lower), disabled=True)
-hist_lower_textinput.on_change('value', hist_lower_callback)
-hist_upper_textinput = TextInput(title='Upper Range:', value=str(hist_upper), disabled=True)
-hist_upper_textinput.on_change('value', hist_upper_callback)
-hist_nbins_textinput = TextInput(title='Number of Bins:', value=str(hist_nbins), disabled=True)
-hist_nbins_textinput.on_change('value', hist_nbins_callback)
+# Histogram plot
+svhist = sv.Histogram(plot_height=280, plot_width=700)
 
 
 # Trajectory plot
@@ -810,9 +720,9 @@ layout_intensity = column(
     sum_intensity_reset_button)
 
 layout_hist = column(
-    aggr_hist_plot,
-    row(hist_nbins_textinput, column(Spacer(height=19), hist_radiobuttongroup)),
-    row(hist_lower_textinput, hist_upper_textinput),
+    svhist.plots[0],
+    row(svhist.nbins_textinput, column(Spacer(height=19), svhist.radiobuttongroup)),
+    row(svhist.lower_textinput, svhist.upper_textinput),
 )
 
 debug_tab = Panel(
@@ -926,13 +836,7 @@ def update_client(image, metadata):
     aggr_image_proj_r_x = np.linspace(aggr_x_start, aggr_x_end, aggr_image_width)
 
     if custom_tabs.tabs[custom_tabs.active].title == "Debug":
-        if hist_radiobuttongroup.active == 0:  # automatic
-            kwarg = dict(bins='scott')
-        else:  # manual
-            kwarg = dict(bins=hist_nbins, range=(hist_lower, hist_upper))
-
-        counts, edges = np.histogram(aggr_image[aggr_image != 0], **kwarg)
-        aggr_hist_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
+        svhist.update([aggr_image])
 
     main_image_source.data.update(
         image=[image_color_mapper.to_rgba(main_image, bytes=True)],

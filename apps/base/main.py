@@ -10,8 +10,8 @@ from bokeh.layouts import column, gridplot, row
 from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, ColorBar, \
     ColumnDataSource, CustomJS, DataRange1d, DataTable, DatetimeAxis, Dropdown, Grid, \
     ImageRGBA, Line, LinearAxis, LinearColorMapper, LogColorMapper, LogTicker, Panel, \
-    PanTool, Plot, Quad, RadioButtonGroup, Range1d, Rect, ResetTool, SaveTool, Select, \
-    Slider, Spacer, TableColumn, Tabs, TextInput, Toggle, WheelZoomTool
+    PanTool, Plot, RadioButtonGroup, Range1d, Rect, ResetTool, SaveTool, Select, Slider, \
+    Spacer, TableColumn, Tabs, TextInput, Toggle, WheelZoomTool
 from bokeh.palettes import Cividis256, Greys256, Plasma256  # pylint: disable=E0611
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LogNorm, Normalize
@@ -19,6 +19,7 @@ from PIL import Image as PIL_Image
 from tornado import gen
 
 import receiver
+import streamvis.components as sv
 
 doc = curdoc()
 doc.title = receiver.args.page_title
@@ -50,7 +51,6 @@ HDF5_DATASET_PATH = '/entry/data/data'
 hdf5_file_data = lambda pulse: None
 
 agg_plot_size = 200
-hist_plot_size = 400
 
 # Initial values
 disp_min = 0
@@ -225,32 +225,8 @@ zoom1_agg_y_source = ColumnDataSource(
 zoom1_plot_agg_y.add_glyph(zoom1_agg_y_source, Line(x='x', y='y', line_color='steelblue'))
 
 
-# Histogram zoom1 plot
-zoom1_hist_plot = Plot(
-    x_range=DataRange1d(),
-    y_range=DataRange1d(),
-    plot_height=hist_plot_size,
-    plot_width=700,
-    toolbar_location='left',
-)
-
-# ---- tools
-zoom1_hist_plot.toolbar.logo = None
-zoom1_hist_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool())
-
-# ---- axes
-zoom1_hist_plot.add_layout(LinearAxis(axis_label="Zoom Intensity"), place='below')
-zoom1_hist_plot.add_layout(
-    LinearAxis(major_label_orientation='vertical', axis_label="Counts"), place='left')
-
-# ---- grid lines
-zoom1_hist_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-zoom1_hist_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-# ---- quad (single bin) glyph
-hist1_source = ColumnDataSource(dict(left=[], right=[], top=[]))
-zoom1_hist_plot.add_glyph(
-    hist1_source, Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
+# Histogram plot
+svhist = sv.Histogram(plot_height=400, plot_width=700)
 
 
 # Total intensity plot
@@ -641,7 +617,7 @@ layout_metadata = column(metadata_table, metadata_issues_dropdown)
 
 final_layout = column(
     row(layout_main, layout_controls, column(layout_metadata, layout_utility)),
-    row(layout_zoom, layout_threshold_aggr, zoom1_hist_plot))
+    row(layout_zoom, layout_threshold_aggr, svhist.plots[0]))
 
 doc.add_root(final_layout)
 
@@ -729,14 +705,14 @@ def update_client(image, metadata):
     r_y = np.arange(y_start, y_end) + 0.5
     r_x = np.arange(x_start, x_end) + 0.5
 
-    counts, edges = np.histogram(im_block, bins='scott')
-    total_sum = np.sum(im_block)
+    # Update histogram
+    svhist.update([im_block])
 
-    hist1_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
     zoom1_agg_y_source.data.update(x=agg_y, y=r_y)
     zoom1_agg_x_source.data.update(x=r_x, y=agg_x)
 
     stream_t = datetime.now()
+    total_sum = np.sum(im_block)
     zoom1_sum_source.stream(new_data=dict(x=[stream_t], y=[total_sum]), rollover=STREAM_ROLLOVER)
     total_sum_source.stream(
         new_data=dict(x=[stream_t], y=[np.sum(image, dtype=np.float)]), rollover=STREAM_ROLLOVER)
