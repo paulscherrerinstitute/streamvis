@@ -9,11 +9,12 @@ import numpy as np
 from bokeh.events import Reset
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, Circle, ColorBar, \
-    ColumnDataSource, Cross, CustomJS, DataRange1d, DataTable, DatetimeAxis, Dropdown, Ellipse, \
-    Grid, HoverTool, ImageRGBA, Line, LinearAxis, LinearColorMapper, LogColorMapper, LogTicker, \
-    Panel, PanTool, Plot, Quad, RadioButtonGroup, Range1d, Rect, ResetTool, SaveTool, Select, \
-    Slider, Spacer, TableColumn, Tabs, TapTool, Text, TextInput, Toggle, WheelZoomTool
+from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, \
+    Circle, ColorBar, ColumnDataSource, Cross, CustomJS, DataRange1d, DataTable, \
+    DatetimeAxis, Dropdown, Ellipse, Grid, HoverTool, ImageRGBA, Line, LinearAxis, \
+    LinearColorMapper, LogColorMapper, LogTicker, NumberFormatter, Panel, PanTool, \
+    Plot, Quad, RadioButtonGroup, Range1d, Rect, ResetTool, SaveTool, Select, Slider, \
+    Spacer, TableColumn, Tabs, TapTool, Text, TextInput, Toggle, WheelZoomTool
 from bokeh.models.glyphs import Image
 from bokeh.palettes import Cividis256, Greys256, Plasma256, Reds9  # pylint: disable=E0611
 from bokeh.transform import linear_cmap
@@ -802,6 +803,45 @@ metadata_issues_dropdown = Dropdown(label="Metadata Issues", button_type='defaul
 show_all_metadata_toggle = Toggle(label="Show All", button_type='default')
 
 
+# Statistics datatable
+stats_table_source = ColumnDataSource(dict(
+    run_names=[],
+    nframes=[],
+    sat_pix_nframes=[],
+    laser_on_nframes=[],
+    laser_on_hits=[],
+    laser_on_hits_ratio=[],
+    laser_off_nframes=[],
+    laser_off_hits=[],
+    laser_off_hits_ratio=[],
+))
+
+stats_table = DataTable(
+    source=stats_table_source,
+    columns=[
+        TableColumn(field='run_names', title="Run Name"),
+        TableColumn(field='nframes', title="Total Frames"),
+        TableColumn(field='sat_pix_nframes', title="Sat pix frames"),
+        TableColumn(field='laser_on_nframes', title="Laser ON frames"),
+        TableColumn(field='laser_on_hits', title="Laser ON hits"),
+        TableColumn(
+            field='laser_on_hits_ratio', title="Laser ON hits ratio",
+            formatter=NumberFormatter(format='(0.00 %)'),
+        ),
+        TableColumn(field='laser_off_nframes', title="Laser OFF frames"),
+        TableColumn(field='laser_off_hits', title="Laser OFF hits"),
+        TableColumn(
+            field='laser_off_hits_ratio', title="Laser OFF hits ratio",
+            formatter=NumberFormatter(format='(0.00 %)'),
+        ),
+    ],
+    width=1380,
+    height=900,
+    index_position=None,
+    selectable=False,
+)
+
+
 # Custom tabs
 layout_intensity = column(
     gridplot(
@@ -831,8 +871,13 @@ scan_tab = Panel(
     title="SwissMX",
 )
 
+statistics_tab = Panel(
+    child=row(stats_table),
+    title="Statistics",
+)
+
 # assemble
-custom_tabs = Tabs(tabs=[debug_tab, scan_tab], height=960, width=1400)
+custom_tabs = Tabs(tabs=[debug_tab, scan_tab, statistics_tab], height=960, width=1400)
 
 
 # Final layouts
@@ -1154,6 +1199,10 @@ def update_client(image, metadata):
             metadata_issues_dropdown.button_type = 'danger'
     else:
         metadata_issues_dropdown.button_type = 'default'
+
+    # Update statistics tab
+    if custom_tabs.tabs[custom_tabs.active].title == "Statistics":
+        stats_table_source.data = receiver.stats_table_dict
 
 
 @gen.coroutine

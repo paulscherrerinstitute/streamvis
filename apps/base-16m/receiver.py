@@ -18,6 +18,29 @@ peakfinder_buffer = deque(maxlen=args.buffer_size)
 
 run_name = ''
 
+run_names = []
+nframes = []
+sat_pix_nframes = []
+md_issues_nframes = []  # TODO: currently, metadata issues are checked only with a frontend update
+laser_on_nframes = []
+laser_on_hits = []
+laser_on_hits_ratio = []
+laser_off_nframes = []
+laser_off_hits = []
+laser_off_hits_ratio = []
+
+stats_table_dict = dict(
+    run_names=run_names,
+    nframes=nframes,
+    sat_pix_nframes=sat_pix_nframes,
+    laser_on_nframes=laser_on_nframes,
+    laser_on_hits=laser_on_hits,
+    laser_on_hits_ratio=laser_on_hits_ratio,
+    laser_off_nframes=laser_off_nframes,
+    laser_off_hits=laser_off_hits,
+    laser_off_hits_ratio=laser_off_hits_ratio,
+)
+
 state = 'polling'
 
 zmq_context = zmq.Context(io_threads=2)
@@ -107,12 +130,41 @@ def stream_receive():
                     peakfinder_buffer.clear()
                     run_name = metadata['run_name']
 
+                    run_names.append(run_name)
+                    nframes.append(0)
+                    sat_pix_nframes.append(0)
+                    laser_on_nframes.append(0)
+                    laser_on_hits.append(0)
+                    laser_on_hits_ratio.append(0)
+                    laser_off_nframes.append(0)
+                    laser_off_hits.append(0)
+                    laser_off_hits_ratio.append(0)
+
                 if 'swissmx_x' in metadata and 'swissmx_y' in metadata and \
                     'number_of_spots' in metadata and 'frame' in metadata:
                     peakfinder_buffer.append(np.array([
                         metadata['swissmx_x'], metadata['swissmx_y'], metadata['frame'],
                         metadata['number_of_spots'],
                     ]))
+
+                nframes[-1] += 1
+                if 'saturated_pixels' in metadata and metadata['saturated_pixels'] != 0:
+                    sat_pix_nframes[-1] += 1
+
+                if 'laser_on' in metadata:
+                    is_hit = 'number_of_spots' in metadata and metadata['number_of_spots'] != 0
+
+                    if metadata['laser_on']:
+                        laser_on_nframes[-1] += 1
+                        if is_hit:
+                            laser_on_hits[-1] += 1
+                        laser_on_hits_ratio[-1] = laser_on_hits[-1] / laser_on_nframes[-1]
+
+                    else:
+                        laser_off_nframes[-1] += 1
+                        if is_hit:
+                            laser_off_hits[-1] += 1
+                        laser_off_hits_ratio[-1] = laser_off_hits[-1] / laser_off_nframes[-1]
 
             image = zmq_socket.recv(flags=0, copy=False, track=False)
             image = np.frombuffer(image.buffer, dtype=metadata['type']).reshape(metadata['shape'])
