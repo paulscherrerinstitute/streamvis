@@ -451,7 +451,7 @@ hist_nbins_textinput.on_change('value', hist_nbins_callback)
 # Trajectory plot
 trajectory_plot = Plot(
     x_range=DataRange1d(),
-    y_range=DataRange1d(flipped=True),
+    y_range=DataRange1d(),
     plot_height=900,
     plot_width=1380,
     toolbar_location='left',
