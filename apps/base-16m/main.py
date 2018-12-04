@@ -828,7 +828,7 @@ debug_tab = Panel(
 
 scan_tab = Panel(
     child=row(trajectory_plot),
-    title="swissmx",
+    title="SwissMX",
 )
 
 # assemble
@@ -1020,7 +1020,7 @@ def update_client(image, metadata):
         receiver.update_mask = False
 
     # Update scan positions
-    if custom_tabs.tabs[custom_tabs.active].title == "swissmx":
+    if custom_tabs.tabs[custom_tabs.active].title == "SwissMX":
         peakfinder_buffer = np.array(receiver.peakfinder_buffer)
         trajectory_circle_source.data.update(
             x=peakfinder_buffer[:, 0], y=peakfinder_buffer[:, 1],
