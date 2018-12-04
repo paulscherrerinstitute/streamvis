@@ -820,7 +820,7 @@ debug_tab = Panel(
         layout_intensity,
         row(
             layout_hist, Spacer(width=30),
-            column(metadata_table, row(metadata_issues_dropdown, show_all_metadata_toggle))
+            column(metadata_table, show_all_metadata_toggle)
         )
     ),
     title="Debug",
@@ -844,7 +844,7 @@ layout_aggr = column(
     row(resolution_rings_toggle, mask_toggle),
 )
 
-layout_controls = column(colormap_panel, data_source_tabs)
+layout_controls = column(metadata_issues_dropdown, colormap_panel, data_source_tabs)
 
 layout_side_panel = column(
     custom_tabs,
