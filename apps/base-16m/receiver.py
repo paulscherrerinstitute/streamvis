@@ -13,8 +13,11 @@ parser.add_argument('--page-title', default="JF-Base-16M - StreamVis")
 parser.add_argument('--buffer-size', type=int, default=1)
 args = parser.parse_args()
 
+HIT_THRESHOLD = 15
+
 data_buffer = deque(maxlen=args.buffer_size)
 peakfinder_buffer = deque(maxlen=args.buffer_size)
+last_hit_data = (None, None)
 
 run_name = ''
 
@@ -118,11 +121,13 @@ def arrange_image_geometry(image_in):
     return image_out
 
 def stream_receive():
-    global state, mask_file, mask, update_mask, run_name
+    global state, mask_file, mask, update_mask, run_name, last_hit_data
     while True:
         events = dict(poller.poll(1000))
         if zmq_socket in events:
             metadata = zmq_socket.recv_json(flags=0)
+
+            is_hit = 'number_of_spots' in metadata and metadata['number_of_spots'] > HIT_THRESHOLD
 
             if 'run_name' in metadata:
                 if metadata['run_name'] != run_name:
@@ -152,8 +157,6 @@ def stream_receive():
                     sat_pix_nframes[-1] += 1
 
                 if 'laser_on' in metadata:
-                    is_hit = 'number_of_spots' in metadata and metadata['number_of_spots'] != 0
-
                     if metadata['laser_on']:
                         laser_on_nframes[-1] += 1
                         if is_hit:
@@ -172,6 +175,9 @@ def stream_receive():
                 image = image.astype('float32', copy=True)
 
             data_buffer.append((metadata, image))
+
+            if is_hit:
+                last_hit_data = (metadata, image)
 
             if 'pedestal_file' in metadata:
                 if mask_file != metadata['pedestal_file']:

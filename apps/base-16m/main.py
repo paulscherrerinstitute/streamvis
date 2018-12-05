@@ -786,6 +786,10 @@ mask_toggle = Toggle(label="Mask", button_type='default')
 mask_toggle.on_click(mask_toggle_callback)
 
 
+# Show only hits toggle
+show_only_hits_toggle = Toggle(label="Show Only Hits", button_type='default')
+
+
 # Metadata table
 metadata_table_source = ColumnDataSource(dict(metadata=['', '', ''], value=['', '', '']))
 metadata_table = DataTable(
@@ -886,7 +890,7 @@ layout_main = column(main_image_plot)
 layout_aggr = column(
     aggr_image_proj_x_plot,
     row(aggr_image_plot, aggr_image_proj_y_plot),
-    row(resolution_rings_toggle, mask_toggle),
+    row(resolution_rings_toggle, mask_toggle, show_only_hits_toggle),
 )
 
 layout_controls = column(metadata_issues_dropdown, colormap_panel, data_source_tabs)
@@ -1221,10 +1225,16 @@ def internal_periodic_callback():
             stream_button.label = 'Receiving'
             stream_button.button_type = 'success'
 
-            current_metadata, current_image = receiver.data_buffer[-1]
-            trajectory_circle_source.selected.indices = []
+            if show_only_hits_toggle.active:
+                if receiver.last_hit_data != (None, None):
+                    current_metadata, current_image = receiver.last_hit_data
+            else:
+                current_metadata, current_image = receiver.data_buffer[-1]
 
-            image_buffer.append((current_metadata, current_image))
+            if not image_buffer or image_buffer[-1] != (current_metadata, current_image):
+                image_buffer.append((current_metadata, current_image))
+
+            trajectory_circle_source.selected.indices = []
 
             # Set slider to the right-most position
             if len(image_buffer) > 1:
