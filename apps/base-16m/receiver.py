@@ -18,6 +18,7 @@ HIT_THRESHOLD = 15
 data_buffer = deque(maxlen=args.buffer_size)
 peakfinder_buffer = deque(maxlen=args.buffer_size)
 last_hit_data = (None, None)
+hitrate_buffer = deque(maxlen=75)
 
 run_name = ''
 
@@ -178,6 +179,9 @@ def stream_receive():
 
             if is_hit:
                 last_hit_data = (metadata, image)
+                hitrate_buffer.append(1)
+            else:
+                hitrate_buffer.append(0)
 
             if 'pedestal_file' in metadata:
                 if mask_file != metadata['pedestal_file']:

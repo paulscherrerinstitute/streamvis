@@ -9,12 +9,12 @@ import numpy as np
 from bokeh.events import Reset
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, \
-    Circle, ColorBar, ColumnDataSource, Cross, CustomJS, DataRange1d, DataTable, \
-    DatetimeAxis, Dropdown, Ellipse, Grid, HoverTool, ImageRGBA, Line, LinearAxis, \
+from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, Circle, \
+    ColorBar, ColumnDataSource, Cross, CustomJS, DataRange1d, DataTable, DatetimeAxis, \
+    Dropdown, Ellipse, Grid, HoverTool, ImageRGBA, Line, LinearAxis, \
     LinearColorMapper, LogColorMapper, LogTicker, NumberFormatter, Panel, PanTool, \
     Plot, Quad, RadioButtonGroup, Range1d, Rect, ResetTool, SaveTool, Select, Slider, \
-    Spacer, TableColumn, Tabs, TapTool, Text, TextInput, Toggle, WheelZoomTool
+    Spacer, TableColumn, Tabs, TapTool, Text, TextInput, Title, Toggle, WheelZoomTool
 from bokeh.models.glyphs import Image
 from bokeh.palettes import Cividis256, Greys256, Plasma256, Reds9  # pylint: disable=E0611
 from bokeh.transform import linear_cmap
@@ -453,7 +453,7 @@ hist_nbins_textinput.on_change('value', hist_nbins_callback)
 trajectory_plot = Plot(
     x_range=DataRange1d(),
     y_range=DataRange1d(),
-    plot_height=900,
+    plot_height=650,
     plot_width=1380,
     toolbar_location='left',
 )
@@ -474,7 +474,7 @@ trajectory_plot.add_tools(
 
 # ---- axes
 trajectory_plot.add_layout(LinearAxis(), place='below')
-trajectory_plot.add_layout(LinearAxis(major_label_orientation='vertical'), place='left')
+trajectory_plot.add_layout(LinearAxis(), place='left')
 
 # ---- grid lines
 trajectory_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
@@ -501,6 +501,34 @@ def trajectory_circle_source_callback(_attr, _old, new):
         current_metadata, current_image = receiver.data_buffer[new[0]]
 
 trajectory_circle_source.selected.on_change('indices', trajectory_circle_source_callback)
+
+
+# Peakfinder plot
+hitrate_plot = Plot(
+    title=Title(text='Hitrate'),
+    x_range=DataRange1d(),
+    y_range=DataRange1d(),
+    plot_height=250,
+    plot_width=1380,
+    toolbar_location='left',
+)
+
+# ---- tools
+hitrate_plot.toolbar.logo = None
+hitrate_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool())
+
+# ---- axes
+hitrate_plot.add_layout(DatetimeAxis(), place='below')
+hitrate_plot.add_layout(LinearAxis(), place='left')
+
+# ---- grid lines
+hitrate_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
+hitrate_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
+
+# ---- line glyph
+hitrate_line_source = ColumnDataSource(dict(x=[], y=[]))
+hitrate_plot.add_glyph(hitrate_line_source, Line(x='x', y='y', line_color='red'))
+
 
 # Stream panel
 # ---- image buffer slider
@@ -871,7 +899,7 @@ debug_tab = Panel(
 )
 
 scan_tab = Panel(
-    child=row(trajectory_plot),
+    child=column(trajectory_plot, hitrate_plot),
     title="SwissMX",
 )
 
@@ -1060,8 +1088,19 @@ def update_client(image, metadata):
     aggr_sum_intensity_source.stream(
         new_data=dict(
             x=[stream_t],
-            y=[np.sum(image[aggr_y_start:aggr_y_end, aggr_x_start:aggr_x_end], dtype=np.float)]),
-        rollover=STREAM_ROLLOVER)
+            y=[np.sum(image[aggr_y_start:aggr_y_end, aggr_x_start:aggr_x_end], dtype=np.float)],
+        ),
+        rollover=STREAM_ROLLOVER,
+    )
+
+    # Update peakfinder plot
+    hitrate_line_source.stream(
+        new_data=dict(
+            x=[stream_t],
+            y=[sum(receiver.hitrate_buffer)/len(receiver.hitrate_buffer)],
+        ),
+        rollover=1000,
+    )
 
     # Update mask if it's needed
     if receiver.update_mask and mask_toggle.active:
