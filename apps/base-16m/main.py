@@ -801,6 +801,33 @@ sum_stats_table = DataTable(
     selectable=False,
 )
 
+# ---- reset statistics button
+def reset_stats_table_button_callback():
+    receiver.run_name = ''
+
+    receiver.run_names.clear()
+    receiver.nframes.clear()
+    receiver.bad_frames.clear()
+    receiver.sat_pix_nframes.clear()
+    receiver.laser_on_nframes.clear()
+    receiver.laser_on_hits.clear()
+    receiver.laser_on_hits_ratio.clear()
+    receiver.laser_off_nframes.clear()
+    receiver.laser_off_hits.clear()
+    receiver.laser_off_hits_ratio.clear()
+
+    receiver.sum_nframes[0] = 0
+    receiver.sum_bad_frames[0] = 0
+    receiver.sum_sat_pix_nframes[0] = 0
+    receiver.sum_laser_on_nframes[0] = 0
+    receiver.sum_laser_on_hits[0] = 0
+    receiver.sum_laser_on_hits_ratio[0] = 0
+    receiver.sum_laser_off_nframes[0] = 0
+    receiver.sum_laser_off_hits[0] = 0
+    receiver.sum_laser_off_hits_ratio[0] = 0
+
+reset_stats_table_button = Button(label="Reset Statistics", button_type='default')
+reset_stats_table_button.on_click(reset_stats_table_button_callback)
 
 # Custom tabs
 layout_intensity = column(
@@ -838,7 +865,7 @@ scan_tab = Panel(
 )
 
 statistics_tab = Panel(
-    child=column(stats_table, sum_stats_table),
+    child=column(stats_table, sum_stats_table, reset_stats_table_button),
     title="Statistics",
 )
 
