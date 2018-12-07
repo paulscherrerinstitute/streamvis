@@ -25,8 +25,8 @@ run_name = ''
 
 run_names = []
 nframes = []
+bad_frames = []
 sat_pix_nframes = []
-md_issues_nframes = []  # TODO: currently, metadata issues are checked only with a frontend update
 laser_on_nframes = []
 laser_on_hits = []
 laser_on_hits_ratio = []
@@ -37,6 +37,7 @@ laser_off_hits_ratio = []
 stats_table_dict = dict(
     run_names=run_names,
     nframes=nframes,
+    bad_frames=bad_frames,
     sat_pix_nframes=sat_pix_nframes,
     laser_on_nframes=laser_on_nframes,
     laser_on_hits=laser_on_hits,
@@ -174,6 +175,7 @@ def stream_receive():
 
                     run_names.append(run_name)
                     nframes.append(0)
+                    bad_frames.append(0)
                     sat_pix_nframes.append(0)
                     laser_on_nframes.append(0)
                     laser_on_hits.append(0)
@@ -190,6 +192,8 @@ def stream_receive():
                     ]))
 
                 nframes[-1] += 1
+                if 'is_good_frame' in metadata and not metadata['is_good_frame']:
+                    bad_frames[-1] += 1
                 if 'saturated_pixels' in metadata and metadata['saturated_pixels'] != 0:
                     sat_pix_nframes[-1] += 1
 

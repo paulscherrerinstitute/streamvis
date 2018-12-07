@@ -765,6 +765,7 @@ show_all_metadata_toggle = Toggle(label="Show All", button_type='default')
 stats_table_source = ColumnDataSource(dict(
     run_names=[],
     nframes=[],
+    bad_frames=[],
     sat_pix_nframes=[],
     laser_on_nframes=[],
     laser_on_hits=[],
@@ -779,6 +780,7 @@ stats_table = DataTable(
     columns=[
         TableColumn(field='run_names', title="Run Name"),
         TableColumn(field='nframes', title="Total Frames"),
+        TableColumn(field='bad_frames', title="Bad Frames"),
         TableColumn(field='sat_pix_nframes', title="Sat pix frames"),
         TableColumn(field='laser_on_nframes', title="Laser ON frames"),
         TableColumn(field='laser_on_hits', title="Laser ON hits"),
