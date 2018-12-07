@@ -791,9 +791,15 @@ layout_intensity = column(
         ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
     sum_intensity_reset_button)
 
+svhist.log10counts_toggle.width = 120
 layout_hist = column(
     svhist.plots[0],
-    row(svhist.nbins_textinput, column(Spacer(height=19), svhist.radiobuttongroup)),
+    row(
+        svhist.nbins_textinput,
+        column(
+            Spacer(height=19),
+            row(svhist.radiobuttongroup, Spacer(width=10), svhist.log10counts_toggle))
+    ),
     row(svhist.lower_textinput, svhist.upper_textinput),
 )
 
