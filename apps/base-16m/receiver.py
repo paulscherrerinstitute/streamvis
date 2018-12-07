@@ -13,10 +13,37 @@ parser.add_argument('--page-title', default="JF-Base-16M - StreamVis")
 parser.add_argument('--buffer-size', type=int, default=1)
 args = parser.parse_args()
 
+HIT_THRESHOLD = 15
+
 data_buffer = deque(maxlen=args.buffer_size)
 peakfinder_buffer = deque(maxlen=args.buffer_size)
+last_hit_data = (None, None)
+hitrate_buffer = deque(maxlen=75)
 
 run_name = ''
+
+run_names = []
+nframes = []
+sat_pix_nframes = []
+md_issues_nframes = []  # TODO: currently, metadata issues are checked only with a frontend update
+laser_on_nframes = []
+laser_on_hits = []
+laser_on_hits_ratio = []
+laser_off_nframes = []
+laser_off_hits = []
+laser_off_hits_ratio = []
+
+stats_table_dict = dict(
+    run_names=run_names,
+    nframes=nframes,
+    sat_pix_nframes=sat_pix_nframes,
+    laser_on_nframes=laser_on_nframes,
+    laser_on_hits=laser_on_hits,
+    laser_on_hits_ratio=laser_on_hits_ratio,
+    laser_off_nframes=laser_off_nframes,
+    laser_off_hits=laser_off_hits,
+    laser_off_hits_ratio=laser_off_hits_ratio,
+)
 
 state = 'polling'
 
@@ -95,17 +122,29 @@ def arrange_image_geometry(image_in):
     return image_out
 
 def stream_receive():
-    global state, mask_file, mask, update_mask, run_name
+    global state, mask_file, mask, update_mask, run_name, last_hit_data
     while True:
         events = dict(poller.poll(1000))
         if zmq_socket in events:
             metadata = zmq_socket.recv_json(flags=0)
+
+            is_hit = 'number_of_spots' in metadata and metadata['number_of_spots'] > HIT_THRESHOLD
 
             if 'run_name' in metadata:
                 if metadata['run_name'] != run_name:
                     data_buffer.clear()
                     peakfinder_buffer.clear()
                     run_name = metadata['run_name']
+
+                    run_names.append(run_name)
+                    nframes.append(0)
+                    sat_pix_nframes.append(0)
+                    laser_on_nframes.append(0)
+                    laser_on_hits.append(0)
+                    laser_on_hits_ratio.append(0)
+                    laser_off_nframes.append(0)
+                    laser_off_hits.append(0)
+                    laser_off_hits_ratio.append(0)
 
                 if 'swissmx_x' in metadata and 'swissmx_y' in metadata and \
                     'number_of_spots' in metadata and 'frame' in metadata:
@@ -114,12 +153,35 @@ def stream_receive():
                         metadata['number_of_spots'],
                     ]))
 
+                nframes[-1] += 1
+                if 'saturated_pixels' in metadata and metadata['saturated_pixels'] != 0:
+                    sat_pix_nframes[-1] += 1
+
+                if 'laser_on' in metadata:
+                    if metadata['laser_on']:
+                        laser_on_nframes[-1] += 1
+                        if is_hit:
+                            laser_on_hits[-1] += 1
+                        laser_on_hits_ratio[-1] = laser_on_hits[-1] / laser_on_nframes[-1]
+
+                    else:
+                        laser_off_nframes[-1] += 1
+                        if is_hit:
+                            laser_off_hits[-1] += 1
+                        laser_off_hits_ratio[-1] = laser_off_hits[-1] / laser_off_nframes[-1]
+
             image = zmq_socket.recv(flags=0, copy=False, track=False)
             image = np.frombuffer(image.buffer, dtype=metadata['type']).reshape(metadata['shape'])
             if image.dtype != np.dtype('float16') and image.dtype != np.dtype('float32'):
                 image = image.astype('float32', copy=True)
 
             data_buffer.append((metadata, image))
+
+            if is_hit:
+                last_hit_data = (metadata, image)
+                hitrate_buffer.append(1)
+            else:
+                hitrate_buffer.append(0)
 
             if 'pedestal_file' in metadata:
                 if mask_file != metadata['pedestal_file']:

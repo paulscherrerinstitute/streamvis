@@ -9,11 +9,12 @@ import numpy as np
 from bokeh.events import Reset
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, Circle, ColorBar, \
-    ColumnDataSource, Cross, CustomJS, DataRange1d, DataTable, DatetimeAxis, Dropdown, Ellipse, \
-    Grid, HoverTool, ImageRGBA, Line, LinearAxis, LinearColorMapper, LogColorMapper, LogTicker, \
-    Panel, PanTool, Plot, RadioButtonGroup, Range1d, Rect, ResetTool, SaveTool, Select, Slider, \
-    Spacer, TableColumn, Tabs, TapTool, Text, TextInput, Toggle, WheelZoomTool
+from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, Circle, \
+    ColorBar, ColumnDataSource, Cross, CustomJS, DataRange1d, DataTable, DatetimeAxis, \
+    Dropdown, Ellipse, Grid, HoverTool, ImageRGBA, Line, LinearAxis, \
+    LinearColorMapper, LogColorMapper, LogTicker, NumberFormatter, Panel, PanTool, \
+    Plot, RadioButtonGroup, Range1d, Rect, ResetTool, SaveTool, Select, Slider, \
+    Spacer, TableColumn, Tabs, TapTool, Text, TextInput, Title, Toggle, WheelZoomTool
 from bokeh.models.glyphs import Image
 from bokeh.palettes import Cividis256, Greys256, Plasma256, Reds9  # pylint: disable=E0611
 from bokeh.transform import linear_cmap
@@ -361,8 +362,8 @@ svhist = sv.Histogram(plot_height=280, plot_width=700)
 # Trajectory plot
 trajectory_plot = Plot(
     x_range=DataRange1d(),
-    y_range=DataRange1d(flipped=True),
-    plot_height=900,
+    y_range=DataRange1d(),
+    plot_height=650,
     plot_width=1380,
     toolbar_location='left',
 )
@@ -383,7 +384,7 @@ trajectory_plot.add_tools(
 
 # ---- axes
 trajectory_plot.add_layout(LinearAxis(), place='below')
-trajectory_plot.add_layout(LinearAxis(major_label_orientation='vertical'), place='left')
+trajectory_plot.add_layout(LinearAxis(), place='left')
 
 # ---- grid lines
 trajectory_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
@@ -410,6 +411,34 @@ def trajectory_circle_source_callback(_attr, _old, new):
         current_metadata, current_image = receiver.data_buffer[new[0]]
 
 trajectory_circle_source.selected.on_change('indices', trajectory_circle_source_callback)
+
+
+# Peakfinder plot
+hitrate_plot = Plot(
+    title=Title(text='Hitrate'),
+    x_range=DataRange1d(),
+    y_range=DataRange1d(),
+    plot_height=250,
+    plot_width=1380,
+    toolbar_location='left',
+)
+
+# ---- tools
+hitrate_plot.toolbar.logo = None
+hitrate_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool())
+
+# ---- axes
+hitrate_plot.add_layout(DatetimeAxis(), place='below')
+hitrate_plot.add_layout(LinearAxis(), place='left')
+
+# ---- grid lines
+hitrate_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
+hitrate_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
+
+# ---- line glyph
+hitrate_line_source = ColumnDataSource(dict(x=[], y=[]))
+hitrate_plot.add_glyph(hitrate_line_source, Line(x='x', y='y', line_color='red'))
+
 
 # Stream panel
 # ---- image buffer slider
@@ -695,6 +724,10 @@ mask_toggle = Toggle(label="Mask", button_type='default')
 mask_toggle.on_click(mask_toggle_callback)
 
 
+# Show only hits toggle
+show_only_hits_toggle = Toggle(label="Show Only Hits", button_type='default')
+
+
 # Metadata table
 metadata_table_source = ColumnDataSource(dict(metadata=['', '', ''], value=['', '', '']))
 metadata_table = DataTable(
@@ -710,6 +743,45 @@ metadata_table = DataTable(
 
 metadata_issues_dropdown = Dropdown(label="Metadata Issues", button_type='default', menu=[])
 show_all_metadata_toggle = Toggle(label="Show All", button_type='default')
+
+
+# Statistics datatable
+stats_table_source = ColumnDataSource(dict(
+    run_names=[],
+    nframes=[],
+    sat_pix_nframes=[],
+    laser_on_nframes=[],
+    laser_on_hits=[],
+    laser_on_hits_ratio=[],
+    laser_off_nframes=[],
+    laser_off_hits=[],
+    laser_off_hits_ratio=[],
+))
+
+stats_table = DataTable(
+    source=stats_table_source,
+    columns=[
+        TableColumn(field='run_names', title="Run Name"),
+        TableColumn(field='nframes', title="Total Frames"),
+        TableColumn(field='sat_pix_nframes', title="Sat pix frames"),
+        TableColumn(field='laser_on_nframes', title="Laser ON frames"),
+        TableColumn(field='laser_on_hits', title="Laser ON hits"),
+        TableColumn(
+            field='laser_on_hits_ratio', title="Laser ON hits ratio",
+            formatter=NumberFormatter(format='(0.00 %)'),
+        ),
+        TableColumn(field='laser_off_nframes', title="Laser OFF frames"),
+        TableColumn(field='laser_off_hits', title="Laser OFF hits"),
+        TableColumn(
+            field='laser_off_hits_ratio', title="Laser OFF hits ratio",
+            formatter=NumberFormatter(format='(0.00 %)'),
+        ),
+    ],
+    width=1380,
+    height=900,
+    index_position=None,
+    selectable=False,
+)
 
 
 # Custom tabs
@@ -730,19 +802,24 @@ debug_tab = Panel(
         layout_intensity,
         row(
             layout_hist, Spacer(width=30),
-            column(metadata_table, row(metadata_issues_dropdown, show_all_metadata_toggle))
+            column(metadata_table, show_all_metadata_toggle)
         )
     ),
     title="Debug",
 )
 
 scan_tab = Panel(
-    child=row(trajectory_plot),
-    title="swissmx",
+    child=column(trajectory_plot, hitrate_plot),
+    title="SwissMX",
+)
+
+statistics_tab = Panel(
+    child=row(stats_table),
+    title="Statistics",
 )
 
 # assemble
-custom_tabs = Tabs(tabs=[debug_tab, scan_tab], height=960, width=1400)
+custom_tabs = Tabs(tabs=[debug_tab, scan_tab, statistics_tab], height=960, width=1400)
 
 
 # Final layouts
@@ -751,10 +828,10 @@ layout_main = column(main_image_plot)
 layout_aggr = column(
     aggr_image_proj_x_plot,
     row(aggr_image_plot, aggr_image_proj_y_plot),
-    row(resolution_rings_toggle, mask_toggle),
+    row(resolution_rings_toggle, mask_toggle, show_only_hits_toggle),
 )
 
-layout_controls = column(colormap_panel, data_source_tabs)
+layout_controls = column(metadata_issues_dropdown, colormap_panel, data_source_tabs)
 
 layout_side_panel = column(
     custom_tabs,
@@ -915,8 +992,19 @@ def update_client(image, metadata):
     aggr_sum_intensity_source.stream(
         new_data=dict(
             x=[stream_t],
-            y=[np.sum(image[aggr_y_start:aggr_y_end, aggr_x_start:aggr_x_end], dtype=np.float)]),
-        rollover=STREAM_ROLLOVER)
+            y=[np.sum(image[aggr_y_start:aggr_y_end, aggr_x_start:aggr_x_end], dtype=np.float)],
+        ),
+        rollover=STREAM_ROLLOVER,
+    )
+
+    # Update peakfinder plot
+    hitrate_line_source.stream(
+        new_data=dict(
+            x=[stream_t],
+            y=[sum(receiver.hitrate_buffer)/len(receiver.hitrate_buffer)],
+        ),
+        rollover=1000,
+    )
 
     # Update mask if it's needed
     if receiver.update_mask and mask_toggle.active:
@@ -924,7 +1012,7 @@ def update_client(image, metadata):
         receiver.update_mask = False
 
     # Update scan positions
-    if custom_tabs.tabs[custom_tabs.active].title == "swissmx":
+    if custom_tabs.tabs[custom_tabs.active].title == "SwissMX":
         peakfinder_buffer = np.array(receiver.peakfinder_buffer)
         trajectory_circle_source.data.update(
             x=peakfinder_buffer[:, 0], y=peakfinder_buffer[:, 1],
@@ -1059,6 +1147,10 @@ def update_client(image, metadata):
     else:
         metadata_issues_dropdown.button_type = 'default'
 
+    # Update statistics tab
+    if custom_tabs.tabs[custom_tabs.active].title == "Statistics":
+        stats_table_source.data = receiver.stats_table_dict
+
 
 @gen.coroutine
 def internal_periodic_callback():
@@ -1076,10 +1168,16 @@ def internal_periodic_callback():
             stream_button.label = 'Receiving'
             stream_button.button_type = 'success'
 
-            current_metadata, current_image = receiver.data_buffer[-1]
-            trajectory_circle_source.selected.indices = []
+            if show_only_hits_toggle.active:
+                if receiver.last_hit_data != (None, None):
+                    current_metadata, current_image = receiver.last_hit_data
+            else:
+                current_metadata, current_image = receiver.data_buffer[-1]
 
-            image_buffer.append((current_metadata, current_image))
+            if not image_buffer or image_buffer[-1] != (current_metadata, current_image):
+                image_buffer.append((current_metadata, current_image))
+
+            trajectory_circle_source.selected.indices = []
 
             # Set slider to the right-most position
             if len(image_buffer) > 1:
