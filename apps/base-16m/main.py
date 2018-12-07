@@ -1003,7 +1003,7 @@ def update_client(image, metadata):
             x=[stream_t],
             y=[sum(receiver.hitrate_buffer)/len(receiver.hitrate_buffer)],
         ),
-        rollover=1000,
+        rollover=1200,
     )
 
     # Update mask if it's needed
