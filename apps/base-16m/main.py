@@ -1018,7 +1018,7 @@ def update_client(image, metadata):
         receiver.update_mask = False
 
     # Update scan positions
-    if custom_tabs.tabs[custom_tabs.active].title == "SwissMX":
+    if custom_tabs.tabs[custom_tabs.active].title == "SwissMX" and receiver.peakfinder_buffer:
         peakfinder_buffer = np.array(receiver.peakfinder_buffer)
         trajectory_circle_source.data.update(
             x=peakfinder_buffer[:, 0], y=peakfinder_buffer[:, 1],
