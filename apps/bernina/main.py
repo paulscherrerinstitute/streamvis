@@ -8,9 +8,9 @@ from bokeh.events import Reset
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
 from bokeh.models import BasicTicker, BasicTickFormatter, Button, ColorBar, \
-    ColumnDataSource, CustomJS, DataRange1d, DataTable, DatetimeAxis, Dropdown, Grid, \
-    ImageRGBA, Line, LinearAxis, LinearColorMapper, LogColorMapper, LogTicker, Panel, \
-    PanTool, Plot, Quad, RadioButtonGroup, Range1d, Rect, ResetTool, Select, \
+    ColumnDataSource, CustomJS, DataRange1d, DataTable, DatetimeAxis, Dropdown, \
+    Grid, ImageRGBA, Line, LinearAxis, LinearColorMapper, LogColorMapper, LogTicker, \
+    Panel, PanTool, Plot, RadioButtonGroup, Range1d, Rect, ResetTool, Select, \
     Slider, Spacer, TableColumn, Tabs, TextInput, Title, Toggle, WheelZoomTool
 from bokeh.palettes import Cividis256, Greys256, Plasma256  # pylint: disable=E0611
 from matplotlib.cm import ScalarMappable
@@ -19,6 +19,7 @@ from PIL import Image as PIL_Image
 from tornado import gen
 
 import receiver
+import streamvis.components as sv
 
 doc = curdoc()
 doc.title = receiver.args.page_title
@@ -43,9 +44,6 @@ MAIN_CANVAS_HEIGHT = image_size_y//2 + 86 + 60
 ZOOM_CANVAS_WIDTH = 388 + 55
 ZOOM_CANVAS_HEIGHT = 388 + 62
 
-HIST_CANVAS_WIDTH = 600
-HIST_CANVAS_HEIGHT = 300
-
 DEBUG_INTENSITY_WIDTH = 700
 
 APP_FPS = 1
@@ -61,10 +59,6 @@ util_plot_size = 160
 # Initial values
 disp_min = 0
 disp_max = 1000
-
-hist_lower = 0
-hist_upper = 1000
-hist_nbins = 100
 
 ZOOM_INIT_WIDTH = 500
 ZOOM_INIT_HEIGHT = 500
@@ -305,167 +299,11 @@ zoom1_sum_source = ColumnDataSource(dict(x=[], y=[]))
 zoom1_intensity_plot.add_glyph(zoom1_sum_source, Line(x='x', y='y', line_color='red'))
 
 
-# Histogram full image plot
-full_im_hist_plot = Plot(
-    title=Title(text="Full image"),
-    x_range=DataRange1d(),
-    y_range=DataRange1d(),
-    plot_height=HIST_CANVAS_HEIGHT,
-    plot_width=HIST_CANVAS_WIDTH,
-    toolbar_location='left',
-)
-
-# ---- tools
-full_im_hist_plot.toolbar.logo = None
-
-# ---- axes
-full_im_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
-full_im_hist_plot.add_layout(
-    LinearAxis(axis_label="Counts", major_label_orientation='vertical'), place='right')
-
-# ---- grid lines
-full_im_hist_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-full_im_hist_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-# ---- quad (single bin) glyph
-full_im_source = ColumnDataSource(dict(left=[], right=[], top=[]))
-full_im_hist_plot.add_glyph(
-    full_im_source, Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
-
-
-# Histogram zoom1 plot
-zoom1_hist_plot = Plot(
-    title=Title(text="Signal roi", text_color='red'),
-    x_range=DataRange1d(),
-    y_range=DataRange1d(),
-    plot_height=HIST_CANVAS_HEIGHT,
-    plot_width=HIST_CANVAS_WIDTH,
-    toolbar_location='left',
-)
-
-# ---- tools
-zoom1_hist_plot.toolbar.logo = None
-
-# ---- axes
-zoom1_hist_plot.add_layout(
-    LinearAxis(axis_label="Intensity", formatter=tick_formatter), place='below')
-zoom1_hist_plot.add_layout(
-    LinearAxis(axis_label="Counts", major_label_orientation='vertical'), place='right')
-
-# ---- grid lines
-zoom1_hist_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-zoom1_hist_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-# ---- quad (single bin) glyph
-zoom1_source = ColumnDataSource(dict(left=[], right=[], top=[]))
-zoom1_hist_plot.add_glyph(
-    zoom1_source, Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
-
-
-# Histogram zoom2 plot
-zoom2_hist_plot = Plot(
-    title=Title(text="Background roi", text_color='green'),
-    x_range=DataRange1d(),
-    y_range=DataRange1d(),
-    plot_height=HIST_CANVAS_HEIGHT,
-    plot_width=HIST_CANVAS_WIDTH,
-    toolbar_location='left',
-)
-
-# ---- tools
-zoom2_hist_plot.toolbar.logo = None
-
-# ---- axes
-zoom2_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
-zoom2_hist_plot.add_layout(
-    LinearAxis(axis_label="Counts", major_label_orientation='vertical'), place='right')
-
-# ---- grid lines
-zoom2_hist_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-zoom2_hist_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-# ---- quad (single bin) glyph
-zoom2_source = ColumnDataSource(dict(left=[], right=[], top=[]))
-zoom2_hist_plot.add_glyph(
-    zoom2_source, Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
-
-
-# Histogram controls
-# ---- histogram radio button
-def hist_radiobuttongroup_callback(selection):
-    if selection == 0:  # Automatic
-        hist_lower_textinput.disabled = True
-        hist_upper_textinput.disabled = True
-        hist_nbins_textinput.disabled = True
-
-    else:  # Manual
-        hist_lower_textinput.disabled = False
-        hist_upper_textinput.disabled = False
-        hist_nbins_textinput.disabled = False
-
-hist_radiobuttongroup = RadioButtonGroup(labels=["Automatic", "Manual"], active=0)
-hist_radiobuttongroup.on_click(hist_radiobuttongroup_callback)
-
-# ---- histogram lower range
-def hist_lower_callback(_attr, old, new):
-    global hist_lower
-    try:
-        new_value = float(new)
-        if new_value < hist_upper:
-            hist_lower = new_value
-        else:
-            hist_lower_textinput.value = old
-
-    except ValueError:
-        hist_lower_textinput.value = old
-
-# ---- histogram upper range
-def hist_upper_callback(_attr, old, new):
-    global hist_upper
-    try:
-        new_value = float(new)
-        if new_value > hist_lower:
-            hist_upper = new_value
-        else:
-            hist_upper_textinput.value = old
-
-    except ValueError:
-        hist_upper_textinput.value = old
-
-# ---- histogram number of bins
-def hist_nbins_callback(_attr, old, new):
-    global hist_nbins
-    try:
-        new_value = int(new)
-        if new_value > 0:
-            hist_nbins = new_value
-        else:
-            hist_nbins_textinput.value = old
-
-    except ValueError:
-        hist_nbins_textinput.value = old
-
-# ---- histogram text imputs
-hist_lower_textinput = TextInput(title='Lower Range:', value=str(hist_lower), disabled=True)
-hist_lower_textinput.on_change('value', hist_lower_callback)
-hist_upper_textinput = TextInput(title='Upper Range:', value=str(hist_upper), disabled=True)
-hist_upper_textinput.on_change('value', hist_upper_callback)
-hist_nbins_textinput = TextInput(title='Number of Bins:', value=str(hist_nbins), disabled=True)
-hist_nbins_textinput.on_change('value', hist_nbins_callback)
-
-# ---- histogram log10 of counts toggle button
-def log10counts_toggle_callback(state):
-    if state:
-        full_im_hist_plot.yaxis[0].axis_label = 'log⏨(Counts)'
-        zoom1_hist_plot.yaxis[0].axis_label = 'log⏨(Counts)'
-        zoom2_hist_plot.yaxis[0].axis_label = 'log⏨(Counts)'
-    else:
-        full_im_hist_plot.yaxis[0].axis_label = 'Counts'
-        zoom1_hist_plot.yaxis[0].axis_label = 'Counts'
-        zoom2_hist_plot.yaxis[0].axis_label = 'Counts'
-
-log10counts_toggle = Toggle(label='log⏨(Counts)', button_type='default')
-log10counts_toggle.on_click(log10counts_toggle_callback)
+# Histogram plots
+svhist = sv.Histogram(nplots=3, plot_height=300, plot_width=600)
+svhist.plots[0].title = Title(text="Full image")
+svhist.plots[1].title = Title(text="Signal roi", text_color='red')
+svhist.plots[2].title = Title(text="Background roi", text_color='green')
 
 
 # Intensity stream reset button
@@ -706,12 +544,12 @@ layout_main = column(Spacer(), main_image_plot)
 
 layout_zoom = column(zoom1_image_plot, zoom2_image_plot, Spacer())
 
-hist_layout = row(full_im_hist_plot, zoom1_hist_plot, zoom2_hist_plot)
+hist_layout = row(svhist.plots[0], svhist.plots[1], svhist.plots[2])
 
 hist_controls = row(
-    Spacer(width=20), column(Spacer(height=19), hist_radiobuttongroup),
-    hist_lower_textinput, hist_upper_textinput, hist_nbins_textinput,
-    column(Spacer(height=19), log10counts_toggle))
+    Spacer(width=20), column(Spacer(height=19), svhist.radiobuttongroup),
+    svhist.lower_textinput, svhist.upper_textinput, svhist.nbins_textinput,
+    column(Spacer(height=19), svhist.log10counts_toggle))
 
 layout_utility = column(
     gridplot([total_intensity_plot, zoom1_intensity_plot],
@@ -791,24 +629,15 @@ def update_client(image, metadata):
         disp_max = int(np.max(image))
         colormap_display_max.value = str(disp_max)
 
-    if hist_radiobuttongroup.active == 0:  # automatic
-        kwarg = dict(bins='scott')
-    else:  # manual
-        kwarg = dict(bins=hist_nbins, range=(hist_lower, hist_upper))
-
     # Signal roi and intensity
     sig_y_start = int(np.floor(zoom1_y_start))
     sig_y_end = int(np.ceil(zoom1_y_end))
     sig_x_start = int(np.floor(zoom1_x_start))
     sig_x_end = int(np.ceil(zoom1_x_end))
 
-    im_block = image[sig_y_start:sig_y_end, sig_x_start:sig_x_end]
-    sig_sum = np.sum(im_block, dtype=np.float)
+    im_block1 = image[sig_y_start:sig_y_end, sig_x_start:sig_x_end]
+    sig_sum = np.sum(im_block1, dtype=np.float)
     sig_area = (sig_y_end - sig_y_start) * (sig_x_end - sig_x_start)
-    counts, edges = np.histogram(im_block, **kwarg)
-    if log10counts_toggle.active:
-        counts = np.log10(counts, where=counts > 0)
-    zoom1_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
 
     # Background roi and intensity
     bkg_y_start = int(np.floor(zoom2_y_start))
@@ -816,19 +645,12 @@ def update_client(image, metadata):
     bkg_x_start = int(np.floor(zoom2_x_start))
     bkg_x_end = int(np.ceil(zoom2_x_end))
 
-    im_block = image[bkg_y_start:bkg_y_end, bkg_x_start:bkg_x_end]
-    bkg_sum = np.sum(im_block, dtype=np.float)
+    im_block2 = image[bkg_y_start:bkg_y_end, bkg_x_start:bkg_x_end]
+    bkg_sum = np.sum(im_block2, dtype=np.float)
     bkg_area = (bkg_y_end - bkg_y_start) * (bkg_x_end - bkg_x_start)
-    counts, edges = np.histogram(im_block, **kwarg)
-    if log10counts_toggle.active:
-        counts = np.log10(counts, where=counts > 0)
-    zoom2_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
 
-    # histogram for full image
-    counts_full_im, edges_full_im = np.histogram(image, **kwarg)
-    if log10counts_toggle.active:
-        counts_full_im = np.log10(counts_full_im, where=counts_full_im > 0)
-    full_im_source.data.update(left=edges_full_im[:-1], right=edges_full_im[1:], top=counts_full_im)
+    # Update histogram
+    svhist.update([image, im_block1, im_block2])
 
     # correct the backgroud roi sum by subtracting overlap area sum
     overlap_y_start = max(sig_y_start, bkg_y_start)
