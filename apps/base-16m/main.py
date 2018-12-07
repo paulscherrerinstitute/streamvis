@@ -11,7 +11,7 @@ from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
 from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, Circle, \
     ColorBar, ColumnDataSource, Cross, CustomJS, DataRange1d, DataTable, DatetimeAxis, \
-    Dropdown, Ellipse, Grid, HoverTool, ImageRGBA, Line, LinearAxis, \
+    Dropdown, Ellipse, Grid, HoverTool, ImageRGBA, Legend, Line, LinearAxis, \
     LinearColorMapper, LogColorMapper, LogTicker, NumberFormatter, Panel, PanTool, \
     Plot, RadioButtonGroup, Range1d, Rect, ResetTool, SaveTool, Select, Slider, \
     Spacer, TableColumn, Tabs, TapTool, Text, TextInput, Title, Toggle, WheelZoomTool
@@ -50,6 +50,7 @@ AGGR_PROJ_Y_CANVAS_WIDTH = 150 + 31
 
 APP_FPS = 1
 STREAM_ROLLOVER = 36000
+HITRATE_ROLLOVER = 1200
 image_buffer = deque(maxlen=60)
 
 HDF5_FILE_PATH_UPDATE_PERIOD = 5000  # ms
@@ -435,9 +436,24 @@ hitrate_plot.add_layout(LinearAxis(), place='left')
 hitrate_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
 hitrate_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
-# ---- line glyph
-hitrate_line_source = ColumnDataSource(dict(x=[], y=[]))
-hitrate_plot.add_glyph(hitrate_line_source, Line(x='x', y='y', line_color='red'))
+# ---- red line glyph
+hitrate_line_red_source = ColumnDataSource(dict(x=[], y=[]))
+hitrate_red_line = hitrate_plot.add_glyph(
+    hitrate_line_red_source, Line(x='x', y='y', line_color='red', line_width=2)
+)
+
+# ---- blue line glyph
+hitrate_line_blue_source = ColumnDataSource(dict(x=[], y=[]))
+hitrate_blue_line = hitrate_plot.add_glyph(
+    hitrate_line_blue_source, Line(x='x', y='y', line_color='steelblue', line_width=2)
+)
+
+# ---- legend
+hitrate_plot.add_layout(Legend(items=[
+    ("75 shots avg", [hitrate_red_line]),
+    ("250 shots avg", [hitrate_blue_line]),
+]))
+hitrate_plot.legend.click_policy = "hide"
 
 
 # Stream panel
@@ -1004,12 +1020,20 @@ def update_client(image, metadata):
     )
 
     # Update peakfinder plot
-    hitrate_line_source.stream(
+    hitrate_line_red_source.stream(
         new_data=dict(
             x=[stream_t],
-            y=[sum(receiver.hitrate_buffer)/len(receiver.hitrate_buffer)],
+            y=[sum(receiver.hitrate_buffer_75)/len(receiver.hitrate_buffer_75)],
         ),
-        rollover=1200,
+        rollover=HITRATE_ROLLOVER,
+    )
+
+    hitrate_line_blue_source.stream(
+        new_data=dict(
+            x=[stream_t],
+            y=[sum(receiver.hitrate_buffer_250)/len(receiver.hitrate_buffer_250)],
+        ),
+        rollover=HITRATE_ROLLOVER,
     )
 
     # Update mask if it's needed
