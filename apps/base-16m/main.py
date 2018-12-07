@@ -761,42 +761,42 @@ metadata_issues_dropdown = Dropdown(label="Metadata Issues", button_type='defaul
 show_all_metadata_toggle = Toggle(label="Show All", button_type='default')
 
 
-# Statistics datatable
-stats_table_source = ColumnDataSource(dict(
-    run_names=[],
-    nframes=[],
-    bad_frames=[],
-    sat_pix_nframes=[],
-    laser_on_nframes=[],
-    laser_on_hits=[],
-    laser_on_hits_ratio=[],
-    laser_off_nframes=[],
-    laser_off_hits=[],
-    laser_off_hits_ratio=[],
-))
+# Statistics datatables
+stats_table_columns = [
+    TableColumn(field='run_names', title="Run Name"),
+    TableColumn(field='nframes', title="Total Frames"),
+    TableColumn(field='bad_frames', title="Bad Frames"),
+    TableColumn(field='sat_pix_nframes', title="Sat pix frames"),
+    TableColumn(field='laser_on_nframes', title="Laser ON frames"),
+    TableColumn(field='laser_on_hits', title="Laser ON hits"),
+    TableColumn(
+        field='laser_on_hits_ratio', title="Laser ON hits ratio",
+        formatter=NumberFormatter(format='(0.00 %)'),
+    ),
+    TableColumn(field='laser_off_nframes', title="Laser OFF frames"),
+    TableColumn(field='laser_off_hits', title="Laser OFF hits"),
+    TableColumn(
+        field='laser_off_hits_ratio', title="Laser OFF hits ratio",
+        formatter=NumberFormatter(format='(0.00 %)'),
+    ),
+]
 
+stats_table_source = ColumnDataSource(receiver.stats_table_dict)
 stats_table = DataTable(
     source=stats_table_source,
-    columns=[
-        TableColumn(field='run_names', title="Run Name"),
-        TableColumn(field='nframes', title="Total Frames"),
-        TableColumn(field='bad_frames', title="Bad Frames"),
-        TableColumn(field='sat_pix_nframes', title="Sat pix frames"),
-        TableColumn(field='laser_on_nframes', title="Laser ON frames"),
-        TableColumn(field='laser_on_hits', title="Laser ON hits"),
-        TableColumn(
-            field='laser_on_hits_ratio', title="Laser ON hits ratio",
-            formatter=NumberFormatter(format='(0.00 %)'),
-        ),
-        TableColumn(field='laser_off_nframes', title="Laser OFF frames"),
-        TableColumn(field='laser_off_hits', title="Laser OFF hits"),
-        TableColumn(
-            field='laser_off_hits_ratio', title="Laser OFF hits ratio",
-            formatter=NumberFormatter(format='(0.00 %)'),
-        ),
-    ],
+    columns=stats_table_columns,
     width=1380,
-    height=900,
+    height=750,
+    index_position=None,
+    selectable=False,
+)
+
+sum_stats_table_source = ColumnDataSource(receiver.sum_stats_table_dict)
+sum_stats_table = DataTable(
+    source=sum_stats_table_source,
+    columns=stats_table_columns,
+    width=1380,
+    height=50,
     index_position=None,
     selectable=False,
 )
@@ -838,7 +838,7 @@ scan_tab = Panel(
 )
 
 statistics_tab = Panel(
-    child=row(stats_table),
+    child=column(stats_table, sum_stats_table),
     title="Statistics",
 )
 
@@ -1182,6 +1182,7 @@ def update_client(image, metadata):
     # Update statistics tab
     if custom_tabs.tabs[custom_tabs.active].title == "Statistics":
         stats_table_source.data = receiver.stats_table_dict
+        sum_stats_table_source.data = receiver.sum_stats_table_dict
 
 
 @gen.coroutine

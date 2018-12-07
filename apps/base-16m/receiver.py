@@ -47,6 +47,29 @@ stats_table_dict = dict(
     laser_off_hits_ratio=laser_off_hits_ratio,
 )
 
+sum_nframes = [0]
+sum_bad_frames = [0]
+sum_sat_pix_nframes = [0]
+sum_laser_on_nframes = [0]
+sum_laser_on_hits = [0]
+sum_laser_on_hits_ratio = [0]
+sum_laser_off_nframes = [0]
+sum_laser_off_hits = [0]
+sum_laser_off_hits_ratio = [0]
+
+sum_stats_table_dict = dict(
+    run_names=["Summary"],
+    nframes=sum_nframes,
+    bad_frames=sum_bad_frames,
+    sat_pix_nframes=sum_sat_pix_nframes,
+    laser_on_nframes=sum_laser_on_nframes,
+    laser_on_hits=sum_laser_on_hits,
+    laser_on_hits_ratio=sum_laser_on_hits_ratio,
+    laser_off_nframes=sum_laser_off_nframes,
+    laser_off_hits=sum_laser_off_hits,
+    laser_off_hits_ratio=sum_laser_off_hits_ratio,
+)
+
 state = 'polling'
 
 zmq_context = zmq.Context(io_threads=2)
@@ -192,23 +215,32 @@ def stream_receive():
                     ]))
 
                 nframes[-1] += 1
+                sum_nframes[0] += 1
                 if 'is_good_frame' in metadata and not metadata['is_good_frame']:
                     bad_frames[-1] += 1
+                    sum_bad_frames[0] += 1
                 if 'saturated_pixels' in metadata and metadata['saturated_pixels'] != 0:
                     sat_pix_nframes[-1] += 1
+                    sum_sat_pix_nframes[0] += 1
 
                 if 'laser_on' in metadata:
                     if metadata['laser_on']:
                         laser_on_nframes[-1] += 1
+                        sum_laser_on_nframes[0] += 1
                         if is_hit:
                             laser_on_hits[-1] += 1
+                            sum_laser_on_hits[0] += 1
                         laser_on_hits_ratio[-1] = laser_on_hits[-1] / laser_on_nframes[-1]
+                        sum_laser_on_hits_ratio[0] = sum_laser_on_hits[0] / sum_laser_on_nframes[0]
 
                     else:
                         laser_off_nframes[-1] += 1
+                        sum_laser_off_nframes[0] += 1
                         if is_hit:
                             laser_off_hits[-1] += 1
+                            sum_laser_off_hits[0] += 1
                         laser_off_hits_ratio[-1] = laser_off_hits[-1] / laser_off_nframes[-1]
+                        sum_laser_off_hits_ratio[0] = sum_laser_off_hits[0] / sum_laser_off_nframes[0]
 
             image = zmq_socket.recv(flags=0, copy=False, track=False)
             image = np.frombuffer(image.buffer, dtype=metadata['type']).reshape(metadata['shape'])
