@@ -65,29 +65,55 @@ mask = None
 update_mask = False
 
 # TODO: generalize via jungfrau_utils
-modules_orig_y = [
-    0, 0, 68, 68,
-    550, 550, 618, 618,
-    1100, 1100, 1168, 1168,
-    1650, 1650, 1718, 1718,
-    2200, 2200, 2268, 2268,
-    2750, 2750, 2818, 2818,
-    3300, 3300, 3368, 3368,
-    3850, 3850, 3918, 3918,
-]
+modules_orig = {
+    'JF06T32V01': (
+        [
+            68, 0, 618, 618,
+            550, 550, 1168, 1168,
+            1100, 1100, 1718, 1718,
+            1650, 1650, 2268, 2268,
+            2200, 2200, 2818, 2818,
+            2750, 2750, 3368, 3368,
+            3300, 3300, 3918, 3918,
+            3850, 3850, 4468, 4400,
+        ],
+        [
+            972, 2011, 0, 1039,
+            2078, 3117, 0, 1039,
+            2078, 3117, 0, 1039,
+            2078, 3117, 66, 1106,
+            2145, 3184, 66, 1106,
+            2145, 3184, 66, 1106,
+            2145, 3184, 66, 1106,
+            2145, 3184, 1106, 2145,
+        ],
+    ),
 
-modules_orig_x = [
-    68, 1107, 2146, 3185,
-    68, 1107, 2146, 3185,
-    68, 1107, 2146, 3185,
-    68, 1107, 2146, 3185,
-    0, 1039, 2078, 3117,
-    0, 1039, 2078, 3117,
-    0, 1039, 2078, 3117,
-    0, 1039, 2078, 3117,
-]
+    'JF07T32V01': (
+        [
+            0, 0, 68, 68,
+            550, 550, 618, 618,
+            1100, 1100, 1168, 1168,
+            1650, 1650, 1718, 1718,
+            2200, 2200, 2268, 2268,
+            2750, 2750, 2818, 2818,
+            3300, 3300, 3368, 3368,
+            3850, 3850, 3918, 3918,
+        ],
+        [
+            68, 1107, 2146, 3185,
+            68, 1107, 2146, 3185,
+            68, 1107, 2146, 3185,
+            68, 1107, 2146, 3185,
+            0, 1039, 2078, 3117,
+            0, 1039, 2078, 3117,
+            0, 1039, 2078, 3117,
+            0, 1039, 2078, 3117,
+        ],
+    ),
+}
 
-def arrange_image_geometry(image_in):
+def arrange_image_geometry(image_in, detector_name):
     chip_shape_x = 256
     chip_shape_y = 256
 
@@ -99,6 +125,11 @@ def arrange_image_geometry(image_in):
 
     module_shape_x = 1024
     module_shape_y = 512
+
+    if detector_name in modules_orig:
+        modules_orig_y, modules_orig_x = modules_orig[detector_name]
+    else:
+        return image_in
 
     image_out_shape_x = max(modules_orig_x) + module_shape_x + (chip_num_x-1)*chip_gap_x
     image_out_shape_y = max(modules_orig_y) + module_shape_y + (chip_num_y-1)*chip_gap_y
@@ -118,6 +149,10 @@ def arrange_image_geometry(image_in):
 
                 image_out[wy_s:wy_s+chip_shape_y, wx_s:wx_s+chip_shape_x] = \
                     module_in[ry_s:ry_s+chip_shape_y, rx_s:rx_s+chip_shape_x]
+
+    # rotate image in case of alvra detector
+    if detector_name == 'JF06T32V01':
+        image_out = np.rot90(image_out)  # check .copy()
 
     return image_out
 
@@ -183,14 +218,14 @@ def stream_receive():
             else:
                 hitrate_buffer.append(0)
 
-            if 'pedestal_file' in metadata:
+            if 'pedestal_file' in metadata and 'detector_name' in metadata:
                 if mask_file != metadata['pedestal_file']:
                     try:
                         mask_file = metadata['pedestal_file']
                         with h5py.File(mask_file) as h5f:
                             mask_data = h5f['/pixel_mask'][:].astype(bool)
 
-                        mask_data = arrange_image_geometry(mask_data)
+                        mask_data = arrange_image_geometry(mask_data, metadata['detector_name'])
 
                         # Prepare rgba mask
                         mask = np.zeros((*mask_data.shape, 4), dtype='uint8')
