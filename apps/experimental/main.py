@@ -16,7 +16,7 @@ from matplotlib.colors import LogNorm, Normalize
 from PIL import Image as PIL_Image
 from tornado import gen
 
-import streamvis.components as sv
+import streamvis as sv
 
 doc = curdoc()
 doc.title = 'StreamVis Experimental'

@@ -19,7 +19,7 @@ from PIL import Image as PIL_Image
 from tornado import gen
 
 import receiver
-import streamvis.components as sv
+import streamvis as sv
 
 doc = curdoc()
 doc.title = receiver.args.page_title
