@@ -418,7 +418,7 @@ trajectory_circle_source.selected.on_change('indices', trajectory_circle_source_
 hitrate_plot = Plot(
     title=Title(text='Hitrate'),
     x_range=DataRange1d(),
-    y_range=DataRange1d(),
+    y_range=Range1d(0, 1, bounds=(0, 1)),
     plot_height=250,
     plot_width=1380,
     toolbar_location='left',
@@ -449,10 +449,13 @@ hitrate_blue_line = hitrate_plot.add_glyph(
 )
 
 # ---- legend
-hitrate_plot.add_layout(Legend(items=[
-    ("75 shots avg", [hitrate_red_line]),
-    ("250 shots avg", [hitrate_blue_line]),
-]))
+hitrate_plot.add_layout(Legend(
+    items=[
+        ("75 shots avg", [hitrate_red_line]),
+        ("250 shots avg", [hitrate_blue_line]),
+    ],
+    location='top_left',
+))
 hitrate_plot.legend.click_policy = "hide"
 
 
