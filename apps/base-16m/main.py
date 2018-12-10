@@ -451,8 +451,8 @@ hitrate_blue_line = hitrate_plot.add_glyph(
 # ---- legend
 hitrate_plot.add_layout(Legend(
     items=[
-        ("75 shots avg", [hitrate_red_line]),
-        ("250 shots avg", [hitrate_blue_line]),
+        (f"{receiver.hitrate_buffer_fast.maxlen} shots avg", [hitrate_red_line]),
+        (f"{receiver.hitrate_buffer_slow.maxlen} shots avg", [hitrate_blue_line]),
     ],
     location='top_left',
 ))
@@ -1055,7 +1055,7 @@ def update_client(image, metadata):
     hitrate_line_red_source.stream(
         new_data=dict(
             x=[stream_t],
-            y=[sum(receiver.hitrate_buffer_75)/len(receiver.hitrate_buffer_75)],
+            y=[sum(receiver.hitrate_buffer_fast)/len(receiver.hitrate_buffer_fast)],
         ),
         rollover=HITRATE_ROLLOVER,
     )
@@ -1063,7 +1063,7 @@ def update_client(image, metadata):
     hitrate_line_blue_source.stream(
         new_data=dict(
             x=[stream_t],
-            y=[sum(receiver.hitrate_buffer_250)/len(receiver.hitrate_buffer_250)],
+            y=[sum(receiver.hitrate_buffer_slow)/len(receiver.hitrate_buffer_slow)],
         ),
         rollover=HITRATE_ROLLOVER,
     )
