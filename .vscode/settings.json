@@ -1,8 +1,0 @@
-{
-    "python.linting.pylintArgs": [
-        "--disable=design",
-        "--disable=line-too-long,invalid-name,too-many-lines,missing-docstring,global-statement",
-        "--disable=fixme",
-        "--disable=no-member, E1136",  // bokeh issues
-    ]
-}
