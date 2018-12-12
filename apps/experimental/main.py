@@ -129,7 +129,7 @@ hdf5_dataset_path = TextInput(title="Dataset Path:", value=HDF5_DATASET_PATH)
 # ---- load button
 def mx_image(file, dataset, i):
     # hdf5plugin is required to be loaded prior to h5py without a follow-up use
-    import hdf5plugin  # pylint: disable=W0612
+    import hdf5plugin  # pylint: disable=W0611
     import h5py
     with h5py.File(file, 'r') as f:
         image = f[dataset][i, :, :].astype('float32')
