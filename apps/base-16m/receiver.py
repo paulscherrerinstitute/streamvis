@@ -1,9 +1,12 @@
 import argparse
+import logging
 from collections import deque
 
 import h5py
 import numpy as np
 import zmq
+
+logger = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser()
 group = parser.add_mutually_exclusive_group()
@@ -259,8 +262,8 @@ def stream_receive():
 
             if 'pedestal_file' in metadata and 'detector_name' in metadata:
                 if mask_file != metadata['pedestal_file']:
+                    mask_file = metadata['pedestal_file']
                     try:
-                        mask_file = metadata['pedestal_file']
                         with h5py.File(mask_file) as h5f:
                             mask_data = h5f['/pixel_mask'][:].astype(bool)
 
@@ -273,7 +276,7 @@ def stream_receive():
                         update_mask = True
 
                     except Exception:
-                        mask_file = ''
+                        logger.exception('Failed to load pedestal file: %s', mask_file)
                         mask = None
                         update_mask = False
 
