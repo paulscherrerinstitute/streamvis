@@ -17,7 +17,7 @@ def main():
     https://bokeh.pydata.org/en/latest/docs/reference/command/subcommands/serve.html
     """
 
-    apps_path = os.path.join(os.environ['CONDA_PREFIX'], 'streamvis-apps')
+    apps_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'apps')
 
     # TODO: generalize streamvis parsing after python/3.7 release
     # due to an issue with 'argparse' (https://bugs.python.org/issue14191),

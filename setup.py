@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name="streamvis",
@@ -6,6 +6,6 @@ setup(
     author="Ivan Usov",
     author_email="ivan.usov@psi.ch",
     description="Live stream visualization server for detectors at PSI",
-    packages=["streamvis"],
+    packages=find_packages(),
     license="GNU GPLv3",
 )
