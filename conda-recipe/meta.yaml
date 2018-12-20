@@ -9,7 +9,7 @@ source:
 
 build:
   entry_points:
-    - streamvis = streamvis.streamvis:main
+    - streamvis = streamvis.cli:main
 
 requirements:
   build:
