@@ -6,20 +6,28 @@ from bokeh.palettes import Cividis256, Greys256, Plasma256  # pylint: disable=E0
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LogNorm, Normalize
 
+cmap_dict = {
+    'gray': Greys256,
+    'gray_r': Greys256[::-1],
+    'plasma': Plasma256,
+    'coolwarm': cc.coolwarm,
+    'cividis': Cividis256,
+}
+
 
 class ColorMapper:
-    def __init__(self, init_disp_min=0, init_disp_max=1000):
+    def __init__(self, init_disp_min=0, init_disp_max=1000, init_colormap='plasma'):
         self._disp_min = init_disp_min
         self._disp_max = init_disp_max
 
         lin_colormapper = LinearColorMapper(
-            palette=Plasma256,
+            palette=cmap_dict[init_colormap],
             low=init_disp_min,
             high=init_disp_max,
         )
 
         log_colormapper = LogColorMapper(
-            palette=Plasma256,
+            palette=cmap_dict[init_colormap],
             low=init_disp_min,
             high=init_disp_max,
         )
@@ -36,34 +44,19 @@ class ColorMapper:
 
         color_lin_norm = Normalize()
         color_log_norm = LogNorm()
-        self._image_color_mapper = ScalarMappable(norm=color_lin_norm, cmap='plasma')
+        self._image_color_mapper = ScalarMappable(norm=color_lin_norm, cmap=init_colormap)
 
         # ---- colormap selector
         def select_callback(_attr, _old, new):
             self._image_color_mapper.set_cmap(new)
-            if new == 'gray':
-                lin_colormapper.palette = Greys256
-                log_colormapper.palette = Greys256
-
-            elif new == 'gray_r':
-                lin_colormapper.palette = Greys256[::-1]
-                log_colormapper.palette = Greys256[::-1]
-
-            elif new == 'plasma':
-                lin_colormapper.palette = Plasma256
-                log_colormapper.palette = Plasma256
-
-            elif new == 'coolwarm':
-                lin_colormapper.palette = cc.coolwarm
-                log_colormapper.palette = cc.coolwarm
-
-            elif new == 'cividis':
-                lin_colormapper.palette = Cividis256
-                log_colormapper.palette = Cividis256
+            if new in cmap_dict:
+                lin_colormapper.palette = cmap_dict[new]
+                log_colormapper.palette = cmap_dict[new]
 
         select = Select(
-            title="Colormap:", value='plasma',
-            options=['gray', 'gray_r', 'plasma', 'coolwarm', 'cividis'],
+            title="Colormap:",
+            value=init_colormap,
+            options=list(cmap_dict.keys()),
         )
         select.on_change('value', select_callback)
         self.select = select
