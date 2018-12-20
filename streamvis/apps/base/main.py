@@ -2,19 +2,14 @@ import os
 from datetime import datetime
 from functools import partial
 
-import colorcet as cc
 import numpy as np
 from bokeh.events import Reset
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, ColorBar, \
+from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, \
     ColumnDataSource, CustomJS, DataRange1d, DataTable, DatetimeAxis, Dropdown, Grid, \
-    ImageRGBA, Line, LinearAxis, LinearColorMapper, LogColorMapper, LogTicker, Panel, \
-    PanTool, Plot, RadioButtonGroup, Range1d, Rect, ResetTool, SaveTool, Select, Slider, \
-    Spacer, TableColumn, Tabs, TextInput, Toggle, WheelZoomTool
-from bokeh.palettes import Cividis256, Greys256, Plasma256  # pylint: disable=E0611
-from matplotlib.cm import ScalarMappable
-from matplotlib.colors import LogNorm, Normalize
+    ImageRGBA, Line, LinearAxis, Panel, PanTool, Plot, Range1d, Rect, ResetTool, \
+    SaveTool, Slider, Spacer, TableColumn, Tabs, TextInput, Toggle, WheelZoomTool
 from PIL import Image as PIL_Image
 from tornado import gen
 
@@ -52,16 +47,15 @@ hdf5_file_data = lambda pulse: None
 
 agg_plot_size = 200
 
-# Initial values
-disp_min = 0
-disp_max = 1000
-
 ZOOM_INIT_WIDTH = image_size_x
 ZOOM_INIT_HEIGHT = image_size_y
 ZOOM1_INIT_X = 0
 
 # Custom tick formatter for displaying large numbers
 tick_formatter = BasicTickFormatter(precision=1)
+
+# Create colormapper
+svcolormapper = sv.ColorMapper()
 
 
 # Main plot
@@ -83,13 +77,9 @@ main_image_plot.add_layout(LinearAxis(), place='above')
 main_image_plot.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
 
 # ---- colormap
-lin_colormapper = LinearColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
-log_colormapper = LogColorMapper(palette=Plasma256, low=disp_min, high=disp_max)
-color_bar = ColorBar(
-    color_mapper=lin_colormapper, location=(0, -5), orientation='horizontal', height=10,
-    width=MAIN_CANVAS_WIDTH // 2, padding=0)
-
-main_image_plot.add_layout(color_bar, place='below')
+svcolormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
+svcolormapper.color_bar.location = (0, -5)
+main_image_plot.add_layout(svcolormapper.color_bar, place='below')
 
 # ---- rgba image glyph
 main_image_source = ColumnDataSource(
@@ -403,112 +393,16 @@ tab_hdf5file = Panel(
 data_source_tabs = Tabs(tabs=[tab_stream, tab_hdf5file])
 
 
-# Colormap panel
-color_lin_norm = Normalize()
-color_log_norm = LogNorm()
-image_color_mapper = ScalarMappable(norm=color_lin_norm, cmap='plasma')
-
-# ---- colormap selector
-def colormap_select_callback(_attr, _old, new):
-    image_color_mapper.set_cmap(new)
-    if new == 'gray_r':
-        lin_colormapper.palette = Greys256[::-1]
-        log_colormapper.palette = Greys256[::-1]
-
-    elif new == 'plasma':
-        lin_colormapper.palette = Plasma256
-        log_colormapper.palette = Plasma256
-
-    elif new == 'coolwarm':
-        lin_colormapper.palette = cc.coolwarm
-        log_colormapper.palette = cc.coolwarm
-
-    elif new == 'cividis':
-        lin_colormapper.palette = Cividis256
-        log_colormapper.palette = Cividis256
-
-colormap_select = Select(
-    title="Colormap:", value='plasma',
-    options=['gray_r', 'plasma', 'coolwarm', 'cividis']
-)
-colormap_select.on_change('value', colormap_select_callback)
-
-# ---- colormap auto toggle button
-def colormap_auto_toggle_callback(state):
-    if state:
-        colormap_display_min.disabled = True
-        colormap_display_max.disabled = True
-    else:
-        colormap_display_min.disabled = False
-        colormap_display_max.disabled = False
-
-colormap_auto_toggle = Toggle(label="Auto", active=True, button_type='default')
-colormap_auto_toggle.on_click(colormap_auto_toggle_callback)
-
-# ---- colormap scale radiobutton group
-def colormap_scale_radiobuttongroup_callback(selection):
-    if selection == 0:  # Linear
-        color_bar.color_mapper = lin_colormapper
-        color_bar.ticker = BasicTicker()
-        image_color_mapper.norm = color_lin_norm
-
-    else:  # Logarithmic
-        if disp_min > 0:
-            color_bar.color_mapper = log_colormapper
-            color_bar.ticker = LogTicker()
-            image_color_mapper.norm = color_log_norm
-        else:
-            colormap_scale_radiobuttongroup.active = 0
-
-colormap_scale_radiobuttongroup = RadioButtonGroup(labels=["Linear", "Logarithmic"], active=0)
-colormap_scale_radiobuttongroup.on_click(colormap_scale_radiobuttongroup_callback)
-
-# ---- colormap min/max values
-def colormap_display_max_callback(_attr, old, new):
-    global disp_max
-    try:
-        new_value = float(new)
-        if new_value > disp_min:
-            if new_value <= 0:
-                colormap_scale_radiobuttongroup.active = 0
-            disp_max = new_value
-            color_lin_norm.vmax = disp_max
-            color_log_norm.vmax = disp_max
-            lin_colormapper.high = disp_max
-            log_colormapper.high = disp_max
-        else:
-            colormap_display_max.value = old
-
-    except ValueError:
-        colormap_display_max.value = old
-
-def colormap_display_min_callback(_attr, old, new):
-    global disp_min
-    try:
-        new_value = float(new)
-        if new_value < disp_max:
-            if new_value <= 0:
-                colormap_scale_radiobuttongroup.active = 0
-            disp_min = new_value
-            color_lin_norm.vmin = disp_min
-            color_log_norm.vmin = disp_min
-            lin_colormapper.low = disp_min
-            log_colormapper.low = disp_min
-        else:
-            colormap_display_min.value = old
-
-    except ValueError:
-        colormap_display_min.value = old
-
-colormap_display_max = TextInput(title='Maximal Display Value:', value=str(disp_max), disabled=True)
-colormap_display_max.on_change('value', colormap_display_max_callback)
-colormap_display_min = TextInput(title='Minimal Display Value:', value=str(disp_min), disabled=True)
-colormap_display_min.on_change('value', colormap_display_min_callback)
-
-# assemble
+# Colormapper panel
 colormap_panel = column(
-    colormap_select, Spacer(height=10), colormap_scale_radiobuttongroup, Spacer(height=10),
-    colormap_auto_toggle, colormap_display_max, colormap_display_min)
+    svcolormapper.select,
+    Spacer(height=10),
+    svcolormapper.scale_radiobuttongroup,
+    Spacer(height=10),
+    svcolormapper.auto_toggle,
+    svcolormapper.display_max_textinput,
+    svcolormapper.display_min_textinput,
+)
 
 
 # Intensity threshold toggle button
@@ -624,7 +518,7 @@ doc.add_root(final_layout)
 
 @gen.coroutine
 def update_client(image, metadata):
-    global disp_min, disp_max, image_size_x, image_size_y
+    global image_size_x, image_size_y
     main_image_height = main_image_plot.inner_height
     main_image_width = main_image_plot.inner_width
     zoom1_image_height = zoom1_image_plot.inner_height
@@ -660,13 +554,7 @@ def update_client(image, metadata):
     zoom1_x_start = max(zoom1_image_plot.x_range.start, 0)
     zoom1_x_end = min(zoom1_image_plot.x_range.end, image_size_x)
 
-    if colormap_auto_toggle.active:
-        disp_min = int(np.min(image))
-        if disp_min <= 0:  # switch to linear colormap
-            colormap_scale_radiobuttongroup.active = 0
-        colormap_display_min.value = str(disp_min)
-        disp_max = int(np.max(image))
-        colormap_display_max.value = str(disp_max)
+    svcolormapper.update(image)
 
     pil_im = PIL_Image.fromarray(image)
 
@@ -683,12 +571,12 @@ def update_client(image, metadata):
             resample=PIL_Image.NEAREST))
 
     main_image_source.data.update(
-        image=[image_color_mapper.to_rgba(main_image, bytes=True)],
+        image=[svcolormapper.convert(main_image)],
         x=[main_x_start], y=[main_y_start],
         dw=[main_x_end - main_x_start], dh=[main_y_end - main_y_start])
 
     zoom1_image_source.data.update(
-        image=[image_color_mapper.to_rgba(zoom1_image, bytes=True)],
+        image=[svcolormapper.convert(zoom1_image)],
         x=[zoom1_x_start], y=[zoom1_y_start],
         dw=[zoom1_x_end - zoom1_x_start], dh=[zoom1_y_end - zoom1_y_start])
 
