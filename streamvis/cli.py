@@ -1,32 +1,69 @@
+import argparse
 import logging
 import os
-import subprocess
-import sys
+
+from bokeh.application.application import Application
+from bokeh.application.handlers import DirectoryHandler
+from bokeh.server.server import Server
 
 logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def main():
-    """
-    Execute the "streamvis" command line program.
+    """The streamvis command line interface.
 
-    This is a wrapper around 'bokeh serve' command which provides a user interface to launch
+    This is a wrapper around bokeh server that provides an interface to launch
     applications bundled with the streamvis package.
-
-    For more information, see:
-    https://bokeh.pydata.org/en/latest/docs/reference/command/subcommands/serve.html
     """
+    parser = argparse.ArgumentParser(
+        prog='streamvis',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
 
-    apps_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'apps')
+    parser.add_argument(
+        'app',
+        type=str,
+        choices=['base', 'base16m', 'alvra', 'bernina'],
+        help="streamvis application",
+    )
 
-    # TODO: generalize streamvis parsing after python/3.7 release
-    # due to an issue with 'argparse' (https://bugs.python.org/issue14191),
-    # which is supposed to be fixed in python/3.7, keep parsing unflexible, but very simple
-    _, app_name, *app_args = sys.argv
+    parser.add_argument(
+        '--port',
+        type=int,
+        default=5006,
+        help="the port to listen on for HTTP requests",
+    )
 
-    command = ['bokeh', 'serve', os.path.join(apps_path, app_name), *app_args]
-    logger.info(' '.join(command))
-    subprocess.run(command)
+    parser.add_argument(
+        '--allow-websocket-origin',
+        metavar='HOST[:PORT]',
+        type=str,
+        action='append',
+        default=None,
+        help="hostname that can connect to the server websocket",
+    )
+
+    parser.add_argument(
+        '--args',
+        nargs=argparse.REMAINDER,
+        default=[],
+        help="command line arguments for the streamvis application",
+    )
+
+    args = parser.parse_args()
+
+    app_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'apps', args.app)
+    logger.info(app_path)
+
+    handler = DirectoryHandler(filename=app_path, argv=args.args)
+    server = Server(
+        {'/': Application(handler)},
+        port=args.port,
+        allow_websocket_origin=args.allow_websocket_origin,
+    )
+
+    server.start()
+    server.io_loop.start()
 
 if __name__ == "__main__":
     main()
