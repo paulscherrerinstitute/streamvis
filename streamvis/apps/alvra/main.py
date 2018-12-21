@@ -7,9 +7,9 @@ from bokeh.events import Reset
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
 from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, \
-    ColumnDataSource, CustomJS, DataRange1d, DataTable, Dropdown, Grid, ImageRGBA, \
-    Line, LinearAxis, Panel, PanTool, Plot, Quad, Range1d, Rect, ResetTool, Select, \
-    Slider, Spacer, TableColumn, Tabs, TextInput, Title, Toggle, WheelZoomTool
+    ColumnDataSource, CustomJS, DataRange1d, Dropdown, Grid, ImageRGBA, Line, \
+    LinearAxis, Panel, PanTool, Plot, Quad, Range1d, Rect, ResetTool, Select, \
+    Slider, Spacer, Tabs, TextInput, Title, Toggle, WheelZoomTool
 from PIL import Image as PIL_Image
 from tornado import gen
 
@@ -760,20 +760,8 @@ colormap_panel = column(
 )
 
 
-# Metadata table
-metadata_table_source = ColumnDataSource(dict(metadata=['', '', ''], value=['', '', '']))
-metadata_table = DataTable(
-    source=metadata_table_source,
-    columns=[
-        TableColumn(field='metadata', title="Metadata Name"),
-        TableColumn(field='value', title="Value")],
-    width=800,
-    height=420,
-    index_position=None,
-    selectable=False,
-)
-
-metadata_issues_dropdown = Dropdown(label="Metadata Issues", button_type='default', menu=[])
+# Metadata datatable
+svmetadata = sv.MetadataHandler(datatable_height=420, datatable_width=800)
 
 
 # Final layouts
@@ -805,7 +793,10 @@ layout_utility = column(
 
 layout_controls = column(colormap_panel, data_source_tabs)
 
-layout_metadata = column(metadata_table, row(Spacer(width=500), metadata_issues_dropdown))
+layout_metadata = column(
+    svmetadata.datatable,
+    row(svmetadata.show_all_toggle, svmetadata.issues_dropdown),
+)
 
 final_layout = column(
     layout_main,
@@ -968,64 +959,21 @@ def update_client(image, metadata, stats):
         zoom2_sum_source.stream(
             new_data=dict(x=[stream_t], y=[total_sum_zoom2]), rollover=STREAM_ROLLOVER)
 
-    # Unpack metadata
-    metadata_table_source.data.update(
-        metadata=list(map(str, metadata.keys())), value=list(map(str, metadata.values())))
 
     # Save spectrum
     current_spectra = (zoom1_agg_y, zoom1_r_y, zoom1_agg_x, zoom1_r_x,
                        zoom2_agg_y, zoom2_r_y, zoom2_agg_x, zoom2_r_x)
 
-    # Check metadata for issues
-    new_menu = []
-    if 'module_enabled' in metadata:
-        module_enabled = np.array(metadata['module_enabled'], dtype=bool)
-    else:
-        module_enabled = slice(None, None)
-
-    if 'pulse_id_diff' in metadata:
-        pulse_id_diff = np.array(metadata['pulse_id_diff'])
-        if isinstance(module_enabled, np.ndarray) and \
-            module_enabled.shape != pulse_id_diff.shape:
-            new_menu.append(
-                ("Shapes of 'pulse_id_diff' and 'module_enabled' are not the same", '1'))
-        else:
-            if np.any(pulse_id_diff[module_enabled]):
-                new_menu.append(('Not all pulse_id_diff are 0', '1'))
-
-    if 'missing_packets_1' in metadata:
-        missing_packets_1 = np.array(metadata['missing_packets_1'])
-        if isinstance(module_enabled, np.ndarray) and \
-            module_enabled.shape != missing_packets_1.shape:
-            new_menu.append(
-                ("Shapes of 'missing_packets_1' and 'module_enabled' are not the same", '2'))
-        else:
-            if np.any(missing_packets_1[module_enabled]):
-                new_menu.append(('There are missing_packets_1', '2'))
-
-    if 'missing_packets_2' in metadata:
-        missing_packets_2 = np.array(metadata['missing_packets_2'])
-        if isinstance(module_enabled, np.ndarray) and \
-            module_enabled.shape != missing_packets_2.shape:
-            new_menu.append(
-                ("Shapes of 'missing_packets_2' and 'module_enabled' are not the same", '3'))
-        else:
-            if np.any(missing_packets_2[module_enabled]):
-                new_menu.append(('There are missing_packets_2', '3'))
-
-    if 'is_good_frame' in metadata:
-        if not metadata['is_good_frame']:
-            new_menu.append(('Frame is not good', '4'))
+    # Parse metadata
+    metadata_toshow, metadata_issues_menu = svmetadata.parse(metadata)
 
     if 'shape' in metadata:
         if metadata['shape'][0] != IMAGE_SIZE_Y or metadata['shape'][1] != IMAGE_SIZE_X:
-            new_menu.append((f'Expected image shape is {(IMAGE_SIZE_Y, IMAGE_SIZE_X)}', '5'))
+            metadata_issues_menu.append(
+                (f"Expected image shape is {(IMAGE_SIZE_Y, IMAGE_SIZE_X)}", '5')
+            )
 
-    metadata_issues_dropdown.menu = new_menu
-    if new_menu:
-        metadata_issues_dropdown.button_type = 'danger'
-    else:
-        metadata_issues_dropdown.button_type = 'default'
+    svmetadata.update(metadata_toshow, metadata_issues_menu)
 
 
 @gen.coroutine

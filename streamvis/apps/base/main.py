@@ -7,9 +7,9 @@ from bokeh.events import Reset
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
 from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, \
-    ColumnDataSource, CustomJS, DataRange1d, DataTable, DatetimeAxis, Dropdown, Grid, \
+    ColumnDataSource, CustomJS, DataRange1d, DatetimeAxis, Dropdown, Grid, \
     ImageRGBA, Line, LinearAxis, Panel, PanTool, Plot, Range1d, Rect, ResetTool, \
-    SaveTool, Slider, Spacer, TableColumn, Tabs, TextInput, Toggle, WheelZoomTool
+    SaveTool, Slider, Spacer, Tabs, TextInput, Toggle, WheelZoomTool
 from PIL import Image as PIL_Image
 from tornado import gen
 
@@ -472,20 +472,8 @@ aggregate_time_counter_textinput = TextInput(
     title='Aggregate Counter:', value=str(receiver.aggregate_counter), disabled=True)
 
 
-# Metadata table
-metadata_table_source = ColumnDataSource(dict(metadata=['', '', ''], value=['', '', '']))
-metadata_table = DataTable(
-    source=metadata_table_source,
-    columns=[
-        TableColumn(field='metadata', title="Metadata Name"),
-        TableColumn(field='value', title="Value")],
-    width=700,
-    height=300,
-    index_position=None,
-    selectable=False,
-)
-
-metadata_issues_dropdown = Dropdown(label="Metadata Issues", button_type='default', menu=[])
+# Metadata datatable
+svmetadata = sv.MetadataHandler()
 
 
 # Final layouts
@@ -507,7 +495,10 @@ layout_threshold_aggr = column(
     Spacer(height=30),
     aggregate_button, aggregate_time_textinput, aggregate_time_counter_textinput)
 
-layout_metadata = column(metadata_table, metadata_issues_dropdown)
+layout_metadata = column(
+    svmetadata.datatable,
+    row(svmetadata.show_all_toggle, svmetadata.issues_dropdown),
+)
 
 final_layout = column(
     row(layout_main, layout_controls, column(layout_metadata, layout_utility)),
@@ -605,56 +596,9 @@ def update_client(image, metadata):
     total_sum_source.stream(
         new_data=dict(x=[stream_t], y=[np.sum(image, dtype=np.float)]), rollover=STREAM_ROLLOVER)
 
-    # Unpack metadata
-    metadata_table_source.data.update(
-        metadata=list(map(str, metadata.keys())), value=list(map(str, metadata.values())))
-
-    # Check metadata for issues
-    new_menu = []
-    if 'module_enabled' in metadata:
-        module_enabled = np.array(metadata['module_enabled'], dtype=bool)
-    else:
-        module_enabled = slice(None, None)
-
-    if 'pulse_id_diff' in metadata:
-        pulse_id_diff = np.array(metadata['pulse_id_diff'])
-        if isinstance(module_enabled, np.ndarray) and \
-            module_enabled.shape != pulse_id_diff.shape:
-            new_menu.append(
-                ("Shapes of 'pulse_id_diff' and 'module_enabled' are not the same", '1'))
-        else:
-            if np.any(pulse_id_diff[module_enabled]):
-                new_menu.append(('Not all pulse_id_diff are 0', '1'))
-
-    if 'missing_packets_1' in metadata:
-        missing_packets_1 = np.array(metadata['missing_packets_1'])
-        if isinstance(module_enabled, np.ndarray) and \
-            module_enabled.shape != missing_packets_1.shape:
-            new_menu.append(
-                ("Shapes of 'missing_packets_1' and 'module_enabled' are not the same", '2'))
-        else:
-            if np.any(missing_packets_1[module_enabled]):
-                new_menu.append(('There are missing_packets_1', '2'))
-
-    if 'missing_packets_2' in metadata:
-        missing_packets_2 = np.array(metadata['missing_packets_2'])
-        if isinstance(module_enabled, np.ndarray) and \
-            module_enabled.shape != missing_packets_2.shape:
-            new_menu.append(
-                ("Shapes of 'missing_packets_2' and 'module_enabled' are not the same", '3'))
-        else:
-            if np.any(missing_packets_2[module_enabled]):
-                new_menu.append(('There are missing_packets_2', '3'))
-
-    if 'is_good_frame' in metadata:
-        if not metadata['is_good_frame']:
-            new_menu.append(('Frame is not good', '4'))
-
-    metadata_issues_dropdown.menu = new_menu
-    if new_menu:
-        metadata_issues_dropdown.button_type = 'danger'
-    else:
-        metadata_issues_dropdown.button_type = 'default'
+    # Parse and update metadata
+    metadata_toshow, metadata_issues_menu = svmetadata.parse(metadata)
+    svmetadata.update(metadata_toshow, metadata_issues_menu)
 
 
 @gen.coroutine

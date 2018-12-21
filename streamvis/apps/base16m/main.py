@@ -633,21 +633,8 @@ mask_toggle.on_click(mask_toggle_callback)
 show_only_hits_toggle = Toggle(label="Show Only Hits", button_type='default')
 
 
-# Metadata table
-metadata_table_source = ColumnDataSource(dict(metadata=['', '', ''], value=['', '', '']))
-metadata_table = DataTable(
-    source=metadata_table_source,
-    columns=[
-        TableColumn(field='metadata', title="Metadata Name"),
-        TableColumn(field='value', title="Value")],
-    width=650,
-    height=360,
-    index_position=None,
-    selectable=False,
-)
-
-metadata_issues_dropdown = Dropdown(label="Metadata Issues", button_type='default', menu=[])
-show_all_metadata_toggle = Toggle(label="Show All", button_type='default')
+# Metadata datatable
+svmetadata = sv.MetadataHandler(datatable_height=360, datatable_width=650)
 
 
 # Statistics datatables
@@ -742,7 +729,7 @@ debug_tab = Panel(
         layout_intensity,
         row(
             layout_hist, Spacer(width=30),
-            column(metadata_table, show_all_metadata_toggle)
+            column(svmetadata.datatable, svmetadata.show_all_toggle)
         )
     ),
     title="Debug",
@@ -771,7 +758,7 @@ layout_aggr = column(
     row(resolution_rings_toggle, mask_toggle, show_only_hits_toggle),
 )
 
-layout_controls = column(metadata_issues_dropdown, colormap_panel, data_source_tabs)
+layout_controls = column(svmetadata.issues_dropdown, colormap_panel, data_source_tabs)
 
 layout_side_panel = column(
     custom_tabs,
@@ -790,9 +777,6 @@ def update_client(image, metadata):
     main_image_width = main_image_plot.inner_width
     aggr_image_height = aggr_image_plot.inner_height
     aggr_image_width = aggr_image_plot.inner_width
-
-    # Metadata issues menu
-    new_menu = []
 
     if 'shape' in metadata and metadata['shape'] != [image_size_y, image_size_x]:
         image_size_y = metadata['shape'][0]
@@ -854,6 +838,9 @@ def update_client(image, metadata):
         x=[main_x_start], y=[main_y_start],
         dw=[main_x_end - main_x_start], dh=[main_y_end - main_y_start])
 
+    # Parse metadata
+    metadata_toshow, metadata_issues_menu = svmetadata.parse(metadata)
+
     # Update spots locations
     if 'number_of_spots' in metadata and 'spot_x' in metadata and 'spot_y' in metadata:
         spot_x = metadata['spot_x']
@@ -862,7 +849,7 @@ def update_client(image, metadata):
             main_image_peaks_source.data.update(x=spot_x, y=spot_y)
         else:
             main_image_peaks_source.data.update(x=[], y=[])
-            new_menu.append(('Spots data is inconsistent', '6'))
+            metadata_issues_menu.append(('Spots data is inconsistent', '6'))
     else:
         main_image_peaks_source.data.update(x=[], y=[])
 
@@ -961,93 +948,8 @@ def update_client(image, metadata):
             frame=peakfinder_buffer[:, 2], nspots=peakfinder_buffer[:, 3],
         )
 
-    # Prepare a dictionary with metadata entries to show
-    if show_all_metadata_toggle.active:
-        metadata_toshow = metadata
-    else:
-        # metadata entries shown by default:
-        default_entries = [
-            'frame',
-            'pulse_id',
-            'is_good_frame',
-            'saturated_pixels',
-        ]
-
-        metadata_toshow = {entry: metadata[entry] for entry in default_entries if entry in metadata}
-
-    # Check metadata for issues
-    if 'module_enabled' in metadata:
-        module_enabled = np.array(metadata['module_enabled'], dtype=bool)
-    else:
-        module_enabled = slice(None, None)  # full array slice
-
-    if 'pulse_id_diff' in metadata:
-        pulse_id_diff = np.array(metadata['pulse_id_diff'])
-        if isinstance(module_enabled, np.ndarray) and \
-            module_enabled.shape != pulse_id_diff.shape:
-            new_menu.append(
-                ("Shapes of 'pulse_id_diff' and 'module_enabled' are not the same", '1'))
-            metadata_toshow.update({
-                'module_enabled': metadata['module_enabled'],
-                'pulse_id_diff': metadata['pulse_id_diff'],
-            })
-        else:
-            if np.any(pulse_id_diff[module_enabled]):
-                new_menu.append(('Not all pulse_id_diff are 0', '1'))
-                metadata_toshow.update({
-                    'pulse_id_diff': metadata['pulse_id_diff'],
-                })
-
-    if 'missing_packets_1' in metadata:
-        missing_packets_1 = np.array(metadata['missing_packets_1'])
-        if isinstance(module_enabled, np.ndarray) and \
-            module_enabled.shape != missing_packets_1.shape:
-            new_menu.append(
-                ("Shapes of 'missing_packets_1' and 'module_enabled' are not the same", '2'))
-            metadata_toshow.update({
-                'module_enabled': metadata['module_enabled'],
-                'missing_packets_1': metadata['missing_packets_1'],
-            })
-        else:
-            if np.any(missing_packets_1[module_enabled]):
-                new_menu.append(('There are missing_packets_1', '2'))
-                metadata_toshow.update({
-                    'missing_packets_1': metadata['missing_packets_1'],
-                })
-
-    if 'missing_packets_2' in metadata:
-        missing_packets_2 = np.array(metadata['missing_packets_2'])
-        if isinstance(module_enabled, np.ndarray) and \
-            module_enabled.shape != missing_packets_2.shape:
-            new_menu.append(
-                ("Shapes of 'missing_packets_2' and 'module_enabled' are not the same", '3'))
-            metadata_toshow.update({
-                'module_enabled': metadata['module_enabled'],
-                'missing_packets_2': metadata['missing_packets_2'],
-            })
-        else:
-            if np.any(missing_packets_2[module_enabled]):
-                new_menu.append(('There are missing_packets_2', '3'))
-                metadata_toshow.update({
-                    'missing_packets_2': metadata['missing_packets_2'],
-                })
-
-    if 'is_good_frame' in metadata:
-        if not metadata['is_good_frame']:
-            new_menu.append(('Frame is not good', '4'))
-            metadata_toshow.update({
-                'is_good_frame': metadata['is_good_frame'],
-            })
-
-    if 'saturated_pixels' in metadata:
-        if metadata['saturated_pixels']:
-            new_menu.append(('There are saturated pixels', '5'))
-            metadata_toshow.update({
-                'saturated_pixels': metadata['saturated_pixels'],
-            })
-
     if mask_toggle.active and receiver.mask is None:
-        new_menu.append(('No pedestal file has been provided', '6'))
+        metadata_issues_menu.append(('No pedestal file has been provided', '6'))
 
     if resolution_rings_toggle.active:
         if 'detector_distance' in metadata and 'beam_energy' in metadata and \
@@ -1068,26 +970,15 @@ def update_client(image, metadata):
             main_image_rings_source.data.update(x=[], y=[], h=[], w=[])
             main_image_rings_text_source.data.update(x=[], y=[], text=[])
             main_image_rings_center_source.data.update(x=[], y=[])
-            new_menu.append(("Metadata does not contain all data for resolution rings", '7'))
+            metadata_issues_menu.append(
+                ("Metadata does not contain all data for resolution rings", '7')
+            )
     else:
         main_image_rings_source.data.update(x=[], y=[], h=[], w=[])
         main_image_rings_text_source.data.update(x=[], y=[], text=[])
         main_image_rings_center_source.data.update(x=[], y=[])
 
-    # Unpack metadata
-    metadata_table_source.data.update(
-        metadata=list(map(str, metadata_toshow.keys())),
-        value=list(map(str, metadata_toshow.values())),
-    )
-
-    metadata_issues_dropdown.menu = new_menu
-    if new_menu:
-        if ('There are saturated pixels', '5') in new_menu and len(new_menu) == 1:
-            metadata_issues_dropdown.button_type = 'warning'
-        else:
-            metadata_issues_dropdown.button_type = 'danger'
-    else:
-        metadata_issues_dropdown.button_type = 'default'
+    svmetadata.update(metadata_toshow, metadata_issues_menu)
 
     # Update statistics tab
     if custom_tabs.tabs[custom_tabs.active].title == "Statistics":

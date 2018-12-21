@@ -5,10 +5,9 @@ import numpy as np
 from bokeh.events import Reset
 from bokeh.io import curdoc
 from bokeh.layouts import column, row
-from bokeh.models import Button, ColumnDataSource, CustomJS, \
-    DataTable, Dropdown, ImageRGBA, LinearAxis, \
-    Panel, PanTool, Plot, Range1d, ResetTool, SaveTool, \
-    Slider, Spacer, TableColumn, Tabs, TextInput, WheelZoomTool
+from bokeh.models import Button, ColumnDataSource, CustomJS, Dropdown, \
+    ImageRGBA, LinearAxis, Panel, PanTool, Plot, Range1d, ResetTool, \
+    SaveTool, Slider, Spacer, Tabs, TextInput, WheelZoomTool
 from PIL import Image as PIL_Image
 from tornado import gen
 
@@ -175,24 +174,14 @@ colormap_panel = column(
 )
 
 
-# Metadata table
-metadata_table_source = ColumnDataSource(dict(metadata=['', '', ''], value=['', '', '']))
-metadata_table = DataTable(
-    source=metadata_table_source,
-    columns=[
-        TableColumn(field='metadata', title="Metadata Name"),
-        TableColumn(field='value', title="Value")],
-    width=400,
-    height=300,
-    index_position=None,
-    selectable=False,
-)
+# Metadata datatable
+svmetadata = sv.MetadataHandler(datatable_height=300, datatable_width=400)
 
 
 # Final layouts
 layout_controls = column(data_source_tabs, colormap_panel)
 
-final_layout = row(layout_controls, main_image_plot, column(svhist.plots[0], metadata_table))
+final_layout = row(layout_controls, main_image_plot, column(svhist.plots[0], svmetadata.datatable))
 
 doc.add_root(final_layout)
 
@@ -244,9 +233,8 @@ def update_client(image, metadata):
     im_block = image[y_start:y_end, x_start:x_end]
     svhist.update([im_block])
 
-    # Unpack metadata
-    metadata_table_source.data.update(
-        metadata=list(map(str, metadata.keys())), value=list(map(str, metadata.values())))
+    # Update metadata
+    svmetadata.update(metadata, [])
 
 
 @gen.coroutine
