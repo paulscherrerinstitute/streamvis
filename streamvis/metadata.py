@@ -11,7 +11,10 @@ default_entries = [
 
 
 class MetadataHandler:
-    def __init__(self, datatable_height=300, datatable_width=700):
+    def __init__(self, datatable_height=300, datatable_width=700, check_shape=None):
+        # If we should verify image shape
+        self.check_shape = check_shape
+
         # Metadata datatable
         datatable_source = ColumnDataSource(dict(metadata=['', '', ''], value=['', '', '']))
         datatable = DataTable(
@@ -119,6 +122,10 @@ class MetadataHandler:
                 metadata_toshow.update({
                     'saturated_pixels': metadata['saturated_pixels'],
                 })
+
+        if self.check_shape and 'shape' in metadata:
+            if tuple(metadata['shape']) != self.check_shape:
+                self.add_issue(f"Expected image shape is {self.check_shape}")
 
         return metadata_toshow
 

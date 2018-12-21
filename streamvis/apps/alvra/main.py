@@ -761,7 +761,9 @@ colormap_panel = column(
 
 
 # Metadata datatable
-svmetadata = sv.MetadataHandler(datatable_height=420, datatable_width=800)
+svmetadata = sv.MetadataHandler(
+    datatable_height=420, datatable_width=800, check_shape=(IMAGE_SIZE_Y, IMAGE_SIZE_X),
+)
 
 
 # Final layouts
@@ -966,11 +968,6 @@ def update_client(image, metadata, stats):
 
     # Parse metadata
     metadata_toshow = svmetadata.parse(metadata)
-
-    if 'shape' in metadata:
-        if metadata['shape'][0] != IMAGE_SIZE_Y or metadata['shape'][1] != IMAGE_SIZE_X:
-            svmetadata.add_issue(f"Expected image shape is {(IMAGE_SIZE_Y, IMAGE_SIZE_X)}")
-
     svmetadata.update(metadata_toshow)
 
 
