@@ -23,7 +23,7 @@ def main():
     parser.add_argument(
         'app',
         type=str,
-        choices=['base', 'base16m', 'alvra', 'bernina'],
+        choices=['base', 'base16m', 'alvra', 'bernina', 'experimental'],
         help="streamvis application",
     )
 
