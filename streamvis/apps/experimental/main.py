@@ -234,7 +234,7 @@ def update_client(image, metadata):
     svhist.update([im_block])
 
     # Update metadata
-    svmetadata.update(metadata, [])
+    svmetadata.update(metadata)
 
 
 @gen.coroutine

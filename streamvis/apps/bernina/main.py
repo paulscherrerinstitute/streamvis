@@ -590,15 +590,13 @@ def update_client(image, metadata):
     zoom1_sum_source.stream(new_data=dict(x=[stream_t], y=[sig_sum]), rollover=STREAM_ROLLOVER)
 
     # Parse metadata
-    metadata_toshow, metadata_issues_menu = svmetadata.parse(metadata)
+    metadata_toshow = svmetadata.parse(metadata)
 
     if 'shape' in metadata:
         if metadata['shape'][0] != IMAGE_SIZE_Y or metadata['shape'][1] != IMAGE_SIZE_X:
-            metadata_issues_menu.append(
-                (f"Expected image shape is {(IMAGE_SIZE_Y, IMAGE_SIZE_X)}", '5')
-            )
+            svmetadata.add_issue(f"Expected image shape is {(IMAGE_SIZE_Y, IMAGE_SIZE_X)}")
 
-    svmetadata.update(metadata_toshow, metadata_issues_menu)
+    svmetadata.update(metadata_toshow)
 
 
 @gen.coroutine

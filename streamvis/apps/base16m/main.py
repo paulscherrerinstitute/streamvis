@@ -839,7 +839,7 @@ def update_client(image, metadata):
         dw=[main_x_end - main_x_start], dh=[main_y_end - main_y_start])
 
     # Parse metadata
-    metadata_toshow, metadata_issues_menu = svmetadata.parse(metadata)
+    metadata_toshow = svmetadata.parse(metadata)
 
     # Update spots locations
     if 'number_of_spots' in metadata and 'spot_x' in metadata and 'spot_y' in metadata:
@@ -849,7 +849,7 @@ def update_client(image, metadata):
             main_image_peaks_source.data.update(x=spot_x, y=spot_y)
         else:
             main_image_peaks_source.data.update(x=[], y=[])
-            metadata_issues_menu.append(('Spots data is inconsistent', '6'))
+            svmetadata.add_issue('Spots data is inconsistent')
     else:
         main_image_peaks_source.data.update(x=[], y=[])
 
@@ -949,7 +949,7 @@ def update_client(image, metadata):
         )
 
     if mask_toggle.active and receiver.mask is None:
-        metadata_issues_menu.append(('No pedestal file has been provided', '6'))
+        svmetadata.add_issue('No pedestal file has been provided')
 
     if resolution_rings_toggle.active:
         if 'detector_distance' in metadata and 'beam_energy' in metadata and \
@@ -966,19 +966,19 @@ def update_client(image, metadata):
             main_image_rings_text_source.data.update(
                 x=beam_center_x+diams/2, y=beam_center_y, text=ring_text)
             main_image_rings_center_source.data.update(x=beam_center_x, y=beam_center_y)
+
         else:
             main_image_rings_source.data.update(x=[], y=[], h=[], w=[])
             main_image_rings_text_source.data.update(x=[], y=[], text=[])
             main_image_rings_center_source.data.update(x=[], y=[])
-            metadata_issues_menu.append(
-                ("Metadata does not contain all data for resolution rings", '7')
-            )
+            svmetadata.add_issue("Metadata does not contain all data for resolution rings")
+
     else:
         main_image_rings_source.data.update(x=[], y=[], h=[], w=[])
         main_image_rings_text_source.data.update(x=[], y=[], text=[])
         main_image_rings_center_source.data.update(x=[], y=[])
 
-    svmetadata.update(metadata_toshow, metadata_issues_menu)
+    svmetadata.update(metadata_toshow)
 
     # Update statistics tab
     if custom_tabs.tabs[custom_tabs.active].title == "Statistics":

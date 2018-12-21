@@ -597,8 +597,8 @@ def update_client(image, metadata):
         new_data=dict(x=[stream_t], y=[np.sum(image, dtype=np.float)]), rollover=STREAM_ROLLOVER)
 
     # Parse and update metadata
-    metadata_toshow, metadata_issues_menu = svmetadata.parse(metadata)
-    svmetadata.update(metadata_toshow, metadata_issues_menu)
+    metadata_toshow = svmetadata.parse(metadata)
+    svmetadata.update(metadata_toshow)
 
 
 @gen.coroutine
