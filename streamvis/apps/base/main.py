@@ -53,21 +53,21 @@ ZOOM1_INIT_X = 0
 tick_formatter = BasicTickFormatter(precision=1)
 
 # Create colormapper
-svcolormapper = sv.ColorMapper()
+sv_colormapper = sv.ColorMapper()
 
 
 # Main plot
-sv_mainplot = sv.ImagePlot(svcolormapper)
+sv_mainplot = sv.ImagePlot(sv_colormapper)
 
 # ---- add colorbar
-svcolormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
-svcolormapper.color_bar.location = (0, -5)
-sv_mainplot.plot.add_layout(svcolormapper.color_bar, place='below')
+sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
+sv_colormapper.color_bar.location = (0, -5)
+sv_mainplot.plot.add_layout(sv_colormapper.color_bar, place='below')
 
 
 # Zoom plot
 sv_zoomplot = sv.ImagePlot(
-    svcolormapper,
+    sv_colormapper,
     plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH,
 )
 
@@ -147,7 +147,7 @@ zoom1_plot_agg_y.add_glyph(zoom1_agg_y_source, Line(x='x', y='y', line_color='st
 
 
 # Histogram plot
-svhist = sv.Histogram(plot_height=400, plot_width=700)
+sv_hist = sv.Histogram(plot_height=400, plot_width=700)
 
 
 # Total intensity plot
@@ -326,13 +326,13 @@ data_source_tabs = Tabs(tabs=[tab_stream, tab_hdf5file])
 
 # Colormapper panel
 colormap_panel = column(
-    svcolormapper.select,
+    sv_colormapper.select,
     Spacer(height=10),
-    svcolormapper.scale_radiobuttongroup,
+    sv_colormapper.scale_radiobuttongroup,
     Spacer(height=10),
-    svcolormapper.auto_toggle,
-    svcolormapper.display_max_textinput,
-    svcolormapper.display_min_textinput,
+    sv_colormapper.auto_toggle,
+    sv_colormapper.display_max_textinput,
+    sv_colormapper.display_min_textinput,
 )
 
 
@@ -404,7 +404,7 @@ aggregate_time_counter_textinput = TextInput(
 
 
 # Metadata datatable
-svmetadata = sv.MetadataHandler()
+sv_metadata = sv.MetadataHandler()
 
 
 # Final layouts
@@ -427,20 +427,20 @@ layout_threshold_aggr = column(
     aggregate_button, aggregate_time_textinput, aggregate_time_counter_textinput)
 
 layout_metadata = column(
-    svmetadata.datatable,
-    row(svmetadata.show_all_toggle, svmetadata.issues_dropdown),
+    sv_metadata.datatable,
+    row(sv_metadata.show_all_toggle, sv_metadata.issues_dropdown),
 )
 
 final_layout = column(
     row(layout_main, layout_controls, column(layout_metadata, layout_utility)),
-    row(layout_zoom, layout_threshold_aggr, svhist.plots[0]))
+    row(layout_zoom, layout_threshold_aggr, sv_hist.plots[0]))
 
 doc.add_root(final_layout)
 
 
 @gen.coroutine
 def update_client(image, metadata):
-    svcolormapper.update(image)
+    sv_colormapper.update(image)
 
     pil_im = PIL_Image.fromarray(image)
 
@@ -461,7 +461,7 @@ def update_client(image, metadata):
     r_x = np.arange(x_start, x_end) + 0.5
 
     # Update histogram
-    svhist.update([im_block])
+    sv_hist.update([im_block])
 
     zoom1_agg_y_source.data.update(x=agg_y, y=r_y)
     zoom1_agg_x_source.data.update(x=r_x, y=agg_x)
@@ -473,8 +473,8 @@ def update_client(image, metadata):
         new_data=dict(x=[stream_t], y=[np.sum(image, dtype=np.float)]), rollover=STREAM_ROLLOVER)
 
     # Parse and update metadata
-    metadata_toshow = svmetadata.parse(metadata)
-    svmetadata.update(metadata_toshow)
+    metadata_toshow = sv_metadata.parse(metadata)
+    sv_metadata.update(metadata_toshow)
 
 
 @gen.coroutine

@@ -33,23 +33,23 @@ HDF5_DATASET_PATH = '/entry/data/data'
 hdf5_file_data = lambda pulse: None
 
 # Create colormapper
-svcolormapper = sv.ColorMapper()
+sv_colormapper = sv.ColorMapper()
 
 
 # Main plot
 sv_mainplot = sv.ImagePlot(
-    svcolormapper,
+    sv_colormapper,
     plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH,
 )
 
 # ---- add colorbar
-svcolormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
-svcolormapper.color_bar.location = (0, -5)
-sv_mainplot.plot.add_layout(svcolormapper.color_bar, place='below')
+sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
+sv_colormapper.color_bar.location = (0, -5)
+sv_mainplot.plot.add_layout(sv_colormapper.color_bar, place='below')
 
 
 # Histogram plot
-svhist = sv.Histogram(plot_height=400, plot_width=700)
+sv_hist = sv.Histogram(plot_height=400, plot_width=700)
 
 
 # HDF5 File panel
@@ -129,31 +129,33 @@ data_source_tabs = Tabs(tabs=[tab_hdf5file])
 
 # Colormapper panel
 colormap_panel = column(
-    svcolormapper.select,
+    sv_colormapper.select,
     Spacer(height=10),
-    svcolormapper.scale_radiobuttongroup,
+    sv_colormapper.scale_radiobuttongroup,
     Spacer(height=10),
-    svcolormapper.auto_toggle,
-    svcolormapper.display_max_textinput,
-    svcolormapper.display_min_textinput,
+    sv_colormapper.auto_toggle,
+    sv_colormapper.display_max_textinput,
+    sv_colormapper.display_min_textinput,
 )
 
 
 # Metadata datatable
-svmetadata = sv.MetadataHandler(datatable_height=300, datatable_width=400)
+sv_metadata = sv.MetadataHandler(datatable_height=300, datatable_width=400)
 
 
 # Final layouts
 layout_controls = column(data_source_tabs, colormap_panel)
 
-final_layout = row(layout_controls, sv_mainplot.plot, column(svhist.plots[0], svmetadata.datatable))
+final_layout = row(
+    layout_controls, sv_mainplot.plot, column(sv_hist.plots[0], sv_metadata.datatable),
+)
 
 doc.add_root(final_layout)
 
 
 @gen.coroutine
 def update_client(image, metadata):
-    svcolormapper.update(image)
+    sv_colormapper.update(image)
 
     pil_im = PIL_Image.fromarray(image)
     sv_mainplot.update(image, pil_im)
@@ -165,10 +167,10 @@ def update_client(image, metadata):
     x_end = int(np.ceil(sv_mainplot.x_end))
 
     im_block = image[y_start:y_end, x_start:x_end]
-    svhist.update([im_block])
+    sv_hist.update([im_block])
 
     # Update metadata
-    svmetadata.update(metadata)
+    sv_metadata.update(metadata)
 
 
 @gen.coroutine

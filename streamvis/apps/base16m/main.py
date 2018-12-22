@@ -58,18 +58,18 @@ RESOLUTION_RINGS_POS = np.array([2, 2.2, 2.6, 3, 5, 10])
 tick_formatter = BasicTickFormatter(precision=1)
 
 # Create colormapper
-svcolormapper = sv.ColorMapper()
+sv_colormapper = sv.ColorMapper()
 
 # Main plot
 sv_mainplot = sv.ImagePlot(
-    svcolormapper,
+    sv_colormapper,
     plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH,
 )
 sv_mainplot.toolbar_location = 'below'
 
 # ---- add colorbar
-svcolormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
-sv_mainplot.plot.add_layout(svcolormapper.color_bar, place='above')
+sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
+sv_mainplot.plot.add_layout(sv_colormapper.color_bar, place='above')
 
 # ---- mask rgba image glyph
 mask_source = ColumnDataSource(
@@ -174,7 +174,7 @@ sum_intensity_reset_button.on_click(sum_intensity_reset_button_callback)
 
 # Aggregation plot
 sv_aggrplot = sv.ImagePlot(
-    svcolormapper,
+    sv_colormapper,
     plot_height=AGGR_CANVAS_HEIGHT, plot_width=AGGR_CANVAS_WIDTH,
 )
 sv_aggrplot.toolbar_location = 'below'
@@ -291,7 +291,7 @@ aggr_image_proj_y_plot.add_glyph(
 
 
 # Histogram plot
-svhist = sv.Histogram(plot_height=280, plot_width=700)
+sv_hist = sv.Histogram(plot_height=280, plot_width=700)
 
 
 # Trajectory plot
@@ -543,13 +543,13 @@ data_source_tabs = Tabs(tabs=[tab_stream, tab_hdf5file])
 
 # Colormaper panel
 colormap_panel = column(
-    svcolormapper.select,
+    sv_colormapper.select,
     Spacer(height=10),
-    svcolormapper.scale_radiobuttongroup,
+    sv_colormapper.scale_radiobuttongroup,
     Spacer(height=10),
-    svcolormapper.auto_toggle,
-    svcolormapper.display_max_textinput,
-    svcolormapper.display_min_textinput,
+    sv_colormapper.auto_toggle,
+    sv_colormapper.display_max_textinput,
+    sv_colormapper.display_min_textinput,
 )
 
 # Resolution rings toggle button
@@ -579,7 +579,7 @@ show_only_hits_toggle = Toggle(label="Show Only Hits", button_type='default')
 
 
 # Metadata datatable
-svmetadata = sv.MetadataHandler(datatable_height=360, datatable_width=650)
+sv_metadata = sv.MetadataHandler(datatable_height=360, datatable_width=650)
 
 
 # Statistics datatables
@@ -657,16 +657,16 @@ layout_intensity = column(
         ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
     sum_intensity_reset_button)
 
-svhist.log10counts_toggle.width = 120
+sv_hist.log10counts_toggle.width = 120
 layout_hist = column(
-    svhist.plots[0],
+    sv_hist.plots[0],
     row(
-        svhist.nbins_textinput,
+        sv_hist.nbins_textinput,
         column(
             Spacer(height=19),
-            row(svhist.radiobuttongroup, Spacer(width=10), svhist.log10counts_toggle))
+            row(sv_hist.radiobuttongroup, Spacer(width=10), sv_hist.log10counts_toggle))
     ),
-    row(svhist.lower_textinput, svhist.upper_textinput),
+    row(sv_hist.lower_textinput, sv_hist.upper_textinput),
 )
 
 debug_tab = Panel(
@@ -674,7 +674,7 @@ debug_tab = Panel(
         layout_intensity,
         row(
             layout_hist, Spacer(width=30),
-            column(svmetadata.datatable, svmetadata.show_all_toggle)
+            column(sv_metadata.datatable, sv_metadata.show_all_toggle)
         )
     ),
     title="Debug",
@@ -703,7 +703,7 @@ layout_aggr = column(
     row(resolution_rings_toggle, mask_toggle, show_only_hits_toggle),
 )
 
-layout_controls = column(svmetadata.issues_dropdown, colormap_panel, data_source_tabs)
+layout_controls = column(sv_metadata.issues_dropdown, colormap_panel, data_source_tabs)
 
 layout_side_panel = column(
     custom_tabs,
@@ -723,7 +723,7 @@ def update_client(image, metadata):
         image_size_x = metadata['shape'][1]
         mask_source.data.update(dw=[image_size_x], dh=[image_size_y])
 
-    svcolormapper.update(image)
+    sv_colormapper.update(image)
 
     pil_im = PIL_Image.fromarray(image.astype('float32'))
 
@@ -742,10 +742,10 @@ def update_client(image, metadata):
     aggr_image_proj_r_x = np.linspace(aggr_x_start, aggr_x_end, aggr_image_width)
 
     if custom_tabs.tabs[custom_tabs.active].title == "Debug":
-        svhist.update([aggr_image])
+        sv_hist.update([aggr_image])
 
     # Parse metadata
-    metadata_toshow = svmetadata.parse(metadata)
+    metadata_toshow = sv_metadata.parse(metadata)
 
     # Update spots locations
     if 'number_of_spots' in metadata and 'spot_x' in metadata and 'spot_y' in metadata:
@@ -755,7 +755,7 @@ def update_client(image, metadata):
             main_image_peaks_source.data.update(x=spot_x, y=spot_y)
         else:
             main_image_peaks_source.data.update(x=[], y=[])
-            svmetadata.add_issue('Spots data is inconsistent')
+            sv_metadata.add_issue('Spots data is inconsistent')
     else:
         main_image_peaks_source.data.update(x=[], y=[])
 
@@ -850,7 +850,7 @@ def update_client(image, metadata):
         )
 
     if mask_toggle.active and receiver.mask is None:
-        svmetadata.add_issue('No pedestal file has been provided')
+        sv_metadata.add_issue('No pedestal file has been provided')
 
     if resolution_rings_toggle.active:
         if 'detector_distance' in metadata and 'beam_energy' in metadata and \
@@ -872,14 +872,14 @@ def update_client(image, metadata):
             main_image_rings_source.data.update(x=[], y=[], h=[], w=[])
             main_image_rings_text_source.data.update(x=[], y=[], text=[])
             main_image_rings_center_source.data.update(x=[], y=[])
-            svmetadata.add_issue("Metadata does not contain all data for resolution rings")
+            sv_metadata.add_issue("Metadata does not contain all data for resolution rings")
 
     else:
         main_image_rings_source.data.update(x=[], y=[], h=[], w=[])
         main_image_rings_text_source.data.update(x=[], y=[], text=[])
         main_image_rings_center_source.data.update(x=[], y=[])
 
-    svmetadata.update(metadata_toshow)
+    sv_metadata.update(metadata_toshow)
 
     # Update statistics tab
     if custom_tabs.tabs[custom_tabs.active].title == "Statistics":

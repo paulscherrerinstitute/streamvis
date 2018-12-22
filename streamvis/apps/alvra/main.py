@@ -65,24 +65,24 @@ saved_spectra = dict()
 tick_formatter = BasicTickFormatter(precision=1)
 
 # Create colormapper
-svcolormapper = sv.ColorMapper()
+sv_colormapper = sv.ColorMapper()
 
 
 # Main plot
 sv_mainplot = sv.ImagePlot(
-    svcolormapper,
+    sv_colormapper,
     plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH,
 )
 
 # ---- add colorbar
-svcolormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
-svcolormapper.color_bar.location = (0, -5)
-sv_mainplot.plot.add_layout(svcolormapper.color_bar, place='below')
+sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
+sv_colormapper.color_bar.location = (0, -5)
+sv_mainplot.plot.add_layout(sv_colormapper.color_bar, place='below')
 
 
 # Zoom plot 1
 sv_zoomplot1 = sv.ImagePlot(
-    svcolormapper,
+    sv_colormapper,
     plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH,
 )
 
@@ -198,7 +198,7 @@ zoom1_hist_plot.add_glyph(
 
 # Zoom plot 2
 sv_zoomplot2 = sv.ImagePlot(
-    svcolormapper,
+    sv_colormapper,
     plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH,
 )
 
@@ -679,18 +679,18 @@ data_source_tabs = Tabs(tabs=[tab_stream, tab_hdf5file])
 
 # Colormapper panel
 colormap_panel = column(
-    svcolormapper.select,
+    sv_colormapper.select,
     Spacer(height=10),
-    svcolormapper.scale_radiobuttongroup,
+    sv_colormapper.scale_radiobuttongroup,
     Spacer(height=10),
-    svcolormapper.auto_toggle,
-    svcolormapper.display_max_textinput,
-    svcolormapper.display_min_textinput,
+    sv_colormapper.auto_toggle,
+    sv_colormapper.display_max_textinput,
+    sv_colormapper.display_min_textinput,
 )
 
 
 # Metadata datatable
-svmetadata = sv.MetadataHandler(
+sv_metadata = sv.MetadataHandler(
     datatable_height=420, datatable_width=800, check_shape=(IMAGE_SIZE_Y, IMAGE_SIZE_X),
 )
 
@@ -725,8 +725,8 @@ layout_utility = column(
 layout_controls = column(colormap_panel, data_source_tabs)
 
 layout_metadata = column(
-    svmetadata.datatable,
-    row(svmetadata.show_all_toggle, svmetadata.issues_dropdown),
+    sv_metadata.datatable,
+    row(sv_metadata.show_all_toggle, sv_metadata.issues_dropdown),
 )
 
 final_layout = column(
@@ -746,7 +746,7 @@ doc.add_root(row(Spacer(width=20), final_layout))
 def update_client(image, metadata, stats):
     global stream_t, current_spectra
 
-    svcolormapper.update(image)
+    sv_colormapper.update(image)
 
     pil_im = PIL_Image.fromarray(image)
 
@@ -820,8 +820,8 @@ def update_client(image, metadata, stats):
                        zoom2_agg_y, zoom2_r_y, zoom2_agg_x, zoom2_r_x)
 
     # Parse metadata
-    metadata_toshow = svmetadata.parse(metadata)
-    svmetadata.update(metadata_toshow)
+    metadata_toshow = sv_metadata.parse(metadata)
+    sv_metadata.update(metadata_toshow)
 
 
 @gen.coroutine

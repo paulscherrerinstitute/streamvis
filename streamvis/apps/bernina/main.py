@@ -60,26 +60,26 @@ ZOOM2_INIT_Y = 200
 tick_formatter = BasicTickFormatter(precision=1)
 
 # Create colormapper
-svcolormapper = sv.ColorMapper()
+sv_colormapper = sv.ColorMapper()
 
 
 # Main plot
 sv_mainplot = sv.ImagePlot(
-    svcolormapper,
+    sv_colormapper,
     plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH,
 )
 sv_mainplot.plot.title = Title(text=' ')
 
 # ---- add colorbar
-svcolormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
-svcolormapper.color_bar.height = 10
-svcolormapper.color_bar.location = (0, -5)
-sv_mainplot.plot.add_layout(svcolormapper.color_bar, place='below')
+sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
+sv_colormapper.color_bar.height = 10
+sv_colormapper.color_bar.location = (0, -5)
+sv_mainplot.plot.add_layout(sv_colormapper.color_bar, place='below')
 
 
 # Zoom 1 plot
 sv_zoomplot1 = sv.ImagePlot(
-    svcolormapper,
+    sv_colormapper,
     plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH,
 )
 sv_zoomplot1.plot.title = Title(text='Signal roi', text_color='red')
@@ -111,7 +111,7 @@ sv_zoomplot1.plot.y_range.callback = CustomJS(
 
 # Zoom 2 plot
 sv_zoomplot2 = sv.ImagePlot(
-    svcolormapper,
+    sv_colormapper,
     plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH,
 )
 sv_zoomplot2.plot.title = Title(text='Background roi', text_color='green')
@@ -186,10 +186,10 @@ zoom1_intensity_plot.add_glyph(zoom1_sum_source, Line(x='x', y='y', line_color='
 
 
 # Histogram plots
-svhist = sv.Histogram(nplots=3, plot_height=300, plot_width=600)
-svhist.plots[0].title = Title(text="Full image")
-svhist.plots[1].title = Title(text="Signal roi", text_color='red')
-svhist.plots[2].title = Title(text="Background roi", text_color='green')
+sv_hist = sv.Histogram(nplots=3, plot_height=300, plot_width=600)
+sv_hist.plots[0].title = Title(text="Full image")
+sv_hist.plots[1].title = Title(text="Signal roi", text_color='red')
+sv_hist.plots[2].title = Title(text="Background roi", text_color='green')
 
 
 # Intensity stream reset button
@@ -301,18 +301,18 @@ data_source_tabs = Tabs(tabs=[tab_stream, tab_hdf5file])
 
 # Colormapper panel
 colormap_panel = column(
-    svcolormapper.select,
+    sv_colormapper.select,
     Spacer(height=10),
-    svcolormapper.scale_radiobuttongroup,
+    sv_colormapper.scale_radiobuttongroup,
     Spacer(height=10),
-    svcolormapper.auto_toggle,
-    svcolormapper.display_max_textinput,
-    svcolormapper.display_min_textinput,
+    sv_colormapper.auto_toggle,
+    sv_colormapper.display_max_textinput,
+    sv_colormapper.display_min_textinput,
 )
 
 
 # Metadata datatable
-svmetadata = sv.MetadataHandler(
+sv_metadata = sv.MetadataHandler(
     datatable_height=130, datatable_width=700, check_shape=(IMAGE_SIZE_Y, IMAGE_SIZE_X),
 )
 
@@ -322,12 +322,12 @@ layout_main = column(Spacer(), sv_mainplot.plot)
 
 layout_zoom = column(sv_zoomplot1.plot, sv_zoomplot2.plot, Spacer())
 
-hist_layout = row(svhist.plots[0], svhist.plots[1], svhist.plots[2])
+hist_layout = row(sv_hist.plots[0], sv_hist.plots[1], sv_hist.plots[2])
 
 hist_controls = row(
-    Spacer(width=20), column(Spacer(height=19), svhist.radiobuttongroup),
-    svhist.lower_textinput, svhist.upper_textinput, svhist.nbins_textinput,
-    column(Spacer(height=19), svhist.log10counts_toggle))
+    Spacer(width=20), column(Spacer(height=19), sv_hist.radiobuttongroup),
+    sv_hist.lower_textinput, sv_hist.upper_textinput, sv_hist.nbins_textinput,
+    column(Spacer(height=19), sv_hist.log10counts_toggle))
 
 layout_utility = column(
     gridplot([total_intensity_plot, zoom1_intensity_plot],
@@ -337,8 +337,8 @@ layout_utility = column(
 layout_controls = row(Spacer(width=45), colormap_panel, Spacer(width=45), data_source_tabs)
 
 layout_metadata = column(
-    svmetadata.datatable,
-    row(svmetadata.show_all_toggle, svmetadata.issues_dropdown),
+    sv_metadata.datatable,
+    row(sv_metadata.show_all_toggle, sv_metadata.issues_dropdown),
 )
 
 final_layout = column(
@@ -351,7 +351,7 @@ doc.add_root(final_layout)
 
 @gen.coroutine
 def update_client(image, metadata):
-    svcolormapper.update(image)
+    sv_colormapper.update(image)
 
     pil_im = PIL_Image.fromarray(image)
 
@@ -380,7 +380,7 @@ def update_client(image, metadata):
     bkg_area = (bkg_y_end - bkg_y_start) * (bkg_x_end - bkg_x_start)
 
     # Update histogram
-    svhist.update([image, im_block1, im_block2])
+    sv_hist.update([image, im_block1, im_block2])
 
     # correct the backgroud roi sum by subtracting overlap area sum
     overlap_y_start = max(sig_y_start, bkg_y_start)
@@ -408,8 +408,8 @@ def update_client(image, metadata):
     zoom1_sum_source.stream(new_data=dict(x=[stream_t], y=[sig_sum]), rollover=STREAM_ROLLOVER)
 
     # Parse metadata
-    metadata_toshow = svmetadata.parse(metadata)
-    svmetadata.update(metadata_toshow)
+    metadata_toshow = sv_metadata.parse(metadata)
+    sv_metadata.update(metadata_toshow)
 
 
 @gen.coroutine
