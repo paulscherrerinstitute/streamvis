@@ -3,13 +3,11 @@ from datetime import datetime
 from functools import partial
 
 import numpy as np
-from bokeh.events import Reset
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, \
-    ColumnDataSource, CustomJS, DataRange1d, Dropdown, Grid, ImageRGBA, Line, \
-    LinearAxis, Panel, PanTool, Plot, Quad, Range1d, Rect, ResetTool, Select, \
-    Slider, Spacer, Tabs, TextInput, Title, Toggle, WheelZoomTool
+from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, ColumnDataSource, \
+    CustomJS, DataRange1d, Dropdown, Grid, Line, LinearAxis, Panel, PanTool, Plot, Quad, Rect, \
+    ResetTool, Select, Slider, Spacer, Tabs, TextInput, Title, Toggle, WheelZoomTool
 from PIL import Image as PIL_Image
 from tornado import gen
 
@@ -71,79 +69,22 @@ svcolormapper = sv.ColorMapper()
 
 
 # Main plot
-main_image_plot = Plot(
-    x_range=Range1d(0, image_size_x, bounds=(0, image_size_x)),
-    y_range=Range1d(0, image_size_y, bounds=(0, image_size_y)),
-    plot_height=MAIN_CANVAS_HEIGHT,
-    plot_width=MAIN_CANVAS_WIDTH,
-    toolbar_location='left',
+sv_mainplot = sv.ImagePlot(
+    svcolormapper,
+    plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH,
 )
 
-# ---- tools
-main_image_plot.toolbar.logo = None
-main_image_plot.add_tools(PanTool(), WheelZoomTool(maintain_focus=False), ResetTool())
-main_image_plot.toolbar.active_scroll = main_image_plot.tools[1]
-
-# ---- axes
-main_image_plot.add_layout(LinearAxis(), place='above')
-main_image_plot.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
-
-# ---- colormap
+# ---- add colorbar
 svcolormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
 svcolormapper.color_bar.location = (0, -5)
-main_image_plot.add_layout(svcolormapper.color_bar, place='below')
-
-# ---- rgba image glyph
-main_image_source = ColumnDataSource(
-    dict(image=[current_image], x=[0], y=[0], dw=[image_size_x], dh=[image_size_y],
-         full_dw=[image_size_x], full_dh=[image_size_y]))
-
-main_image_plot.add_glyph(
-    main_image_source, ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh'))
-
-# ---- overwrite reset tool behavior
-jscode_reset = """
-    // reset to the current image size area, instead of a default reset to the initial plot ranges
-    source.x_range.start = 0;
-    source.x_range.end = image_source.data.full_dw[0];
-    source.y_range.start = 0;
-    source.y_range.end = image_source.data.full_dh[0];
-    source.change.emit();
-"""
-
-main_image_plot.js_on_event(Reset, CustomJS(
-    args=dict(source=main_image_plot, image_source=main_image_source), code=jscode_reset))
+sv_mainplot.plot.add_layout(svcolormapper.color_bar, place='below')
 
 
 # Zoom plot 1
-zoom1_image_plot = Plot(
-    x_range=Range1d(ZOOM1_INIT_X, ZOOM1_INIT_X + ZOOM_INIT_WIDTH, bounds=(0, image_size_x)),
-    y_range=Range1d(0, image_size_y, bounds=(0, image_size_y)),
-    plot_height=ZOOM_CANVAS_HEIGHT,
-    plot_width=ZOOM_CANVAS_WIDTH,
-    toolbar_location='left',
+sv_zoomplot1 = sv.ImagePlot(
+    svcolormapper,
+    plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH,
 )
-
-# ---- tools
-zoom1_image_plot.toolbar.logo = None
-# share 'pan' and 'wheel zoom' with the main plot, but 'save' and 'reset' keep separate
-zoom1_image_plot.add_tools(main_image_plot.tools[0], main_image_plot.tools[1], ResetTool())
-zoom1_image_plot.toolbar.active_scroll = zoom1_image_plot.tools[1]
-
-# ---- axes
-zoom1_image_plot.add_layout(LinearAxis(), place='above')
-zoom1_image_plot.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
-
-# ---- grid lines
-zoom1_image_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-zoom1_image_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-# ---- rgba image glyph
-zoom1_image_source = ColumnDataSource(
-    dict(image=[current_image], x=[0], y=[0], dw=[image_size_x], dh=[image_size_y]))
-
-zoom1_image_plot.add_glyph(
-    zoom1_image_source, ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh'))
 
 # ---- add rectangle glyph of zoom area to the main plot
 zoom1_area_source = ColumnDataSource(
@@ -152,7 +93,7 @@ zoom1_area_source = ColumnDataSource(
 
 rect = Rect(
     x='x', y='y', width='width', height='height', line_color='red', line_width=2, fill_alpha=0)
-main_image_plot.add_glyph(zoom1_area_source, rect)
+sv_mainplot.plot.add_glyph(zoom1_area_source, rect)
 
 jscode_move_rect = """
     var data = source.data;
@@ -163,20 +104,20 @@ jscode_move_rect = """
     source.change.emit();
 """
 
-zoom1_image_plot.x_range.callback = CustomJS(
+sv_zoomplot1.plot.x_range.callback = CustomJS(
     args=dict(source=zoom1_area_source), code=jscode_move_rect % ('x', 'width'))
 
-zoom1_image_plot.y_range.callback = CustomJS(
+sv_zoomplot1.plot.y_range.callback = CustomJS(
     args=dict(source=zoom1_area_source), code=jscode_move_rect % ('y', 'height'))
 
 
 # Aggregate zoom1 plot along x axis
 zoom1_plot_agg_x = Plot(
     title=Title(text="Zoom Area 1"),
-    x_range=zoom1_image_plot.x_range,
+    x_range=sv_zoomplot1.plot.x_range,
     y_range=DataRange1d(),
     plot_height=ZOOM_AGG_X_PLOT_HEIGHT,
-    plot_width=zoom1_image_plot.plot_width,
+    plot_width=sv_zoomplot1.plot.plot_width,
     toolbar_location='left',
 )
 
@@ -205,8 +146,8 @@ zoom1_plot_agg_x.add_glyph(
 # Aggregate zoom1 plot along y axis
 zoom1_plot_agg_y = Plot(
     x_range=DataRange1d(),
-    y_range=zoom1_image_plot.y_range,
-    plot_height=zoom1_image_plot.plot_height,
+    y_range=sv_zoomplot1.plot.y_range,
+    plot_height=sv_zoomplot1.plot.plot_height,
     plot_width=ZOOM_AGG_Y_PLOT_WIDTH,
     toolbar_location=None,
 )
@@ -232,7 +173,7 @@ zoom1_hist_plot = Plot(
     x_range=DataRange1d(),
     y_range=DataRange1d(),
     plot_height=ZOOM_HIST_PLOT_HEIGHT,
-    plot_width=zoom1_image_plot.plot_width,
+    plot_width=sv_zoomplot1.plot.plot_width,
     toolbar_location='left',
 )
 
@@ -256,34 +197,10 @@ zoom1_hist_plot.add_glyph(
 
 
 # Zoom plot 2
-zoom2_image_plot = Plot(
-    x_range=Range1d(ZOOM2_INIT_X, ZOOM2_INIT_X + ZOOM_INIT_WIDTH, bounds=(0, image_size_x)),
-    y_range=Range1d(0, image_size_y, bounds=(0, image_size_y)),
-    plot_height=ZOOM_CANVAS_HEIGHT,
-    plot_width=ZOOM_CANVAS_WIDTH,
-    toolbar_location='left',
+sv_zoomplot2 = sv.ImagePlot(
+    svcolormapper,
+    plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH,
 )
-
-# ---- tools
-zoom2_image_plot.toolbar.logo = None
-# share 'pan' and 'wheel zoom' with the main plot, but 'save' and 'reset' keep separate
-zoom2_image_plot.add_tools(main_image_plot.tools[0], main_image_plot.tools[1], ResetTool())
-zoom2_image_plot.toolbar.active_scroll = zoom2_image_plot.tools[1]
-
-# ---- axes
-zoom2_image_plot.add_layout(LinearAxis(), place='above')
-zoom2_image_plot.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
-
-# ---- grid lines
-zoom2_image_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-zoom2_image_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-# ---- rgba image glyph
-zoom2_image_source = ColumnDataSource(
-    dict(image=[current_image], x=[0], y=[0], dw=[image_size_x], dh=[image_size_y]))
-
-zoom2_image_plot.add_glyph(
-    zoom2_image_source, ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh'))
 
 # ---- add rectangle glyph of zoom area to the main plot
 zoom2_area_source = ColumnDataSource(
@@ -292,7 +209,7 @@ zoom2_area_source = ColumnDataSource(
 
 rect = Rect(
     x='x', y='y', width='width', height='height', line_color='green', line_width=2, fill_alpha=0)
-main_image_plot.add_glyph(zoom2_area_source, rect)
+sv_mainplot.plot.add_glyph(zoom2_area_source, rect)
 
 jscode_move_rect = """
     var data = source.data;
@@ -303,20 +220,20 @@ jscode_move_rect = """
     source.change.emit();
 """
 
-zoom2_image_plot.x_range.callback = CustomJS(
+sv_zoomplot2.plot.x_range.callback = CustomJS(
     args=dict(source=zoom2_area_source), code=jscode_move_rect % ('x', 'width'))
 
-zoom2_image_plot.y_range.callback = CustomJS(
+sv_zoomplot2.plot.y_range.callback = CustomJS(
     args=dict(source=zoom2_area_source), code=jscode_move_rect % ('y', 'height'))
 
 
 # Aggregate zoom2 plot along x axis
 zoom2_plot_agg_x = Plot(
     title=Title(text="Zoom Area 2"),
-    x_range=zoom2_image_plot.x_range,
+    x_range=sv_zoomplot2.plot.x_range,
     y_range=DataRange1d(),
     plot_height=ZOOM_AGG_X_PLOT_HEIGHT,
-    plot_width=zoom2_image_plot.plot_width,
+    plot_width=sv_zoomplot2.plot.plot_width,
     toolbar_location='left',
 )
 
@@ -344,8 +261,8 @@ zoom2_plot_agg_x.add_glyph(
 # Aggregate zoom2 plot along y axis
 zoom2_plot_agg_y = Plot(
     x_range=DataRange1d(),
-    y_range=zoom2_image_plot.y_range,
-    plot_height=zoom2_image_plot.plot_height,
+    y_range=sv_zoomplot2.plot.y_range,
+    plot_height=sv_zoomplot2.plot.plot_height,
     plot_width=ZOOM_AGG_Y_PLOT_WIDTH,
     toolbar_location=None,
 )
@@ -371,7 +288,7 @@ zoom2_hist_plot = Plot(
     x_range=DataRange1d(),
     y_range=DataRange1d(),
     plot_height=ZOOM_HIST_PLOT_HEIGHT,
-    plot_width=zoom2_image_plot.plot_width,
+    plot_width=sv_zoomplot2.plot.plot_width,
     toolbar_location='left',
 )
 
@@ -472,10 +389,22 @@ zoom1_spectrum_y_source = ColumnDataSource(dict(x=[], y=[]))
 zoom2_spectrum_x_source = ColumnDataSource(dict(x=[], y=[]))
 zoom2_spectrum_y_source = ColumnDataSource(dict(x=[], y=[]))
 
-zoom1_plot_agg_x.add_glyph(zoom1_spectrum_x_source, Line(x='x', y='y', line_color='maroon', line_width=2))
-zoom1_plot_agg_y.add_glyph(zoom1_spectrum_y_source, Line(x='x', y='y', line_color='maroon', line_width=1))
-zoom2_plot_agg_x.add_glyph(zoom2_spectrum_x_source, Line(x='x', y='y', line_color='maroon', line_width=2))
-zoom2_plot_agg_y.add_glyph(zoom2_spectrum_y_source, Line(x='x', y='y', line_color='maroon', line_width=1))
+zoom1_plot_agg_x.add_glyph(
+    zoom1_spectrum_x_source,
+    Line(x='x', y='y', line_color='maroon', line_width=2),
+)
+zoom1_plot_agg_y.add_glyph(
+    zoom1_spectrum_y_source,
+    Line(x='x', y='y', line_color='maroon', line_width=1),
+)
+zoom2_plot_agg_x.add_glyph(
+    zoom2_spectrum_x_source,
+    Line(x='x', y='y', line_color='maroon', line_width=2),
+)
+zoom2_plot_agg_y.add_glyph(
+    zoom2_spectrum_y_source,
+    Line(x='x', y='y', line_color='maroon', line_width=1),
+)
 
 
 # Save spectrum button
@@ -767,16 +696,16 @@ svmetadata = sv.MetadataHandler(
 
 
 # Final layouts
-layout_main = column(main_image_plot)
+layout_main = column(sv_mainplot.plot)
 
 layout_zoom1 = column(
     zoom1_plot_agg_x,
-    row(zoom1_image_plot, zoom1_plot_agg_y),
+    row(sv_zoomplot1.plot, zoom1_plot_agg_y),
     row(Spacer(), zoom1_hist_plot, Spacer()))
 
 layout_zoom2 = column(
     zoom2_plot_agg_x,
-    row(zoom2_image_plot, zoom2_plot_agg_y),
+    row(sv_zoomplot2.plot, zoom2_plot_agg_y),
     row(Spacer(), zoom2_hist_plot, Spacer()))
 
 layout_thr_agg = row(
@@ -815,110 +744,34 @@ doc.add_root(row(Spacer(width=20), final_layout))
 
 @gen.coroutine
 def update_client(image, metadata, stats):
-    global stream_t, image_size_x, image_size_y, current_spectra
-    main_image_height = main_image_plot.inner_height
-    main_image_width = main_image_plot.inner_width
-    zoom1_image_height = zoom1_image_plot.inner_height
-    zoom1_image_width = zoom1_image_plot.inner_width
-    zoom2_image_height = zoom2_image_plot.inner_height
-    zoom2_image_width = zoom2_image_plot.inner_width
-
-    if 'shape' in metadata and metadata['shape'] != [image_size_y, image_size_x]:
-        image_size_y = metadata['shape'][0]
-        image_size_x = metadata['shape'][1]
-        main_image_source.data.update(full_dw=[image_size_x], full_dh=[image_size_y])
-
-        main_image_plot.y_range.start = 0
-        main_image_plot.x_range.start = 0
-        main_image_plot.y_range.end = image_size_y
-        main_image_plot.x_range.end = image_size_x
-        main_image_plot.x_range.bounds = (0, image_size_x)
-        main_image_plot.y_range.bounds = (0, image_size_y)
-
-        zoom1_image_plot.y_range.start = 0
-        zoom1_image_plot.x_range.start = 0
-        zoom1_image_plot.y_range.end = image_size_y
-        zoom1_image_plot.x_range.end = image_size_x
-        zoom1_image_plot.x_range.bounds = (0, image_size_x)
-        zoom1_image_plot.y_range.bounds = (0, image_size_y)
-
-        zoom2_image_plot.y_range.start = 0
-        zoom2_image_plot.x_range.start = 0
-        zoom2_image_plot.y_range.end = image_size_y
-        zoom2_image_plot.x_range.end = image_size_x
-        zoom2_image_plot.x_range.bounds = (0, image_size_x)
-        zoom2_image_plot.y_range.bounds = (0, image_size_y)
-
-    main_y_start = max(main_image_plot.y_range.start, 0)
-    main_y_end = min(main_image_plot.y_range.end, image_size_y)
-    main_x_start = max(main_image_plot.x_range.start, 0)
-    main_x_end = min(main_image_plot.x_range.end, image_size_x)
-
-    zoom1_y_start = max(zoom1_image_plot.y_range.start, 0)
-    zoom1_y_end = min(zoom1_image_plot.y_range.end, image_size_y)
-    zoom1_x_start = max(zoom1_image_plot.x_range.start, 0)
-    zoom1_x_end = min(zoom1_image_plot.x_range.end, image_size_x)
-
-    zoom2_y_start = max(zoom2_image_plot.y_range.start, 0)
-    zoom2_y_end = min(zoom2_image_plot.y_range.end, image_size_y)
-    zoom2_x_start = max(zoom2_image_plot.x_range.start, 0)
-    zoom2_x_end = min(zoom2_image_plot.x_range.end, image_size_x)
-
-    # update ranges for statistics calculation
-    receiver.zoom1_y_start = zoom1_y_start
-    receiver.zoom1_y_end = zoom1_y_end
-    receiver.zoom1_x_start = zoom1_x_start
-    receiver.zoom1_x_end = zoom1_x_end
-
-    receiver.zoom2_y_start = zoom2_y_start
-    receiver.zoom2_y_end = zoom2_y_end
-    receiver.zoom2_x_start = zoom2_x_start
-    receiver.zoom2_x_end = zoom2_x_end
+    global stream_t, current_spectra
 
     svcolormapper.update(image)
 
     pil_im = PIL_Image.fromarray(image)
 
-    main_image = np.asarray(
-        pil_im.resize(
-            size=(main_image_width, main_image_height),
-            box=(main_x_start, main_y_start, main_x_end, main_y_end),
-            resample=PIL_Image.NEAREST))
+    sv_mainplot.update(image, pil_im)
+    sv_zoomplot1.update(image, pil_im)
+    sv_zoomplot2.update(image, pil_im)
 
-    zoom1_image = np.asarray(
-        pil_im.resize(
-            size=(zoom1_image_width, zoom1_image_height),
-            box=(zoom1_x_start, zoom1_y_start, zoom1_x_end, zoom1_y_end),
-            resample=PIL_Image.NEAREST))
+    # update ranges for statistics calculation
+    receiver.zoom1_y_start = sv_zoomplot1.y_start
+    receiver.zoom1_y_end = sv_zoomplot1.y_end
+    receiver.zoom1_x_start = sv_zoomplot1.x_start
+    receiver.zoom1_x_end = sv_zoomplot1.x_end
 
-    zoom2_image = np.asarray(
-        pil_im.resize(
-            size=(zoom2_image_width, zoom2_image_height),
-            box=(zoom2_x_start, zoom2_y_start, zoom2_x_end, zoom2_y_end),
-            resample=PIL_Image.NEAREST))
-
-    main_image_source.data.update(
-        image=[svcolormapper.convert(main_image)],
-        x=[main_x_start], y=[main_y_start],
-        dw=[main_x_end - main_x_start], dh=[main_y_end - main_y_start])
-
-    zoom1_image_source.data.update(
-        image=[svcolormapper.convert(zoom1_image)],
-        x=[zoom1_x_start], y=[zoom1_y_start],
-        dw=[zoom1_x_end - zoom1_x_start], dh=[zoom1_y_end - zoom1_y_start])
-
-    zoom2_image_source.data.update(
-        image=[svcolormapper.convert(zoom2_image)],
-        x=[zoom2_x_start], y=[zoom2_y_start],
-        dw=[zoom2_x_end - zoom2_x_start], dh=[zoom2_y_end - zoom2_y_start])
+    receiver.zoom2_y_start = sv_zoomplot2.y_start
+    receiver.zoom2_y_end = sv_zoomplot2.y_end
+    receiver.zoom2_x_start = sv_zoomplot2.x_start
+    receiver.zoom2_x_end = sv_zoomplot2.x_end
 
     # Statistics
     zoom1_counts, zoom2_counts, edges = stats
 
-    y_start = int(np.floor(zoom1_y_start))
-    y_end = int(np.ceil(zoom1_y_end))
-    x_start = int(np.floor(zoom1_x_start))
-    x_end = int(np.ceil(zoom1_x_end))
+    y_start = int(np.floor(sv_zoomplot1.y_start))
+    y_end = int(np.ceil(sv_zoomplot1.y_end))
+    x_start = int(np.floor(sv_zoomplot1.x_start))
+    x_end = int(np.ceil(sv_zoomplot1.x_end))
 
     im_block = image[y_start:y_end, x_start:x_end]
 
@@ -933,10 +786,10 @@ def update_client(image, metadata, stats):
     zoom1_agg_y_source.data.update(x=zoom1_agg_y, y=zoom1_r_y)
     zoom1_agg_x_source.data.update(x=zoom1_r_x, y=zoom1_agg_x)
 
-    y_start = int(np.floor(zoom2_y_start))
-    y_end = int(np.ceil(zoom2_y_end))
-    x_start = int(np.floor(zoom2_x_start))
-    x_end = int(np.ceil(zoom2_x_end))
+    y_start = int(np.floor(sv_zoomplot2.y_start))
+    y_end = int(np.ceil(sv_zoomplot2.y_end))
+    x_start = int(np.floor(sv_zoomplot2.x_start))
+    x_end = int(np.ceil(sv_zoomplot2.x_end))
 
     im_block = image[y_start:y_end, x_start:x_end]
 
@@ -974,7 +827,7 @@ def update_client(image, metadata, stats):
 @gen.coroutine
 def internal_periodic_callback():
     global current_image, current_metadata, current_stats
-    if main_image_plot.inner_width is None:
+    if sv_mainplot.plot.inner_width is None:
         # wait for the initialization to finish, thus skip this periodic callback
         return
 

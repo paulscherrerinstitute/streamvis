@@ -2,12 +2,10 @@ import os
 from functools import partial
 
 import numpy as np
-from bokeh.events import Reset
 from bokeh.io import curdoc
 from bokeh.layouts import column, row
-from bokeh.models import Button, ColumnDataSource, CustomJS, Dropdown, \
-    ImageRGBA, LinearAxis, Panel, PanTool, Plot, Range1d, ResetTool, \
-    SaveTool, Slider, Spacer, Tabs, TextInput, WheelZoomTool
+from bokeh.models import Button, ColumnDataSource, CustomJS, \
+    Dropdown, Panel, Slider, Spacer, Tabs, TextInput
 from PIL import Image as PIL_Image
 from tornado import gen
 
@@ -39,48 +37,15 @@ svcolormapper = sv.ColorMapper()
 
 
 # Main plot
-main_image_plot = Plot(
-    x_range=Range1d(0, image_size_x, bounds=(0, image_size_x)),
-    y_range=Range1d(0, image_size_y, bounds=(0, image_size_y)),
-    plot_height=MAIN_CANVAS_HEIGHT,
-    plot_width=MAIN_CANVAS_WIDTH,
-    toolbar_location='left',
+sv_mainplot = sv.ImagePlot(
+    svcolormapper,
+    plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH,
 )
 
-# ---- tools
-main_image_plot.toolbar.logo = None
-main_image_plot.add_tools(PanTool(), WheelZoomTool(maintain_focus=False), SaveTool(), ResetTool())
-main_image_plot.toolbar.active_scroll = main_image_plot.tools[1]
-
-# ---- axes
-main_image_plot.add_layout(LinearAxis(), place='above')
-main_image_plot.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
-
-# ---- colormap
+# ---- add colorbar
 svcolormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
 svcolormapper.color_bar.location = (0, -5)
-main_image_plot.add_layout(svcolormapper.color_bar, place='below')
-
-# ---- rgba image glyph
-main_image_source = ColumnDataSource(
-    dict(image=[current_image], x=[0], y=[0], dw=[image_size_x], dh=[image_size_y],
-         full_dw=[image_size_x], full_dh=[image_size_y]))
-
-main_image_plot.add_glyph(
-    main_image_source, ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh'))
-
-# ---- overwrite reset tool behavior
-jscode_reset = """
-    // reset to the current image size area, instead of a default reset to the initial plot ranges
-    source.x_range.start = 0;
-    source.x_range.end = image_source.data.full_dw[0];
-    source.y_range.start = 0;
-    source.y_range.end = image_source.data.full_dh[0];
-    source.change.emit();
-"""
-
-main_image_plot.js_on_event(Reset, CustomJS(
-    args=dict(source=main_image_plot, image_source=main_image_source), code=jscode_reset))
+sv_mainplot.plot.add_layout(svcolormapper.color_bar, place='below')
 
 
 # Histogram plot
@@ -181,54 +146,23 @@ svmetadata = sv.MetadataHandler(datatable_height=300, datatable_width=400)
 # Final layouts
 layout_controls = column(data_source_tabs, colormap_panel)
 
-final_layout = row(layout_controls, main_image_plot, column(svhist.plots[0], svmetadata.datatable))
+final_layout = row(layout_controls, sv_mainplot.plot, column(svhist.plots[0], svmetadata.datatable))
 
 doc.add_root(final_layout)
 
 
 @gen.coroutine
 def update_client(image, metadata):
-    global image_size_x, image_size_y
-    main_image_height = main_image_plot.inner_height
-    main_image_width = main_image_plot.inner_width
-
-    if 'shape' in metadata and metadata['shape'] != [image_size_y, image_size_x]:
-        image_size_y = metadata['shape'][0]
-        image_size_x = metadata['shape'][1]
-        main_image_source.data.update(full_dw=[image_size_x], full_dh=[image_size_y])
-
-        main_image_plot.y_range.start = 0
-        main_image_plot.x_range.start = 0
-        main_image_plot.y_range.end = image_size_y
-        main_image_plot.x_range.end = image_size_x
-        main_image_plot.x_range.bounds = (0, image_size_x)
-        main_image_plot.y_range.bounds = (0, image_size_y)
-
-    main_y_start = max(main_image_plot.y_range.start, 0)
-    main_y_end = min(main_image_plot.y_range.end, image_size_y)
-    main_x_start = max(main_image_plot.x_range.start, 0)
-    main_x_end = min(main_image_plot.x_range.end, image_size_x)
-
     svcolormapper.update(image)
 
     pil_im = PIL_Image.fromarray(image)
-
-    main_image = np.asarray(
-        pil_im.resize(
-            size=(main_image_width, main_image_height),
-            box=(main_x_start, main_y_start, main_x_end, main_y_end),
-            resample=PIL_Image.NEAREST))
-
-    main_image_source.data.update(
-        image=[svcolormapper.convert(main_image)],
-        x=[main_x_start], y=[main_y_start],
-        dw=[main_x_end - main_x_start], dh=[main_y_end - main_y_start])
+    sv_mainplot.update(image, pil_im)
 
     # Statistics
-    y_start = int(np.floor(main_y_start))
-    y_end = int(np.ceil(main_y_end))
-    x_start = int(np.floor(main_x_start))
-    x_end = int(np.ceil(main_x_end))
+    y_start = int(np.floor(sv_mainplot.y_start))
+    y_end = int(np.ceil(sv_mainplot.y_end))
+    x_start = int(np.floor(sv_mainplot.x_start))
+    x_end = int(np.ceil(sv_mainplot.x_end))
 
     im_block = image[y_start:y_end, x_start:x_end]
     svhist.update([im_block])
@@ -240,7 +174,7 @@ def update_client(image, metadata):
 @gen.coroutine
 def internal_periodic_callback():
     global current_image, current_metadata
-    if main_image_plot.inner_width is None:
+    if sv_mainplot.plot.inner_width is None:
         # wait for the initialization to finish, thus skip this periodic callback
         return
 

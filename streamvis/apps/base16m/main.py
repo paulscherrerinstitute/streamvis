@@ -5,7 +5,6 @@ from datetime import datetime
 from functools import partial
 
 import numpy as np
-from bokeh.events import Reset
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
 from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, Circle, \
@@ -62,82 +61,49 @@ tick_formatter = BasicTickFormatter(precision=1)
 svcolormapper = sv.ColorMapper()
 
 # Main plot
-main_image_plot = Plot(
-    x_range=Range1d(0, image_size_x, bounds=(0, image_size_x)),
-    y_range=Range1d(0, image_size_y, bounds=(0, image_size_y)),
-    plot_height=MAIN_CANVAS_HEIGHT,
-    plot_width=MAIN_CANVAS_WIDTH,
-    toolbar_location='below',
+sv_mainplot = sv.ImagePlot(
+    svcolormapper,
+    plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH,
 )
+sv_mainplot.toolbar_location = 'below'
 
-# ---- tools
-main_image_plot.toolbar.logo = None
-main_image_plot.add_tools(PanTool(), WheelZoomTool(maintain_focus=False), SaveTool(), ResetTool())
-main_image_plot.toolbar.active_scroll = main_image_plot.tools[1]
-
-# ---- axes
-main_image_plot.add_layout(LinearAxis(), place='below')
-main_image_plot.add_layout(LinearAxis(major_label_orientation='vertical'), place='left')
-
-# ---- colormap
+# ---- add colorbar
 svcolormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
-main_image_plot.add_layout(svcolormapper.color_bar, place='above')
-
-# ---- rgba image glyph
-main_image_source = ColumnDataSource(
-    dict(image=[current_image], x=[0], y=[0], dw=[image_size_x], dh=[image_size_y],
-         full_dw=[image_size_x], full_dh=[image_size_y]))
-
-main_image_plot.add_glyph(
-    main_image_source, ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh'))
+sv_mainplot.plot.add_layout(svcolormapper.color_bar, place='above')
 
 # ---- mask rgba image glyph
 mask_source = ColumnDataSource(
     dict(image=[placeholder_mask], x=[0], y=[0], dw=[image_size_x], dh=[image_size_y]))
 
 mask_rgba_glyph = ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh')
-main_image_plot.add_glyph(mask_source, mask_rgba_glyph)
+sv_mainplot.plot.add_glyph(mask_source, mask_rgba_glyph)
 
 # ---- pixel value text glyph
 main_image_pvalue_source = ColumnDataSource(dict(x=[], y=[], text=[]))
-main_image_plot.add_glyph(
+sv_mainplot.plot.add_glyph(
     main_image_pvalue_source, Text(
         x='x', y='y', text='text', text_align='center', text_baseline='middle', text_color='white'))
 
 # ---- peaks circle glyph
 main_image_peaks_source = ColumnDataSource(dict(x=[], y=[]))
-main_image_plot.add_glyph(
+sv_mainplot.plot.add_glyph(
     main_image_peaks_source, Circle(
         x='x', y='y', size=15, fill_alpha=0, line_width=3, line_color='white'))
 
 # ---- resolution rings
 main_image_rings_source = ColumnDataSource(dict(x=[], y=[], w=[], h=[]))
-main_image_plot.add_glyph(
+sv_mainplot.plot.add_glyph(
     main_image_rings_source, Ellipse(
         x='x', y='y', width='w', height='h', fill_alpha=0, line_color='white'))
 
 main_image_rings_text_source = ColumnDataSource(dict(x=[], y=[], text=[]))
-main_image_plot.add_glyph(
+sv_mainplot.plot.add_glyph(
     main_image_rings_text_source, Text(
         x='x', y='y', text='text', text_align='center', text_baseline='middle', text_color='white'))
 
 main_image_rings_center_source = ColumnDataSource(dict(x=[], y=[]))
-main_image_plot.add_glyph(
+sv_mainplot.plot.add_glyph(
     main_image_rings_center_source, Cross(x='x', y='y', size=15, line_color='red'))
-
-
-# ---- overwrite reset tool behavior
-jscode_reset = """
-    // reset to the current image size area, instead of a default reset to the initial plot ranges
-    source.x_range.start = 0;
-    source.x_range.end = image_source.data.full_dw[0];
-    source.y_range.start = 0;
-    source.y_range.end = image_source.data.full_dh[0];
-    source.change.emit();
-"""
-
-main_image_plot.js_on_event(Reset, CustomJS(
-    args=dict(source=main_image_plot, image_source=main_image_source), code=jscode_reset))
 
 
 # Total sum intensity plot
@@ -207,16 +173,13 @@ sum_intensity_reset_button.on_click(sum_intensity_reset_button_callback)
 
 
 # Aggregation plot
-aggr_image_plot = Plot(
-    x_range=Range1d(0, image_size_x, bounds=(0, image_size_x)),
-    y_range=Range1d(0, image_size_y, bounds=(0, image_size_y)),
-    plot_height=AGGR_CANVAS_HEIGHT,
-    plot_width=AGGR_CANVAS_WIDTH,
-    toolbar_location='below',
+sv_aggrplot = sv.ImagePlot(
+    svcolormapper,
+    plot_height=AGGR_CANVAS_HEIGHT, plot_width=AGGR_CANVAS_WIDTH,
 )
+sv_aggrplot.toolbar_location = 'below'
 
 # ---- tools
-aggr_image_plot.toolbar.logo = None
 hovertool = HoverTool(
     tooltips=[
         ("intensity", "@intensity"),
@@ -224,50 +187,32 @@ hovertool = HoverTool(
     ],
     names=['hovertool_image']
 )
-aggr_image_plot.add_tools(
-    main_image_plot.tools[0], main_image_plot.tools[1], SaveTool(), ResetTool(), hovertool)
-aggr_image_plot.toolbar.active_scroll = aggr_image_plot.tools[1]
-
-# ---- axes
-aggr_image_plot.add_layout(LinearAxis(), place='above')
-aggr_image_plot.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
-
-# ---- rgba image glyph
-aggr_image_source = ColumnDataSource(
-    dict(image=[current_image], x=[0], y=[0], dw=[image_size_x], dh=[image_size_y],
-         full_dw=[image_size_x], full_dh=[image_size_y]))
-
-aggr_image_plot.add_glyph(
-    aggr_image_source, ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh'))
+sv_aggrplot.plot.add_tools(hovertool)
 
 # ---- mask rgba image glyph (shared with main_image_plot)
-aggr_image_plot.add_glyph(mask_source, mask_rgba_glyph)
+sv_aggrplot.plot.add_glyph(mask_source, mask_rgba_glyph)
 
 # ---- invisible image glyph
 hovertool_image_source = ColumnDataSource(dict(
     intensity=[current_image], resolution=[np.NaN],
     x=[0], y=[0], dw=[image_size_x], dh=[image_size_y]))
 
-aggr_image_plot.add_glyph(
+sv_aggrplot.plot.add_glyph(
     hovertool_image_source,
     Image(image='intensity', x='x', y='y', dw='dw', dh='dh', global_alpha=0),
     name='hovertool_image')
 
 # ---- resolution rings
-aggr_image_plot.add_glyph(
+sv_aggrplot.plot.add_glyph(
     main_image_rings_source, Ellipse(
         x='x', y='y', width='w', height='h', fill_alpha=0, line_color='white'))
 
-aggr_image_plot.add_glyph(
+sv_aggrplot.plot.add_glyph(
     main_image_rings_text_source, Text(
         x='x', y='y', text='text', text_align='center', text_baseline='middle', text_color='white'))
 
-aggr_image_plot.add_glyph(
+sv_aggrplot.plot.add_glyph(
     main_image_rings_center_source, Cross(x='x', y='y', size=15, line_color='red'))
-
-# ---- overwrite reset tool behavior
-aggr_image_plot.js_on_event(Reset, CustomJS(
-    args=dict(source=aggr_image_plot, image_source=aggr_image_source), code=jscode_reset))
 
 # ---- add rectangle glyph of aggr area to the main plot
 aggr_area_source = ColumnDataSource(
@@ -275,7 +220,7 @@ aggr_area_source = ColumnDataSource(
 
 rect = Rect(
     x='x', y='y', width='width', height='height', line_color='white', line_width=2, fill_alpha=0)
-main_image_plot.add_glyph(aggr_area_source, rect)
+sv_mainplot.plot.add_glyph(aggr_area_source, rect)
 
 jscode_move_rect = """
     var data = source.data;
@@ -286,19 +231,19 @@ jscode_move_rect = """
     source.change.emit();
 """
 
-aggr_image_plot.x_range.callback = CustomJS(
+sv_aggrplot.plot.x_range.callback = CustomJS(
     args=dict(source=aggr_area_source), code=jscode_move_rect % ('x', 'width'))
 
-aggr_image_plot.y_range.callback = CustomJS(
+sv_aggrplot.plot.y_range.callback = CustomJS(
     args=dict(source=aggr_area_source), code=jscode_move_rect % ('y', 'height'))
 
 
 # Projection of aggregate image onto x axis
 aggr_image_proj_x_plot = Plot(
-    x_range=aggr_image_plot.x_range,
+    x_range=sv_aggrplot.plot.x_range,
     y_range=DataRange1d(),
     plot_height=AGGR_PROJ_X_CANVAS_HEIGHT,
-    plot_width=aggr_image_plot.plot_width,
+    plot_width=sv_aggrplot.plot.plot_width,
     toolbar_location=None,
 )
 
@@ -322,8 +267,8 @@ aggr_image_proj_x_plot.add_glyph(
 # Projection of aggregate image onto x axis
 aggr_image_proj_y_plot = Plot(
     x_range=DataRange1d(),
-    y_range=aggr_image_plot.y_range,
-    plot_height=aggr_image_plot.plot_height,
+    y_range=sv_aggrplot.plot.y_range,
+    plot_height=sv_aggrplot.plot.plot_height,
     plot_width=AGGR_PROJ_Y_CANVAS_WIDTH,
     toolbar_location=None,
 )
@@ -750,11 +695,11 @@ custom_tabs = Tabs(tabs=[debug_tab, scan_tab, statistics_tab], height=960, width
 
 
 # Final layouts
-layout_main = column(main_image_plot)
+layout_main = column(sv_mainplot.plot)
 
 layout_aggr = column(
     aggr_image_proj_x_plot,
-    row(aggr_image_plot, aggr_image_proj_y_plot),
+    row(sv_aggrplot.plot, aggr_image_proj_y_plot),
     row(resolution_rings_toggle, mask_toggle, show_only_hits_toggle),
 )
 
@@ -773,57 +718,23 @@ doc.add_root(row(Spacer(width=50), final_layout))
 @gen.coroutine
 def update_client(image, metadata):
     global image_size_x, image_size_y
-    main_image_height = main_image_plot.inner_height
-    main_image_width = main_image_plot.inner_width
-    aggr_image_height = aggr_image_plot.inner_height
-    aggr_image_width = aggr_image_plot.inner_width
-
     if 'shape' in metadata and metadata['shape'] != [image_size_y, image_size_x]:
         image_size_y = metadata['shape'][0]
         image_size_x = metadata['shape'][1]
-        main_image_source.data.update(full_dw=[image_size_x], full_dh=[image_size_y])
-        aggr_image_source.data.update(full_dw=[image_size_x], full_dh=[image_size_y])
         mask_source.data.update(dw=[image_size_x], dh=[image_size_y])
-
-        main_image_plot.y_range.start = 0
-        main_image_plot.x_range.start = 0
-        main_image_plot.y_range.end = image_size_y
-        main_image_plot.x_range.end = image_size_x
-        main_image_plot.x_range.bounds = (0, image_size_x)
-        main_image_plot.y_range.bounds = (0, image_size_y)
-
-        aggr_image_plot.y_range.start = 0
-        aggr_image_plot.x_range.start = 0
-        aggr_image_plot.y_range.end = image_size_y
-        aggr_image_plot.x_range.end = image_size_x
-        aggr_image_plot.x_range.bounds = (0, image_size_x)
-        aggr_image_plot.y_range.bounds = (0, image_size_y)
-
-    main_y_start = max(main_image_plot.y_range.start, 0)
-    main_y_end = min(main_image_plot.y_range.end, image_size_y)
-    main_x_start = max(main_image_plot.x_range.start, 0)
-    main_x_end = min(main_image_plot.x_range.end, image_size_x)
-
-    aggr_y_start = max(aggr_image_plot.y_range.start, 0)
-    aggr_y_end = min(aggr_image_plot.y_range.end, image_size_y)
-    aggr_x_start = max(aggr_image_plot.x_range.start, 0)
-    aggr_x_end = min(aggr_image_plot.x_range.end, image_size_x)
 
     svcolormapper.update(image)
 
     pil_im = PIL_Image.fromarray(image.astype('float32'))
 
-    main_image = np.asarray(
-        pil_im.resize(
-            size=(main_image_width, main_image_height),
-            box=(main_x_start, main_y_start, main_x_end, main_y_end),
-            resample=PIL_Image.NEAREST))
+    sv_mainplot.update(image, pil_im)
+    aggr_image = sv_aggrplot.update(image, pil_im)
+    aggr_image_height, aggr_image_width = aggr_image.shape
 
-    aggr_image = np.asarray(
-        pil_im.resize(
-            size=(aggr_image_width, aggr_image_height),
-            box=(aggr_x_start, aggr_y_start, aggr_x_end, aggr_y_end),
-            resample=PIL_Image.NEAREST))
+    aggr_y_start = sv_aggrplot.y_start
+    aggr_y_end = sv_aggrplot.y_end
+    aggr_x_start = sv_aggrplot.x_start
+    aggr_x_end = sv_aggrplot.x_end
 
     aggr_image_proj_x = aggr_image.mean(axis=0)
     aggr_image_proj_y = aggr_image.mean(axis=1)
@@ -832,11 +743,6 @@ def update_client(image, metadata):
 
     if custom_tabs.tabs[custom_tabs.active].title == "Debug":
         svhist.update([aggr_image])
-
-    main_image_source.data.update(
-        image=[svcolormapper.convert(main_image)],
-        x=[main_x_start], y=[main_y_start],
-        dw=[main_x_end - main_x_start], dh=[main_y_end - main_y_start])
 
     # Parse metadata
     metadata_toshow = svmetadata.parse(metadata)
@@ -852,11 +758,6 @@ def update_client(image, metadata):
             svmetadata.add_issue('Spots data is inconsistent')
     else:
         main_image_peaks_source.data.update(x=[], y=[])
-
-    aggr_image_source.data.update(
-        image=[svcolormapper.convert(aggr_image)],
-        x=[aggr_x_start], y=[aggr_y_start],
-        dw=[aggr_x_end - aggr_x_start], dh=[aggr_y_end - aggr_y_start])
 
     aggr_image_proj_y_source.data.update(x=aggr_image_proj_y, y=aggr_image_proj_r_y)
     aggr_image_proj_x_source.data.update(x=aggr_image_proj_r_x, y=aggr_image_proj_x)
@@ -885,12 +786,12 @@ def update_client(image, metadata):
             dw=[aggr_x_end - aggr_x_start], dh=[aggr_y_end - aggr_y_start])
 
     # Draw numbers
-    if (main_x_end - main_x_start) * (main_y_end - main_y_start) < 2000:
-        main_y_start = int(np.floor(main_y_start))
-        main_x_start = int(np.floor(main_x_start))
-        main_y_end = int(np.ceil(main_y_end))
-        main_x_end = int(np.ceil(main_x_end))
+    main_y_start = int(np.floor(sv_mainplot.y_start))
+    main_x_start = int(np.floor(sv_mainplot.x_start))
+    main_y_end = int(np.ceil(sv_mainplot.y_end))
+    main_x_end = int(np.ceil(sv_mainplot.x_end))
 
+    if (main_x_end - main_x_start) * (main_y_end - main_y_start) < 2000:
         textv = image[main_y_start:main_y_end, main_x_start:main_x_end].astype('int')
         xv, yv = np.meshgrid(
             np.arange(main_x_start, main_x_end), np.arange(main_y_start, main_y_end))
@@ -989,7 +890,7 @@ def update_client(image, metadata):
 @gen.coroutine
 def internal_periodic_callback():
     global current_image, current_metadata
-    if main_image_plot.inner_width is None:
+    if sv_mainplot.plot.inner_width is None:
         # wait for the initialization to finish, thus skip this periodic callback
         return
 
