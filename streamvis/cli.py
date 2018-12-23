@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+import pkgutil
 
 from bokeh.application.application import Application
 from bokeh.application.handlers import DirectoryHandler
@@ -15,6 +16,13 @@ def main():
     This is a wrapper around bokeh server that provides an interface to launch
     applications bundled with the streamvis package.
     """
+    # Discover streamvis apps
+    apps_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'apps')
+    available_apps = []
+    for module_info in pkgutil.iter_modules([apps_path]):
+        if module_info.ispkg:
+            available_apps.append(module_info.name)
+
     parser = argparse.ArgumentParser(
         prog='streamvis',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -23,7 +31,7 @@ def main():
     parser.add_argument(
         'app',
         type=str,
-        choices=['base', 'base16m', 'alvra', 'bernina', 'experimental'],
+        choices=available_apps,
         help="streamvis application",
     )
 
@@ -52,7 +60,7 @@ def main():
 
     args = parser.parse_args()
 
-    app_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'apps', args.app)
+    app_path = os.path.join(apps_path, args.app)
     logger.info(app_path)
 
     handler = DirectoryHandler(filename=app_path, argv=args.args)
