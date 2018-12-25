@@ -49,7 +49,7 @@ sv_mainplot.plot.add_layout(sv_colormapper.color_bar, place='below')
 
 
 # Histogram plot
-sv_hist = sv.Histogram(plot_height=400, plot_width=700)
+sv_hist = sv.Histogram(nplots=1, plot_height=400, plot_width=700)
 
 
 # HDF5 File panel

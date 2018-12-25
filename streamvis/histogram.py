@@ -5,7 +5,7 @@ from bokeh.models import BasicTicker, BoxZoomTool, ColumnDataSource, \
 
 class Histogram:
     def __init__(
-            self, nplots=1, plot_height=350, plot_width=700,
+            self, nplots, plot_height=350, plot_width=700,
             init_lower=0, init_upper=1000, init_nbins=100,
         ):
 

@@ -291,7 +291,7 @@ aggr_image_proj_y_plot.add_glyph(
 
 
 # Histogram plot
-sv_hist = sv.Histogram(plot_height=280, plot_width=700)
+sv_hist = sv.Histogram(nplots=1, plot_height=280, plot_width=700)
 
 
 # Trajectory plot

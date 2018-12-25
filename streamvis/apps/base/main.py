@@ -147,7 +147,7 @@ zoom1_plot_agg_y.add_glyph(zoom1_agg_y_source, Line(x='x', y='y', line_color='st
 
 
 # Histogram plot
-sv_hist = sv.Histogram(plot_height=400, plot_width=700)
+sv_hist = sv.Histogram(nplots=1, plot_height=400, plot_width=700)
 
 
 # Total intensity plot
