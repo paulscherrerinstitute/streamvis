@@ -2,4 +2,40 @@
 [![Build Status](https://travis-ci.com/ivan-usov/streamvis.svg?branch=master)](https://travis-ci.com/ivan-usov/streamvis)
 [![GitHub license](https://img.shields.io/github/license/ivan-usov/streamvis.svg)](https://github.com/ivan-usov/streamvis/blob/master/LICENSE)
 
-# Live image visualization server
+# Stream visualization server
+**Streamvis** is a webserver for visualization of data streams. It is based on [bokeh](https://github.com/bokeh/bokeh) and generally works with [zmq](https://github.com/zeromq/libzmq) streams.
+
+## Build
+The build is triggered upon pushing a tag into a `master` branch and involves running the [Travis CI](https://travis-ci.com/ivan-usov/streamvis) script, which builds a package and uploads it to `paulscherrerinstitute` anaconda channel.
+
+To build a local conda package without uploading it to the anaconda channel:
+```bash
+$ conda build ./conda-recipe
+```
+
+A docker image can be built from the latest version on `paulscherrerinstitute` anaconda channel:
+```bash
+$ docker build ./docker
+```
+
+## Install
+The default installation procedure:
+```bash
+$ conda install -c paulscherrerinstitute streamvis
+```
+
+If a package was built locally:
+```bash
+$ conda install --use-local streamvis
+```
+
+## Running the server
+```bash
+$ streamvis <app_name> [--opt-params]
+```
+Navigate to http://localhost:5006/ in your browser to start using the **streamvis** application.
+
+To get a general help, a list of available applications and optional parameters:
+```bash
+$ streamvis -h
+```
