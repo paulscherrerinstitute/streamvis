@@ -61,12 +61,10 @@ class Histogram:
             if selection == 0:  # Automatic
                 lower_textinput.disabled = True
                 upper_textinput.disabled = True
-                nbins_textinput.disabled = True
 
             else:  # Manual
                 lower_textinput.disabled = False
                 upper_textinput.disabled = False
-                nbins_textinput.disabled = False
 
         radiobuttongroup = RadioButtonGroup(labels=["Automatic", "Manual"], active=0, width=150)
         radiobuttongroup.on_click(radiobuttongroup_callback)
@@ -116,7 +114,7 @@ class Histogram:
             except ValueError:
                 nbins_textinput.value = old
 
-        nbins_textinput = TextInput(title='Number of Bins:', value=str(self._nbins), disabled=True)
+        nbins_textinput = TextInput(title='Number of Bins:', value=str(self._nbins))
         nbins_textinput.on_change('value', nbins_textinput_callback)
         self.nbins_textinput = nbins_textinput
 
@@ -134,8 +132,8 @@ class Histogram:
 
     def update(self, input_data):
         if self.radiobuttongroup.active == 0:  # automatic
-            kwarg = dict(bins='scott')
-        else:  # manual
+            kwarg = dict(bins=self._nbins)
+        elif self.radiobuttongroup.active == 1:  # manual
             kwarg = dict(bins=self._nbins, range=(self._lower, self._upper))
 
         for ind in range(len(self.plots)):
