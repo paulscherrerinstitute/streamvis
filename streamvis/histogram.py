@@ -13,6 +13,8 @@ class Histogram:
         self._upper = init_upper
         self._nbins = init_nbins
 
+        self._counts = [0 for _ in range(nplots)]
+
         # Histogram plots
         self.plots = []
         self._plot_sources = []
@@ -76,6 +78,7 @@ class Histogram:
                 new_value = float(new)
                 if new_value < self._upper:
                     self._lower = new_value
+                    self._counts = [0 for _ in range(nplots)]
                 else:
                     lower_textinput.value = old
 
@@ -92,6 +95,7 @@ class Histogram:
                 new_value = float(new)
                 if new_value > self._lower:
                     self._upper = new_value
+                    self._counts = [0 for _ in range(nplots)]
                 else:
                     upper_textinput.value = old
 
@@ -108,6 +112,7 @@ class Histogram:
                 new_value = int(new)
                 if new_value > 0:
                     self._nbins = new_value
+                    self._counts = [0 for _ in range(nplots)]
                 else:
                     nbins_textinput.value = old
 
@@ -120,6 +125,7 @@ class Histogram:
 
         # ---- histogram log10 of counts toggle button
         def log10counts_toggle_callback(state):
+            self._counts = [0 for _ in range(nplots)]
             for plot in self.plots:
                 if state:
                     plot.yaxis[0].axis_label = 'log⏨(Counts)'
@@ -130,8 +136,8 @@ class Histogram:
         log10counts_toggle.on_click(log10counts_toggle_callback)
         self.log10counts_toggle = log10counts_toggle
 
-    def update(self, input_data):
-        if self.radiobuttongroup.active == 0:  # automatic
+    def update(self, input_data, accumulate=False):
+        if self.radiobuttongroup.active == 0 and not accumulate:  # automatic
             # this will also update self._lower and self._upper
             self.lower_textinput.value = str(min([np.amin(im) for im in input_data]))
             self.upper_textinput.value = str(max([np.amax(im) for im in input_data]))
@@ -149,4 +155,11 @@ class Histogram:
             if self.log10counts_toggle.active:
                 counts = np.log10(counts, where=counts > 0)
 
-            self._plot_sources[ind].data.update(left=edges[:-1], right=edges[1:], top=counts)
+            if accumulate:
+                self._counts[ind] += counts
+            else:
+                self._counts[ind] = counts
+
+            self._plot_sources[ind].data.update(
+                left=edges[:-1], right=edges[1:], top=self._counts[ind],
+            )
