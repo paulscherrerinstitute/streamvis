@@ -132,13 +132,19 @@ class Histogram:
 
     def update(self, input_data):
         if self.radiobuttongroup.active == 0:  # automatic
-            kwarg = dict(bins=self._nbins)
+            # this will also update self._lower and self._upper
+            self.lower_textinput.value = str(min([np.amin(im) for im in input_data]))
+            self.upper_textinput.value = str(max([np.amax(im) for im in input_data]))
+
         elif self.radiobuttongroup.active == 1:  # manual
-            kwarg = dict(bins=self._nbins, range=(self._lower, self._upper))
+            # no updates needed
+            pass
 
         for ind in range(len(self.plots)):
             data_i = input_data[ind]
-            counts, edges = np.histogram(data_i[data_i != 0], **kwarg)
+            counts, edges = np.histogram(
+                data_i[data_i != 0], bins=self._nbins, range=(self._lower, self._upper),
+            )
 
             if self.log10counts_toggle.active:
                 counts = np.log10(counts, where=counts > 0)
