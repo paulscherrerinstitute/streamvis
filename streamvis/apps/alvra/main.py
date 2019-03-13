@@ -6,7 +6,7 @@ import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
 from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, ColumnDataSource, \
-    CustomJS, DataRange1d, Dropdown, Grid, Line, LinearAxis, Panel, PanTool, Plot, Quad, Rect, \
+    CustomJS, DataRange1d, Dropdown, Grid, Line, LinearAxis, Panel, PanTool, Plot, Rect, \
     ResetTool, Select, Slider, Spacer, Tabs, TextInput, Title, Toggle, WheelZoomTool
 from PIL import Image as PIL_Image
 from tornado import gen
@@ -27,13 +27,8 @@ image_size_y = IMAGE_SIZE_Y
 
 current_image = np.zeros((1, 1), dtype='float32')
 current_metadata = dict(shape=[image_size_y, image_size_x])
-current_mask = None
 
 connected = False
-
-hist_upper = 1000
-hist_lower = 0
-hist_nbins = 100
 
 # Currently, it's possible to control only a canvas size, but not a size of the plotting area.
 MAIN_CANVAS_WIDTH = 3700 + 55
@@ -44,7 +39,6 @@ ZOOM_CANVAS_HEIGHT = 514 + 30
 
 ZOOM_AGG_Y_PLOT_WIDTH = 200
 ZOOM_AGG_X_PLOT_HEIGHT = 370
-ZOOM_HIST_PLOT_HEIGHT = 280
 TOTAL_INT_PLOT_HEIGHT = 200
 TOTAL_INT_PLOT_WIDTH = 1150
 
@@ -181,34 +175,6 @@ zoom1_agg_y_source = ColumnDataSource(
 zoom1_plot_agg_y.add_glyph(zoom1_agg_y_source, Line(x='x', y='y', line_color='steelblue'))
 
 
-# Histogram zoom1 plot
-zoom1_hist_plot = Plot(
-    x_range=DataRange1d(),
-    y_range=DataRange1d(),
-    plot_height=ZOOM_HIST_PLOT_HEIGHT,
-    plot_width=sv_zoomplot1.plot.plot_width,
-    toolbar_location='left',
-)
-
-# ---- tools
-zoom1_hist_plot.toolbar.logo = None
-zoom1_hist_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), ResetTool())
-
-# ---- axes
-zoom1_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
-zoom1_hist_plot.add_layout(
-    LinearAxis(axis_label="Counts", major_label_orientation='vertical'), place='right')
-
-# ---- grid lines
-zoom1_hist_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-zoom1_hist_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-# ---- quad (single bin) glyph
-hist1_source = ColumnDataSource(dict(left=[], right=[], top=[]))
-zoom1_hist_plot.add_glyph(
-    hist1_source, Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
-
-
 # Zoom plot 2
 sv_zoomplot2 = sv.ImagePlot(
     sv_colormapper,
@@ -296,35 +262,8 @@ zoom2_agg_y_source = ColumnDataSource(
 zoom2_plot_agg_y.add_glyph(zoom2_agg_y_source, Line(x='x', y='y', line_color='steelblue'))
 
 
-# Histogram zoom2 plot
-zoom2_hist_plot = Plot(
-    x_range=DataRange1d(),
-    y_range=DataRange1d(),
-    plot_height=ZOOM_HIST_PLOT_HEIGHT,
-    plot_width=sv_zoomplot2.plot.plot_width,
-    toolbar_location='left',
-)
-
-# ---- tools
-zoom2_hist_plot.toolbar.logo = None
-# share 'pan', 'box zoom', and 'wheel zoom' with the first histogram plot
-zoom2_hist_plot.add_tools(
-    zoom1_hist_plot.tools[0], zoom1_hist_plot.tools[1], zoom1_hist_plot.tools[2], ResetTool())
-
-# ---- axes
-zoom2_hist_plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
-zoom2_hist_plot.add_layout(
-    LinearAxis(axis_label="Counts", major_label_orientation='vertical'), place='right')
-
-# ---- grid lines
-zoom2_hist_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-zoom2_hist_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-# ---- quad (single bin) glyph
-hist2_source = ColumnDataSource(dict(left=[], right=[], top=[]))
-zoom2_hist_plot.add_glyph(
-    hist2_source, Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"))
-
+# Histogram zoom plots
+sv_hist = sv.Histogram(nplots=2, plot_height=280, plot_width=sv_zoomplot1.plot.plot_width)
 
 # Intensity threshold toggle button
 def threshold_button_callback(state):
@@ -453,55 +392,6 @@ def save_spectrum_select_callback(_attr, _old, new):
 
 save_spectrum_select = Select(title='Saved Spectra:', options=['None'], value='None')
 save_spectrum_select.on_change('value', save_spectrum_select_callback)
-
-
-# Histogram controls
-# ---- histogram upper range
-def hist_upper_callback(_attr, old, new):
-    global hist_upper
-    try:
-        new_value = float(new)
-        if new_value > hist_lower:
-            hist_upper = new_value
-        else:
-            hist_upper_textinput.value = old
-
-    except ValueError:
-        hist_upper_textinput.value = old
-
-# ---- histogram lower range
-def hist_lower_callback(_attr, old, new):
-    global hist_lower
-    try:
-        new_value = float(new)
-        if new_value < hist_upper:
-            hist_lower = new_value
-        else:
-            hist_lower_textinput.value = old
-
-    except ValueError:
-        hist_lower_textinput.value = old
-
-# ---- histogram number of bins
-def hist_nbins_callback(_attr, old, new):
-    global hist_nbins
-    try:
-        new_value = int(new)
-        if new_value > 0:
-            hist_nbins = new_value
-        else:
-            hist_nbins_textinput.value = old
-
-    except ValueError:
-        hist_nbins_textinput.value = old
-
-# ---- histogram text imputs
-hist_upper_textinput = TextInput(title='Upper Range:', value=str(hist_upper))
-hist_upper_textinput.on_change('value', hist_upper_callback)
-hist_lower_textinput = TextInput(title='Lower Range:', value=str(hist_lower))
-hist_lower_textinput.on_change('value', hist_lower_callback)
-hist_nbins_textinput = TextInput(title='Number of Bins:', value=str(hist_nbins))
-hist_nbins_textinput.on_change('value', hist_nbins_callback)
 
 
 # Total intensity plot
@@ -663,7 +553,7 @@ def load_file_button_callback():
     file_name = os.path.join(hdf5_file_path.value, saved_runs_dropdown.label)
     hdf5_file_data = partial(mx_image, file=file_name, dataset=hdf5_dataset_path.value)
     current_image, current_metadata = hdf5_file_data(i=hdf5_pulse_slider.value)
-    update_client(current_image, current_metadata, None)
+    update_client(current_image, current_metadata, True, None)
 
 load_file_button = Button(label="Load", button_type='default')
 load_file_button.on_click(load_file_button_callback)
@@ -672,7 +562,7 @@ load_file_button.on_click(load_file_button_callback)
 def hdf5_pulse_slider_callback(_attr, _old, new):
     global hdf5_file_data, current_image, current_metadata
     current_image, current_metadata = hdf5_file_data(i=new['value'][0])
-    update_client(current_image, current_metadata, None)
+    update_client(current_image, current_metadata, True, None)
 
 hdf5_pulse_slider_source = ColumnDataSource(dict(value=[]))
 hdf5_pulse_slider_source.on_change('data', hdf5_pulse_slider_callback)
@@ -718,12 +608,12 @@ layout_main = column(sv_mainplot.plot)
 layout_zoom1 = column(
     zoom1_plot_agg_x,
     row(sv_zoomplot1.plot, zoom1_plot_agg_y),
-    row(Spacer(), zoom1_hist_plot, Spacer()))
+    row(Spacer(), sv_hist.plots[0], Spacer()))
 
 layout_zoom2 = column(
     zoom2_plot_agg_x,
     row(sv_zoomplot2.plot, zoom2_plot_agg_y),
-    row(Spacer(), zoom2_hist_plot, Spacer()))
+    row(Spacer(), sv_hist.plots[1], Spacer()))
 
 layout_thr_agg = row(
     column(threshold_button, threshold_textinput),
@@ -732,7 +622,18 @@ layout_thr_agg = row(
 
 layout_spectra = column(save_spectrum_button, save_spectrum_select)
 
-layout_hist_controls = column(hist_upper_textinput, hist_lower_textinput, hist_nbins_textinput)
+layout_hist_controls = row(
+    column(
+        Spacer(height=20),
+        sv_hist.radiobuttongroup,
+        sv_hist.upper_textinput,
+        sv_hist.lower_textinput,
+    ),
+    column(
+        Spacer(height=73),
+        sv_hist.nbins_textinput,
+    ),
+)
 
 layout_utility = column(
     gridplot([total_intensity_plot, zoom1_intensity_plot, zoom2_intensity_plot],
@@ -760,7 +661,7 @@ doc.add_root(row(Spacer(width=20), final_layout))
 
 
 @gen.coroutine
-def update_client(image, metadata, mask):
+def update_client(image, metadata, reset, original_image):
     global stream_t, current_spectra
 
     sv_colormapper.update(image)
@@ -771,53 +672,46 @@ def update_client(image, metadata, mask):
     sv_zoomplot1.update(image, pil_im)
     sv_zoomplot2.update(image, pil_im)
 
-    y_start = int(np.floor(sv_zoomplot1.y_start))
-    y_end = int(np.ceil(sv_zoomplot1.y_end))
-    x_start = int(np.floor(sv_zoomplot1.x_start))
-    x_end = int(np.ceil(sv_zoomplot1.x_end))
+    y_start1 = int(np.floor(sv_zoomplot1.y_start))
+    y_end1 = int(np.ceil(sv_zoomplot1.y_end))
+    x_start1 = int(np.floor(sv_zoomplot1.x_start))
+    x_end1 = int(np.ceil(sv_zoomplot1.x_end))
 
-    im_block = image[y_start:y_end, x_start:x_end]
+    im_block1 = image[y_start1:y_end1, x_start1:x_end1]
 
-    zoom1_agg_y = np.sum(im_block, axis=1)
-    zoom1_agg_x = np.sum(im_block, axis=0)
-    zoom1_r_y = np.arange(y_start, y_end) + 0.5
-    zoom1_r_x = np.arange(x_start, x_end) + 0.5
+    zoom1_agg_y = np.sum(im_block1, axis=1)
+    zoom1_agg_x = np.sum(im_block1, axis=0)
+    zoom1_r_y = np.arange(y_start1, y_end1) + 0.5
+    zoom1_r_x = np.arange(x_start1, x_end1) + 0.5
 
-    if mask is None:
-        counts, edges = np.histogram(im_block/aggregate_counter, bins='scott')
-    else:
-        counts, edges = np.histogram(
-            im_block[~mask[y_start:y_end, x_start:x_end]]/aggregate_counter, bins='scott')
-
-    total_sum_zoom1 = np.sum(im_block)
-    hist1_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
+    total_sum_zoom1 = np.sum(im_block1)
     zoom1_agg_y_source.data.update(x=zoom1_agg_y, y=zoom1_r_y)
     zoom1_agg_x_source.data.update(x=zoom1_r_x, y=zoom1_agg_x)
 
-    y_start = int(np.floor(sv_zoomplot2.y_start))
-    y_end = int(np.ceil(sv_zoomplot2.y_end))
-    x_start = int(np.floor(sv_zoomplot2.x_start))
-    x_end = int(np.ceil(sv_zoomplot2.x_end))
+    y_start2 = int(np.floor(sv_zoomplot2.y_start))
+    y_end2 = int(np.ceil(sv_zoomplot2.y_end))
+    x_start2 = int(np.floor(sv_zoomplot2.x_start))
+    x_end2 = int(np.ceil(sv_zoomplot2.x_end))
 
-    im_block = image[y_start:y_end, x_start:x_end]
+    im_block2 = image[y_start2:y_end2, x_start2:x_end2]
 
-    zoom2_agg_y = np.sum(im_block, axis=1)
-    zoom2_agg_x = np.sum(im_block, axis=0)
-    zoom2_r_y = np.arange(y_start, y_end) + 0.5
-    zoom2_r_x = np.arange(x_start, x_end) + 0.5
+    zoom2_agg_y = np.sum(im_block2, axis=1)
+    zoom2_agg_x = np.sum(im_block2, axis=0)
+    zoom2_r_y = np.arange(y_start2, y_end2) + 0.5
+    zoom2_r_x = np.arange(x_start2, x_end2) + 0.5
 
-    if mask is None:
-        counts, edges = np.histogram(im_block/aggregate_counter, bins='scott')
-    else:
-        counts, edges = np.histogram(
-            im_block[~mask[y_start:y_end, x_start:x_end]]/aggregate_counter, bins='scott')
-
-    total_sum_zoom2 = np.sum(im_block)
-    hist2_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
+    total_sum_zoom2 = np.sum(im_block2)
     zoom2_agg_y_source.data.update(x=zoom2_agg_y, y=zoom2_r_y)
     zoom2_agg_x_source.data.update(x=zoom2_r_x, y=zoom2_agg_x)
 
     if connected and receiver.state == 'receiving':
+        if reset:
+            sv_hist.update([im_block1, im_block2])
+        else:
+            im_block1 = original_image[y_start1:y_end1, x_start1:x_end1]
+            im_block2 = original_image[y_start2:y_end2, x_start2:x_end2]
+            sv_hist.update([im_block1, im_block2], accumulate=True)
+
         stream_t += 1
         total_sum_source.stream(
             new_data=dict(x=[stream_t], y=[np.sum(image, dtype=np.float)]),
@@ -839,7 +733,9 @@ def update_client(image, metadata, mask):
 
 @gen.coroutine
 def internal_periodic_callback():
-    global current_image, current_metadata, current_mask, aggregate_counter
+    global current_image, current_metadata, aggregate_counter
+    reset = True
+    original_image = None
     if sv_mainplot.plot.inner_width is None:
         # wait for the initialization to finish, thus skip this periodic callback
         return
@@ -858,19 +754,16 @@ def internal_periodic_callback():
                 image = image.copy()  # make a copy, so that other clients could still use it
 
                 if threshold_flag:
-                    current_mask = image < threshold
-                    image[current_mask] = 0
-                else:
-                    current_mask = None
+                    image[image < threshold] = 0
 
                 if aggregate_flag:
-                    current_mask = None
                     if aggregate_counter >= aggregate_time:
                         aggregate_counter = 1
-
                     else:
+                        original_image = image.copy()
                         image += current_image
                         aggregate_counter += 1
+                        reset = False
 
                     aggregate_time_counter_textinput.value = str(aggregate_counter)
 
@@ -878,7 +771,10 @@ def internal_periodic_callback():
 
     if current_image.shape != (1, 1):
         doc.add_next_tick_callback(
-            partial(update_client, image=current_image, metadata=current_metadata,
-                    mask=current_mask))
+            partial(
+                update_client, image=current_image, metadata=current_metadata, reset=reset,
+                original_image=original_image,
+            ),
+        )
 
 doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)
