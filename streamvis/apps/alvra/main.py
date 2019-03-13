@@ -27,9 +27,13 @@ image_size_y = IMAGE_SIZE_Y
 
 current_image = np.zeros((1, 1), dtype='float32')
 current_metadata = dict(shape=[image_size_y, image_size_x])
-current_stats = None
+current_mask = None
 
 connected = False
+
+hist_upper = 1000
+hist_lower = 0
+hist_nbins = 100
 
 # Currently, it's possible to control only a canvas size, but not a size of the plotting area.
 MAIN_CANVAS_WIDTH = 3700 + 55
@@ -57,6 +61,15 @@ ZOOM_INIT_WIDTH = 1030
 ZOOM_INIT_HEIGHT = image_size_y
 ZOOM1_INIT_X = (ZOOM_INIT_WIDTH + 6) * 2
 ZOOM2_INIT_X = (ZOOM_INIT_WIDTH + 6) * 6
+
+# Initial values (can be changed through the gui)
+threshold_flag = False
+threshold = 0
+
+aggregate_flag = False
+aggregated_image = 0
+aggregate_time = np.Inf
+aggregate_counter = 1
 
 current_spectra = None
 saved_spectra = dict()
@@ -315,15 +328,16 @@ zoom2_hist_plot.add_glyph(
 
 # Intensity threshold toggle button
 def threshold_button_callback(state):
+    global threshold_flag
     if state:
-        receiver.threshold_flag = True
+        threshold_flag = True
         threshold_button.button_type = 'primary'
     else:
-        receiver.threshold_flag = False
+        threshold_flag = False
         threshold_button.button_type = 'default'
 
-threshold_button = Toggle(label="Apply Thresholding", active=receiver.threshold_flag)
-if receiver.threshold_flag:
+threshold_button = Toggle(label="Apply Thresholding", active=threshold_flag)
+if threshold_flag:
     threshold_button.button_type = 'primary'
 else:
     threshold_button.button_type = 'default'
@@ -332,29 +346,31 @@ threshold_button.on_click(threshold_button_callback)
 
 # Intensity threshold value textinput
 def threshold_textinput_callback(_attr, old, new):
+    global threshold
     try:
-        receiver.threshold = float(new)
+        threshold = float(new)
 
     except ValueError:
         threshold_textinput.value = old
 
-threshold_textinput = TextInput(title='Intensity Threshold:', value=str(receiver.threshold))
+threshold_textinput = TextInput(title='Intensity Threshold:', value=str(threshold))
 threshold_textinput.on_change('value', threshold_textinput_callback)
 
 
 # Aggregation time toggle button
 def aggregate_button_callback(state):
-    receiver.aggregate_counter = 1  # reset if the button toggled
-    aggregate_time_counter_textinput.value = str(receiver.aggregate_counter)
+    global aggregate_counter, aggregate_flag
+    aggregate_counter = 1  # reset if the button toggled
+    aggregate_time_counter_textinput.value = str(aggregate_counter)
     if state:
-        receiver.aggregate_flag = True
+        aggregate_flag = True
         aggregate_button.button_type = 'primary'
     else:
-        receiver.aggregate_flag = False
+        aggregate_flag = False
         aggregate_button.button_type = 'default'
 
-aggregate_button = Toggle(label="Apply Aggregation", active=receiver.aggregate_flag)
-if receiver.aggregate_flag:
+aggregate_button = Toggle(label="Apply Aggregation", active=aggregate_flag)
+if aggregate_flag:
     aggregate_button.button_type = 'primary'
 else:
     aggregate_button.button_type = 'default'
@@ -363,10 +379,11 @@ aggregate_button.on_click(aggregate_button_callback)
 
 # Aggregation time value textinput
 def aggregate_time_textinput_callback(_attr, old, new):
+    global aggregate_time
     try:
         new_value = float(new)
         if new_value >= 1:
-            receiver.aggregate_time = new_value
+            aggregate_time = new_value
         else:
             aggregate_time_textinput.value = old
 
@@ -374,13 +391,13 @@ def aggregate_time_textinput_callback(_attr, old, new):
         aggregate_time_textinput.value = old
 
 aggregate_time_textinput = TextInput(
-    title='Average Aggregate Time:', value=str(receiver.aggregate_time))
+    title='Average Aggregate Time:', value=str(aggregate_time))
 aggregate_time_textinput.on_change('value', aggregate_time_textinput_callback)
 
 
 # Aggregate time counter value textinput
 aggregate_time_counter_textinput = TextInput(
-    title='Aggregate Counter:', value=str(receiver.aggregate_counter), disabled=True)
+    title='Aggregate Counter:', value=str(aggregate_counter), disabled=True)
 
 
 # Saved spectrum lines
@@ -441,11 +458,11 @@ save_spectrum_select.on_change('value', save_spectrum_select_callback)
 # Histogram controls
 # ---- histogram upper range
 def hist_upper_callback(_attr, old, new):
+    global hist_upper
     try:
         new_value = float(new)
-        if new_value > receiver.hist_lower:
-            receiver.hist_upper = new_value
-            receiver.force_reset = True
+        if new_value > hist_lower:
+            hist_upper = new_value
         else:
             hist_upper_textinput.value = old
 
@@ -454,11 +471,11 @@ def hist_upper_callback(_attr, old, new):
 
 # ---- histogram lower range
 def hist_lower_callback(_attr, old, new):
+    global hist_lower
     try:
         new_value = float(new)
-        if new_value < receiver.hist_upper:
-            receiver.hist_lower = new_value
-            receiver.force_reset = True
+        if new_value < hist_upper:
+            hist_lower = new_value
         else:
             hist_lower_textinput.value = old
 
@@ -467,11 +484,11 @@ def hist_lower_callback(_attr, old, new):
 
 # ---- histogram number of bins
 def hist_nbins_callback(_attr, old, new):
+    global hist_nbins
     try:
         new_value = int(new)
         if new_value > 0:
-            receiver.hist_nbins = new_value
-            receiver.force_reset = True
+            hist_nbins = new_value
         else:
             hist_nbins_textinput.value = old
 
@@ -479,11 +496,11 @@ def hist_nbins_callback(_attr, old, new):
         hist_nbins_textinput.value = old
 
 # ---- histogram text imputs
-hist_upper_textinput = TextInput(title='Upper Range:', value=str(receiver.hist_upper))
+hist_upper_textinput = TextInput(title='Upper Range:', value=str(hist_upper))
 hist_upper_textinput.on_change('value', hist_upper_callback)
-hist_lower_textinput = TextInput(title='Lower Range:', value=str(receiver.hist_lower))
+hist_lower_textinput = TextInput(title='Lower Range:', value=str(hist_lower))
 hist_lower_textinput.on_change('value', hist_lower_callback)
-hist_nbins_textinput = TextInput(title='Number of Bins:', value=str(receiver.hist_nbins))
+hist_nbins_textinput = TextInput(title='Number of Bins:', value=str(hist_nbins))
 hist_nbins_textinput.on_change('value', hist_nbins_callback)
 
 
@@ -646,7 +663,7 @@ def load_file_button_callback():
     file_name = os.path.join(hdf5_file_path.value, saved_runs_dropdown.label)
     hdf5_file_data = partial(mx_image, file=file_name, dataset=hdf5_dataset_path.value)
     current_image, current_metadata = hdf5_file_data(i=hdf5_pulse_slider.value)
-    update_client(current_image, current_metadata, (None, None, None))
+    update_client(current_image, current_metadata, None)
 
 load_file_button = Button(label="Load", button_type='default')
 load_file_button.on_click(load_file_button_callback)
@@ -655,7 +672,7 @@ load_file_button.on_click(load_file_button_callback)
 def hdf5_pulse_slider_callback(_attr, _old, new):
     global hdf5_file_data, current_image, current_metadata
     current_image, current_metadata = hdf5_file_data(i=new['value'][0])
-    update_client(current_image, current_metadata, (None, None, None))
+    update_client(current_image, current_metadata, None)
 
 hdf5_pulse_slider_source = ColumnDataSource(dict(value=[]))
 hdf5_pulse_slider_source.on_change('data', hdf5_pulse_slider_callback)
@@ -743,7 +760,7 @@ doc.add_root(row(Spacer(width=20), final_layout))
 
 
 @gen.coroutine
-def update_client(image, metadata, stats):
+def update_client(image, metadata, mask):
     global stream_t, current_spectra
 
     sv_colormapper.update(image)
@@ -753,20 +770,6 @@ def update_client(image, metadata, stats):
     sv_mainplot.update(image, pil_im)
     sv_zoomplot1.update(image, pil_im)
     sv_zoomplot2.update(image, pil_im)
-
-    # update ranges for statistics calculation
-    receiver.zoom1_y_start = sv_zoomplot1.y_start
-    receiver.zoom1_y_end = sv_zoomplot1.y_end
-    receiver.zoom1_x_start = sv_zoomplot1.x_start
-    receiver.zoom1_x_end = sv_zoomplot1.x_end
-
-    receiver.zoom2_y_start = sv_zoomplot2.y_start
-    receiver.zoom2_y_end = sv_zoomplot2.y_end
-    receiver.zoom2_x_start = sv_zoomplot2.x_start
-    receiver.zoom2_x_end = sv_zoomplot2.x_end
-
-    # Statistics
-    zoom1_counts, zoom2_counts, edges = stats
 
     y_start = int(np.floor(sv_zoomplot1.y_start))
     y_end = int(np.ceil(sv_zoomplot1.y_end))
@@ -780,9 +783,14 @@ def update_client(image, metadata, stats):
     zoom1_r_y = np.arange(y_start, y_end) + 0.5
     zoom1_r_x = np.arange(x_start, x_end) + 0.5
 
+    if mask is None:
+        counts, edges = np.histogram(im_block/aggregate_counter, bins='scott')
+    else:
+        counts, edges = np.histogram(
+            im_block[~mask[y_start:y_end, x_start:x_end]]/aggregate_counter, bins='scott')
+
     total_sum_zoom1 = np.sum(im_block)
-    if edges is not None:
-        hist1_source.data.update(left=edges[:-1], right=edges[1:], top=zoom1_counts)
+    hist1_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
     zoom1_agg_y_source.data.update(x=zoom1_agg_y, y=zoom1_r_y)
     zoom1_agg_x_source.data.update(x=zoom1_r_x, y=zoom1_agg_x)
 
@@ -798,9 +806,14 @@ def update_client(image, metadata, stats):
     zoom2_r_y = np.arange(y_start, y_end) + 0.5
     zoom2_r_x = np.arange(x_start, x_end) + 0.5
 
+    if mask is None:
+        counts, edges = np.histogram(im_block/aggregate_counter, bins='scott')
+    else:
+        counts, edges = np.histogram(
+            im_block[~mask[y_start:y_end, x_start:x_end]]/aggregate_counter, bins='scott')
+
     total_sum_zoom2 = np.sum(im_block)
-    if edges is not None:
-        hist2_source.data.update(left=edges[:-1], right=edges[1:], top=zoom2_counts)
+    hist2_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
     zoom2_agg_y_source.data.update(x=zoom2_agg_y, y=zoom2_r_y)
     zoom2_agg_x_source.data.update(x=zoom2_r_x, y=zoom2_agg_x)
 
@@ -826,7 +839,7 @@ def update_client(image, metadata, stats):
 
 @gen.coroutine
 def internal_periodic_callback():
-    global current_image, current_metadata, current_stats
+    global current_image, current_metadata, current_mask, aggregate_counter
     if sv_mainplot.plot.inner_width is None:
         # wait for the initialization to finish, thus skip this periodic callback
         return
@@ -840,16 +853,32 @@ def internal_periodic_callback():
             stream_button.label = 'Receiving'
             stream_button.button_type = 'success'
 
-            # capture current values
-            current_image = receiver.current_image
-            current_stats = receiver.current_stats
-            current_metadata = receiver.current_metadata
+            if receiver.data_buffer:
+                current_metadata, image = receiver.data_buffer[-1]
+                image = image.copy()  # make a copy, so that other clients could still use it
 
-            aggregate_time_counter_textinput.value = str(receiver.aggregate_counter)
+                if threshold_flag:
+                    current_mask = image < threshold
+                    image[current_mask] = 0
+                else:
+                    current_mask = None
+
+                if aggregate_flag:
+                    current_mask = None
+                    if aggregate_counter >= aggregate_time:
+                        aggregate_counter = 1
+
+                    else:
+                        image += current_image
+                        aggregate_counter += 1
+
+                    aggregate_time_counter_textinput.value = str(aggregate_counter)
+
+                current_image = image
 
     if current_image.shape != (1, 1):
         doc.add_next_tick_callback(
             partial(update_client, image=current_image, metadata=current_metadata,
-                    stats=current_stats))
+                    mask=current_mask))
 
 doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)
