@@ -34,7 +34,7 @@ aggregate_counter = 1
 proc_image = 0
 
 def stream_receive():
-    global state, proc_image, aggregate_counter
+    global state
     while True:
         events = dict(poller.poll(1000))
         if zmq_socket in events:
@@ -44,18 +44,23 @@ def stream_receive():
             image.setflags(write=True)
             image = image.astype('float32', copy=False)
 
-            if threshold_flag:
-                image[image < threshold] = 0
-
-            if aggregate_flag and aggregate_counter < aggregate_time:
-                proc_image += image
-                aggregate_counter += 1
-            else:
-                proc_image = image
-                aggregate_counter = 1
-
+            process_received_data(metadata, image)
             data_buffer.append((metadata, proc_image))
+
             state = 'receiving'
 
         else:
             state = 'polling'
+
+def process_received_data(metadata, image):
+    global proc_image, aggregate_counter
+
+    if threshold_flag:
+        image[image < threshold] = 0
+
+    if aggregate_flag and aggregate_counter < aggregate_time:
+        proc_image += image
+        aggregate_counter += 1
+    else:
+        proc_image = image
+        aggregate_counter = 1
