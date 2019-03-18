@@ -158,7 +158,7 @@ def update_client(image, metadata):
     sv_colormapper.update(image)
 
     pil_im = PIL_Image.fromarray(image)
-    sv_mainplot.update(image, pil_im)
+    sv_mainplot.update(pil_im)
 
     # Statistics
     y_start = int(np.floor(sv_mainplot.y_start))

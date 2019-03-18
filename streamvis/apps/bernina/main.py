@@ -355,9 +355,9 @@ def update_client(image, metadata):
 
     pil_im = PIL_Image.fromarray(image)
 
-    sv_mainplot.update(image, pil_im)
-    sv_zoomplot1.update(image, pil_im)
-    sv_zoomplot2.update(image, pil_im)
+    sv_mainplot.update(pil_im)
+    sv_zoomplot1.update(pil_im)
+    sv_zoomplot2.update(pil_im)
 
     # Signal roi and intensity
     sig_y_start = int(np.floor(sv_zoomplot1.y_start))

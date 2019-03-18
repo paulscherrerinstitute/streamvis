@@ -727,8 +727,8 @@ def update_client(image, metadata):
 
     pil_im = PIL_Image.fromarray(image.astype('float32'))
 
-    sv_mainplot.update(image, pil_im)
-    aggr_image = sv_aggrplot.update(image, pil_im)
+    sv_mainplot.update(pil_im)
+    aggr_image = sv_aggrplot.update(pil_im)
     aggr_image_height, aggr_image_width = aggr_image.shape
 
     aggr_y_start = sv_aggrplot.y_start

@@ -444,8 +444,8 @@ def update_client(image, metadata):
 
     pil_im = PIL_Image.fromarray(image)
 
-    sv_mainplot.update(image, pil_im)
-    sv_zoomplot.update(image, pil_im)
+    sv_mainplot.update(pil_im)
+    sv_zoomplot.update(pil_im)
 
     # Statistics
     y_start = int(np.floor(sv_zoomplot.y_start))

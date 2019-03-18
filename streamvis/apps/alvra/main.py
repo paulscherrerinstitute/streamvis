@@ -668,9 +668,9 @@ def update_client(image, metadata, reset, original_image):
 
     pil_im = PIL_Image.fromarray(image)
 
-    sv_mainplot.update(image, pil_im)
-    sv_zoomplot1.update(image, pil_im)
-    sv_zoomplot2.update(image, pil_im)
+    sv_mainplot.update(pil_im)
+    sv_zoomplot1.update(pil_im)
+    sv_zoomplot2.update(pil_im)
 
     y_start1 = int(np.floor(sv_zoomplot1.y_start))
     y_end1 = int(np.ceil(sv_zoomplot1.y_end))

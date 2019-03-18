@@ -73,28 +73,30 @@ class ImagePlot:
 
         self.plot = plot
 
-    def update(self, image, pil_image):
+    def update(self, pil_image):
         inner_height = self.plot.inner_height
         inner_width = self.plot.inner_width
-        image_size_y, image_size_x = image.shape
 
-        if (self._image_source.data['full_dh'][0], self._image_source.data['full_dw'][0]) != \
-                image.shape:
+        image_height = pil_image.height
+        image_width = pil_image.width
 
-            self._image_source.data.update(full_dw=[image_size_x], full_dh=[image_size_y])
+        if self._image_source.data['full_dh'][0] != image_height or \
+            self._image_source.data['full_dw'][0] != image_width:
+
+            self._image_source.data.update(full_dw=[image_width], full_dh=[image_height])
 
             self.plot.y_range.start = 0
             self.plot.x_range.start = 0
-            self.plot.y_range.end = image_size_y
-            self.plot.x_range.end = image_size_x
-            self.plot.y_range.bounds = (0, image_size_y)
-            self.plot.x_range.bounds = (0, image_size_x)
+            self.plot.y_range.end = image_height
+            self.plot.x_range.end = image_width
+            self.plot.y_range.bounds = (0, image_height)
+            self.plot.x_range.bounds = (0, image_width)
 
         # see https://github.com/bokeh/bokeh/issues/8118
         self.y_start = max(self.plot.y_range.start, 0)
-        self.y_end = min(self.plot.y_range.end, image_size_y)
+        self.y_end = min(self.plot.y_range.end, image_height)
         self.x_start = max(self.plot.x_range.start, 0)
-        self.x_end = min(self.plot.x_range.end, image_size_x)
+        self.x_end = min(self.plot.x_range.end, image_width)
 
         resized_image = np.asarray(
             pil_image.resize(
