@@ -5,9 +5,9 @@ from functools import partial
 import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, ColumnDataSource, \
-    CustomJS, DataRange1d, Dropdown, Grid, Line, LinearAxis, Panel, PanTool, Plot, Rect, \
-    ResetTool, Select, Slider, Spacer, Tabs, TextInput, Title, Toggle, WheelZoomTool
+from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, \
+    ColumnDataSource, CustomJS, DataRange1d, Dropdown, Grid, Line, LinearAxis, Panel, PanTool, \
+    Plot, ResetTool, Select, Slider, Spacer, Tabs, TextInput, Title, Toggle, WheelZoomTool
 from PIL import Image as PIL_Image
 from tornado import gen
 
@@ -79,6 +79,7 @@ sv_colormapper = sv.ColorMapper()
 sv_mainplot = sv.ImagePlot(
     sv_colormapper,
     plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH,
+    image_height=image_size_y, image_width=image_size_x,
 )
 
 # ---- add colorbar
@@ -91,31 +92,14 @@ sv_mainplot.plot.add_layout(sv_colormapper.color_bar, place='below')
 sv_zoomplot1 = sv.ImagePlot(
     sv_colormapper,
     plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH,
+    image_height=image_size_y, image_width=image_size_x,
 )
 
-# ---- add rectangle glyph of zoom area to the main plot
-zoom1_area_source = ColumnDataSource(
-    dict(x=[ZOOM1_INIT_X + ZOOM_INIT_WIDTH / 2], y=[ZOOM_INIT_HEIGHT / 2],
-         width=[ZOOM_INIT_WIDTH], height=[image_size_y]))
-
-rect = Rect(
-    x='x', y='y', width='width', height='height', line_color='red', line_width=2, fill_alpha=0)
-sv_mainplot.plot.add_glyph(zoom1_area_source, rect)
-
-jscode_move_rect = """
-    var data = source.data;
-    var start = cb_obj.start;
-    var end = cb_obj.end;
-    data['%s'] = [start + (end - start) / 2];
-    data['%s'] = [end - start];
-    source.change.emit();
-"""
-
-sv_zoomplot1.plot.x_range.callback = CustomJS(
-    args=dict(source=zoom1_area_source), code=jscode_move_rect % ('x', 'width'))
-
-sv_zoomplot1.plot.y_range.callback = CustomJS(
-    args=dict(source=zoom1_area_source), code=jscode_move_rect % ('y', 'height'))
+sv_mainplot.add_as_zoom(
+    sv_zoomplot1, line_color='red',
+    init_x=ZOOM1_INIT_X, init_width=ZOOM_INIT_WIDTH,
+    init_y=0, init_height=image_size_y,
+)
 
 
 # Aggregate zoom1 plot along x axis
@@ -179,31 +163,14 @@ zoom1_plot_agg_y.add_glyph(zoom1_agg_y_source, Line(x='x', y='y', line_color='st
 sv_zoomplot2 = sv.ImagePlot(
     sv_colormapper,
     plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH,
+    image_height=image_size_y, image_width=image_size_x,
 )
 
-# ---- add rectangle glyph of zoom area to the main plot
-zoom2_area_source = ColumnDataSource(
-    dict(x=[ZOOM2_INIT_X + ZOOM_INIT_WIDTH / 2], y=[ZOOM_INIT_HEIGHT / 2],
-         width=[ZOOM_INIT_WIDTH], height=[image_size_y]))
-
-rect = Rect(
-    x='x', y='y', width='width', height='height', line_color='green', line_width=2, fill_alpha=0)
-sv_mainplot.plot.add_glyph(zoom2_area_source, rect)
-
-jscode_move_rect = """
-    var data = source.data;
-    var start = cb_obj.start;
-    var end = cb_obj.end;
-    data['%s'] = [start + (end - start) / 2];
-    data['%s'] = [end - start];
-    source.change.emit();
-"""
-
-sv_zoomplot2.plot.x_range.callback = CustomJS(
-    args=dict(source=zoom2_area_source), code=jscode_move_rect % ('x', 'width'))
-
-sv_zoomplot2.plot.y_range.callback = CustomJS(
-    args=dict(source=zoom2_area_source), code=jscode_move_rect % ('y', 'height'))
+sv_mainplot.add_as_zoom(
+    sv_zoomplot2, line_color='green',
+    init_x=ZOOM2_INIT_X, init_width=ZOOM_INIT_WIDTH,
+    init_y=0, init_height=image_size_y,
+)
 
 
 # Aggregate zoom2 plot along x axis
@@ -667,10 +634,7 @@ def update_client(image, metadata, reset, original_image):
     sv_colormapper.update(image)
 
     pil_im = PIL_Image.fromarray(image)
-
     sv_mainplot.update(pil_im)
-    sv_zoomplot1.update(pil_im)
-    sv_zoomplot2.update(pil_im)
 
     y_start1 = int(np.floor(sv_zoomplot1.y_start))
     y_end1 = int(np.ceil(sv_zoomplot1.y_end))

@@ -10,8 +10,8 @@ from bokeh.layouts import column, gridplot, row
 from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, Circle, \
     ColumnDataSource, Cross, CustomJS, DataRange1d, DataTable, DatetimeAxis, Dropdown, \
     Ellipse, Grid, HoverTool, ImageRGBA, Legend, Line, LinearAxis, NumberFormatter, \
-    Panel, PanTool, Plot, Range1d, Rect, ResetTool, SaveTool, Slider, Spacer, \
-    TableColumn, Tabs, TapTool, Text, TextInput, Title, Toggle, WheelZoomTool
+    Panel, PanTool, Plot, Range1d, ResetTool, SaveTool, Slider, Spacer, TableColumn, \
+    Tabs, TapTool, Text, TextInput, Title, Toggle, WheelZoomTool
 from bokeh.models.glyphs import Image
 from bokeh.palettes import Reds9  # pylint: disable=E0611
 from bokeh.transform import linear_cmap
@@ -214,28 +214,11 @@ sv_aggrplot.plot.add_glyph(
 sv_aggrplot.plot.add_glyph(
     main_image_rings_center_source, Cross(x='x', y='y', size=15, line_color='red'))
 
-# ---- add rectangle glyph of aggr area to the main plot
-aggr_area_source = ColumnDataSource(
-    dict(x=[image_size_x / 2], y=[image_size_y / 2], width=[image_size_x], height=[image_size_y]))
-
-rect = Rect(
-    x='x', y='y', width='width', height='height', line_color='white', line_width=2, fill_alpha=0)
-sv_mainplot.plot.add_glyph(aggr_area_source, rect)
-
-jscode_move_rect = """
-    var data = source.data;
-    var start = cb_obj.start;
-    var end = cb_obj.end;
-    data['%s'] = [start + (end - start) / 2];
-    data['%s'] = [end - start];
-    source.change.emit();
-"""
-
-sv_aggrplot.plot.x_range.callback = CustomJS(
-    args=dict(source=aggr_area_source), code=jscode_move_rect % ('x', 'width'))
-
-sv_aggrplot.plot.y_range.callback = CustomJS(
-    args=dict(source=aggr_area_source), code=jscode_move_rect % ('y', 'height'))
+sv_mainplot.add_as_zoom(
+    sv_aggrplot, line_color='white',
+    init_x=0, init_width=image_size_x,
+    init_y=0, init_height=image_size_y,
+)
 
 
 # Projection of aggregate image onto x axis
@@ -726,9 +709,9 @@ def update_client(image, metadata):
     sv_colormapper.update(image)
 
     pil_im = PIL_Image.fromarray(image.astype('float32'))
+    resized_images = sv_mainplot.update(pil_im)
 
-    sv_mainplot.update(pil_im)
-    aggr_image = sv_aggrplot.update(pil_im)
+    aggr_image = resized_images[1]
     aggr_image_height, aggr_image_width = aggr_image.shape
 
     aggr_y_start = sv_aggrplot.y_start

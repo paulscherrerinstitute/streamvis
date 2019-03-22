@@ -7,7 +7,7 @@ from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
 from bokeh.models import BasicTicker, BasicTickFormatter, Button, ColumnDataSource, \
     CustomJS, DataRange1d, DatetimeAxis, Dropdown, Grid, Line, LinearAxis, Panel, PanTool, \
-    Plot, Rect, ResetTool, Slider, Spacer, Tabs, TextInput, Title, Toggle, WheelZoomTool
+    Plot, ResetTool, Slider, Spacer, Tabs, TextInput, Title, Toggle, WheelZoomTool
 from PIL import Image as PIL_Image
 from tornado import gen
 
@@ -67,6 +67,7 @@ sv_colormapper = sv.ColorMapper()
 sv_mainplot = sv.ImagePlot(
     sv_colormapper,
     plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH,
+    image_height=image_size_y, image_width=image_size_x,
 )
 sv_mainplot.plot.title = Title(text=' ')
 
@@ -76,61 +77,33 @@ sv_colormapper.color_bar.height = 10
 sv_colormapper.color_bar.location = (0, -5)
 sv_mainplot.plot.add_layout(sv_colormapper.color_bar, place='below')
 
-
-# Zoom 1 plot
+# ---- add zoom plot 1
 sv_zoomplot1 = sv.ImagePlot(
     sv_colormapper,
     plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH,
+    image_height=image_size_y, image_width=image_size_x,
 )
 sv_zoomplot1.plot.title = Title(text='Signal roi', text_color='red')
 
-# ---- add rectangle glyph of zoom area to the main plot
-zoom1_area_source = ColumnDataSource(
-    dict(x=[ZOOM1_INIT_X + ZOOM_INIT_WIDTH / 2], y=[ZOOM1_INIT_Y + ZOOM_INIT_HEIGHT / 2],
-         width=[ZOOM_INIT_WIDTH], height=[ZOOM_INIT_HEIGHT]))
+sv_mainplot.add_as_zoom(
+    sv_zoomplot1, line_color='red',
+    init_x=ZOOM1_INIT_X, init_width=ZOOM_INIT_WIDTH,
+    init_y=ZOOM1_INIT_Y, init_height=ZOOM_INIT_HEIGHT,
+)
 
-rect_red = Rect(
-    x='x', y='y', width='width', height='height', line_color='red', line_width=2, fill_alpha=0)
-sv_mainplot.plot.add_glyph(zoom1_area_source, rect_red)
-
-jscode_move_rect = """
-    var data = source.data;
-    var start = cb_obj.start;
-    var end = cb_obj.end;
-    data['%s'] = [start + (end - start) / 2];
-    data['%s'] = [end - start];
-    source.change.emit();
-"""
-
-sv_zoomplot1.plot.x_range.callback = CustomJS(
-    args=dict(source=zoom1_area_source), code=jscode_move_rect % ('x', 'width'))
-
-sv_zoomplot1.plot.y_range.callback = CustomJS(
-    args=dict(source=zoom1_area_source), code=jscode_move_rect % ('y', 'height'))
-
-
-# Zoom 2 plot
+# ---- add zoom plot 2
 sv_zoomplot2 = sv.ImagePlot(
     sv_colormapper,
     plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH,
+    image_height=image_size_y, image_width=image_size_x,
 )
 sv_zoomplot2.plot.title = Title(text='Background roi', text_color='green')
 
-# ---- add rectangle glyph of zoom area to the main plot
-zoom2_area_source = ColumnDataSource(
-    dict(x=[ZOOM2_INIT_X + ZOOM_INIT_WIDTH / 2], y=[ZOOM2_INIT_Y + ZOOM_INIT_HEIGHT / 2],
-         width=[ZOOM_INIT_WIDTH], height=[ZOOM_INIT_HEIGHT]))
-
-rect_green = Rect(
-    x='x', y='y', width='width', height='height', line_color='green', line_width=2, fill_alpha=0)
-sv_mainplot.plot.add_glyph(zoom2_area_source, rect_green)
-
-# reuse 'jscode_move_rect' code from the first zoom image plot
-sv_zoomplot2.plot.x_range.callback = CustomJS(
-    args=dict(source=zoom2_area_source), code=jscode_move_rect % ('x', 'width'))
-
-sv_zoomplot2.plot.y_range.callback = CustomJS(
-    args=dict(source=zoom2_area_source), code=jscode_move_rect % ('y', 'height'))
+sv_mainplot.add_as_zoom(
+    sv_zoomplot2, line_color='green',
+    init_x=ZOOM2_INIT_X, init_width=ZOOM_INIT_WIDTH,
+    init_y=ZOOM2_INIT_Y, init_height=ZOOM_INIT_HEIGHT,
+)
 
 
 # Total intensity plot
@@ -354,10 +327,7 @@ def update_client(image, metadata):
     sv_colormapper.update(image)
 
     pil_im = PIL_Image.fromarray(image)
-
     sv_mainplot.update(pil_im)
-    sv_zoomplot1.update(pil_im)
-    sv_zoomplot2.update(pil_im)
 
     # Signal roi and intensity
     sig_y_start = int(np.floor(sv_zoomplot1.y_start))

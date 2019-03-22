@@ -5,9 +5,9 @@ from functools import partial
 import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, ColumnDataSource, \
-    CustomJS, DataRange1d, DatetimeAxis, Dropdown, Grid, Line, LinearAxis, Panel, PanTool, Plot, \
-    Rect, ResetTool, Slider, Spacer, Tabs, TextInput, Toggle, WheelZoomTool
+from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, \
+    ColumnDataSource, CustomJS, DataRange1d, DatetimeAxis, Dropdown, Grid, Line, LinearAxis, \
+    Panel, PanTool, Plot, ResetTool, Slider, Spacer, Tabs, TextInput, Toggle, WheelZoomTool
 from PIL import Image as PIL_Image
 from tornado import gen
 
@@ -45,10 +45,6 @@ hdf5_file_data = lambda pulse: None
 
 agg_plot_size = 200
 
-ZOOM_INIT_WIDTH = image_size_x
-ZOOM_INIT_HEIGHT = image_size_y
-ZOOM1_INIT_X = 0
-
 # Custom tick formatter for displaying large numbers
 tick_formatter = BasicTickFormatter(precision=1)
 
@@ -64,37 +60,17 @@ sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
 sv_colormapper.color_bar.location = (0, -5)
 sv_mainplot.plot.add_layout(sv_colormapper.color_bar, place='below')
 
-
-# Zoom plot
+# ---- add zoom plot
 sv_zoomplot = sv.ImagePlot(
     sv_colormapper,
     plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH,
 )
 
-# ---- add rectangle glyph of zoom area to the main plot
-zoom1_area_source = ColumnDataSource(
-    dict(x=[ZOOM1_INIT_X + ZOOM_INIT_WIDTH / 2], y=[ZOOM_INIT_HEIGHT / 2],
-         width=[ZOOM_INIT_WIDTH], height=[image_size_y]))
-
-rect_red = Rect(
-    x='x', y='y', width='width', height='height', line_color='red', line_width=2, fill_alpha=0)
-sv_mainplot.plot.add_glyph(zoom1_area_source, rect_red)
-
-jscode_move_rect = """
-    var data = source.data;
-    var start = cb_obj.start;
-    var end = cb_obj.end;
-    data['%s'] = [start + (end - start) / 2];
-    data['%s'] = [end - start];
-    source.change.emit();
-"""
-
-sv_zoomplot.plot.x_range.callback = CustomJS(
-    args=dict(source=zoom1_area_source), code=jscode_move_rect % ('x', 'width'))
-
-sv_zoomplot.plot.y_range.callback = CustomJS(
-    args=dict(source=zoom1_area_source), code=jscode_move_rect % ('y', 'height'))
-
+sv_mainplot.add_as_zoom(
+    sv_zoomplot,
+    init_x=0, init_width=image_size_x,
+    init_y=0, init_height=image_size_y,
+)
 
 # Aggregate zoom1 plot along x axis
 zoom1_plot_agg_x = Plot(
@@ -443,9 +419,7 @@ def update_client(image, metadata):
     sv_colormapper.update(image)
 
     pil_im = PIL_Image.fromarray(image)
-
     sv_mainplot.update(pil_im)
-    sv_zoomplot.update(pil_im)
 
     # Statistics
     y_start = int(np.floor(sv_zoomplot.y_start))
