@@ -17,6 +17,7 @@ from bokeh.palettes import Reds9  # pylint: disable=E0611
 from bokeh.transform import linear_cmap
 from PIL import Image as PIL_Image
 from tornado import gen
+import jungfrau_utils as ju
 
 import receiver
 import streamvis as sv
@@ -31,6 +32,8 @@ image_size_y = 1
 current_image = np.zeros((image_size_y, image_size_x), dtype='float32')
 current_metadata = dict(shape=[image_size_y, image_size_x])
 placeholder_mask = np.zeros((image_size_y, image_size_x, 4), dtype='uint8')
+current_gain_file = ''
+current_pedestal_file = ''
 
 connected = False
 
@@ -872,7 +875,7 @@ def update_client(image, metadata):
 
 @gen.coroutine
 def internal_periodic_callback():
-    global current_image, current_metadata
+    global current_image, current_metadata, current_gain_file, current_pedestal_file
     if sv_mainplot.plot.inner_width is None:
         # wait for the initialization to finish, thus skip this periodic callback
         return
@@ -891,6 +894,24 @@ def internal_periodic_callback():
                     current_metadata, current_image = receiver.last_hit_data
             else:
                 current_metadata, current_image = receiver.data_buffer[-1]
+
+                if current_image.dtype != np.dtype('float16') and \
+                    current_image.dtype != np.dtype('float32'):
+
+                    if 'gain_file' in current_metadata and 'pedestal_file' in current_metadata and \
+                        'detector_name' in current_metadata:
+
+                        if current_gain_file != current_metadata['gain_file'] or \
+                            current_pedestal_file != current_metadata['pedestal_file']:
+                            current_gain_file = current_metadata['gain_file']
+                            current_pedestal_file = current_metadata['pedestal_file']
+                            jf_calib = ju.JungfrauCalibration(current_gain_file, current_pedestal_file)
+
+                        detector_name = current_metadata['detector_name']
+                        current_image = jf_calib.apply_gain_pede(current_image)
+                        current_image = ju.apply_geometry(current_image, detector_name)
+                else:
+                    current_image = current_image.astype('float32', copy=True)
 
             if not image_buffer or image_buffer[-1] != (current_metadata, current_image):
                 image_buffer.append((current_metadata, current_image))

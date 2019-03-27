@@ -103,8 +103,6 @@ def stream_receive():
 
             image = zmq_socket.recv(flags=0, copy=False, track=False)
             image = np.frombuffer(image.buffer, dtype=metadata['type']).reshape(metadata['shape'])
-            if image.dtype != np.dtype('float16') and image.dtype != np.dtype('float32'):
-                image = image.astype('float32', copy=True)
 
             process_received_data(metadata, image)
             data_buffer.append((metadata, image))
