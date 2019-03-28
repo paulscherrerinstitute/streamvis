@@ -23,7 +23,7 @@ requirements:
     - pillow>=4.3
     - colorcet>=1.0.0
     - h5py>=2.8.0
-    - jungfrau_utils==0.2.1
+    - jungfrau_utils==0.2.3
 
 about:
   home: https://github.com/ivan-usov/streamvis
