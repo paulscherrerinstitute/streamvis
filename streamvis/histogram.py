@@ -1,7 +1,10 @@
+import math
+
 import numpy as np
 from bokeh.models import BasicTicker, BoxZoomTool, ColumnDataSource, \
     DataRange1d, Grid, LinearAxis, PanTool, Plot, Quad, RadioButtonGroup, \
     ResetTool, SaveTool, TextInput, Toggle, WheelZoomTool
+
 
 class Histogram:
     def __init__(
@@ -138,9 +141,14 @@ class Histogram:
 
     def update(self, input_data, accumulate=False):
         if self.radiobuttongroup.active == 0 and not accumulate:  # automatic
+            lower = math.floor(min([np.amin(im) for im in input_data]))
+            upper = math.ceil(max([np.amax(im) for im in input_data]))
+            if lower == upper:
+                upper += 1
+
             # this will also update self._lower and self._upper
-            self.lower_textinput.value = str(min([np.amin(im) for im in input_data]))
-            self.upper_textinput.value = str(max([np.amax(im) for im in input_data]))
+            self.lower_textinput.value = str(lower)
+            self.upper_textinput.value = str(upper)
 
         elif self.radiobuttongroup.active == 1:  # manual
             # no updates needed
