@@ -1,4 +1,5 @@
-import numpy as np
+from itertools import compress, repeat
+
 from bokeh.models import ColumnDataSource, DataTable, Dropdown, TableColumn, Toggle
 
 # metadata entries that are always shown (if present)
@@ -53,79 +54,59 @@ class MetadataHandler:
             }
 
         # Check metadata for issues
-        if 'module_enabled' in metadata:
-            module_enabled = np.array(metadata['module_enabled'], dtype=bool)
-        else:
-            module_enabled = slice(None, None)  # full array slice
+        # full array slice in case of 'module_enabled' is not present
+        module_enabled = metadata.get('module_enabled', repeat(True))
 
-        if 'pulse_id_diff' in metadata:
-            pulse_id_diff = np.array(metadata['pulse_id_diff'])
-            if isinstance(module_enabled, np.ndarray) and \
-                module_enabled.shape != pulse_id_diff.shape:
+        pulse_id_diff = metadata.get('pulse_id_diff')
+        if pulse_id_diff:
+            if isinstance(module_enabled, list) and len(module_enabled) != len(pulse_id_diff):
                 self.add_issue(
                     "Shapes of 'pulse_id_diff' and 'module_enabled' are not the same")
-                metadata_toshow.update({
-                    'module_enabled': metadata['module_enabled'],
-                    'pulse_id_diff': metadata['pulse_id_diff'],
-                })
+                metadata_toshow['module_enabled'] = module_enabled
+                metadata_toshow['pulse_id_diff'] = pulse_id_diff
             else:
-                if np.any(pulse_id_diff[module_enabled]):
+                if any(compress(pulse_id_diff, module_enabled)):
                     self.add_issue('Not all pulse_id_diff are 0')
-                    metadata_toshow.update({
-                        'pulse_id_diff': metadata['pulse_id_diff'],
-                    })
+                    metadata_toshow['pulse_id_diff'] = pulse_id_diff
 
-        if 'missing_packets_1' in metadata:
-            missing_packets_1 = np.array(metadata['missing_packets_1'])
-            if isinstance(module_enabled, np.ndarray) and \
-                module_enabled.shape != missing_packets_1.shape:
+        missing_packets_1 = metadata.get('missing_packets_1')
+        if missing_packets_1:
+            if isinstance(module_enabled, list) and len(module_enabled) != len(missing_packets_1):
                 self.add_issue(
                     "Shapes of 'missing_packets_1' and 'module_enabled' are not the same")
-                metadata_toshow.update({
-                    'module_enabled': metadata['module_enabled'],
-                    'missing_packets_1': metadata['missing_packets_1'],
-                })
+                metadata_toshow['module_enabled'] = module_enabled
+                metadata_toshow['missing_packets_1'] = missing_packets_1
             else:
-                if np.any(missing_packets_1[module_enabled]):
-                    self.add_issue('There are missing_packets_1')
-                    metadata_toshow.update({
-                        'missing_packets_1': metadata['missing_packets_1'],
-                    })
+                if any(compress(missing_packets_1, module_enabled)):
+                    self.add_issue('Not all missing_packets_1 are 0')
+                    metadata_toshow['missing_packets_1'] = missing_packets_1
 
-        if 'missing_packets_2' in metadata:
-            missing_packets_2 = np.array(metadata['missing_packets_2'])
-            if isinstance(module_enabled, np.ndarray) and \
-                module_enabled.shape != missing_packets_2.shape:
+        missing_packets_2 = metadata.get('missing_packets_2')
+        if missing_packets_2:
+            if isinstance(module_enabled, list) and len(module_enabled) != len(missing_packets_2):
                 self.add_issue(
                     "Shapes of 'missing_packets_2' and 'module_enabled' are not the same")
-                metadata_toshow.update({
-                    'module_enabled': metadata['module_enabled'],
-                    'missing_packets_2': metadata['missing_packets_2'],
-                })
+                metadata_toshow['module_enabled'] = module_enabled
+                metadata_toshow['missing_packets_2'] = missing_packets_2
             else:
-                if np.any(missing_packets_2[module_enabled]):
-                    self.add_issue('There are missing_packets_2')
-                    metadata_toshow.update({
-                        'missing_packets_2': metadata['missing_packets_2'],
-                    })
+                if any(compress(missing_packets_2, module_enabled)):
+                    self.add_issue('Not all missing_packets_2 are 0')
+                    metadata_toshow['missing_packets_2'] = missing_packets_2
 
-        if 'is_good_frame' in metadata:
-            if not metadata['is_good_frame']:
-                self.add_issue('Frame is not good')
-                metadata_toshow.update({
-                    'is_good_frame': metadata['is_good_frame'],
-                })
+        is_good_frame = metadata.get('is_good_frame', True)
+        if not is_good_frame:
+            self.add_issue('Frame is not good')
+            metadata_toshow['is_good_frame'] = is_good_frame
 
-        if 'saturated_pixels' in metadata:
-            if metadata['saturated_pixels']:
-                self.add_issue('There are saturated pixels')
-                metadata_toshow.update({
-                    'saturated_pixels': metadata['saturated_pixels'],
-                })
+        saturated_pixels = metadata.get('saturated_pixels', False)
+        if saturated_pixels:
+            self.add_issue('There are saturated pixels')
+            metadata_toshow['saturated_pixels'] = saturated_pixels
 
-        if self.check_shape and 'shape' in metadata:
-            if tuple(metadata['shape']) != self.check_shape:
-                self.add_issue(f"Expected image shape is {self.check_shape}")
+        shape = metadata.get('shape')
+        if self.check_shape and tuple(shape) != tuple(self.check_shape):
+            self.add_issue(f"Expected image shape is {self.check_shape}")
+            metadata_toshow['shape'] = shape
 
         return metadata_toshow
 
