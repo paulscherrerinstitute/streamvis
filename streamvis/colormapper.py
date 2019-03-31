@@ -143,13 +143,15 @@ class ColorMapper:
 
     def update(self, image):
         if self.auto_toggle.active:
-            self._disp_min = int(np.min(image))
-            if self._disp_min <= 0:  # switch to linear colormap
-                self.scale_radiobuttongroup.active = 0
-            self.display_min_textinput.value = str(self._disp_min)
+            image_min = int(np.min(image))
+            image_max = int(np.max(image))
 
-            self._disp_max = int(np.max(image))
-            self.display_max_textinput.value = str(self._disp_max)
+            if image_min <= 0:  # switch to linear colormap
+                self.scale_radiobuttongroup.active = 0
+
+            self._disp_max = np.inf  # force update independently on current display values
+            self.display_min_textinput.value = str(image_min)
+            self.display_max_textinput.value = str(image_max)
 
     def convert(self, image):
         return self._image_color_mapper.to_rgba(image, bytes=True)
