@@ -18,8 +18,7 @@ doc.title = 'StreamVis Experimental'
 image_size_x = 100
 image_size_y = 100
 
-current_image = np.zeros((1, 1), dtype='float32')
-current_metadata = dict(shape=[image_size_y, image_size_x])
+sv_rt = sv.runtime
 
 # Currently, it's possible to control only a canvas size, but not a size of the plotting area.
 MAIN_CANVAS_WIDTH = 1000 + 55
@@ -92,20 +91,20 @@ def mx_image(file, dataset, i):
     return image, metadata
 
 def load_file_button_callback():
-    global hdf5_file_data, current_image, current_metadata
+    global hdf5_file_data
     file_name = os.path.join(hdf5_file_path.value, saved_runs_dropdown.label)
     hdf5_file_data = partial(mx_image, file=file_name, dataset=hdf5_dataset_path.value)
-    current_image, current_metadata = hdf5_file_data(i=hdf5_pulse_slider.value)
-    update_client(current_image, current_metadata)
+    sv_rt.current_image, sv_rt.current_metadata = hdf5_file_data(i=hdf5_pulse_slider.value)
+    update_client(sv_rt.current_image, sv_rt.current_metadata)
 
 load_file_button = Button(label="Load", button_type='default')
 load_file_button.on_click(load_file_button_callback)
 
 # ---- pulse number slider
 def hdf5_pulse_slider_callback(_attr, _old, new):
-    global hdf5_file_data, current_image, current_metadata
-    current_image, current_metadata = hdf5_file_data(i=new['value'][0])
-    update_client(current_image, current_metadata)
+    global hdf5_file_data
+    sv_rt.current_image, sv_rt.current_metadata = hdf5_file_data(i=new['value'][0])
+    update_client(sv_rt.current_image, sv_rt.current_metadata)
 
 hdf5_pulse_slider_source = ColumnDataSource(dict(value=[]))
 hdf5_pulse_slider_source.on_change('data', hdf5_pulse_slider_callback)
@@ -175,13 +174,12 @@ def update_client(image, metadata):
 
 @gen.coroutine
 def internal_periodic_callback():
-    global current_image, current_metadata
     if sv_mainplot.plot.inner_width is None:
         # wait for the initialization to finish, thus skip this periodic callback
         return
 
-    if current_image.shape != (1, 1):
+    if sv_rt.current_image.shape != (1, 1):
         doc.add_next_tick_callback(partial(
-            update_client, image=current_image, metadata=current_metadata))
+            update_client, image=sv_rt.current_image, metadata=sv_rt.current_metadata))
 
 doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)

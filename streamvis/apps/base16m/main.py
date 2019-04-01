@@ -30,8 +30,8 @@ doc.title = receiver.args.page_title
 image_size_x = 1
 image_size_y = 1
 
-current_image = np.zeros((image_size_y, image_size_x), dtype='float32')
-current_metadata = dict(shape=[image_size_y, image_size_x])
+sv_rt = sv.runtime
+
 placeholder_mask = np.zeros((image_size_y, image_size_x, 4), dtype='uint8')
 current_gain_file = ''
 current_pedestal_file = ''
@@ -199,7 +199,7 @@ sv_aggrplot.plot.add_glyph(mask_source, mask_rgba_glyph)
 
 # ---- invisible image glyph
 hovertool_image_source = ColumnDataSource(dict(
-    intensity=[current_image], resolution=[np.NaN],
+    intensity=[sv_rt.current_image], resolution=[np.NaN],
     x=[0], y=[0], dw=[image_size_x], dh=[image_size_y]))
 
 sv_aggrplot.plot.add_glyph(
@@ -329,9 +329,8 @@ trajectory_plot.add_glyph(
 )
 
 def trajectory_circle_source_callback(_attr, _old, new):
-    global current_image, current_metadata
     if new:
-        current_metadata, current_image = receiver.data_buffer[new[0]]
+        sv_rt.current_metadata, sv_rt.current_image = receiver.data_buffer[new[0]]
 
 trajectory_circle_source.selected.on_change('indices', trajectory_circle_source_callback)
 
@@ -384,8 +383,7 @@ hitrate_plot.legend.click_policy = "hide"
 # Stream panel
 # ---- image buffer slider
 def image_buffer_slider_callback(_attr, _old, new):
-    global current_metadata, current_image
-    current_metadata, current_image = image_buffer[new]
+    sv_rt.current_metadata, sv_rt.current_image = image_buffer[new]
 
 image_buffer_slider = Slider(
     start=0, end=59, value=0, step=1, title="Buffered Image", disabled=True)
@@ -491,20 +489,20 @@ def mx_image(file, i):
     return image, metadata
 
 def load_file_button_callback():
-    global hdf5_file_data, current_image, current_metadata
+    global hdf5_file_data
     file_name = os.path.join(gain_file_path.value, saved_runs_dropdown.label)
     hdf5_file_data = partial(mx_image, file=file_name)
-    current_image, current_metadata = hdf5_file_data(i=hdf5_pulse_slider.value)
-    update_client(current_image, current_metadata)
+    sv_rt.current_image, sv_rt.current_metadata = hdf5_file_data(i=hdf5_pulse_slider.value)
+    update_client(sv_rt.current_image, sv_rt.current_metadata)
 
 load_file_button = Button(label="Load", button_type='default')
 load_file_button.on_click(load_file_button_callback)
 
 # ---- pulse number slider
 def hdf5_pulse_slider_callback(_attr, _old, new):
-    global hdf5_file_data, current_image, current_metadata
-    current_image, current_metadata = hdf5_file_data(i=new['value'][0])
-    update_client(current_image, current_metadata)
+    global hdf5_file_data
+    sv_rt.current_image, sv_rt.current_metadata = hdf5_file_data(i=new['value'][0])
+    update_client(sv_rt.current_image, sv_rt.current_metadata)
 
 hdf5_pulse_slider_source = ColumnDataSource(dict(value=[]))
 hdf5_pulse_slider_source.on_change('data', hdf5_pulse_slider_callback)
@@ -874,7 +872,7 @@ def update_client(image, metadata):
 
 @gen.coroutine
 def internal_periodic_callback():
-    global current_image, current_metadata, current_gain_file, current_pedestal_file, jf_calib
+    global current_gain_file, current_pedestal_file, jf_calib
     if sv_mainplot.plot.inner_width is None:
         # wait for the initialization to finish, thus skip this periodic callback
         return
@@ -890,14 +888,14 @@ def internal_periodic_callback():
 
             if show_only_hits_toggle.active:
                 if receiver.last_hit_data != (None, None):
-                    current_metadata, current_image = receiver.last_hit_data
+                    sv_rt.current_metadata, sv_rt.current_image = receiver.last_hit_data
             else:
-                current_metadata, current_image = receiver.data_buffer[-1]
+                sv_rt.current_metadata, sv_rt.current_image = receiver.data_buffer[-1]
 
-                if current_image.dtype != np.float16 and current_image.dtype != np.float32:
-                    gain_file = current_metadata.get('gain_file')
-                    pedestal_file = current_metadata.get('pedestal_file')
-                    detector_name = current_metadata.get('detector_name')
+                if sv_rt.current_image.dtype != np.float16 and sv_rt.current_image.dtype != np.float32:
+                    gain_file = sv_rt.current_metadata.get('gain_file')
+                    pedestal_file = sv_rt.current_metadata.get('pedestal_file')
+                    detector_name = sv_rt.current_metadata.get('detector_name')
                     is_correction_data_present = gain_file and pedestal_file and detector_name
 
                     if is_correction_data_present:
@@ -915,13 +913,13 @@ def internal_periodic_callback():
 
                             jf_calib = ju.JungfrauCalibration(gain, pedestal, pixel_mask)
 
-                        current_image = jf_calib.apply_gain_pede(current_image)
-                        current_image = ju.apply_geometry(current_image, detector_name)
+                        sv_rt.current_image = jf_calib.apply_gain_pede(sv_rt.current_image)
+                        sv_rt.current_image = ju.apply_geometry(sv_rt.current_image, detector_name)
                 else:
-                    current_image = current_image.astype('float32', copy=True)
+                    sv_rt.current_image = sv_rt.current_image.astype('float32', copy=True)
 
-            if not image_buffer or image_buffer[-1] != (current_metadata, current_image):
-                image_buffer.append((current_metadata, current_image))
+            if not image_buffer or image_buffer[-1] != (sv_rt.current_metadata, sv_rt.current_image):
+                image_buffer.append((sv_rt.current_metadata, sv_rt.current_image))
 
             trajectory_circle_source.selected.indices = []
 
@@ -930,8 +928,8 @@ def internal_periodic_callback():
                 image_buffer_slider.end = len(image_buffer) - 1
                 image_buffer_slider.value = len(image_buffer) - 1
 
-    if current_image.shape != (1, 1):
+    if sv_rt.current_image.shape != (1, 1):
         doc.add_next_tick_callback(partial(
-            update_client, image=current_image, metadata=current_metadata))
+            update_client, image=sv_rt.current_image, metadata=sv_rt.current_metadata))
 
 doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)
