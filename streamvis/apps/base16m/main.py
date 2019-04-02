@@ -1,5 +1,3 @@
-import json
-import os
 from collections import deque
 from datetime import datetime
 from functools import partial
@@ -9,11 +7,11 @@ import jungfrau_utils as ju
 import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, Circle, \
-    ColumnDataSource, Cross, CustomJS, DataRange1d, DataTable, DatetimeAxis, Dropdown, \
-    Ellipse, Grid, HoverTool, ImageRGBA, Legend, Line, LinearAxis, NumberFormatter, \
-    Panel, PanTool, Plot, Range1d, ResetTool, SaveTool, Slider, Spacer, TableColumn, \
-    Tabs, TapTool, Text, TextInput, Title, Toggle, WheelZoomTool
+from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, \
+    Circle, ColumnDataSource, Cross, DataRange1d, DataTable, DatetimeAxis, \
+    Ellipse, Grid, HoverTool, ImageRGBA, Legend, Line, LinearAxis, \
+    NumberFormatter, Panel, PanTool, Plot, Range1d, ResetTool, SaveTool, Slider, \
+    Spacer, TableColumn, Tabs, TapTool, Text, Title, Toggle, WheelZoomTool
 from bokeh.models.glyphs import Image
 from bokeh.palettes import Reds9  # pylint: disable=E0611
 from bokeh.transform import linear_cmap
@@ -52,9 +50,6 @@ APP_FPS = 1
 STREAM_ROLLOVER = 36000
 HITRATE_ROLLOVER = 1200
 image_buffer = deque(maxlen=60)
-
-HDF5_FILE_PATH_UPDATE_PERIOD = 5000  # ms
-hdf5_file_data = lambda pulse: None
 
 # Resolution rings positions in angstroms
 RESOLUTION_RINGS_POS = np.array([2, 2.2, 2.6, 3, 5, 10])
@@ -409,119 +404,7 @@ stream_button.on_click(stream_button_callback)
 
 # assemble
 tab_stream = Panel(child=column(image_buffer_slider, stream_button), title="Stream")
-
-
-# HDF5 File panel
-# ---- utility functions
-def read_motor_position_file(file):
-    data = np.load(file)
-    npts = data['pts'].shape[0]
-    triggers = np.where(np.diff(data['rec'][:, 4]) == 1)[0]
-    shot_pos = data['rec'][triggers[1:npts+1], :]  # cut off the first trigger
-    y_mes = shot_pos[:, 0]
-    x_mes = shot_pos[:, 1]
-    y_exp = shot_pos[:, 2]
-    x_exp = shot_pos[:, 3]
-
-    return x_mes, y_mes, x_exp, y_exp
-
-def read_peakfinder_file(file):
-     # read hitrate file
-    data = np.loadtxt(file + '.hitrate')
-    frames = data[:, 1]
-    npeaks = data[:, 2]
-    # read json metadata file
-    with open(file + '.json') as f:
-        metadata = json.load(f)
-
-    return frames, npeaks, metadata
-
-# ---- gain file path textinput
-def gain_file_path_update():
-    pass
-
-def gain_file_path_callback(_attr, _old, _new):
-    gain_file_path_update()
-
-gain_file_path = TextInput(title="Gain File:", value='')
-gain_file_path.on_change('value', gain_file_path_callback)
-
-# ---- pedestal file path textinput
-def pedestal_file_path_update():
-    pass
-
-def pedestal_file_path_callback(_attr, _old, _new):
-    pedestal_file_path_update()
-
-pedestal_file_path = TextInput(title="Pedestal File:", value='')
-pedestal_file_path.on_change('value', pedestal_file_path_callback)
-
-# ---- saved runs path textinput
-def hdf5_file_path_update():
-    new_menu = []
-    if os.path.isdir(hdf5_file_path.value):
-        with os.scandir(hdf5_file_path.value) as it:
-            for entry in it:
-                if entry.is_file() and entry.name.endswith(('.hdf5', '.h5')):
-                    new_menu.append((entry.name, entry.name))
-    saved_runs_dropdown.menu = sorted(new_menu)
-
-doc.add_periodic_callback(hdf5_file_path_update, HDF5_FILE_PATH_UPDATE_PERIOD)
-
-def hdf5_file_path_callback(_attr, _old, _new):
-    hdf5_file_path_update()
-
-hdf5_file_path = TextInput(title="Saved Runs Folder:", value='')
-hdf5_file_path.on_change('value', hdf5_file_path_callback)
-
-# ---- saved runs dropdown menu
-def saved_runs_dropdown_callback(selection):
-    saved_runs_dropdown.label = selection
-
-saved_runs_dropdown = Dropdown(label="Saved Runs", menu=[])
-saved_runs_dropdown.on_click(saved_runs_dropdown_callback)
-
-# ---- load button
-def mx_image(file, i):
-    with h5py.File(file, 'r') as f:
-        image = f['/entry/data/data'][i, :, :].astype('float32')
-        metadata = dict(shape=list(image.shape))
-    return image, metadata
-
-def load_file_button_callback():
-    global hdf5_file_data
-    file_name = os.path.join(gain_file_path.value, saved_runs_dropdown.label)
-    hdf5_file_data = partial(mx_image, file=file_name)
-    sv_rt.current_image, sv_rt.current_metadata = hdf5_file_data(i=hdf5_pulse_slider.value)
-    update_client(sv_rt.current_image, sv_rt.current_metadata)
-
-load_file_button = Button(label="Load", button_type='default')
-load_file_button.on_click(load_file_button_callback)
-
-# ---- pulse number slider
-def hdf5_pulse_slider_callback(_attr, _old, new):
-    global hdf5_file_data
-    sv_rt.current_image, sv_rt.current_metadata = hdf5_file_data(i=new['value'][0])
-    update_client(sv_rt.current_image, sv_rt.current_metadata)
-
-hdf5_pulse_slider_source = ColumnDataSource(dict(value=[]))
-hdf5_pulse_slider_source.on_change('data', hdf5_pulse_slider_callback)
-
-hdf5_pulse_slider = Slider(
-    start=0, end=99, value=0, step=1, title="Pulse Number", callback_policy='mouseup')
-
-hdf5_pulse_slider.callback = CustomJS(
-    args=dict(source=hdf5_pulse_slider_source),
-    code="""source.data = {value: [cb_obj.value]}""")
-
-# assemble
-tab_hdf5file = Panel(
-    child=column(
-        gain_file_path, pedestal_file_path, hdf5_file_path, saved_runs_dropdown, load_file_button,
-        hdf5_pulse_slider),
-    title="HDF5 File")
-
-data_source_tabs = Tabs(tabs=[tab_stream, tab_hdf5file])
+data_source_tabs = Tabs(tabs=[tab_stream])
 
 
 # Colormaper panel
