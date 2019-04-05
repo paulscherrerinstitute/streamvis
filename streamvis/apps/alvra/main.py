@@ -632,25 +632,23 @@ def internal_periodic_callback():
             stream_button.label = 'Receiving'
             stream_button.button_type = 'success'
 
-            if receiver.data_buffer:
-                sv_rt.current_metadata, image = receiver.data_buffer[-1]
-                image = image.copy()  # make a copy, so that other clients could still use it
+            sv_rt.current_metadata, image = receiver.data_buffer[-1]
 
-                if threshold_flag:
-                    image[image < threshold] = 0
+            if threshold_flag:
+                image[image < threshold] = 0
 
-                if aggregate_flag:
-                    if aggregate_counter >= aggregate_time:
-                        aggregate_counter = 1
-                    else:
-                        original_image = image.copy()
-                        image += sv_rt.current_image
-                        aggregate_counter += 1
-                        reset = False
+            if aggregate_flag:
+                if aggregate_counter >= aggregate_time:
+                    aggregate_counter = 1
+                else:
+                    original_image = image.copy()
+                    image += sv_rt.current_image
+                    aggregate_counter += 1
+                    reset = False
 
-                    aggregate_time_counter_textinput.value = str(aggregate_counter)
+                aggregate_time_counter_textinput.value = str(aggregate_counter)
 
-                sv_rt.current_image = image
+            sv_rt.current_image = image
 
     if sv_rt.current_image.shape != (1, 1):
         doc.add_next_tick_callback(

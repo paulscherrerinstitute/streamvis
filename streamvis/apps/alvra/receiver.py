@@ -29,8 +29,9 @@ def stream_receive():
         events = dict(poller.poll(1000))
         if zmq_socket in events:
             metadata = zmq_socket.recv_json(flags=0)
-            image = zmq_socket.recv(flags=0, copy=True, track=False)
-            image = np.frombuffer(image, dtype=metadata['type']).reshape(metadata['shape'])
+            image = zmq_socket.recv(flags=0, copy=False, track=False)
+            image = np.frombuffer(image.buffer, dtype=metadata['type']).reshape(metadata['shape'])
+            image = image.astype(np.float32, copy=False)
             data_buffer.append((metadata, image))
             state = 'receiving'
 

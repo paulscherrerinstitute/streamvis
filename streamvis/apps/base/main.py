@@ -391,7 +391,6 @@ def internal_periodic_callback():
                 image_buffer_slider.value = len(receiver.data_buffer) - 1
 
             sv_rt.current_metadata, sv_rt.current_image = receiver.data_buffer[-1]
-            sv_rt.current_image = sv_rt.current_image.copy()
 
             aggregate_time_counter_textinput.value = str(receiver.aggregate_counter)
 
