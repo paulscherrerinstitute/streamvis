@@ -30,7 +30,7 @@ current_gain_file = ''
 current_pedestal_file = ''
 jf_calib = None
 
-sv_rt = sv.runtime
+sv_rt = sv.Runtime()
 
 connected = False
 

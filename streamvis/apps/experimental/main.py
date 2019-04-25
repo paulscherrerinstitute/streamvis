@@ -18,7 +18,7 @@ doc.title = 'StreamVis Experimental'
 image_size_x = 100
 image_size_y = 100
 
-sv_rt = sv.runtime
+sv_rt = sv.Runtime()
 
 # Currently, it's possible to control only a canvas size, but not a size of the plotting area.
 MAIN_CANVAS_WIDTH = 1000 + 55

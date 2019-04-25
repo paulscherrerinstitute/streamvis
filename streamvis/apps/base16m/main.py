@@ -28,7 +28,7 @@ doc.title = receiver.args.page_title
 image_size_x = 1
 image_size_y = 1
 
-sv_rt = sv.runtime
+sv_rt = sv.Runtime()
 
 placeholder_mask = np.zeros((image_size_y, image_size_x, 4), dtype='uint8')
 current_gain_file = ''
