@@ -41,7 +41,6 @@ def stream_receive():
             metadata = zmq_socket.recv_json(flags=0)
             image = zmq_socket.recv(flags=0, copy=False, track=False)
             image = np.frombuffer(image.buffer, dtype=metadata['type']).reshape(metadata['shape'])
-            image = image.astype(np.float32, copy=False)
 
             process_received_data(metadata, image)
 
