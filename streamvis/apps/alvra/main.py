@@ -490,7 +490,7 @@ colormap_panel = column(
 
 # Metadata datatable
 sv_metadata = sv.MetadataHandler(
-    datatable_height=420, datatable_width=800, check_shape=(IMAGE_SIZE_Y, IMAGE_SIZE_X),
+    datatable_height=420, datatable_width=800,
 )
 
 
