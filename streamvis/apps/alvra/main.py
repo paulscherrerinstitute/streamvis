@@ -265,8 +265,6 @@ threshold_textinput.on_change('value', threshold_textinput_callback)
 # Aggregation time toggle button
 def aggregate_button_callback(state):
     global aggregate_counter, aggregate_flag
-    aggregate_counter = 1  # reset if the button toggled
-    aggregate_time_counter_textinput.value = str(aggregate_counter)
     if state:
         aggregate_flag = True
         aggregate_button.button_type = 'primary'
@@ -553,12 +551,12 @@ doc.add_root(row(Spacer(width=20), final_layout))
 
 
 @gen.coroutine
-def update_client(image, metadata, reset, original_image):
+def update_client(image, metadata, reset, aggr_image):
     global stream_t, current_spectra
 
-    sv_colormapper.update(image)
+    sv_colormapper.update(aggr_image)
 
-    pil_im = PIL_Image.fromarray(image)
+    pil_im = PIL_Image.fromarray(aggr_image)
     sv_mainplot.update(pil_im)
 
     y_start1 = int(np.floor(sv_zoomplot1.y_start))
@@ -566,7 +564,7 @@ def update_client(image, metadata, reset, original_image):
     x_start1 = int(np.floor(sv_zoomplot1.x_start))
     x_end1 = int(np.ceil(sv_zoomplot1.x_end))
 
-    im_block1 = image[y_start1:y_end1, x_start1:x_end1]
+    im_block1 = aggr_image[y_start1:y_end1, x_start1:x_end1]
 
     zoom1_agg_y = np.sum(im_block1, axis=1)
     zoom1_agg_x = np.sum(im_block1, axis=0)
@@ -582,7 +580,7 @@ def update_client(image, metadata, reset, original_image):
     x_start2 = int(np.floor(sv_zoomplot2.x_start))
     x_end2 = int(np.ceil(sv_zoomplot2.x_end))
 
-    im_block2 = image[y_start2:y_end2, x_start2:x_end2]
+    im_block2 = aggr_image[y_start2:y_end2, x_start2:x_end2]
 
     zoom2_agg_y = np.sum(im_block2, axis=1)
     zoom2_agg_x = np.sum(im_block2, axis=0)
@@ -597,19 +595,18 @@ def update_client(image, metadata, reset, original_image):
         if reset:
             sv_hist.update([im_block1, im_block2])
         else:
-            im_block1 = original_image[y_start1:y_end1, x_start1:x_end1]
-            im_block2 = original_image[y_start2:y_end2, x_start2:x_end2]
+            im_block1 = image[y_start1:y_end1, x_start1:x_end1]
+            im_block2 = image[y_start2:y_end2, x_start2:x_end2]
             sv_hist.update([im_block1, im_block2], accumulate=True)
 
         stream_t += 1
         total_sum_source.stream(
-            new_data=dict(x=[stream_t], y=[np.sum(image, dtype=np.float)]),
+            new_data=dict(x=[stream_t], y=[np.sum(aggr_image, dtype=np.float)]),
             rollover=STREAM_ROLLOVER)
         zoom1_sum_source.stream(
             new_data=dict(x=[stream_t], y=[total_sum_zoom1]), rollover=STREAM_ROLLOVER)
         zoom2_sum_source.stream(
             new_data=dict(x=[stream_t], y=[total_sum_zoom2]), rollover=STREAM_ROLLOVER)
-
 
     # Save spectrum
     current_spectra = (zoom1_agg_y, zoom1_r_y, zoom1_agg_x, zoom1_r_x,
@@ -622,9 +619,9 @@ def update_client(image, metadata, reset, original_image):
 
 @gen.coroutine
 def internal_periodic_callback():
-    global aggregate_counter, current_gain_file, current_pedestal_file, jf_calib
+    global aggregate_counter, aggregated_image, current_gain_file, current_pedestal_file, jf_calib
     reset = True
-    original_image = None
+
     if sv_mainplot.plot.inner_width is None:
         # wait for the initialization to finish, thus skip this periodic callback
         return
@@ -638,7 +635,7 @@ def internal_periodic_callback():
             stream_button.label = 'Receiving'
             stream_button.button_type = 'success'
 
-            sv_rt.current_metadata, image = receiver.data_buffer[-1]
+            sv_rt.current_metadata, sv_rt.current_image = receiver.data_buffer[-1]
 
             if sv_rt.current_image.dtype != np.float16 and sv_rt.current_image.dtype != np.float32:
                 gain_file = sv_rt.current_metadata.get('gain_file')
@@ -666,27 +663,29 @@ def internal_periodic_callback():
             else:
                 sv_rt.current_image = sv_rt.current_image.astype('float32', copy=True)
 
-                if threshold_flag:
-                    image[image < threshold] = 0
+            sv_rt.current_image = sv_rt.current_image.copy()
+            if threshold_flag:
+                sv_rt.current_image[sv_rt.current_image < threshold] = 0
 
             if aggregate_flag:
                 if aggregate_counter >= aggregate_time:
+                    aggregated_image = sv_rt.current_image
                     aggregate_counter = 1
                 else:
-                    original_image = image.copy()
-                    image += sv_rt.current_image
+                    aggregated_image += sv_rt.current_image
                     aggregate_counter += 1
                     reset = False
+            else:
+                aggregated_image = sv_rt.current_image
+                aggregate_counter = 1
 
-                aggregate_time_counter_textinput.value = str(aggregate_counter)
-
-            sv_rt.current_image = image
+            aggregate_time_counter_textinput.value = str(aggregate_counter)
 
     if sv_rt.current_image.shape != (1, 1):
         doc.add_next_tick_callback(
             partial(
                 update_client, image=sv_rt.current_image, metadata=sv_rt.current_metadata,
-                reset=reset, original_image=original_image,
+                reset=reset, aggr_image=aggregated_image,
             ),
         )
 

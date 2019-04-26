@@ -53,6 +53,7 @@ def stream_receive():
 def process_received_data(metadata, image):
     global proc_image, aggregate_counter
 
+    image = image.copy()
     if threshold_flag:
         image[image < threshold] = 0
 
