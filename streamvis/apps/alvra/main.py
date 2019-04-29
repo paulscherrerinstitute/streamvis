@@ -481,8 +481,8 @@ colormap_panel = column(
     sv_colormapper.scale_radiobuttongroup,
     Spacer(height=10),
     sv_colormapper.auto_toggle,
-    sv_colormapper.display_max_textinput,
-    sv_colormapper.display_min_textinput,
+    sv_colormapper.display_max_spinner,
+    sv_colormapper.display_min_spinner,
 )
 
 

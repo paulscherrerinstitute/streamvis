@@ -1,7 +1,7 @@
 import colorcet as cc
 import numpy as np
 from bokeh.models import BasicTicker, ColorBar, LinearColorMapper, \
-    LogColorMapper, LogTicker, RadioButtonGroup, Select, TextInput, Toggle
+    LogColorMapper, LogTicker, RadioButtonGroup, Select, Spinner, Toggle
 from bokeh.palettes import Cividis256, Greys256, Plasma256  # pylint: disable=E0611
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LogNorm, Normalize
@@ -65,11 +65,11 @@ class ColorMapper:
         # ---- colormap auto toggle button
         def auto_toggle_callback(state):
             if state:
-                display_min_textinput.disabled = True
-                display_max_textinput.disabled = True
+                display_min_spinner.disabled = True
+                display_max_spinner.disabled = True
             else:
-                display_min_textinput.disabled = False
-                display_max_textinput.disabled = False
+                display_min_spinner.disabled = False
+                display_max_spinner.disabled = False
 
         auto_toggle = Toggle(label="Auto", active=False, button_type='default')
         auto_toggle.on_click(auto_toggle_callback)
@@ -95,52 +95,48 @@ class ColorMapper:
         self.scale_radiobuttongroup = scale_radiobuttongroup
 
         # ---- colormap display max value
-        def display_max_callback(_attr, old, new):
-            try:
-                new_value = float(new)
-                if new_value > self._disp_min:
-                    if new_value <= 0:
-                        scale_radiobuttongroup.active = 0
+        def display_max_spinner_callback(_attr, old_value, new_value):
+            if new_value > self._disp_min:
+                self._disp_max = new_value
 
-                    self._disp_max = new_value
-                    color_lin_norm.vmax = self._disp_max
-                    color_log_norm.vmax = self._disp_max
-                    lin_colormapper.high = self._disp_max
-                    log_colormapper.high = self._disp_max
-                else:
-                    display_max_textinput.value = old
+                if new_value <= 0:
+                    scale_radiobuttongroup.active = 0
 
-            except ValueError:
-                display_max_textinput.value = old
+                color_lin_norm.vmax = self._disp_max
+                color_log_norm.vmax = self._disp_max
+                lin_colormapper.high = self._disp_max
+                log_colormapper.high = self._disp_max
+            else:
+                display_max_spinner.value = old_value
 
-        display_max_textinput = TextInput(
-            title='Maximal Display Value:', value=str(init_disp_max), disabled=auto_toggle.active)
-        display_max_textinput.on_change('value', display_max_callback)
-        self.display_max_textinput = display_max_textinput
+        display_max_spinner = Spinner(
+            title='Maximal Display Value:', value=init_disp_max, step=0.1,
+            disabled=auto_toggle.active,
+        )
+        display_max_spinner.on_change('value', display_max_spinner_callback)
+        self.display_max_spinner = display_max_spinner
 
         # ---- colormap display min value
-        def display_min_callback(_attr, old, new):
-            try:
-                new_value = float(new)
-                if new_value < self._disp_max:
-                    if new_value <= 0:
-                        scale_radiobuttongroup.active = 0
+        def display_min_spinner_callback(_attr, old_value, new_value):
+            if new_value < self._disp_max:
+                self._disp_min = new_value
 
-                    self._disp_min = new_value
-                    color_lin_norm.vmin = self._disp_min
-                    color_log_norm.vmin = self._disp_min
-                    lin_colormapper.low = self._disp_min
-                    log_colormapper.low = self._disp_min
-                else:
-                    display_min_textinput.value = old
+                if new_value <= 0:
+                    scale_radiobuttongroup.active = 0
 
-            except ValueError:
-                display_min_textinput.value = old
+                color_lin_norm.vmin = self._disp_min
+                color_log_norm.vmin = self._disp_min
+                lin_colormapper.low = self._disp_min
+                log_colormapper.low = self._disp_min
+            else:
+                display_min_spinner.value = old_value
 
-        display_min_textinput = TextInput(
-            title='Minimal Display Value:', value=str(init_disp_min), disabled=auto_toggle.active)
-        display_min_textinput.on_change('value', display_min_callback)
-        self.display_min_textinput = display_min_textinput
+        display_min_spinner = Spinner(
+            title='Minimal Display Value:', value=init_disp_min, step=0.1,
+            disabled=auto_toggle.active,
+        )
+        display_min_spinner.on_change('value', display_min_spinner_callback)
+        self.display_min_spinner = display_min_spinner
 
     def update(self, image):
         if self.auto_toggle.active:
@@ -151,8 +147,8 @@ class ColorMapper:
                 self.scale_radiobuttongroup.active = 0
 
             self._disp_max = np.inf  # force update independently on current display values
-            self.display_min_textinput.value = str(image_min)
-            self.display_max_textinput.value = str(image_max)
+            self.display_min_spinner.value = image_min
+            self.display_max_spinner.value = image_max
 
     def convert(self, image):
         return self._image_color_mapper.to_rgba(image, bytes=True)

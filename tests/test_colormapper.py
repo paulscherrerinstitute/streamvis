@@ -15,16 +15,16 @@ def test_update_lin_auto(init_disp_min, init_disp_max):
     sv_cm.auto_toggle.active = True
     sv_cm.update(test_image)
 
-    assert sv_cm.display_min_textinput.value == '1'
-    assert sv_cm.display_max_textinput.value == '6'
+    assert sv_cm.display_min_spinner.value == 1
+    assert sv_cm.display_max_spinner.value == 6
 
 @pytest.mark.parametrize("init_disp_min,init_disp_max", test_disp_ranges)
 def test_update_lin_no_auto(init_disp_min, init_disp_max):
     sv_cm = sv.ColorMapper(init_disp_min=init_disp_min, init_disp_max=init_disp_max)
     sv_cm.update(test_image)
 
-    assert sv_cm.display_min_textinput.value == str(init_disp_min)
-    assert sv_cm.display_max_textinput.value == str(init_disp_max)
+    assert sv_cm.display_min_spinner.value == init_disp_min
+    assert sv_cm.display_max_spinner.value == init_disp_max
 
 @pytest.mark.parametrize("init_disp_min,init_disp_max", test_disp_ranges)
 def test_update_log_auto(init_disp_min, init_disp_max):
@@ -33,8 +33,8 @@ def test_update_log_auto(init_disp_min, init_disp_max):
     sv_cm.auto_toggle.active = True
     sv_cm.update(test_image)
 
-    assert sv_cm.display_min_textinput.value == '1'
-    assert sv_cm.display_max_textinput.value == '6'
+    assert sv_cm.display_min_spinner.value == 1
+    assert sv_cm.display_max_spinner.value == 6
 
 @pytest.mark.parametrize("init_disp_min,init_disp_max", test_disp_ranges)
 def test_update_log_no_auto(init_disp_min, init_disp_max):
@@ -42,8 +42,8 @@ def test_update_log_no_auto(init_disp_min, init_disp_max):
     sv_cm.scale_radiobuttongroup.active = 1
     sv_cm.update(test_image)
 
-    assert sv_cm.display_min_textinput.value == str(init_disp_min)
-    assert sv_cm.display_max_textinput.value == str(init_disp_max)
+    assert sv_cm.display_min_spinner.value == init_disp_min
+    assert sv_cm.display_max_spinner.value == init_disp_max
 
 def test_lin_convert():
     sv_cm = sv.ColorMapper()
