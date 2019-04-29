@@ -527,12 +527,12 @@ sv_hist.log10counts_toggle.width = 120
 layout_hist = column(
     sv_hist.plots[0],
     row(
-        sv_hist.nbins_textinput,
+        sv_hist.nbins_spinner,
         column(
             Spacer(height=19),
             row(sv_hist.radiobuttongroup, Spacer(width=10), sv_hist.log10counts_toggle))
     ),
-    row(sv_hist.lower_textinput, sv_hist.upper_textinput),
+    row(sv_hist.lower_spinner, sv_hist.upper_spinner),
 )
 
 debug_tab = Panel(

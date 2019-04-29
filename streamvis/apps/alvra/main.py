@@ -516,12 +516,12 @@ layout_hist_controls = row(
     column(
         Spacer(height=20),
         sv_hist.radiobuttongroup,
-        sv_hist.upper_textinput,
-        sv_hist.lower_textinput,
+        sv_hist.upper_spinner,
+        sv_hist.lower_spinner,
     ),
     column(
         Spacer(height=73),
-        sv_hist.nbins_textinput,
+        sv_hist.nbins_spinner,
     ),
 )
 

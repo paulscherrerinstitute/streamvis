@@ -224,7 +224,7 @@ hist_layout = row(sv_hist.plots[0], sv_hist.plots[1], sv_hist.plots[2])
 
 hist_controls = row(
     Spacer(width=20), column(Spacer(height=19), sv_hist.radiobuttongroup),
-    sv_hist.lower_textinput, sv_hist.upper_textinput, sv_hist.nbins_textinput,
+    sv_hist.lower_spinner, sv_hist.upper_spinner, sv_hist.nbins_spinner,
     column(Spacer(height=19), sv_hist.log10counts_toggle))
 
 layout_utility = column(

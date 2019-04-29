@@ -3,7 +3,7 @@ import math
 import numpy as np
 from bokeh.models import BasicTicker, BoxZoomTool, ColumnDataSource, \
     DataRange1d, Grid, LinearAxis, PanTool, Plot, Quad, RadioButtonGroup, \
-    ResetTool, SaveTool, TextInput, Toggle, WheelZoomTool
+    ResetTool, SaveTool, Spinner, Toggle, WheelZoomTool
 
 
 class Histogram:
@@ -64,67 +64,61 @@ class Histogram:
         # ---- histogram radio button
         def radiobuttongroup_callback(selection):
             if selection == 0:  # Automatic
-                lower_textinput.disabled = True
-                upper_textinput.disabled = True
+                lower_spinner.disabled = True
+                upper_spinner.disabled = True
 
             else:  # Manual
-                lower_textinput.disabled = False
-                upper_textinput.disabled = False
+                lower_spinner.disabled = False
+                upper_spinner.disabled = False
 
         radiobuttongroup = RadioButtonGroup(labels=["Automatic", "Manual"], active=0, width=150)
         radiobuttongroup.on_click(radiobuttongroup_callback)
         self.radiobuttongroup = radiobuttongroup
 
         # ---- histogram lower range
-        def lower_textinput_callback(_attr, old, new):
-            try:
-                new_value = float(new)
-                if new_value < self._upper:
-                    self._lower = new_value
-                    self._counts = [0 for _ in range(nplots)]
-                else:
-                    lower_textinput.value = old
+        def lower_spinner_callback(_attr, old_value, new_value):
+            if new_value < self._upper:
+                self._lower = new_value
+                self._counts = [0 for _ in range(nplots)]
+            else:
+                lower_spinner.value = old_value
 
-            except ValueError:
-                lower_textinput.value = old
-
-        lower_textinput = TextInput(title='Lower Range:', value=str(self._lower), disabled=True)
-        lower_textinput.on_change('value', lower_textinput_callback)
-        self.lower_textinput = lower_textinput
+        lower_spinner = Spinner(
+            title='Lower Range:', value=self._lower, step=0.1,
+            disabled=radiobuttongroup.active == 0,
+        )
+        lower_spinner.on_change('value', lower_spinner_callback)
+        self.lower_spinner = lower_spinner
 
         # ---- histogram upper range
-        def upper_textinput_callback(_attr, old, new):
-            try:
-                new_value = float(new)
-                if new_value > self._lower:
-                    self._upper = new_value
-                    self._counts = [0 for _ in range(nplots)]
-                else:
-                    upper_textinput.value = old
+        def upper_spinner_callback(_attr, old_value, new_value):
+            if new_value > self._lower:
+                self._upper = new_value
+                self._counts = [0 for _ in range(nplots)]
+            else:
+                upper_spinner.value = old_value
 
-            except ValueError:
-                upper_textinput.value = old
-
-        upper_textinput = TextInput(title='Upper Range:', value=str(self._upper), disabled=True)
-        upper_textinput.on_change('value', upper_textinput_callback)
-        self.upper_textinput = upper_textinput
+        upper_spinner = Spinner(
+            title='Upper Range:', value=self._upper, step=0.1,
+            disabled=radiobuttongroup.active == 0,
+        )
+        upper_spinner.on_change('value', upper_spinner_callback)
+        self.upper_spinner = upper_spinner
 
         # ---- histogram number of bins
-        def nbins_textinput_callback(_attr, old, new):
-            try:
-                new_value = int(new)
+        def nbins_spinner_callback(_attr, old_value, new_value):
+            if isinstance(new_value, int):
                 if new_value > 0:
                     self._nbins = new_value
                     self._counts = [0 for _ in range(nplots)]
                 else:
-                    nbins_textinput.value = old
+                    nbins_spinner.value = old_value
+            else:
+                nbins_spinner.value = old_value
 
-            except ValueError:
-                nbins_textinput.value = old
-
-        nbins_textinput = TextInput(title='Number of Bins:', value=str(self._nbins))
-        nbins_textinput.on_change('value', nbins_textinput_callback)
-        self.nbins_textinput = nbins_textinput
+        nbins_spinner = Spinner(title='Number of Bins:', value=self._nbins, step=1)
+        nbins_spinner.on_change('value', nbins_spinner_callback)
+        self.nbins_spinner = nbins_spinner
 
         # ---- histogram log10 of counts toggle button
         def log10counts_toggle_callback(state):
@@ -147,8 +141,8 @@ class Histogram:
                 upper += 1
 
             # this will also update self._lower and self._upper
-            self.lower_textinput.value = str(lower)
-            self.upper_textinput.value = str(upper)
+            self.lower_spinner.value = lower
+            self.upper_spinner.value = upper
 
         elif self.radiobuttongroup.active == 1:  # manual
             # no updates needed
