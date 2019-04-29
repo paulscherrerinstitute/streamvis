@@ -17,7 +17,7 @@ requirements:
     - setuptools
   run:
     - python>=3.6
-    - bokeh==1.0.1
+    - bokeh==1.1.0
     - pyzmq>=17.0.0
     - matplotlib>=2.2.2
     - pillow>=4.3
