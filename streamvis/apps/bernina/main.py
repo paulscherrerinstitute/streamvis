@@ -162,7 +162,7 @@ sv_hist = sv.Histogram(nplots=3, plot_height=300, plot_width=600)
 sv_hist.plots[0].title = Title(text="Full image")
 sv_hist.plots[1].title = Title(text="Signal roi", text_color='red')
 sv_hist.plots[2].title = Title(text="Background roi", text_color='green')
-
+sv_hist.radiobuttongroup.width = 300
 
 # Intensity stream reset button
 def intensity_stream_reset_button_callback():

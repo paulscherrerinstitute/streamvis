@@ -521,7 +521,7 @@ layout_intensity = column(
     gridplot(
         [main_sum_intensity_plot, aggr_sum_intensity_plot],
         ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
-    sum_intensity_reset_button)
+    row(Spacer(), sum_intensity_reset_button))
 
 sv_hist.log10counts_toggle.width = 120
 layout_hist = column(
@@ -540,7 +540,7 @@ debug_tab = Panel(
         layout_intensity,
         row(
             layout_hist, Spacer(width=30),
-            column(sv_metadata.datatable, sv_metadata.show_all_toggle)
+            column(sv_metadata.datatable, row(Spacer(), sv_metadata.show_all_toggle))
         )
     ),
     title="Debug",
