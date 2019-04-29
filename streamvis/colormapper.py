@@ -42,8 +42,9 @@ class ColorMapper:
         )
         self.color_bar = color_bar
 
-        color_lin_norm = Normalize()
-        color_log_norm = LogNorm()
+        color_lin_norm = Normalize(vmin=init_disp_min, vmax=init_disp_max)
+        color_log_norm = LogNorm(vmin=init_disp_min, vmax=init_disp_max)
+
         self._image_color_mapper = ScalarMappable(norm=color_lin_norm, cmap=init_colormap)
 
         # ---- colormap selector
