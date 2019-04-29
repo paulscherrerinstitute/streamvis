@@ -1,9 +1,8 @@
 import math
 
 import numpy as np
-from bokeh.models import BasicTicker, BoxZoomTool, ColumnDataSource, \
-    DataRange1d, Grid, LinearAxis, PanTool, Plot, Quad, RadioButtonGroup, \
-    ResetTool, SaveTool, Spinner, Toggle, WheelZoomTool
+from bokeh.models import BasicTicker, BoxZoomTool, ColumnDataSource, DataRange1d, Grid, \
+    LinearAxis, PanTool, Plot, Quad, ResetTool, SaveTool, Spinner, Toggle, WheelZoomTool
 
 
 class Histogram:
@@ -61,9 +60,9 @@ class Histogram:
             self._plot_sources.append(plot_source)
 
         # Histogram controls
-        # ---- histogram radio button
-        def radiobuttongroup_callback(selection):
-            if selection == 0:  # Automatic
+        # ---- histogram range toggle button
+        def auto_toggle_callback(state):
+            if state:  # Automatic
                 lower_spinner.disabled = True
                 upper_spinner.disabled = True
 
@@ -71,9 +70,9 @@ class Histogram:
                 lower_spinner.disabled = False
                 upper_spinner.disabled = False
 
-        radiobuttongroup = RadioButtonGroup(labels=["Automatic", "Manual"], active=0, width=150)
-        radiobuttongroup.on_click(radiobuttongroup_callback)
-        self.radiobuttongroup = radiobuttongroup
+        auto_toggle = Toggle(label="Auto Range", active=True)
+        auto_toggle.on_click(auto_toggle_callback)
+        self.auto_toggle = auto_toggle
 
         # ---- histogram lower range
         def lower_spinner_callback(_attr, old_value, new_value):
@@ -85,7 +84,7 @@ class Histogram:
 
         lower_spinner = Spinner(
             title='Lower Range:', value=self._lower, step=0.1,
-            disabled=radiobuttongroup.active == 0,
+            disabled=auto_toggle.active,
         )
         lower_spinner.on_change('value', lower_spinner_callback)
         self.lower_spinner = lower_spinner
@@ -100,7 +99,7 @@ class Histogram:
 
         upper_spinner = Spinner(
             title='Upper Range:', value=self._upper, step=0.1,
-            disabled=radiobuttongroup.active == 0,
+            disabled=auto_toggle.active,
         )
         upper_spinner.on_change('value', upper_spinner_callback)
         self.upper_spinner = upper_spinner
@@ -134,7 +133,7 @@ class Histogram:
         self.log10counts_toggle = log10counts_toggle
 
     def update(self, input_data, accumulate=False):
-        if self.radiobuttongroup.active == 0 and not accumulate:  # automatic
+        if self.auto_toggle.active and not accumulate:  # automatic
             lower = math.floor(min([np.amin(im) for im in input_data]))
             upper = math.ceil(max([np.amax(im) for im in input_data]))
             if lower == upper:
@@ -143,10 +142,6 @@ class Histogram:
             # this will also update self._lower and self._upper
             self.lower_spinner.value = lower
             self.upper_spinner.value = upper
-
-        elif self.radiobuttongroup.active == 1:  # manual
-            # no updates needed
-            pass
 
         for ind in range(len(self.plots)):
             data_i = input_data[ind]

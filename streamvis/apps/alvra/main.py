@@ -515,7 +515,7 @@ layout_spectra = column(save_spectrum_button, save_spectrum_select)
 layout_hist_controls = row(
     column(
         Spacer(height=20),
-        sv_hist.radiobuttongroup,
+        sv_hist.auto_toggle,
         sv_hist.upper_spinner,
         sv_hist.lower_spinner,
     ),

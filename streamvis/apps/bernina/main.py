@@ -162,7 +162,7 @@ sv_hist = sv.Histogram(nplots=3, plot_height=300, plot_width=600)
 sv_hist.plots[0].title = Title(text="Full image")
 sv_hist.plots[1].title = Title(text="Signal roi", text_color='red')
 sv_hist.plots[2].title = Title(text="Background roi", text_color='green')
-sv_hist.radiobuttongroup.width = 300
+sv_hist.auto_toggle.width = 300
 
 # Intensity stream reset button
 def intensity_stream_reset_button_callback():
@@ -223,7 +223,7 @@ layout_zoom = column(sv_zoomplot1.plot, sv_zoomplot2.plot, Spacer())
 hist_layout = row(sv_hist.plots[0], sv_hist.plots[1], sv_hist.plots[2])
 
 hist_controls = row(
-    Spacer(width=20), column(Spacer(height=19), sv_hist.radiobuttongroup),
+    Spacer(width=20), column(Spacer(height=19), sv_hist.auto_toggle),
     sv_hist.lower_spinner, sv_hist.upper_spinner, sv_hist.nbins_spinner,
     column(Spacer(height=19), sv_hist.log10counts_toggle))
 

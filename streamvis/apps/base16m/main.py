@@ -530,7 +530,7 @@ layout_hist = column(
         sv_hist.nbins_spinner,
         column(
             Spacer(height=19),
-            row(sv_hist.radiobuttongroup, Spacer(width=10), sv_hist.log10counts_toggle))
+            row(sv_hist.auto_toggle, Spacer(width=10), sv_hist.log10counts_toggle))
     ),
     row(sv_hist.lower_spinner, sv_hist.upper_spinner),
 )
