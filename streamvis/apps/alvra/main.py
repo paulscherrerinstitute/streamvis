@@ -8,7 +8,7 @@ from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
 from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, \
     ColumnDataSource, DataRange1d, Grid, Line, LinearAxis, Panel, PanTool, Plot, \
-    ResetTool, Select, Spacer, Tabs, TextInput, Title, Toggle, WheelZoomTool
+    ResetTool, Select, Spacer, Spinner, Tabs, TextInput, Title, Toggle, WheelZoomTool
 from PIL import Image as PIL_Image
 from tornado import gen
 
@@ -61,7 +61,7 @@ threshold = 0
 
 aggregate_flag = False
 aggregated_image = 0
-aggregate_time = np.Inf
+aggregate_time = 0
 aggregate_counter = 1
 
 current_spectra = None
@@ -249,17 +249,13 @@ else:
 threshold_button.on_click(threshold_button_callback)
 
 
-# Intensity threshold value textinput
-def threshold_textinput_callback(_attr, old, new):
+# Intensity threshold value spinner
+def threshold_spinner_callback(_attr, _old_value, new_value):
     global threshold
-    try:
-        threshold = float(new)
+    threshold = new_value
 
-    except ValueError:
-        threshold_textinput.value = old
-
-threshold_textinput = TextInput(title='Intensity Threshold:', value=str(threshold))
-threshold_textinput.on_change('value', threshold_textinput_callback)
+threshold_spinner = Spinner(title='Intensity Threshold:', value=threshold, step=0.1)
+threshold_spinner.on_change('value', threshold_spinner_callback)
 
 
 # Aggregation time toggle button
@@ -280,27 +276,25 @@ else:
 aggregate_button.on_click(aggregate_button_callback)
 
 
-# Aggregation time value textinput
-def aggregate_time_textinput_callback(_attr, old, new):
+# Aggregation time value spinner
+def aggregate_time_spinner_callback(_attr, old_value, new_value):
     global aggregate_time
-    try:
-        new_value = float(new)
-        if new_value >= 1:
+    if isinstance(new_value, int):
+        if new_value >= 0:
             aggregate_time = new_value
         else:
-            aggregate_time_textinput.value = old
+            aggregate_time_spinner.value = old_value
+    else:
+        aggregate_time_spinner.value = old_value
 
-    except ValueError:
-        aggregate_time_textinput.value = old
-
-aggregate_time_textinput = TextInput(
-    title='Average Aggregate Time:', value=str(aggregate_time))
-aggregate_time_textinput.on_change('value', aggregate_time_textinput_callback)
+aggregate_time_spinner = Spinner(title='Aggregate Time:', value=aggregate_time, low=0, step=1)
+aggregate_time_spinner.on_change('value', aggregate_time_spinner_callback)
 
 
 # Aggregate time counter value textinput
 aggregate_time_counter_textinput = TextInput(
-    title='Aggregate Counter:', value=str(aggregate_counter), disabled=True)
+    title='Aggregate Counter:', value=str(aggregate_counter), disabled=True,
+)
 
 
 # Saved spectrum lines
@@ -506,9 +500,9 @@ layout_zoom2 = column(
     row(Spacer(), sv_hist.plots[1], Spacer()))
 
 layout_thr_agg = row(
-    column(threshold_button, threshold_textinput),
+    column(threshold_button, threshold_spinner),
     Spacer(width=30),
-    column(aggregate_button, aggregate_time_textinput, aggregate_time_counter_textinput))
+    column(aggregate_button, aggregate_time_spinner, aggregate_time_counter_textinput))
 
 layout_spectra = column(save_spectrum_button, save_spectrum_select)
 
@@ -667,14 +661,10 @@ def internal_periodic_callback():
             if threshold_flag:
                 sv_rt.current_image[sv_rt.current_image < threshold] = 0
 
-            if aggregate_flag:
-                if aggregate_counter >= aggregate_time:
-                    aggregated_image = sv_rt.current_image
-                    aggregate_counter = 1
-                else:
-                    aggregated_image += sv_rt.current_image
-                    aggregate_counter += 1
-                    reset = False
+            if aggregate_flag and (aggregate_time == 0 or aggregate_time > aggregate_counter):
+                aggregated_image += sv_rt.current_image
+                aggregate_counter += 1
+                reset = False
             else:
                 aggregated_image = sv_rt.current_image
                 aggregate_counter = 1

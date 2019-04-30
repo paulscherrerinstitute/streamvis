@@ -8,7 +8,7 @@ from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
 from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, \
     ColumnDataSource, CustomJS, DataRange1d, DatetimeAxis, Grid, Line, LinearAxis, Panel, \
-    PanTool, Plot, ResetTool, Slider, Spacer, Tabs, TextInput, Toggle, WheelZoomTool
+    PanTool, Plot, ResetTool, Slider, Spacer, Spinner, Tabs, TextInput, Toggle, WheelZoomTool
 from PIL import Image as PIL_Image
 from tornado import gen
 
@@ -254,16 +254,12 @@ else:
 threshold_button.on_click(threshold_button_callback)
 
 
-# Intensity threshold value textinput
-def threshold_textinput_callback(_attr, old, new):
-    try:
-        receiver.threshold = float(new)
+# Intensity threshold value spinner
+def threshold_spinner_callback(_attr, _old_value, new_value):
+    receiver.threshold = new_value
 
-    except ValueError:
-        threshold_textinput.value = old
-
-threshold_textinput = TextInput(title='Intensity Threshold:', value=str(receiver.threshold))
-threshold_textinput.on_change('value', threshold_textinput_callback)
+threshold_spinner = Spinner(title='Intensity Threshold:', value=receiver.threshold, step=0.1)
+threshold_spinner.on_change('value', threshold_spinner_callback)
 
 
 # Aggregation time toggle button
@@ -283,25 +279,26 @@ else:
 aggregate_button.on_click(aggregate_button_callback)
 
 
-# Aggregation time value textinput
-def aggregate_time_textinput_callback(_attr, old, new):
-    try:
-        new_value = float(new)
-        if new_value >= 1:
+# Aggregation time value spinner
+def aggregate_time_spinner_callback(_attr, old_value, new_value):
+    if isinstance(new_value, int):
+        if new_value >= 0:
             receiver.aggregate_time = new_value
         else:
-            aggregate_time_textinput.value = old
+            aggregate_time_spinner.value = old_value
+    else:
+        aggregate_time_spinner.value = old_value
 
-    except ValueError:
-        aggregate_time_textinput.value = old
-
-aggregate_time_textinput = TextInput(title='Aggregate Time:', value=str(receiver.aggregate_time))
-aggregate_time_textinput.on_change('value', aggregate_time_textinput_callback)
+aggregate_time_spinner = Spinner(
+    title='Aggregate Time:', value=receiver.aggregate_time, low=0, step=1,
+)
+aggregate_time_spinner.on_change('value', aggregate_time_spinner_callback)
 
 
 # Aggregate time counter value textinput
 aggregate_time_counter_textinput = TextInput(
-    title='Aggregate Counter:', value=str(receiver.aggregate_counter), disabled=True)
+    title='Aggregate Counter:', value=str(receiver.aggregate_counter), disabled=True,
+)
 
 
 # Metadata datatable
@@ -323,9 +320,9 @@ layout_utility = column(
 layout_controls = column(colormap_panel, data_source_tabs)
 
 layout_threshold_aggr = column(
-    threshold_button, threshold_textinput,
+    threshold_button, threshold_spinner,
     Spacer(height=30),
-    aggregate_button, aggregate_time_textinput, aggregate_time_counter_textinput)
+    aggregate_button, aggregate_time_spinner, aggregate_time_counter_textinput)
 
 layout_metadata = column(
     sv_metadata.datatable,

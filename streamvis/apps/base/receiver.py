@@ -28,7 +28,7 @@ threshold = 0
 
 # aggregate data parameters
 aggregate_flag = False
-aggregate_time = np.Inf
+aggregate_time = 0
 aggregate_counter = 1
 
 proc_image = 0
@@ -57,7 +57,7 @@ def process_received_data(metadata, image):
     if threshold_flag:
         image[image < threshold] = 0
 
-    if aggregate_flag and aggregate_counter < aggregate_time:
+    if aggregate_flag and (aggregate_time == 0 or aggregate_time > aggregate_counter):
         proc_image += image
         aggregate_counter += 1
     else:
