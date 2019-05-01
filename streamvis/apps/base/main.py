@@ -376,9 +376,6 @@ def update_client(image, metadata):
 @gen.coroutine
 def internal_periodic_callback():
     global current_gain_file, current_pedestal_file, jf_calib
-    if sv_mainplot.plot.inner_width is None:
-        # wait for the initialization to finish, thus skip this periodic callback
-        return
 
     if connected:
         if receiver.state == 'polling':

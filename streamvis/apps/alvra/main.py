@@ -616,10 +616,6 @@ def internal_periodic_callback():
     global aggregate_counter, aggregated_image, current_gain_file, current_pedestal_file, jf_calib
     reset = True
 
-    if sv_mainplot.plot.inner_width is None:
-        # wait for the initialization to finish, thus skip this periodic callback
-        return
-
     if connected:
         if receiver.state == 'polling':
             stream_button.label = 'Polling'
