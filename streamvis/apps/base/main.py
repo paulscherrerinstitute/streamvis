@@ -44,6 +44,16 @@ STREAM_ROLLOVER = 36000
 
 agg_plot_size = 200
 
+# threshold data parameters
+threshold_flag = False
+threshold = 0
+
+# aggregate data parameters
+aggregate_flag = False
+aggregated_image = 0
+aggregate_time = 0
+aggregate_counter = 1
+
 # Custom tick formatter for displaying large numbers
 tick_formatter = BasicTickFormatter(precision=1)
 
@@ -239,15 +249,16 @@ colormap_panel = column(
 
 # Intensity threshold toggle button
 def threshold_button_callback(state):
+    global threshold_flag
     if state:
-        receiver.threshold_flag = True
+        threshold_flag = True
         threshold_button.button_type = 'primary'
     else:
-        receiver.threshold_flag = False
+        threshold_flag = False
         threshold_button.button_type = 'default'
 
-threshold_button = Toggle(label="Apply Thresholding", active=receiver.threshold_flag)
-if receiver.threshold_flag:
+threshold_button = Toggle(label="Apply Thresholding", active=threshold_flag)
+if threshold_flag:
     threshold_button.button_type = 'primary'
 else:
     threshold_button.button_type = 'default'
@@ -256,23 +267,25 @@ threshold_button.on_click(threshold_button_callback)
 
 # Intensity threshold value spinner
 def threshold_spinner_callback(_attr, _old_value, new_value):
-    receiver.threshold = new_value
+    global threshold
+    threshold = new_value
 
-threshold_spinner = Spinner(title='Intensity Threshold:', value=receiver.threshold, step=0.1)
+threshold_spinner = Spinner(title='Intensity Threshold:', value=threshold, step=0.1)
 threshold_spinner.on_change('value', threshold_spinner_callback)
 
 
 # Aggregation time toggle button
 def aggregate_button_callback(state):
+    global aggregate_flag
     if state:
-        receiver.aggregate_flag = True
+        aggregate_flag = True
         aggregate_button.button_type = 'primary'
     else:
-        receiver.aggregate_flag = False
+        aggregate_flag = False
         aggregate_button.button_type = 'default'
 
-aggregate_button = Toggle(label="Apply Aggregation", active=receiver.aggregate_flag)
-if receiver.aggregate_flag:
+aggregate_button = Toggle(label="Apply Aggregation", active=aggregate_flag)
+if aggregate_flag:
     aggregate_button.button_type = 'primary'
 else:
     aggregate_button.button_type = 'default'
@@ -281,23 +294,22 @@ aggregate_button.on_click(aggregate_button_callback)
 
 # Aggregation time value spinner
 def aggregate_time_spinner_callback(_attr, old_value, new_value):
+    global aggregate_time
     if isinstance(new_value, int):
         if new_value >= 0:
-            receiver.aggregate_time = new_value
+            aggregate_time = new_value
         else:
             aggregate_time_spinner.value = old_value
     else:
         aggregate_time_spinner.value = old_value
 
-aggregate_time_spinner = Spinner(
-    title='Aggregate Time:', value=receiver.aggregate_time, low=0, step=1,
-)
+aggregate_time_spinner = Spinner(title='Aggregate Time:', value=aggregate_time, low=0, step=1)
 aggregate_time_spinner.on_change('value', aggregate_time_spinner_callback)
 
 
 # Aggregate time counter value textinput
 aggregate_time_counter_textinput = TextInput(
-    title='Aggregate Counter:', value=str(receiver.aggregate_counter), disabled=True,
+    title='Aggregate Counter:', value=str(aggregate_counter), disabled=True,
 )
 
 
@@ -337,10 +349,10 @@ doc.add_root(final_layout)
 
 
 @gen.coroutine
-def update_client(image, metadata):
-    sv_colormapper.update(image)
+def update_client(image, metadata, reset, aggr_image):
+    sv_colormapper.update(aggr_image)
 
-    pil_im = PIL_Image.fromarray(image)
+    pil_im = PIL_Image.fromarray(aggr_image)
     sv_mainplot.update(pil_im)
 
     # Statistics
@@ -349,24 +361,31 @@ def update_client(image, metadata):
     x_start = int(np.floor(sv_zoomplot.x_start))
     x_end = int(np.ceil(sv_zoomplot.x_end))
 
-    im_block = image[y_start:y_end, x_start:x_end]
+    im_block = aggr_image[y_start:y_end, x_start:x_end]
 
     agg_y = np.mean(im_block, axis=1)
     agg_x = np.mean(im_block, axis=0)
     r_y = np.arange(y_start, y_end) + 0.5
     r_x = np.arange(x_start, x_end) + 0.5
 
-    # Update histogram
-    sv_hist.update([im_block])
-
+    total_sum_zoom = np.sum(im_block)
     zoom1_agg_y_source.data.update(x=agg_y, y=r_y)
     zoom1_agg_x_source.data.update(x=r_x, y=agg_x)
 
+    # Update histogram
+    if connected and receiver.state == 'receiving':
+        if reset:
+            sv_hist.update([aggr_image])
+        else:
+            im_block = image[y_start:y_end, x_start:x_end]
+            sv_hist.update([im_block], accumulate=True)
+
     stream_t = datetime.now()
-    total_sum = np.sum(im_block)
-    zoom1_sum_source.stream(new_data=dict(x=[stream_t], y=[total_sum]), rollover=STREAM_ROLLOVER)
+    zoom1_sum_source.stream(
+        new_data=dict(x=[stream_t], y=[total_sum_zoom]), rollover=STREAM_ROLLOVER)
     total_sum_source.stream(
-        new_data=dict(x=[stream_t], y=[np.sum(image, dtype=np.float)]), rollover=STREAM_ROLLOVER)
+        new_data=dict(x=[stream_t], y=[np.sum(aggr_image, dtype=np.float)]),
+        rollover=STREAM_ROLLOVER)
 
     # Parse and update metadata
     metadata_toshow = sv_metadata.parse(metadata)
@@ -375,7 +394,8 @@ def update_client(image, metadata):
 
 @gen.coroutine
 def internal_periodic_callback():
-    global current_gain_file, current_pedestal_file, jf_calib
+    global aggregate_counter, aggregated_image, current_gain_file, current_pedestal_file, jf_calib
+    reset = True
 
     if connected:
         if receiver.state == 'polling':
@@ -419,10 +439,26 @@ def internal_periodic_callback():
             else:
                 sv_rt.current_image = sv_rt.current_image.astype('float32', copy=True)
 
-            aggregate_time_counter_textinput.value = str(receiver.aggregate_counter)
+            sv_rt.current_image = sv_rt.current_image.copy()
+            if threshold_flag:
+                sv_rt.current_image[sv_rt.current_image < threshold] = 0
+
+            if aggregate_flag and (aggregate_time == 0 or aggregate_time > aggregate_counter):
+                aggregated_image += sv_rt.current_image
+                aggregate_counter += 1
+                reset = False
+            else:
+                aggregated_image = sv_rt.current_image
+                aggregate_counter = 1
+
+            aggregate_time_counter_textinput.value = str(aggregate_counter)
 
     if sv_rt.current_image.shape != (1, 1):
-        doc.add_next_tick_callback(partial(
-            update_client, image=sv_rt.current_image, metadata=sv_rt.current_metadata))
+        doc.add_next_tick_callback(
+            partial(
+                update_client, image=sv_rt.current_image, metadata=sv_rt.current_metadata,
+                reset=reset, aggr_image=aggregated_image,
+            )
+        )
 
 doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)

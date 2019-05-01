@@ -260,7 +260,7 @@ threshold_spinner.on_change('value', threshold_spinner_callback)
 
 # Aggregation time toggle button
 def aggregate_button_callback(state):
-    global aggregate_counter, aggregate_flag
+    global aggregate_flag
     if state:
         aggregate_flag = True
         aggregate_button.button_type = 'primary'
@@ -672,7 +672,7 @@ def internal_periodic_callback():
             partial(
                 update_client, image=sv_rt.current_image, metadata=sv_rt.current_metadata,
                 reset=reset, aggr_image=aggregated_image,
-            ),
+            )
         )
 
 doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)

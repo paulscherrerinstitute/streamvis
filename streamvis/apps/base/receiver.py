@@ -22,16 +22,6 @@ zmq_socket.connect(args.detector_backend_address)
 poller = zmq.Poller()
 poller.register(zmq_socket, zmq.POLLIN)
 
-# threshold data parameters
-threshold_flag = False
-threshold = 0
-
-# aggregate data parameters
-aggregate_flag = False
-aggregate_time = 0
-aggregate_counter = 1
-
-proc_image = 0
 
 def stream_receive():
     global state
@@ -41,25 +31,8 @@ def stream_receive():
             metadata = zmq_socket.recv_json(flags=0)
             image = zmq_socket.recv(flags=0, copy=False, track=False)
             image = np.frombuffer(image.buffer, dtype=metadata['type']).reshape(metadata['shape'])
-
-            process_received_data(metadata, image)
-
-            data_buffer.append((metadata, proc_image))
+            data_buffer.append((metadata, image))
             state = 'receiving'
 
         else:
             state = 'polling'
-
-def process_received_data(metadata, image):
-    global proc_image, aggregate_counter
-
-    image = image.copy()
-    if threshold_flag:
-        image[image < threshold] = 0
-
-    if aggregate_flag and (aggregate_time == 0 or aggregate_time > aggregate_counter):
-        proc_image += image
-        aggregate_counter += 1
-    else:
-        proc_image = image
-        aggregate_counter = 1
