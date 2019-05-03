@@ -15,7 +15,6 @@ from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, \
 from bokeh.models.glyphs import Image
 from bokeh.palettes import Reds9  # pylint: disable=E0611
 from bokeh.transform import linear_cmap
-from PIL import Image as PIL_Image
 from tornado import gen
 
 import receiver
@@ -590,9 +589,7 @@ def update_client(image, metadata):
         mask_source.data.update(dw=[image_size_x], dh=[image_size_y])
 
     sv_colormapper.update(image)
-
-    pil_im = PIL_Image.fromarray(image.astype('float32'))
-    resized_images = sv_mainplot.update(pil_im)
+    resized_images = sv_mainplot.update(image)
 
     aggr_image = resized_images[1]
     aggr_image_height, aggr_image_width = aggr_image.shape

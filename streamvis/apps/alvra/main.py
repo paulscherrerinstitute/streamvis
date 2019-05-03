@@ -9,7 +9,6 @@ from bokeh.layouts import column, gridplot, row
 from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, \
     ColumnDataSource, DataRange1d, Grid, Line, LinearAxis, Panel, PanTool, Plot, \
     ResetTool, Select, Spacer, Spinner, Tabs, TextInput, Title, Toggle, WheelZoomTool
-from PIL import Image as PIL_Image
 from tornado import gen
 
 import receiver
@@ -549,9 +548,7 @@ def update_client(image, metadata, reset, aggr_image):
     global stream_t, current_spectra
 
     sv_colormapper.update(aggr_image)
-
-    pil_im = PIL_Image.fromarray(aggr_image)
-    sv_mainplot.update(pil_im)
+    sv_mainplot.update(aggr_image)
 
     y_start1 = int(np.floor(sv_zoomplot1.y_start))
     y_end1 = int(np.ceil(sv_zoomplot1.y_end))

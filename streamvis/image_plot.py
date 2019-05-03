@@ -115,7 +115,10 @@ class ImagePlot:
 
         self.zoom_plots.append(image_plot)
 
-    def update(self, pil_image):
+    def update(self, image, pil_image=None):
+        if pil_image is None:
+            pil_image = PIL_Image.fromarray(image)
+
         if self._image_source.data['full_dh'][0] != pil_image.height or \
             self._image_source.data['full_dw'][0] != pil_image.width:
             self._image_source.data.update(full_dw=[pil_image.width], full_dh=[pil_image.height])
@@ -150,7 +153,7 @@ class ImagePlot:
         if self.zoom_plots:
             resized_image = [resized_image, ]
             for zoom_plot in self.zoom_plots:
-                zoom_resized_image = zoom_plot.update(pil_image)
+                zoom_resized_image = zoom_plot.update(image, pil_image)
                 resized_image.append(zoom_resized_image)
 
         return resized_image

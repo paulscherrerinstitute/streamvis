@@ -6,7 +6,6 @@ from bokeh.io import curdoc
 from bokeh.layouts import column, row
 from bokeh.models import Button, ColumnDataSource, CustomJS, \
     Dropdown, Panel, Slider, Spacer, Tabs, TextInput
-from PIL import Image as PIL_Image
 from tornado import gen
 
 import streamvis as sv
@@ -155,9 +154,7 @@ doc.add_root(final_layout)
 @gen.coroutine
 def update_client(image, metadata):
     sv_colormapper.update(image)
-
-    pil_im = PIL_Image.fromarray(image)
-    sv_mainplot.update(pil_im)
+    sv_mainplot.update(image)
 
     # Statistics
     y_start = int(np.floor(sv_mainplot.y_start))

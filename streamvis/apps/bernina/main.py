@@ -9,7 +9,6 @@ from bokeh.layouts import column, gridplot, row
 from bokeh.models import BasicTicker, BasicTickFormatter, Button, \
     ColumnDataSource, DataRange1d, DatetimeAxis, Grid, Line, LinearAxis, Panel, \
     PanTool, Plot, ResetTool, Spacer, Tabs, Title, Toggle, WheelZoomTool
-from PIL import Image as PIL_Image
 from tornado import gen
 
 import receiver
@@ -250,9 +249,7 @@ doc.add_root(final_layout)
 @gen.coroutine
 def update_client(image, metadata):
     sv_colormapper.update(image)
-
-    pil_im = PIL_Image.fromarray(image)
-    sv_mainplot.update(pil_im)
+    sv_mainplot.update(image)
 
     # Signal roi and intensity
     sig_y_start = int(np.floor(sv_zoomplot1.y_start))
