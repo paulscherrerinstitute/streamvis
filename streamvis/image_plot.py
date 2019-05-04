@@ -1,7 +1,7 @@
 import numpy as np
 from bokeh.events import Reset
 from bokeh.models import BasicTicker, ColumnDataSource, CustomJS, Grid, ImageRGBA, \
-    LinearAxis, PanTool, Plot, Range1d, Rect, ResetTool, SaveTool, Text, WheelZoomTool
+    LinearAxis, PanTool, Plot, Quad, Range1d, ResetTool, SaveTool, Text, WheelZoomTool
 from PIL import Image as PIL_Image
 
 
@@ -85,42 +85,34 @@ class ImagePlot:
         self.plot = plot
 
     def add_as_zoom(
-            self, image_plot, line_color='red', init_x=None, init_width=None, init_y=None,
-            init_height=None,
+            self, image_plot, line_color='red', left=None, right=None, bottom=None, top=None,
         ):
-        # ---- add rectangle glyph of zoom area to the main plot
+        # ---- add quad glyph of zoom area to the main plot
         area_source = ColumnDataSource(dict(
-            x=[init_x + init_width / 2], y=[init_y + init_height / 2],
-            width=[init_width], height=[init_height],
+            left=[left], right=[right], bottom=[bottom], top=[top],
         ))
 
-        area_rect = Rect(
-            x='x', y='y', width='width', height='height',
+        area_rect = Quad(
+            left='left', right='right', bottom='bottom', top='top',
             line_color=line_color, line_width=2, fill_alpha=0,
         )
         self.plot.add_glyph(area_source, area_rect)
 
-        jscode_move_rect = """
+        jscode_move_zoom = """
             var data = source.data;
-            var start = cb_obj.start;
-            var end = cb_obj.end;
-            data['%s'] = [start + (end - start) / 2];
-            data['%s'] = [end - start];
+            data['%s'] = [cb_obj.start];
+            data['%s'] = [cb_obj.end];
             source.change.emit();
         """
 
-        image_plot.plot.x_range = Range1d(
-            init_x, init_x + init_width, bounds=self.plot.x_range.bounds,
-        )
-        image_plot.plot.y_range = Range1d(
-            init_y, init_y + init_height, bounds=self.plot.y_range.bounds,
-        )
+        image_plot.plot.x_range = Range1d(left, right, bounds=self.plot.x_range.bounds)
+        image_plot.plot.y_range = Range1d(bottom, top, bounds=self.plot.y_range.bounds)
 
         image_plot.plot.x_range.callback = CustomJS(
-            args=dict(source=area_source), code=jscode_move_rect % ('x', 'width'))
+            args=dict(source=area_source), code=jscode_move_zoom % ('left', 'right'))
 
         image_plot.plot.y_range.callback = CustomJS(
-            args=dict(source=area_source), code=jscode_move_rect % ('y', 'height'))
+            args=dict(source=area_source), code=jscode_move_zoom % ('bottom', 'top'))
 
         self.zoom_plots.append(image_plot)
 

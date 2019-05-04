@@ -49,10 +49,18 @@ APP_FPS = 1
 stream_t = 0
 STREAM_ROLLOVER = 3600
 
-ZOOM_INIT_WIDTH = 1030
-ZOOM_INIT_HEIGHT = image_size_y
-ZOOM1_INIT_X = (ZOOM_INIT_WIDTH + 6) * 2
-ZOOM2_INIT_X = (ZOOM_INIT_WIDTH + 6) * 6
+ZOOM_WIDTH = 1030
+ZOOM_HEIGHT = image_size_y
+
+ZOOM1_LEFT = (ZOOM_WIDTH + 6) * 2
+ZOOM1_BOTTOM = 0
+ZOOM1_RIGHT = ZOOM1_LEFT + ZOOM_WIDTH
+ZOOM1_TOP = ZOOM1_BOTTOM + ZOOM_HEIGHT
+
+ZOOM2_LEFT = (ZOOM_WIDTH + 6) * 6
+ZOOM2_BOTTOM = 0
+ZOOM2_RIGHT = ZOOM2_LEFT + ZOOM_WIDTH
+ZOOM2_TOP = ZOOM2_BOTTOM + ZOOM_HEIGHT
 
 # Initial values (can be changed through the gui)
 threshold_flag = False
@@ -95,8 +103,8 @@ sv_zoomplot1 = sv.ImagePlot(
 
 sv_mainplot.add_as_zoom(
     sv_zoomplot1, line_color='red',
-    init_x=ZOOM1_INIT_X, init_width=ZOOM_INIT_WIDTH,
-    init_y=0, init_height=image_size_y,
+    left=ZOOM1_LEFT, right=ZOOM1_RIGHT,
+    top=ZOOM1_TOP, bottom=ZOOM1_BOTTOM,
 )
 
 
@@ -166,8 +174,8 @@ sv_zoomplot2 = sv.ImagePlot(
 
 sv_mainplot.add_as_zoom(
     sv_zoomplot2, line_color='green',
-    init_x=ZOOM2_INIT_X, init_width=ZOOM_INIT_WIDTH,
-    init_y=0, init_height=image_size_y,
+    left=ZOOM2_LEFT, right=ZOOM2_RIGHT,
+    top=ZOOM2_TOP, bottom=ZOOM2_BOTTOM,
 )
 
 

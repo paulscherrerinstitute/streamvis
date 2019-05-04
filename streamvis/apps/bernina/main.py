@@ -47,12 +47,18 @@ STREAM_ROLLOVER = 36000
 
 util_plot_size = 160
 
-ZOOM_INIT_WIDTH = 500
-ZOOM_INIT_HEIGHT = 500
-ZOOM1_INIT_X = 265
-ZOOM1_INIT_Y = 800
-ZOOM2_INIT_X = 265
-ZOOM2_INIT_Y = 200
+ZOOM_WIDTH = 500
+ZOOM_HEIGHT = 500
+
+ZOOM1_LEFT = 265
+ZOOM1_BOTTOM = 800
+ZOOM1_RIGHT = ZOOM1_LEFT + ZOOM_WIDTH
+ZOOM1_TOP = ZOOM1_BOTTOM + ZOOM_HEIGHT
+
+ZOOM2_LEFT = 265
+ZOOM2_BOTTOM = 200
+ZOOM2_RIGHT = ZOOM2_LEFT + ZOOM_WIDTH
+ZOOM2_TOP = ZOOM2_BOTTOM + ZOOM_HEIGHT
 
 # Custom tick formatter for displaying large numbers
 tick_formatter = BasicTickFormatter(precision=1)
@@ -85,8 +91,8 @@ sv_zoomplot1.plot.title = Title(text='Signal roi', text_color='red')
 
 sv_mainplot.add_as_zoom(
     sv_zoomplot1, line_color='red',
-    init_x=ZOOM1_INIT_X, init_width=ZOOM_INIT_WIDTH,
-    init_y=ZOOM1_INIT_Y, init_height=ZOOM_INIT_HEIGHT,
+    left=ZOOM1_LEFT, right=ZOOM1_RIGHT,
+    top=ZOOM1_TOP, bottom=ZOOM1_BOTTOM,
 )
 
 # ---- add zoom plot 2
@@ -99,8 +105,8 @@ sv_zoomplot2.plot.title = Title(text='Background roi', text_color='green')
 
 sv_mainplot.add_as_zoom(
     sv_zoomplot2, line_color='green',
-    init_x=ZOOM2_INIT_X, init_width=ZOOM_INIT_WIDTH,
-    init_y=ZOOM2_INIT_Y, init_height=ZOOM_INIT_HEIGHT,
+    left=ZOOM2_LEFT, right=ZOOM2_RIGHT,
+    top=ZOOM2_TOP, bottom=ZOOM2_BOTTOM,
 )
 
 
