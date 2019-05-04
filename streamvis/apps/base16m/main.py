@@ -77,12 +77,6 @@ mask_source = ColumnDataSource(
 mask_rgba_glyph = ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh')
 sv_mainplot.plot.add_glyph(mask_source, mask_rgba_glyph)
 
-# ---- pixel value text glyph
-main_image_pvalue_source = ColumnDataSource(dict(x=[], y=[], text=[]))
-sv_mainplot.plot.add_glyph(
-    main_image_pvalue_source, Text(
-        x='x', y='y', text='text', text_align='center', text_baseline='middle', text_color='white'))
-
 # ---- peaks circle glyph
 main_image_peaks_source = ColumnDataSource(dict(x=[], y=[]))
 sv_mainplot.plot.add_glyph(
@@ -647,23 +641,6 @@ def update_client(image, metadata):
             intensity=[aggr_image], resolution=[np.NaN],
             x=[aggr_x_start], y=[aggr_y_start],
             dw=[aggr_x_end - aggr_x_start], dh=[aggr_y_end - aggr_y_start])
-
-    # Draw numbers
-    main_y_start = int(np.floor(sv_mainplot.y_start))
-    main_x_start = int(np.floor(sv_mainplot.x_start))
-    main_y_end = int(np.ceil(sv_mainplot.y_end))
-    main_x_end = int(np.ceil(sv_mainplot.x_end))
-
-    if (main_x_end - main_x_start) * (main_y_end - main_y_start) < 2000:
-        textv = image[main_y_start:main_y_end, main_x_start:main_x_end].astype('int')
-        xv, yv = np.meshgrid(
-            np.arange(main_x_start, main_x_end), np.arange(main_y_start, main_y_end))
-        main_image_pvalue_source.data.update(
-            x=xv.flatten() + 0.5,
-            y=yv.flatten() + 0.5,
-            text=textv.flatten())
-    else:
-        main_image_pvalue_source.data.update(x=[], y=[], text=[])
 
     # Update total intensities plots
     stream_t = datetime.now()

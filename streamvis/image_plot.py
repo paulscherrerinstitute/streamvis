@@ -1,7 +1,7 @@
 import numpy as np
 from bokeh.events import Reset
 from bokeh.models import BasicTicker, ColumnDataSource, CustomJS, Grid, ImageRGBA, \
-    LinearAxis, PanTool, Plot, Range1d, Rect, ResetTool, SaveTool, WheelZoomTool
+    LinearAxis, PanTool, Plot, Range1d, Rect, ResetTool, SaveTool, Text, WheelZoomTool
 from PIL import Image as PIL_Image
 
 
@@ -56,6 +56,15 @@ class ImagePlot:
         plot.add_glyph(
             self._image_source,
             ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh'),
+        )
+
+        # ---- pixel value text glyph
+        self._pvalue_source = ColumnDataSource(dict(x=[], y=[], text=[]))
+        plot.add_glyph(
+            self._pvalue_source, Text(
+                x='x', y='y', text='text', text_align='center', text_baseline='middle',
+                text_color='white',
+            )
         )
 
         # ---- overwrite reset tool behavior
@@ -149,6 +158,25 @@ class ImagePlot:
             x=[self.x_start], y=[self.y_start],
             dw=[self.x_end - self.x_start], dh=[self.y_end - self.y_start],
         )
+
+        # Draw numbers
+        pval_y_start = int(np.floor(self.y_start))
+        pval_x_start = int(np.floor(self.x_start))
+        pval_y_end = int(np.ceil(self.y_end))
+        pval_x_end = int(np.ceil(self.x_end))
+
+        canvas_pix_ratio_x = self.plot.inner_width / (pval_x_end - pval_x_start)
+        canvas_pix_ratio_y = self.plot.inner_height / (pval_y_end - pval_y_start)
+        if canvas_pix_ratio_x > 50 and canvas_pix_ratio_y > 50:
+            textv = image[pval_y_start:pval_y_end, pval_x_start:pval_x_end].astype('int')
+            xv, yv = np.meshgrid(
+                np.arange(pval_x_start, pval_x_end), np.arange(pval_y_start, pval_y_end))
+            self._pvalue_source.data.update(
+                x=xv.flatten() + 0.5,
+                y=yv.flatten() + 0.5,
+                text=textv.flatten())
+        else:
+            self._pvalue_source.data.update(x=[], y=[], text=[])
 
         if self.zoom_plots:
             resized_image = [resized_image, ]
