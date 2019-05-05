@@ -63,6 +63,8 @@ class ImagePlot:
             image=[np.zeros((1, 1), dtype='float32')],
             x=[x_start], y=[y_start], dw=[x_end - x_start], dh=[y_end - y_start],
             full_dw=[image_width], full_dh=[image_height],
+            reset_x_start=[x_start], reset_x_end=[x_end],
+            reset_y_start=[y_start], reset_y_end=[y_end],
         ))
 
         plot.add_glyph(
@@ -82,10 +84,11 @@ class ImagePlot:
         # ---- overwrite reset tool behavior
         jscode_reset = """
             // reset to the updated image size area
-            source.x_range.start = 0;
-            source.x_range.end = image_source.data.full_dw[0];
-            source.y_range.start = 0;
-            source.y_range.end = image_source.data.full_dh[0];
+            var data = image_source.data
+            source.x_range.start = data.reset_x_start[0];
+            source.x_range.end = data.reset_x_end[0];
+            source.y_range.start = data.reset_y_start[0];
+            source.y_range.end = data.reset_y_end[0];
             source.change.emit();
         """
 
@@ -131,7 +134,12 @@ class ImagePlot:
         if self._image_source.data['full_dh'][0] != pil_image.height or \
             self._image_source.data['full_dw'][0] != pil_image.width:
 
-            self._image_source.data.update(full_dw=[pil_image.width], full_dh=[pil_image.height])
+            self._image_source.data.update(
+                full_dw=[pil_image.width], full_dh=[pil_image.height],
+                reset_x_start=[0], reset_x_end=[pil_image.width],
+                reset_y_start=[0], reset_y_end=[pil_image.height]
+            )
+
             self.plot.y_range.start = 0
             self.plot.x_range.start = 0
             self.plot.y_range.end = pil_image.height
