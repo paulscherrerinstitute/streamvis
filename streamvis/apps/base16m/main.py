@@ -207,11 +207,7 @@ sv_aggrplot.plot.add_glyph(
 sv_aggrplot.plot.add_glyph(
     main_image_rings_center_source, Cross(x='x', y='y', size=15, line_color='red'))
 
-sv_mainplot.add_as_zoom(
-    sv_aggrplot, line_color='white',
-    left=0, right=image_size_x,
-    bottom=0, top=image_size_y,
-)
+sv_mainplot.add_as_zoom(sv_aggrplot, line_color='white')
 
 
 # Projection of aggregate image onto x axis

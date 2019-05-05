@@ -99,13 +99,10 @@ sv_zoomplot1 = sv.ImagePlot(
     sv_colormapper,
     plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH,
     image_height=image_size_y, image_width=image_size_x,
+    x_start=ZOOM1_LEFT, x_end=ZOOM1_RIGHT, y_start=ZOOM1_BOTTOM, y_end=ZOOM1_TOP,
 )
 
-sv_mainplot.add_as_zoom(
-    sv_zoomplot1, line_color='red',
-    left=ZOOM1_LEFT, right=ZOOM1_RIGHT,
-    top=ZOOM1_TOP, bottom=ZOOM1_BOTTOM,
-)
+sv_mainplot.add_as_zoom(sv_zoomplot1, line_color='red')
 
 
 # Aggregate zoom1 plot along x axis
@@ -170,13 +167,10 @@ sv_zoomplot2 = sv.ImagePlot(
     sv_colormapper,
     plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH,
     image_height=image_size_y, image_width=image_size_x,
+    x_start=ZOOM2_LEFT, x_end=ZOOM2_RIGHT, y_start=ZOOM2_BOTTOM, y_end=ZOOM2_TOP,
 )
 
-sv_mainplot.add_as_zoom(
-    sv_zoomplot2, line_color='green',
-    left=ZOOM2_LEFT, right=ZOOM2_RIGHT,
-    top=ZOOM2_TOP, bottom=ZOOM2_BOTTOM,
-)
+sv_mainplot.add_as_zoom(sv_zoomplot2, line_color='green')
 
 
 # Aggregate zoom2 plot along x axis

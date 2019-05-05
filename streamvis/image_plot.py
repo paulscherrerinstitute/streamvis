@@ -10,19 +10,31 @@ class ImagePlot:
     """
     def __init__(
             self, colormapper, plot_height=894, plot_width=854, image_height=100, image_width=100,
+            x_start=None, x_end=None, y_start=None, y_end=None,
         ):
+        if x_start is None:
+            x_start = 0
+
+        if x_end is None:
+            x_end = image_width
+
+        if y_start is None:
+            y_start = 0
+
+        if y_end is None:
+            y_end = image_height
+
+        self.x_start = x_start
+        self.x_end = x_end
+        self.y_start = y_start
+        self.y_end = y_end
 
         self.colormapper = colormapper
-        self.y_start = 0
-        self.y_end = image_height
-        self.x_start = 0
-        self.x_end = image_width
-
         self.zoom_plots = []
 
         plot = Plot(
-            x_range=Range1d(0, image_width, bounds=(0, image_width)),
-            y_range=Range1d(0, image_height, bounds=(0, image_height)),
+            x_range=Range1d(x_start, x_end, bounds=(0, image_width)),
+            y_range=Range1d(y_start, y_end, bounds=(0, image_height)),
             plot_height=plot_height,
             plot_width=plot_width,
             toolbar_location='left',
@@ -49,7 +61,7 @@ class ImagePlot:
         # ---- rgba image glyph
         self._image_source = ColumnDataSource(dict(
             image=[np.zeros((1, 1), dtype='float32')],
-            x=[0], y=[0], dw=[image_width], dh=[image_height],
+            x=[x_start], y=[y_start], dw=[x_end - x_start], dh=[y_end - y_start],
             full_dw=[image_width], full_dh=[image_height],
         ))
 
@@ -84,12 +96,11 @@ class ImagePlot:
 
         self.plot = plot
 
-    def add_as_zoom(
-            self, image_plot, line_color='red', left=None, right=None, bottom=None, top=None,
-        ):
+    def add_as_zoom(self, image_plot, line_color='red'):
         # ---- add quad glyph of zoom area to the main plot
         area_source = ColumnDataSource(dict(
-            left=[left], right=[right], bottom=[bottom], top=[top],
+            left=[image_plot.x_start], right=[image_plot.x_end],
+            bottom=[image_plot.y_start], top=[image_plot.y_end],
         ))
 
         area_rect = Quad(
@@ -105,9 +116,6 @@ class ImagePlot:
             source.change.emit();
         """
 
-        image_plot.plot.x_range = Range1d(left, right, bounds=self.plot.x_range.bounds)
-        image_plot.plot.y_range = Range1d(bottom, top, bounds=self.plot.y_range.bounds)
-
         image_plot.plot.x_range.callback = CustomJS(
             args=dict(source=area_source), code=jscode_move_zoom % ('left', 'right'))
 
@@ -122,8 +130,8 @@ class ImagePlot:
 
         if self._image_source.data['full_dh'][0] != pil_image.height or \
             self._image_source.data['full_dw'][0] != pil_image.width:
-            self._image_source.data.update(full_dw=[pil_image.width], full_dh=[pil_image.height])
 
+            self._image_source.data.update(full_dw=[pil_image.width], full_dh=[pil_image.height])
             self.plot.y_range.start = 0
             self.plot.x_range.start = 0
             self.plot.y_range.end = pil_image.height

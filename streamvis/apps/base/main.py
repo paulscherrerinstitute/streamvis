@@ -74,11 +74,7 @@ sv_zoomplot = sv.ImagePlot(
     plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH,
 )
 
-sv_mainplot.add_as_zoom(
-    sv_zoomplot,
-    left=0, right=image_size_x,
-    bottom=0, top=image_size_y,
-)
+sv_mainplot.add_as_zoom(sv_zoomplot)
 
 # Aggregate zoom1 plot along x axis
 zoom1_plot_agg_x = Plot(
