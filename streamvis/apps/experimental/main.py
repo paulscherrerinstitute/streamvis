@@ -30,17 +30,17 @@ HDF5_FILE_PATH_UPDATE_PERIOD = 10000  # ms
 HDF5_DATASET_PATH = '/entry/data/data'
 hdf5_file_data = lambda pulse: None
 
-# Create colormapper
-sv_colormapper = sv.ColorMapper()
-
 
 # Main plot
 sv_mainplot = sv.ImagePlot(
-    sv_colormapper,
     plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH,
 )
 
-# ---- add colorbar
+
+# Create colormapper
+sv_colormapper = sv.ColorMapper([sv_mainplot])
+
+# ---- add colorbar to the main plot
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
 sv_colormapper.color_bar.location = (0, -5)
 sv_mainplot.plot.add_layout(sv_colormapper.color_bar, place='below')

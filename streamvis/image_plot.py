@@ -1,6 +1,6 @@
 import numpy as np
 from bokeh.events import Reset
-from bokeh.models import BasicTicker, ColumnDataSource, CustomJS, Grid, ImageRGBA, \
+from bokeh.models import BasicTicker, ColumnDataSource, CustomJS, Grid, Image, \
     LinearAxis, PanTool, Plot, Quad, Range1d, ResetTool, SaveTool, Text, WheelZoomTool
 from PIL import Image as PIL_Image
 
@@ -9,7 +9,7 @@ class ImagePlot:
     """it's possible to control only a canvas size, but not a size of the plot area
     """
     def __init__(
-            self, colormapper, plot_height=894, plot_width=854, image_height=100, image_width=100,
+            self, plot_height=894, plot_width=854, image_height=100, image_width=100,
             x_start=None, x_end=None, y_start=None, y_end=None,
         ):
         if x_start is None:
@@ -29,7 +29,6 @@ class ImagePlot:
         self.y_start = y_start
         self.y_end = y_end
 
-        self.colormapper = colormapper
         self.zoom_plots = []
 
         plot = Plot(
@@ -67,10 +66,8 @@ class ImagePlot:
             reset_y_start=[y_start], reset_y_end=[y_end],
         ))
 
-        image_renderer = plot.add_glyph(
-            self._image_source,
-            ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh'),
-        )
+        self.image_glyph = Image(image='image', x='x', y='y', dw='dw', dh='dh')
+        image_renderer = plot.add_glyph(self._image_source, self.image_glyph)
 
         # This avoids double update of image values on a client, see
         # https://github.com/bokeh/bokeh/issues/7079
@@ -167,7 +164,7 @@ class ImagePlot:
         )
 
         self._image_source.data.update(
-            image=[self.colormapper.convert(resized_image)],
+            image=[resized_image],
             x=[self.x_start], y=[self.y_start],
             dw=[self.x_end - self.x_start], dh=[self.y_end - self.y_start],
         )

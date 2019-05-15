@@ -56,19 +56,12 @@ RESOLUTION_RINGS_POS = np.array([2, 2.2, 2.6, 3, 5, 10])
 # Custom tick formatter for displaying large numbers
 tick_formatter = BasicTickFormatter(precision=1)
 
-# Create colormapper
-sv_colormapper = sv.ColorMapper()
 
 # Main plot
 sv_mainplot = sv.ImagePlot(
-    sv_colormapper,
     plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH,
 )
 sv_mainplot.toolbar_location = 'below'
-
-# ---- add colorbar
-sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
-sv_mainplot.plot.add_layout(sv_colormapper.color_bar, place='above')
 
 # ---- mask rgba image glyph
 mask_source = ColumnDataSource(
@@ -169,7 +162,6 @@ sum_intensity_reset_button.on_click(sum_intensity_reset_button_callback)
 
 # Aggregation plot
 sv_aggrplot = sv.ImagePlot(
-    sv_colormapper,
     plot_height=AGGR_CANVAS_HEIGHT, plot_width=AGGR_CANVAS_WIDTH,
 )
 sv_aggrplot.toolbar_location = 'below'
@@ -264,6 +256,14 @@ aggr_image_proj_y_source = ColumnDataSource(
 
 aggr_image_proj_y_plot.add_glyph(
     aggr_image_proj_y_source, Line(x='x', y='y', line_color='steelblue', line_width=2))
+
+
+# Create colormapper
+sv_colormapper = sv.ColorMapper([sv_mainplot, sv_aggrplot])
+
+# ---- add colorbar to the main plot
+sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
+sv_mainplot.plot.add_layout(sv_colormapper.color_bar, place='above')
 
 
 # Histogram plot

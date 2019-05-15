@@ -77,26 +77,16 @@ saved_spectra = dict()
 # Custom tick formatter for displaying large numbers
 tick_formatter = BasicTickFormatter(precision=1)
 
-# Create colormapper
-sv_colormapper = sv.ColorMapper()
-
 
 # Main plot
 sv_mainplot = sv.ImagePlot(
-    sv_colormapper,
     plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH,
     image_height=image_size_y, image_width=image_size_x,
 )
 
-# ---- add colorbar
-sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
-sv_colormapper.color_bar.location = (0, -5)
-sv_mainplot.plot.add_layout(sv_colormapper.color_bar, place='below')
-
 
 # Zoom plot 1
 sv_zoomplot1 = sv.ImagePlot(
-    sv_colormapper,
     plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH,
     image_height=image_size_y, image_width=image_size_x,
     x_start=ZOOM1_LEFT, x_end=ZOOM1_RIGHT, y_start=ZOOM1_BOTTOM, y_end=ZOOM1_TOP,
@@ -164,7 +154,6 @@ zoom1_plot_agg_y.add_glyph(zoom1_agg_y_source, Line(x='x', y='y', line_color='st
 
 # Zoom plot 2
 sv_zoomplot2 = sv.ImagePlot(
-    sv_colormapper,
     plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH,
     image_height=image_size_y, image_width=image_size_x,
     x_start=ZOOM2_LEFT, x_end=ZOOM2_RIGHT, y_start=ZOOM2_BOTTOM, y_end=ZOOM2_TOP,
@@ -227,6 +216,15 @@ zoom2_agg_y_source = ColumnDataSource(
          y=np.arange(image_size_y) + 0.5))  # shift to a pixel center
 
 zoom2_plot_agg_y.add_glyph(zoom2_agg_y_source, Line(x='x', y='y', line_color='steelblue'))
+
+
+# Create colormapper
+sv_colormapper = sv.ColorMapper([sv_mainplot, sv_zoomplot1, sv_zoomplot2])
+
+# ---- add colorbar to the main plot
+sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
+sv_colormapper.color_bar.location = (0, -5)
+sv_mainplot.plot.add_layout(sv_colormapper.color_bar, place='below')
 
 
 # Histogram zoom plots

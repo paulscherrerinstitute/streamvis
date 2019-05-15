@@ -63,28 +63,17 @@ ZOOM2_TOP = ZOOM2_BOTTOM + ZOOM_HEIGHT
 # Custom tick formatter for displaying large numbers
 tick_formatter = BasicTickFormatter(precision=1)
 
-# Create colormapper
-sv_colormapper = sv.ColorMapper()
-
 
 # Main plot
 sv_mainplot = sv.ImagePlot(
-    sv_colormapper,
     plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH,
     image_height=image_size_y, image_width=image_size_x,
 )
 
 sv_mainplot.plot.title = Title(text=' ')
 
-# ---- add colorbar
-sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
-sv_colormapper.color_bar.height = 10
-sv_colormapper.color_bar.location = (0, -5)
-sv_mainplot.plot.add_layout(sv_colormapper.color_bar, place='below')
-
 # ---- add zoom plot 1
 sv_zoomplot1 = sv.ImagePlot(
-    sv_colormapper,
     plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH,
     image_height=image_size_y, image_width=image_size_x,
     x_start=ZOOM1_LEFT, x_end=ZOOM1_RIGHT, y_start=ZOOM1_BOTTOM, y_end=ZOOM1_TOP,
@@ -95,7 +84,6 @@ sv_mainplot.add_as_zoom(sv_zoomplot1, line_color='red')
 
 # ---- add zoom plot 2
 sv_zoomplot2 = sv.ImagePlot(
-    sv_colormapper,
     plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH,
     image_height=image_size_y, image_width=image_size_x,
     x_start=ZOOM2_LEFT, x_end=ZOOM2_RIGHT, y_start=ZOOM2_BOTTOM, y_end=ZOOM2_TOP,
@@ -155,6 +143,16 @@ zoom1_intensity_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 # ---- line glyph
 zoom1_sum_source = ColumnDataSource(dict(x=[], y=[]))
 zoom1_intensity_plot.add_glyph(zoom1_sum_source, Line(x='x', y='y', line_color='red'))
+
+
+# Create colormapper
+sv_colormapper = sv.ColorMapper([sv_mainplot, sv_zoomplot1, sv_zoomplot2])
+
+# ---- add colorbar to the main plot
+sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
+sv_colormapper.color_bar.height = 10
+sv_colormapper.color_bar.location = (0, -5)
+sv_mainplot.plot.add_layout(sv_colormapper.color_bar, place='below')
 
 
 # Histogram plots

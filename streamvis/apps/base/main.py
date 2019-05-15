@@ -56,21 +56,12 @@ aggregate_counter = 1
 # Custom tick formatter for displaying large numbers
 tick_formatter = BasicTickFormatter(precision=1)
 
-# Create colormapper
-sv_colormapper = sv.ColorMapper()
-
 
 # Main plot
-sv_mainplot = sv.ImagePlot(sv_colormapper)
-
-# ---- add colorbar
-sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
-sv_colormapper.color_bar.location = (0, -5)
-sv_mainplot.plot.add_layout(sv_colormapper.color_bar, place='below')
+sv_mainplot = sv.ImagePlot()
 
 # ---- add zoom plot
 sv_zoomplot = sv.ImagePlot(
-    sv_colormapper,
     plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH,
 )
 
@@ -124,6 +115,15 @@ zoom1_agg_y_source = ColumnDataSource(
          y=np.arange(image_size_y) + 0.5))  # shift to a pixel center
 
 zoom1_plot_agg_y.add_glyph(zoom1_agg_y_source, Line(x='x', y='y', line_color='steelblue'))
+
+
+# Create colormapper
+sv_colormapper = sv.ColorMapper([sv_mainplot, sv_zoomplot])
+
+# ---- add colorbar to the main plot
+sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
+sv_colormapper.color_bar.location = (0, -5)
+sv_mainplot.plot.add_layout(sv_colormapper.color_bar, place='below')
 
 
 # Histogram plot
