@@ -576,12 +576,6 @@ doc.add_root(row(Spacer(width=50), final_layout))
 
 @gen.coroutine
 def update_client(image, metadata):
-    global image_size_x, image_size_y
-    if 'shape' in metadata and metadata['shape'] != [image_size_y, image_size_x]:
-        image_size_y = metadata['shape'][0]
-        image_size_x = metadata['shape'][1]
-        mask_source.data.update(dw=[image_size_x], dh=[image_size_y])
-
     sv_colormapper.update(image)
     resized_images = sv_mainplot.update(image)
 
@@ -678,7 +672,9 @@ def update_client(image, metadata):
 
     # Update mask if it's needed
     if receiver.update_mask and mask_toggle.active:
-        mask_source.data.update(image=[receiver.mask])
+        mask_source.data.update(
+            image=[receiver.mask], dh=[receiver.mask.shape[0]], dw=[receiver.mask.shape[1]],
+        )
         receiver.update_mask = False
 
     # Update scan positions
