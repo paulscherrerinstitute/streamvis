@@ -67,7 +67,7 @@ class ImagePlot:
         ))
 
         self.image_glyph = Image(image='image', x='x', y='y', dw='dw', dh='dh')
-        image_renderer = plot.add_glyph(self._image_source, self.image_glyph)
+        image_renderer = plot.add_glyph(self._image_source, self.image_glyph, name='image_glyph')
 
         # This avoids double update of image values on a client, see
         # https://github.com/bokeh/bokeh/issues/7079

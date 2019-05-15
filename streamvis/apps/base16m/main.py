@@ -8,11 +8,10 @@ import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
 from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, \
-    Circle, ColumnDataSource, Cross, DataRange1d, DataTable, DatetimeAxis, \
-    Ellipse, Grid, HoverTool, ImageRGBA, Legend, Line, LinearAxis, \
+    Circle, ColumnDataSource, Cross, CustomJSHover, DataRange1d, DataTable, \
+    DatetimeAxis, Ellipse, Grid, HoverTool, ImageRGBA, Legend, Line, LinearAxis, \
     NumberFormatter, Panel, PanTool, Plot, Range1d, ResetTool, SaveTool, Slider, \
     Spacer, TableColumn, Tabs, TapTool, Text, Title, Toggle, WheelZoomTool
-from bokeh.models.glyphs import Image
 from bokeh.palettes import Reds9  # pylint: disable=E0611
 from bokeh.transform import linear_cmap
 from tornado import gen
@@ -167,29 +166,42 @@ sv_aggrplot = sv.ImagePlot(
 sv_aggrplot.toolbar_location = 'below'
 
 # ---- tools
+experiment_params = ColumnDataSource(data=dict(
+    detector_distance=[np.nan],
+    beam_energy=[np.nan],
+    beam_center_x=[np.nan],
+    beam_center_y=[np.nan]))
+
+resolution_formatter = CustomJSHover(
+    args=dict(params=experiment_params),
+    code="""
+        var detector_distance = params.data.detector_distance
+        var beam_energy = params.data.beam_energy
+        var beam_center_x = params.data.beam_center_x
+        var beam_center_y = params.data.beam_center_y
+
+        var x = special_vars.x - beam_center_x
+        var y = special_vars.y - beam_center_y
+
+        var theta = Math.atan(Math.sqrt(x*x + y*y) * 75e-6 / detector_distance) / 2
+        var resolution = 6200 / beam_energy / Math.sin(theta)  // 6200 = 1.24 / 2 / 1e-4
+
+        return String(resolution)
+    """
+)
+
 hovertool = HoverTool(
     tooltips=[
-        ("intensity", "@intensity"),
-        ("resolution", "@resolution Å")
+        ("intensity", "@image"),
+        ("resolution", "@x{resolution} Å"),
     ],
-    names=['hovertool_image']
+    formatters=dict(x=resolution_formatter),
+    names=['image_glyph'],
 )
 sv_aggrplot.plot.add_tools(hovertool)
 
 # ---- mask rgba image glyph (shared with main_image_plot)
 sv_aggrplot.plot.add_glyph(mask_source, mask_rgba_glyph)
-
-# ---- invisible image glyph
-hovertool_image_source = ColumnDataSource(dict(
-    intensity=[sv_rt.current_image], resolution=[np.NaN],
-    x=[0], y=[0], dw=[image_size_x], dh=[image_size_y]))
-
-hovertool_image_renderer = sv_aggrplot.plot.add_glyph(
-    hovertool_image_source,
-    Image(image='intensity', x='x', y='y', dw='dw', dh='dh', global_alpha=0),
-    name='hovertool_image')
-
-hovertool_image_renderer.view.source = ColumnDataSource()
 
 # ---- resolution rings
 sv_aggrplot.plot.add_glyph(
@@ -613,28 +625,13 @@ def update_client(image, metadata):
     aggr_image_proj_y_source.data.update(x=aggr_image_proj_y, y=aggr_image_proj_r_y)
     aggr_image_proj_x_source.data.update(x=aggr_image_proj_r_x, y=aggr_image_proj_x)
 
-    # Update hover tool values
-    if 'detector_distance' in metadata and 'beam_energy' in metadata and \
-        'beam_center_x' in metadata and 'beam_center_y' in metadata:
-        detector_distance = metadata['detector_distance']
-        beam_energy = metadata['beam_energy']
-        beam_center_x = metadata['beam_center_x']
-        beam_center_y = metadata['beam_center_y']
-
-        xi = np.linspace(aggr_x_start, aggr_x_end, aggr_image_width) - beam_center_x
-        yi = np.linspace(aggr_y_start, aggr_y_end, aggr_image_height) - beam_center_y
-        xv, yv = np.meshgrid(xi, yi, sparse=True)
-        theta = np.arctan(np.sqrt(xv**2 + yv**2) * 75e-6 / detector_distance) / 2
-        resolution = 6200 / beam_energy / np.sin(theta)  # 6200 = 1.24 / 2 / 1e-4
-        hovertool_image_source.data.update(
-            intensity=[aggr_image], resolution=[resolution],
-            x=[aggr_x_start], y=[aggr_y_start],
-            dw=[aggr_x_end - aggr_x_start], dh=[aggr_y_end - aggr_y_start])
-    else:
-        hovertool_image_source.data.update(
-            intensity=[aggr_image], resolution=[np.NaN],
-            x=[aggr_x_start], y=[aggr_y_start],
-            dw=[aggr_x_end - aggr_x_start], dh=[aggr_y_end - aggr_y_start])
+    # Update hover tool experiment parameters
+    experiment_params.data.update(
+        detector_distance=[metadata.get('detector_distance', np.nan)],
+        beam_energy=[metadata.get('beam_energy', np.nan)],
+        beam_center_x=[metadata.get('beam_center_x', np.nan)],
+        beam_center_y=[metadata.get('beam_center_y', np.nan)],
+    )
 
     # Update total intensities plots
     stream_t = datetime.now()
