@@ -67,10 +67,15 @@ class ImagePlot:
             reset_y_start=[y_start], reset_y_end=[y_end],
         ))
 
-        plot.add_glyph(
+        image_renderer = plot.add_glyph(
             self._image_source,
             ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh'),
         )
+
+        # This avoids double update of image values on a client, see
+        # https://github.com/bokeh/bokeh/issues/7079
+        # https://github.com/bokeh/bokeh/issues/7299
+        image_renderer.view.source = ColumnDataSource()
 
         # ---- pixel value text glyph
         self._pvalue_source = ColumnDataSource(dict(x=[], y=[], text=[]))

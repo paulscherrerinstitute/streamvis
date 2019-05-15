@@ -75,7 +75,9 @@ mask_source = ColumnDataSource(
     dict(image=[placeholder_mask], x=[0], y=[0], dw=[image_size_x], dh=[image_size_y]))
 
 mask_rgba_glyph = ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh')
-sv_mainplot.plot.add_glyph(mask_source, mask_rgba_glyph)
+mask_image_renderer = sv_mainplot.plot.add_glyph(mask_source, mask_rgba_glyph)
+
+mask_image_renderer.view.source = ColumnDataSource()
 
 # ---- peaks circle glyph
 main_image_peaks_source = ColumnDataSource(dict(x=[], y=[]))
@@ -190,10 +192,12 @@ hovertool_image_source = ColumnDataSource(dict(
     intensity=[sv_rt.current_image], resolution=[np.NaN],
     x=[0], y=[0], dw=[image_size_x], dh=[image_size_y]))
 
-sv_aggrplot.plot.add_glyph(
+hovertool_image_renderer = sv_aggrplot.plot.add_glyph(
     hovertool_image_source,
     Image(image='intensity', x='x', y='y', dw='dw', dh='dh', global_alpha=0),
     name='hovertool_image')
+
+hovertool_image_renderer.view.source = ColumnDataSource()
 
 # ---- resolution rings
 sv_aggrplot.plot.add_glyph(
