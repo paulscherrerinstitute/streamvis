@@ -9,7 +9,7 @@ from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
 from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, \
     Circle, ColumnDataSource, Cross, CustomJSHover, DataRange1d, DataTable, \
-    DatetimeAxis, Ellipse, Grid, HoverTool, ImageRGBA, Legend, Line, LinearAxis, \
+    DatetimeAxis, Ellipse, Grid, HoverTool, Legend, Line, LinearAxis, \
     NumberFormatter, Panel, PanTool, Plot, Range1d, ResetTool, SaveTool, Slider, \
     Spacer, TableColumn, Tabs, TapTool, Text, Title, Toggle, WheelZoomTool
 from bokeh.palettes import Reds9  # pylint: disable=E0611
@@ -28,7 +28,6 @@ image_size_y = 1
 
 sv_rt = sv.Runtime()
 
-placeholder_mask = np.zeros((image_size_y, image_size_x, 4), dtype='uint8')
 current_gain_file = ''
 current_pedestal_file = ''
 jf_calib = None
@@ -98,15 +97,6 @@ hovertool = HoverTool(
 
 # replace the existing HoverTool
 sv_mainplot.plot.tools[-1] = hovertool
-
-# ---- mask rgba image glyph
-mask_source = ColumnDataSource(
-    dict(image=[placeholder_mask], x=[0], y=[0], dw=[image_size_x], dh=[image_size_y]))
-
-mask_rgba_glyph = ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh')
-mask_image_renderer = sv_mainplot.plot.add_glyph(mask_source, mask_rgba_glyph)
-
-mask_image_renderer.view.source = ColumnDataSource()
 
 # ---- peaks circle glyph
 main_image_peaks_source = ColumnDataSource(dict(x=[], y=[]))
@@ -206,9 +196,6 @@ sv_aggrplot.toolbar_location = 'below'
 # replace the existing HoverTool
 sv_aggrplot.plot.tools[-1] = hovertool
 
-# ---- mask rgba image glyph (shared with main_image_plot)
-sv_aggrplot.plot.add_glyph(mask_source, mask_rgba_glyph)
-
 # ---- resolution rings
 sv_aggrplot.plot.add_glyph(
     main_image_rings_source, Ellipse(
@@ -282,6 +269,10 @@ sv_colormapper = sv.ColorMapper([sv_mainplot, sv_aggrplot])
 # ---- add colorbar to the main plot
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
 sv_mainplot.plot.add_layout(sv_colormapper.color_bar, place='above')
+
+
+# Add mask to both plots
+sv_mask = sv.Mask([sv_mainplot, sv_aggrplot])
 
 
 # Histogram plot
@@ -440,17 +431,6 @@ resolution_rings_toggle = Toggle(label="Resolution Rings", button_type='default'
 resolution_rings_toggle.on_click(resolution_rings_toggle_callback)
 
 
-# Mask toggle button
-def mask_toggle_callback(state):
-    if state:
-        mask_rgba_glyph.global_alpha = 1
-    else:
-        mask_rgba_glyph.global_alpha = 0
-
-mask_toggle = Toggle(label="Mask", button_type='default')
-mask_toggle.on_click(mask_toggle_callback)
-
-
 # Show only hits toggle
 show_only_hits_toggle = Toggle(label="Show Only Hits", button_type='default')
 
@@ -577,7 +557,7 @@ layout_main = column(sv_mainplot.plot)
 layout_aggr = column(
     aggr_image_proj_x_plot,
     row(sv_aggrplot.plot, aggr_image_proj_y_plot),
-    row(resolution_rings_toggle, mask_toggle, show_only_hits_toggle),
+    row(resolution_rings_toggle, sv_mask.toggle, show_only_hits_toggle),
 )
 
 layout_controls = column(sv_metadata.issues_dropdown, colormap_panel, data_source_tabs)
@@ -673,13 +653,6 @@ def update_client(image, metadata):
         rollover=HITRATE_ROLLOVER,
     )
 
-    # Update mask if it's needed
-    if receiver.update_mask and mask_toggle.active:
-        mask_source.data.update(
-            image=[receiver.mask], dh=[receiver.mask.shape[0]], dw=[receiver.mask.shape[1]],
-        )
-        receiver.update_mask = False
-
     # Update scan positions
     if custom_tabs.tabs[custom_tabs.active].title == "SwissMX" and receiver.peakfinder_buffer:
         peakfinder_buffer = np.array(receiver.peakfinder_buffer)
@@ -688,8 +661,8 @@ def update_client(image, metadata):
             frame=peakfinder_buffer[:, 2], nspots=peakfinder_buffer[:, 3],
         )
 
-    if mask_toggle.active and receiver.mask is None:
-        sv_metadata.add_issue('No pedestal file has been provided')
+    # Update mask
+    sv_mask.update(metadata.get('pedestal_file'), metadata.get('detector_name'), sv_metadata)
 
     if resolution_rings_toggle.active:
         if 'detector_distance' in metadata and 'beam_energy' in metadata and \

@@ -2,8 +2,6 @@ import argparse
 import logging
 from collections import deque
 
-import h5py
-import jungfrau_utils as ju
 import numpy as np
 import zmq
 
@@ -88,10 +86,6 @@ else:  # Initial default behaviour
 poller = zmq.Poller()
 poller.register(zmq_socket, zmq.POLLIN)
 
-mask_file = ''
-mask = None
-update_mask = False
-
 
 def stream_receive():
     global state
@@ -113,7 +107,7 @@ def stream_receive():
 
 
 def process_received_data(metadata, image):
-    global mask_file, mask, update_mask, run_name, last_hit_data
+    global run_name, last_hit_data
     is_hit = 'number_of_spots' in metadata and metadata['number_of_spots'] > args.hit_threshold
 
     if 'run_name' in metadata:
@@ -175,23 +169,3 @@ def process_received_data(metadata, image):
     else:
         hitrate_buffer_fast.append(0)
         hitrate_buffer_slow.append(0)
-
-    if 'pedestal_file' in metadata and 'detector_name' in metadata:
-        if mask_file != metadata['pedestal_file']:
-            mask_file = metadata['pedestal_file']
-            try:
-                with h5py.File(mask_file) as h5f:
-                    mask_data = h5f['/pixel_mask'][:].astype(bool)
-
-                mask_data = ~ju.apply_geometry(~mask_data, metadata['detector_name'])
-
-                # Prepare rgba mask
-                mask = np.zeros((*mask_data.shape, 4), dtype='uint8')
-                mask[:, :, 1] = 255
-                mask[:, :, 3] = 255 * mask_data
-                update_mask = True
-
-            except Exception:
-                logger.exception('Failed to load pedestal file: %s', mask_file)
-                mask = None
-                update_mask = False
