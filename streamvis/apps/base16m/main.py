@@ -198,7 +198,9 @@ hovertool = HoverTool(
     formatters=dict(x=resolution_formatter),
     names=['image_glyph'],
 )
-sv_aggrplot.plot.add_tools(hovertool)
+
+# replace the existing HoverTool
+sv_aggrplot.plot.tools[-1] = hovertool
 
 # ---- mask rgba image glyph (shared with main_image_plot)
 sv_aggrplot.plot.add_glyph(mask_source, mask_rgba_glyph)

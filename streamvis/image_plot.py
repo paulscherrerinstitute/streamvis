@@ -1,6 +1,6 @@
 import numpy as np
 from bokeh.events import Reset
-from bokeh.models import BasicTicker, ColumnDataSource, CustomJS, Grid, Image, \
+from bokeh.models import BasicTicker, ColumnDataSource, CustomJS, Grid, HoverTool, Image, \
     LinearAxis, PanTool, Plot, Quad, Range1d, ResetTool, SaveTool, Text, WheelZoomTool
 from PIL import Image as PIL_Image
 
@@ -41,11 +41,20 @@ class ImagePlot:
 
         # ---- tools
         plot.toolbar.logo = None
+
+        hovertool = HoverTool(
+            tooltips=[
+                ("intensity", "@image"),
+            ],
+            names=['image_glyph'],
+        )
+
         plot.add_tools(
             PanTool(),
             WheelZoomTool(maintain_focus=False),
             SaveTool(),
             ResetTool(),
+            hovertool,
         )
         plot.toolbar.active_scroll = plot.tools[1]
 
