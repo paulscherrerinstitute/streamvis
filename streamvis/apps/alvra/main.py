@@ -35,7 +35,7 @@ connected = False
 
 # Currently, it's possible to control only a canvas size, but not a size of the plotting area.
 MAIN_CANVAS_WIDTH = 3700 + 55
-MAIN_CANVAS_HEIGHT = 514 + 96
+MAIN_CANVAS_HEIGHT = 514 + 59
 
 ZOOM_CANVAS_WIDTH = 1030 + 55
 ZOOM_CANVAS_HEIGHT = 514 + 30

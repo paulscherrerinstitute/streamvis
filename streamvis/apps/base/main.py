@@ -30,11 +30,11 @@ sv_rt = sv.Runtime()
 connected = False
 
 # Currently, it's possible to control only a canvas size, but not a size of the plotting area.
-MAIN_CANVAS_WIDTH = 800 + 54
-MAIN_CANVAS_HEIGHT = 800 + 94
+MAIN_CANVAS_WIDTH = 800 + 55
+MAIN_CANVAS_HEIGHT = 800 + 60
 
-ZOOM_CANVAS_WIDTH = 600 + 54
-ZOOM_CANVAS_HEIGHT = 600 + 29
+ZOOM_CANVAS_WIDTH = 600 + 55
+ZOOM_CANVAS_HEIGHT = 600 + 30
 
 DEBUG_INTENSITY_WIDTH = 700
 
@@ -58,7 +58,9 @@ tick_formatter = BasicTickFormatter(precision=1)
 
 
 # Main plot
-sv_mainplot = sv.ImagePlot()
+sv_mainplot = sv.ImagePlot(
+    plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH,
+)
 
 # ---- add zoom plot
 sv_zoomplot = sv.ImagePlot(

@@ -36,11 +36,11 @@ jf_calib = None
 connected = False
 
 # Currently, it's possible to control only a canvas size, but not a size of the plotting area.
-MAIN_CANVAS_WIDTH = 2250 + 30
-MAIN_CANVAS_HEIGHT = 1900 + 94
+MAIN_CANVAS_WIDTH = 2200 + 55
+MAIN_CANVAS_HEIGHT = 1900 + 64
 
-AGGR_CANVAS_WIDTH = 870 + 30
-AGGR_CANVAS_HEIGHT = 736 + 55
+AGGR_CANVAS_WIDTH = 850 + 55
+AGGR_CANVAS_HEIGHT = 760 + 30
 AGGR_PROJ_X_CANVAS_HEIGHT = 150 + 11
 AGGR_PROJ_Y_CANVAS_WIDTH = 150 + 31
 
@@ -83,7 +83,7 @@ resolution_formatter = CustomJSHover(
         var theta = Math.atan(Math.sqrt(x*x + y*y) * 75e-6 / detector_distance) / 2
         var resolution = 6200 / beam_energy / Math.sin(theta)  // 6200 = 1.24 / 2 / 1e-4
 
-        return String(resolution)
+        return resolution.toFixed(2)
     """
 )
 

@@ -21,7 +21,7 @@ sv_rt = sv.Runtime()
 
 # Currently, it's possible to control only a canvas size, but not a size of the plotting area.
 MAIN_CANVAS_WIDTH = 1000 + 55
-MAIN_CANVAS_HEIGHT = 1000 + 55
+MAIN_CANVAS_HEIGHT = 1000 + 59
 
 APP_FPS = 1
 
@@ -171,10 +171,6 @@ def update_client(image, metadata):
 
 @gen.coroutine
 def internal_periodic_callback():
-    if sv_mainplot.plot.inner_width is None:
-        # wait for the initialization to finish, thus skip this periodic callback
-        return
-
     if sv_rt.current_image.shape != (1, 1):
         doc.add_next_tick_callback(partial(
             update_client, image=sv_rt.current_image, metadata=sv_rt.current_metadata))
