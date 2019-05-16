@@ -62,6 +62,43 @@ sv_mainplot = sv.ImagePlot(
 )
 sv_mainplot.toolbar_location = 'below'
 
+# ---- tools
+experiment_params = ColumnDataSource(data=dict(
+    detector_distance=[np.nan],
+    beam_energy=[np.nan],
+    beam_center_x=[np.nan],
+    beam_center_y=[np.nan]))
+
+resolution_formatter = CustomJSHover(
+    args=dict(params=experiment_params),
+    code="""
+        var detector_distance = params.data.detector_distance
+        var beam_energy = params.data.beam_energy
+        var beam_center_x = params.data.beam_center_x
+        var beam_center_y = params.data.beam_center_y
+
+        var x = special_vars.x - beam_center_x
+        var y = special_vars.y - beam_center_y
+
+        var theta = Math.atan(Math.sqrt(x*x + y*y) * 75e-6 / detector_distance) / 2
+        var resolution = 6200 / beam_energy / Math.sin(theta)  // 6200 = 1.24 / 2 / 1e-4
+
+        return String(resolution)
+    """
+)
+
+hovertool = HoverTool(
+    tooltips=[
+        ("intensity", "@image"),
+        ("resolution", "@x{resolution} Å"),
+    ],
+    formatters=dict(x=resolution_formatter),
+    names=['image_glyph'],
+)
+
+# replace the existing HoverTool
+sv_mainplot.plot.tools[-1] = hovertool
+
 # ---- mask rgba image glyph
 mask_source = ColumnDataSource(
     dict(image=[placeholder_mask], x=[0], y=[0], dw=[image_size_x], dh=[image_size_y]))
@@ -166,39 +203,6 @@ sv_aggrplot = sv.ImagePlot(
 sv_aggrplot.toolbar_location = 'below'
 
 # ---- tools
-experiment_params = ColumnDataSource(data=dict(
-    detector_distance=[np.nan],
-    beam_energy=[np.nan],
-    beam_center_x=[np.nan],
-    beam_center_y=[np.nan]))
-
-resolution_formatter = CustomJSHover(
-    args=dict(params=experiment_params),
-    code="""
-        var detector_distance = params.data.detector_distance
-        var beam_energy = params.data.beam_energy
-        var beam_center_x = params.data.beam_center_x
-        var beam_center_y = params.data.beam_center_y
-
-        var x = special_vars.x - beam_center_x
-        var y = special_vars.y - beam_center_y
-
-        var theta = Math.atan(Math.sqrt(x*x + y*y) * 75e-6 / detector_distance) / 2
-        var resolution = 6200 / beam_energy / Math.sin(theta)  // 6200 = 1.24 / 2 / 1e-4
-
-        return String(resolution)
-    """
-)
-
-hovertool = HoverTool(
-    tooltips=[
-        ("intensity", "@image"),
-        ("resolution", "@x{resolution} Å"),
-    ],
-    formatters=dict(x=resolution_formatter),
-    names=['image_glyph'],
-)
-
 # replace the existing HoverTool
 sv_aggrplot.plot.tools[-1] = hovertool
 
