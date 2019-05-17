@@ -227,6 +227,10 @@ sv_colormapper.color_bar.location = (0, -5)
 sv_mainplot.plot.add_layout(sv_colormapper.color_bar, place='below')
 
 
+# Add mask to all plots
+sv_mask = sv.Mask([sv_mainplot, sv_zoomplot1, sv_zoomplot2])
+
+
 # Histogram zoom plots
 sv_hist = sv.Histogram(nplots=2, plot_height=280, plot_width=sv_zoomplot1.plot.plot_width)
 
@@ -523,7 +527,7 @@ layout_utility = column(
              ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
     row(Spacer(width=850), intensity_stream_reset_button))
 
-layout_controls = column(colormap_panel, data_source_tabs)
+layout_controls = column(colormap_panel, sv_mask.toggle, data_source_tabs)
 
 layout_metadata = column(
     sv_metadata.datatable,
@@ -605,6 +609,10 @@ def update_client(image, metadata, reset, aggr_image):
 
     # Parse metadata
     metadata_toshow = sv_metadata.parse(metadata)
+
+    # Update mask
+    sv_mask.update(metadata.get('pedestal_file'), metadata.get('detector_name'), sv_metadata)
+
     sv_metadata.update(metadata_toshow)
 
 
