@@ -10,6 +10,7 @@ from bokeh.server.server import Server
 logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 def main():
     """The streamvis command line interface.
 
@@ -24,22 +25,13 @@ def main():
             available_apps.append(module_info.name)
 
     parser = argparse.ArgumentParser(
-        prog='streamvis',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        prog='streamvis', formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
 
-    parser.add_argument(
-        'app',
-        type=str,
-        choices=available_apps,
-        help="streamvis application",
-    )
+    parser.add_argument('app', type=str, choices=available_apps, help="streamvis application")
 
     parser.add_argument(
-        '--port',
-        type=int,
-        default=5006,
-        help="the port to listen on for HTTP requests",
+        '--port', type=int, default=5006, help="the port to listen on for HTTP requests"
     )
 
     parser.add_argument(
@@ -72,6 +64,7 @@ def main():
 
     server.start()
     server.io_loop.start()
+
 
 if __name__ == "__main__":
     main()

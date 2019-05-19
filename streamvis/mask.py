@@ -3,12 +3,12 @@ import logging
 import h5py
 import jungfrau_utils as ju
 import numpy as np
-
 from bokeh.models import ColumnDataSource, ImageRGBA, Toggle
 
 placeholder = np.ones((1, 1, 4), dtype='uint8')
 
 logger = logging.getLogger(__name__)
+
 
 class Mask:
     def __init__(self, image_plots):
@@ -16,8 +16,7 @@ class Mask:
         self.mask = None
 
         # ---- rgba image glyph
-        self._source = ColumnDataSource(
-            dict(image=[placeholder], x=[0], y=[0], dw=[1], dh=[1]))
+        self._source = ColumnDataSource(dict(image=[placeholder], x=[0], y=[0], dw=[1], dh=[1]))
 
         rgba_glyph = ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh', global_alpha=0)
 

@@ -3,12 +3,7 @@ from itertools import compress, repeat
 from bokeh.models import ColumnDataSource, DataTable, Dropdown, TableColumn, Toggle
 
 # metadata entries that are always shown (if present)
-default_entries = [
-    'frame',
-    'pulse_id',
-    'is_good_frame',
-    'saturated_pixels',
-]
+default_entries = ['frame', 'pulse_id', 'is_good_frame', 'saturated_pixels']
 
 
 class MetadataHandler:
@@ -22,7 +17,8 @@ class MetadataHandler:
             source=datatable_source,
             columns=[
                 TableColumn(field='metadata', title="Metadata Name"),
-                TableColumn(field='value', title="Value")],
+                TableColumn(field='value', title="Value"),
+            ],
             width=datatable_width,
             height=datatable_height,
             index_position=None,
@@ -60,8 +56,7 @@ class MetadataHandler:
         pulse_id_diff = metadata.get('pulse_id_diff')
         if pulse_id_diff:
             if isinstance(module_enabled, list) and len(module_enabled) != len(pulse_id_diff):
-                self.add_issue(
-                    "Shapes of 'pulse_id_diff' and 'module_enabled' are not the same")
+                self.add_issue("Shapes of 'pulse_id_diff' and 'module_enabled' are not the same")
                 metadata_toshow['module_enabled'] = module_enabled
                 metadata_toshow['pulse_id_diff'] = pulse_id_diff
             else:
@@ -73,7 +68,8 @@ class MetadataHandler:
         if missing_packets_1:
             if isinstance(module_enabled, list) and len(module_enabled) != len(missing_packets_1):
                 self.add_issue(
-                    "Shapes of 'missing_packets_1' and 'module_enabled' are not the same")
+                    "Shapes of 'missing_packets_1' and 'module_enabled' are not the same"
+                )
                 metadata_toshow['module_enabled'] = module_enabled
                 metadata_toshow['missing_packets_1'] = missing_packets_1
             else:
@@ -85,7 +81,8 @@ class MetadataHandler:
         if missing_packets_2:
             if isinstance(module_enabled, list) and len(module_enabled) != len(missing_packets_2):
                 self.add_issue(
-                    "Shapes of 'missing_packets_2' and 'module_enabled' are not the same")
+                    "Shapes of 'missing_packets_2' and 'module_enabled' are not the same"
+                )
                 metadata_toshow['module_enabled'] = module_enabled
                 metadata_toshow['missing_packets_2'] = missing_packets_2
             else:
@@ -121,8 +118,10 @@ class MetadataHandler:
 
         # A special case of saturated pixels only
         if self._issues_menu:
-            if ('There are saturated pixels', '') in self._issues_menu and \
-                len(self._issues_menu) == 1:
+            if (
+                len(self._issues_menu) == 1
+                and ('There are saturated pixels', '') in self._issues_menu
+            ):
                 self.issues_dropdown.button_type = 'warning'
             else:
                 self.issues_dropdown.button_type = 'danger'

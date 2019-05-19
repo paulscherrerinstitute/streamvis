@@ -1,7 +1,16 @@
 import colorcet as cc
 import numpy as np
-from bokeh.models import BasicTicker, ColorBar, LinearColorMapper, \
-    LogColorMapper, LogTicker, RadioButtonGroup, Select, Spinner, Toggle
+from bokeh.models import (
+    BasicTicker,
+    ColorBar,
+    LinearColorMapper,
+    LogColorMapper,
+    LogTicker,
+    RadioButtonGroup,
+    Select,
+    Spinner,
+    Toggle,
+)
 from bokeh.palettes import Cividis256, Greys256, Plasma256  # pylint: disable=E0611
 
 cmap_dict = {
@@ -19,15 +28,11 @@ class ColorMapper:
         self._disp_max = init_disp_max
 
         lin_colormapper = LinearColorMapper(
-            palette=cmap_dict[init_colormap],
-            low=init_disp_min,
-            high=init_disp_max,
+            palette=cmap_dict[init_colormap], low=init_disp_min, high=init_disp_max
         )
 
         log_colormapper = LogColorMapper(
-            palette=cmap_dict[init_colormap],
-            low=init_disp_min,
-            high=init_disp_max,
+            palette=cmap_dict[init_colormap], low=init_disp_min, high=init_disp_max
         )
 
         for image_plot in image_plots:
@@ -49,11 +54,7 @@ class ColorMapper:
                 lin_colormapper.palette = cmap_dict[new]
                 log_colormapper.palette = cmap_dict[new]
 
-        select = Select(
-            title="Colormap:",
-            value=init_colormap,
-            options=list(cmap_dict.keys()),
-        )
+        select = Select(title="Colormap:", value=init_colormap, options=list(cmap_dict.keys()))
         select.on_change('value', select_callback)
         self.select = select
 
@@ -105,7 +106,9 @@ class ColorMapper:
                 display_max_spinner.value = old_value
 
         display_max_spinner = Spinner(
-            title='Maximal Display Value:', value=init_disp_max, step=0.1,
+            title='Maximal Display Value:',
+            value=init_disp_max,
+            step=0.1,
             disabled=auto_toggle.active,
         )
         display_max_spinner.on_change('value', display_max_spinner_callback)
@@ -125,7 +128,9 @@ class ColorMapper:
                 display_min_spinner.value = old_value
 
         display_min_spinner = Spinner(
-            title='Minimal Display Value:', value=init_disp_min, step=0.1,
+            title='Minimal Display Value:',
+            value=init_disp_min,
+            step=0.1,
             disabled=auto_toggle.active,
         )
         display_min_spinner.on_change('value', display_min_spinner_callback)

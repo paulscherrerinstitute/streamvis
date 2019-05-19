@@ -1,17 +1,37 @@
 import numpy as np
 from bokeh.events import Reset
-from bokeh.models import BasicTicker, ColumnDataSource, CustomJS, Grid, HoverTool, Image, \
-    LinearAxis, PanTool, Plot, Quad, Range1d, ResetTool, SaveTool, Text, WheelZoomTool
+from bokeh.models import (
+    BasicTicker,
+    ColumnDataSource,
+    CustomJS,
+    Grid,
+    HoverTool,
+    Image,
+    LinearAxis,
+    PanTool,
+    Plot,
+    Quad,
+    Range1d,
+    ResetTool,
+    SaveTool,
+    Text,
+    WheelZoomTool,
+)
 from PIL import Image as PIL_Image
 
 
 class ImagePlot:
-    """it's possible to control only a canvas size, but not a size of the plot area
-    """
     def __init__(
-            self, plot_height=894, plot_width=854, image_height=100, image_width=100,
-            x_start=None, x_end=None, y_start=None, y_end=None,
-        ):
+        self,
+        plot_height=894,
+        plot_width=854,
+        image_height=100,
+        image_width=100,
+        x_start=None,
+        x_end=None,
+        y_start=None,
+        y_end=None,
+    ):
         if x_start is None:
             x_start = 0
 
@@ -42,19 +62,10 @@ class ImagePlot:
         # ---- tools
         plot.toolbar.logo = None
 
-        hovertool = HoverTool(
-            tooltips=[
-                ("intensity", "@image"),
-            ],
-            names=['image_glyph'],
-        )
+        hovertool = HoverTool(tooltips=[("intensity", "@image")], names=['image_glyph'])
 
         plot.add_tools(
-            PanTool(),
-            WheelZoomTool(maintain_focus=False),
-            SaveTool(),
-            ResetTool(),
-            hovertool,
+            PanTool(), WheelZoomTool(maintain_focus=False), SaveTool(), ResetTool(), hovertool
         )
         plot.toolbar.active_scroll = plot.tools[1]
 
@@ -67,13 +78,21 @@ class ImagePlot:
         plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
         # ---- rgba image glyph
-        self._image_source = ColumnDataSource(dict(
-            image=[np.zeros((1, 1), dtype='float32')],
-            x=[x_start], y=[y_start], dw=[x_end - x_start], dh=[y_end - y_start],
-            full_dw=[image_width], full_dh=[image_height],
-            reset_x_start=[x_start], reset_x_end=[x_end],
-            reset_y_start=[y_start], reset_y_end=[y_end],
-        ))
+        self._image_source = ColumnDataSource(
+            dict(
+                image=[np.zeros((1, 1), dtype='float32')],
+                x=[x_start],
+                y=[y_start],
+                dw=[x_end - x_start],
+                dh=[y_end - y_start],
+                full_dw=[image_width],
+                full_dh=[image_height],
+                reset_x_start=[x_start],
+                reset_x_end=[x_end],
+                reset_y_start=[y_start],
+                reset_y_end=[y_end],
+            )
+        )
 
         self.image_glyph = Image(image='image', x='x', y='y', dw='dw', dh='dh')
         image_renderer = plot.add_glyph(self._image_source, self.image_glyph, name='image_glyph')
@@ -86,10 +105,15 @@ class ImagePlot:
         # ---- pixel value text glyph
         self._pvalue_source = ColumnDataSource(dict(x=[], y=[], text=[]))
         plot.add_glyph(
-            self._pvalue_source, Text(
-                x='x', y='y', text='text', text_align='center', text_baseline='middle',
+            self._pvalue_source,
+            Text(
+                x='x',
+                y='y',
+                text='text',
+                text_align='center',
+                text_baseline='middle',
                 text_color='white',
-            )
+            ),
         )
 
         # ---- overwrite reset tool behavior
@@ -112,14 +136,23 @@ class ImagePlot:
 
     def add_as_zoom(self, image_plot, line_color='red'):
         # ---- add quad glyph of zoom area to the main plot
-        area_source = ColumnDataSource(dict(
-            left=[image_plot.x_start], right=[image_plot.x_end],
-            bottom=[image_plot.y_start], top=[image_plot.y_end],
-        ))
+        area_source = ColumnDataSource(
+            dict(
+                left=[image_plot.x_start],
+                right=[image_plot.x_end],
+                bottom=[image_plot.y_start],
+                top=[image_plot.y_end],
+            )
+        )
 
         area_rect = Quad(
-            left='left', right='right', bottom='bottom', top='top',
-            line_color=line_color, line_width=2, fill_alpha=0,
+            left='left',
+            right='right',
+            bottom='bottom',
+            top='top',
+            line_color=line_color,
+            line_width=2,
+            fill_alpha=0,
         )
         self.plot.add_glyph(area_source, area_rect)
 
@@ -131,10 +164,12 @@ class ImagePlot:
         """
 
         image_plot.plot.x_range.callback = CustomJS(
-            args=dict(source=area_source), code=jscode_move_zoom % ('left', 'right'))
+            args=dict(source=area_source), code=jscode_move_zoom % ('left', 'right')
+        )
 
         image_plot.plot.y_range.callback = CustomJS(
-            args=dict(source=area_source), code=jscode_move_zoom % ('bottom', 'top'))
+            args=dict(source=area_source), code=jscode_move_zoom % ('bottom', 'top')
+        )
 
         self.zoom_plots.append(image_plot)
 
@@ -142,13 +177,18 @@ class ImagePlot:
         if pil_image is None:
             pil_image = PIL_Image.fromarray(image)
 
-        if self._image_source.data['full_dh'][0] != pil_image.height or \
-            self._image_source.data['full_dw'][0] != pil_image.width:
+        if (
+            self._image_source.data['full_dh'][0] != pil_image.height
+            or self._image_source.data['full_dw'][0] != pil_image.width
+        ):
 
             self._image_source.data.update(
-                full_dw=[pil_image.width], full_dh=[pil_image.height],
-                reset_x_start=[0], reset_x_end=[pil_image.width],
-                reset_y_start=[0], reset_y_end=[pil_image.height]
+                full_dw=[pil_image.width],
+                full_dh=[pil_image.height],
+                reset_x_start=[0],
+                reset_x_end=[pil_image.width],
+                reset_y_start=[0],
+                reset_y_end=[pil_image.height],
             )
 
             self.plot.y_range.start = 0
@@ -174,8 +214,10 @@ class ImagePlot:
 
         self._image_source.data.update(
             image=[resized_image],
-            x=[self.x_start], y=[self.y_start],
-            dw=[self.x_end - self.x_start], dh=[self.y_end - self.y_start],
+            x=[self.x_start],
+            y=[self.y_start],
+            dw=[self.x_end - self.x_start],
+            dh=[self.y_end - self.y_start],
         )
 
         # Draw numbers
@@ -189,16 +231,16 @@ class ImagePlot:
         if canvas_pix_ratio_x > 50 and canvas_pix_ratio_y > 50:
             textv = image[pval_y_start:pval_y_end, pval_x_start:pval_x_end].astype('int')
             xv, yv = np.meshgrid(
-                np.arange(pval_x_start, pval_x_end), np.arange(pval_y_start, pval_y_end))
+                np.arange(pval_x_start, pval_x_end), np.arange(pval_y_start, pval_y_end)
+            )
             self._pvalue_source.data.update(
-                x=xv.flatten() + 0.5,
-                y=yv.flatten() + 0.5,
-                text=textv.flatten())
+                x=xv.flatten() + 0.5, y=yv.flatten() + 0.5, text=textv.flatten()
+            )
         else:
             self._pvalue_source.data.update(x=[], y=[], text=[])
 
         if self.zoom_plots:
-            resized_image = [resized_image, ]
+            resized_image = [resized_image]
             for zoom_plot in self.zoom_plots:
                 zoom_resized_image = zoom_plot.update(image, pil_image)
                 resized_image.append(zoom_resized_image)

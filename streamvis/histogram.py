@@ -1,15 +1,28 @@
 import math
 
 import numpy as np
-from bokeh.models import BasicTicker, BoxZoomTool, ColumnDataSource, DataRange1d, Grid, \
-    LinearAxis, PanTool, Plot, Quad, ResetTool, SaveTool, Spinner, Toggle, WheelZoomTool
+from bokeh.models import (
+    BasicTicker,
+    BoxZoomTool,
+    ColumnDataSource,
+    DataRange1d,
+    Grid,
+    LinearAxis,
+    PanTool,
+    Plot,
+    Quad,
+    ResetTool,
+    SaveTool,
+    Spinner,
+    Toggle,
+    WheelZoomTool,
+)
 
 
 class Histogram:
     def __init__(
-            self, nplots, plot_height=350, plot_width=700,
-            init_lower=0, init_upper=1000, init_nbins=100,
-        ):
+        self, nplots, plot_height=350, plot_width=700, init_lower=0, init_upper=1000, init_nbins=100
+    ):
 
         self._lower = init_lower
         self._upper = init_upper
@@ -41,8 +54,7 @@ class Histogram:
             # ---- axes
             plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
             plot.add_layout(
-                LinearAxis(axis_label="Counts", major_label_orientation='vertical'),
-                place='left',
+                LinearAxis(axis_label="Counts", major_label_orientation='vertical'), place='left'
             )
 
             # ---- grid lines
@@ -83,8 +95,7 @@ class Histogram:
                 lower_spinner.value = old_value
 
         lower_spinner = Spinner(
-            title='Lower Range:', value=self._lower, step=0.1,
-            disabled=auto_toggle.active,
+            title='Lower Range:', value=self._lower, step=0.1, disabled=auto_toggle.active
         )
         lower_spinner.on_change('value', lower_spinner_callback)
         self.lower_spinner = lower_spinner
@@ -98,8 +109,7 @@ class Histogram:
                 upper_spinner.value = old_value
 
         upper_spinner = Spinner(
-            title='Upper Range:', value=self._upper, step=0.1,
-            disabled=auto_toggle.active,
+            title='Upper Range:', value=self._upper, step=0.1, disabled=auto_toggle.active
         )
         upper_spinner.on_change('value', upper_spinner_callback)
         self.upper_spinner = upper_spinner
@@ -146,7 +156,7 @@ class Histogram:
         for ind in range(len(self.plots)):
             data_i = input_data[ind]
             counts, edges = np.histogram(
-                data_i[data_i != 0], bins=self._nbins, range=(self._lower, self._upper),
+                data_i[data_i != 0], bins=self._nbins, range=(self._lower, self._upper)
             )
 
             if self.log10counts_toggle.active:
@@ -158,5 +168,5 @@ class Histogram:
                 self._counts[ind] = counts
 
             self._plot_sources[ind].data.update(
-                left=edges[:-1], right=edges[1:], top=self._counts[ind],
+                left=edges[:-1], right=edges[1:], top=self._counts[ind]
             )
