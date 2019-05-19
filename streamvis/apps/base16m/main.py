@@ -17,7 +17,6 @@ from bokeh.models import (
     Cross,
     CustomJSHover,
     DataRange1d,
-    DataTable,
     DatetimeAxis,
     Ellipse,
     Grid,
@@ -25,7 +24,6 @@ from bokeh.models import (
     Legend,
     Line,
     LinearAxis,
-    NumberFormatter,
     Panel,
     PanTool,
     Plot,
@@ -34,7 +32,6 @@ from bokeh.models import (
     SaveTool,
     Slider,
     Spacer,
-    TableColumn,
     Tabs,
     TapTool,
     Text,
@@ -487,77 +484,6 @@ show_only_hits_toggle = Toggle(label="Show Only Hits", button_type='default')
 sv_metadata = sv.MetadataHandler(datatable_height=360, datatable_width=650)
 
 
-# Statistics datatables
-stats_table_columns = [
-    TableColumn(field='run_names', title="Run Name"),
-    TableColumn(field='nframes', title="Total Frames"),
-    TableColumn(field='bad_frames', title="Bad Frames"),
-    TableColumn(field='sat_pix_nframes', title="Sat pix frames"),
-    TableColumn(field='laser_on_nframes', title="Laser ON frames"),
-    TableColumn(field='laser_on_hits', title="Laser ON hits"),
-    TableColumn(
-        field='laser_on_hits_ratio',
-        title="Laser ON hits ratio",
-        formatter=NumberFormatter(format='(0.00 %)'),
-    ),
-    TableColumn(field='laser_off_nframes', title="Laser OFF frames"),
-    TableColumn(field='laser_off_hits', title="Laser OFF hits"),
-    TableColumn(
-        field='laser_off_hits_ratio',
-        title="Laser OFF hits ratio",
-        formatter=NumberFormatter(format='(0.00 %)'),
-    ),
-]
-
-stats_table_source = ColumnDataSource(receiver.stats_table_dict)
-stats_table = DataTable(
-    source=stats_table_source,
-    columns=stats_table_columns,
-    width=1380,
-    height=750,
-    index_position=None,
-    selectable=False,
-)
-
-sum_stats_table_source = ColumnDataSource(receiver.sum_stats_table_dict)
-sum_stats_table = DataTable(
-    source=sum_stats_table_source,
-    columns=stats_table_columns,
-    width=1380,
-    height=50,
-    index_position=None,
-    selectable=False,
-)
-
-# ---- reset statistics button
-def reset_stats_table_button_callback():
-    receiver.run_name = ''
-
-    receiver.run_names.clear()
-    receiver.nframes.clear()
-    receiver.bad_frames.clear()
-    receiver.sat_pix_nframes.clear()
-    receiver.laser_on_nframes.clear()
-    receiver.laser_on_hits.clear()
-    receiver.laser_on_hits_ratio.clear()
-    receiver.laser_off_nframes.clear()
-    receiver.laser_off_hits.clear()
-    receiver.laser_off_hits_ratio.clear()
-
-    receiver.sum_nframes[0] = 0
-    receiver.sum_bad_frames[0] = 0
-    receiver.sum_sat_pix_nframes[0] = 0
-    receiver.sum_laser_on_nframes[0] = 0
-    receiver.sum_laser_on_hits[0] = 0
-    receiver.sum_laser_on_hits_ratio[0] = 0
-    receiver.sum_laser_off_nframes[0] = 0
-    receiver.sum_laser_off_hits[0] = 0
-    receiver.sum_laser_off_hits_ratio[0] = 0
-
-
-reset_stats_table_button = Button(label="Reset Statistics", button_type='default')
-reset_stats_table_button.on_click(reset_stats_table_button_callback)
-
 # Custom tabs
 layout_intensity = column(
     gridplot(
@@ -596,12 +522,8 @@ debug_tab = Panel(
 
 scan_tab = Panel(child=column(trajectory_plot, hitrate_plot), title="SwissMX")
 
-statistics_tab = Panel(
-    child=column(stats_table, sum_stats_table, reset_stats_table_button), title="Statistics"
-)
-
 # assemble
-custom_tabs = Tabs(tabs=[debug_tab, scan_tab, statistics_tab], height=960, width=1400)
+custom_tabs = Tabs(tabs=[debug_tab, scan_tab], height=960, width=1400)
 
 
 # Final layouts
@@ -747,11 +669,6 @@ def update_client(image, metadata):
         main_image_rings_center_source.data.update(x=[], y=[])
 
     sv_metadata.update(metadata_toshow)
-
-    # Update statistics tab
-    if custom_tabs.tabs[custom_tabs.active].title == "Statistics":
-        stats_table_source.data = receiver.stats_table_dict
-        sum_stats_table_source.data = receiver.sum_stats_table_dict
 
 
 @gen.coroutine

@@ -4,7 +4,7 @@ import os
 import pkgutil
 
 from bokeh.application.application import Application
-from bokeh.application.handlers import DirectoryHandler
+from bokeh.application.handlers import DirectoryHandler, ScriptHandler
 from bokeh.server.server import Server
 
 logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
@@ -55,11 +55,18 @@ def main():
     app_path = os.path.join(apps_path, args.app)
     logger.info(app_path)
 
+    applications = dict()  # List of bokeh applications
+
     handler = DirectoryHandler(filename=app_path, argv=args.args)
+    applications['/'] = Application(handler)
+
+    statistics_file = os.path.join(app_path, 'statistics.py')
+    if os.path.isfile(statistics_file):
+        statistics_handler = ScriptHandler(filename=statistics_file)
+        applications['/statistics'] = Application(statistics_handler)
+
     server = Server(
-        {'/': Application(handler)},
-        port=args.port,
-        allow_websocket_origin=args.allow_websocket_origin,
+        applications, port=args.port, allow_websocket_origin=args.allow_websocket_origin
     )
 
     server.start()
