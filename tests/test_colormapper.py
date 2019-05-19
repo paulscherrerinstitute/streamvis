@@ -1,13 +1,21 @@
 import numpy as np
+
 import pytest
-
 import streamvis as sv
-
 
 test_image = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float32)
 test_disp_ranges = [
-    (2, 4), (1, 6), (1, 7), (0, 6), (0, 2000), (100, 101), (-100, 100), (-100, 1), (-42, -1),
+    (2, 4),
+    (1, 6),
+    (1, 7),
+    (0, 6),
+    (0, 2000),
+    (100, 101),
+    (-100, 100),
+    (-100, 1),
+    (-42, -1),
 ]
+
 
 @pytest.mark.parametrize("init_disp_min,init_disp_max", test_disp_ranges)
 def test_update_lin_auto(init_disp_min, init_disp_max):
@@ -19,6 +27,7 @@ def test_update_lin_auto(init_disp_min, init_disp_max):
     assert sv_cm.display_min_spinner.value == 1
     assert sv_cm.display_max_spinner.value == 6
 
+
 @pytest.mark.parametrize("init_disp_min,init_disp_max", test_disp_ranges)
 def test_update_lin_no_auto(init_disp_min, init_disp_max):
     im = sv.ImagePlot()
@@ -27,6 +36,7 @@ def test_update_lin_no_auto(init_disp_min, init_disp_max):
 
     assert sv_cm.display_min_spinner.value == init_disp_min
     assert sv_cm.display_max_spinner.value == init_disp_max
+
 
 @pytest.mark.parametrize("init_disp_min,init_disp_max", test_disp_ranges)
 def test_update_log_auto(init_disp_min, init_disp_max):
@@ -38,6 +48,7 @@ def test_update_log_auto(init_disp_min, init_disp_max):
 
     assert sv_cm.display_min_spinner.value == 1
     assert sv_cm.display_max_spinner.value == 6
+
 
 @pytest.mark.parametrize("init_disp_min,init_disp_max", test_disp_ranges)
 def test_update_log_no_auto(init_disp_min, init_disp_max):

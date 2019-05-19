@@ -32,28 +32,26 @@ elif args.stream == 'bernina-16m':
 
 def simul_image_gen(sim_im_size_x=im_size_x, sim_im_size_y=im_size_y, dtype=np.uint16):
     cx = np.array(
-        [sim_im_size_x*3/4, sim_im_size_x/4, sim_im_size_x/4, sim_im_size_x*3/4],
+        [sim_im_size_x * 3 / 4, sim_im_size_x / 4, sim_im_size_x / 4, sim_im_size_x * 3 / 4],
         dtype='int',
     )
     cy = np.array(
-        [sim_im_size_y*3/4, sim_im_size_y*3/4, sim_im_size_y/4, sim_im_size_y/4],
+        [sim_im_size_y * 3 / 4, sim_im_size_y * 3 / 4, sim_im_size_y / 4, sim_im_size_y / 4],
         dtype='int',
     )
     sx = np.array(
-        [sim_im_size_x/12, sim_im_size_x/9, sim_im_size_x/7, sim_im_size_x/5],
-        dtype='int',
+        [sim_im_size_x / 12, sim_im_size_x / 9, sim_im_size_x / 7, sim_im_size_x / 5], dtype='int'
     )
     sy = np.array(
-        [sim_im_size_y/12, sim_im_size_y/9, sim_im_size_y/7, sim_im_size_y/5],
-        dtype='int',
+        [sim_im_size_y / 12, sim_im_size_y / 9, sim_im_size_y / 7, sim_im_size_y / 5], dtype='int'
     )
 
     images = []
     for i in range(4):
         _im = np.random.uniform(0, 90, size=(sim_im_size_y, sim_im_size_x)).astype(dtype)
-        _im[cy[i]-sy[i]:cy[i]+sy[i], cx[i]-sx[i]:cx[i]+sx[i]] += \
-            np.random.uniform(0, 30, size=(2*sy[i], 2*sx[i])).astype(dtype) + \
-            2*np.arange(2*sx[i], dtype=dtype)
+        _im[cy[i] - sy[i] : cy[i] + sy[i], cx[i] - sx[i] : cx[i] + sx[i]] += np.random.uniform(
+            0, 30, size=(2 * sy[i], 2 * sx[i])
+        ).astype(dtype) + 2 * np.arange(2 * sx[i], dtype=dtype)
         _im[100:200, 150:250] = 0
         images.append(_im.astype(dtype, copy=False))
 
@@ -64,7 +62,7 @@ def send_array(socket, array, frame_num, pulseid, flags=0, copy=False, track=Fal
     """send a numpy array with metadata"""
     n_spots = int(np.random.uniform(0, 20))
     md = dict(
-        htype=["array-1.0", ],
+        htype=["array-1.0"],
         type=str(array.dtype),
         shape=array.shape,
         frame=frame_num,
@@ -75,8 +73,8 @@ def send_array(socket, array, frame_num, pulseid, flags=0, copy=False, track=Fal
         is_good_frame=int(np.random.uniform(0, 2)),
         module_enabled=[1, 0, 1],
         number_of_spots=n_spots,
-        spot_x=list(np.random.rand(n_spots)*1000),
-        spot_y=list(np.random.rand(n_spots)*1000),
+        spot_x=list(np.random.rand(n_spots) * 1000),
+        spot_y=list(np.random.rand(n_spots) * 1000),
         pedestal_file='/test_path/pedestal_20181206_0754.JF06T32V01.res.h5',
         detector_name='JF06T32V01',
         run_name='run_001',
@@ -84,9 +82,9 @@ def send_array(socket, array, frame_num, pulseid, flags=0, copy=False, track=Fal
         beam_energy=4570.0,
         beam_center_x=2215,
         beam_center_y=2108,
-        swissmx_x=frame_num%10,
-        swissmx_y=frame_num//10,
-        laser_on=(frame_num%4 == 0),
+        swissmx_x=frame_num % 10,
+        swissmx_y=frame_num // 10,
+        laser_on=(frame_num % 4 == 0),
         saturated_pixels=int(np.random.uniform(0, 3)),
     )
 
