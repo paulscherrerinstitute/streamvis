@@ -6,9 +6,30 @@ import jungfrau_utils as ju
 import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, \
-    ColumnDataSource, CustomJS, DataRange1d, DatetimeAxis, Grid, Line, LinearAxis, Panel, \
-    PanTool, Plot, ResetTool, Slider, Spacer, Spinner, Tabs, TextInput, Toggle, WheelZoomTool
+from bokeh.models import (
+    BasicTicker,
+    BasicTickFormatter,
+    BoxZoomTool,
+    Button,
+    ColumnDataSource,
+    CustomJS,
+    DataRange1d,
+    DatetimeAxis,
+    Grid,
+    Line,
+    LinearAxis,
+    Panel,
+    PanTool,
+    Plot,
+    ResetTool,
+    Slider,
+    Spacer,
+    Spinner,
+    Tabs,
+    TextInput,
+    Toggle,
+    WheelZoomTool,
+)
 from tornado import gen
 
 import receiver
@@ -58,14 +79,10 @@ tick_formatter = BasicTickFormatter(precision=1)
 
 
 # Main plot
-sv_mainplot = sv.ImagePlot(
-    plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH,
-)
+sv_mainplot = sv.ImagePlot(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
 
 # ---- add zoom plot
-sv_zoomplot = sv.ImagePlot(
-    plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH,
-)
+sv_zoomplot = sv.ImagePlot(plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH)
 
 sv_mainplot.add_as_zoom(sv_zoomplot)
 
@@ -88,8 +105,8 @@ zoom1_plot_agg_x.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
 # ---- line glyph
 zoom1_agg_x_source = ColumnDataSource(
-    dict(x=np.arange(image_size_x) + 0.5,  # shift to a pixel center
-         y=np.zeros(image_size_x)))
+    dict(x=np.arange(image_size_x) + 0.5, y=np.zeros(image_size_x))  # shift to a pixel center
+)
 
 zoom1_plot_agg_x.add_glyph(zoom1_agg_x_source, Line(x='x', y='y', line_color='steelblue'))
 
@@ -113,8 +130,8 @@ zoom1_plot_agg_y.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
 # ---- line glyph
 zoom1_agg_y_source = ColumnDataSource(
-    dict(x=np.zeros(image_size_y),
-         y=np.arange(image_size_y) + 0.5))  # shift to a pixel center
+    dict(x=np.zeros(image_size_y), y=np.arange(image_size_y) + 0.5)  # shift to a pixel center
+)
 
 zoom1_plot_agg_y.add_glyph(zoom1_agg_y_source, Line(x='x', y='y', line_color='steelblue'))
 
@@ -146,11 +163,13 @@ total_intensity_plot = Plot(
 
 # ---- tools
 total_intensity_plot.add_tools(
-    PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool())
+    PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool()
+)
 
 # ---- axes
 total_intensity_plot.add_layout(
-    LinearAxis(axis_label="Image intensity", formatter=tick_formatter), place='left')
+    LinearAxis(axis_label="Image intensity", formatter=tick_formatter), place='left'
+)
 total_intensity_plot.add_layout(DatetimeAxis(major_label_text_font_size='0pt'), place='below')
 
 # ---- grid lines
@@ -172,11 +191,13 @@ zoom1_intensity_plot = Plot(
 
 # ---- tools
 zoom1_intensity_plot.add_tools(
-    PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool())
+    PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool()
+)
 
 # ---- axes
 zoom1_intensity_plot.add_layout(
-    LinearAxis(axis_label="Zoom Intensity", formatter=tick_formatter), place='left')
+    LinearAxis(axis_label="Zoom Intensity", formatter=tick_formatter), place='left'
+)
 zoom1_intensity_plot.add_layout(DatetimeAxis(), place='below')
 
 # ---- grid lines
@@ -194,6 +215,7 @@ def intensity_stream_reset_button_callback():
     total_sum_source.data.update(x=[stream_t], y=[total_sum_source.data['y'][-1]])
     zoom1_sum_source.data.update(x=[stream_t], y=[zoom1_sum_source.data['y'][-1]])
 
+
 intensity_stream_reset_button = Button(label="Reset", button_type='default')
 intensity_stream_reset_button.on_click(intensity_stream_reset_button_callback)
 
@@ -204,15 +226,17 @@ def image_buffer_slider_callback(_attr, _old, new):
     md, image = receiver.data_buffer[round(new['value'][0])]
     doc.add_next_tick_callback(partial(update_client, image=image, metadata=md))
 
+
 image_buffer_slider_source = ColumnDataSource(dict(value=[]))
 image_buffer_slider_source.on_change('data', image_buffer_slider_callback)
 
 image_buffer_slider = Slider(
-    start=0, end=1, value=0, step=1, title="Buffered Image", callback_policy='mouseup')
+    start=0, end=1, value=0, step=1, title="Buffered Image", callback_policy='mouseup'
+)
 
 image_buffer_slider.callback = CustomJS(
-    args=dict(source=image_buffer_slider_source),
-    code="""source.data = {value: [cb_obj.value]}""")
+    args=dict(source=image_buffer_slider_source), code="""source.data = {value: [cb_obj.value]}"""
+)
 
 # ---- connect toggle button
 def stream_button_callback(state):
@@ -258,6 +282,7 @@ def threshold_button_callback(state):
         threshold_flag = False
         threshold_button.button_type = 'default'
 
+
 threshold_button = Toggle(label="Apply Thresholding", active=threshold_flag)
 if threshold_flag:
     threshold_button.button_type = 'primary'
@@ -270,6 +295,7 @@ threshold_button.on_click(threshold_button_callback)
 def threshold_spinner_callback(_attr, _old_value, new_value):
     global threshold
     threshold = new_value
+
 
 threshold_spinner = Spinner(title='Intensity Threshold:', value=threshold, step=0.1)
 threshold_spinner.on_change('value', threshold_spinner_callback)
@@ -284,6 +310,7 @@ def aggregate_button_callback(state):
     else:
         aggregate_flag = False
         aggregate_button.button_type = 'default'
+
 
 aggregate_button = Toggle(label="Apply Aggregation", active=aggregate_flag)
 if aggregate_flag:
@@ -304,13 +331,14 @@ def aggregate_time_spinner_callback(_attr, old_value, new_value):
     else:
         aggregate_time_spinner.value = old_value
 
+
 aggregate_time_spinner = Spinner(title='Aggregate Time:', value=aggregate_time, low=0, step=1)
 aggregate_time_spinner.on_change('value', aggregate_time_spinner_callback)
 
 
 # Aggregate time counter value textinput
 aggregate_time_counter_textinput = TextInput(
-    title='Aggregate Counter:', value=str(aggregate_counter), disabled=True,
+    title='Aggregate Counter:', value=str(aggregate_counter), disabled=True
 )
 
 
@@ -321,30 +349,37 @@ sv_metadata = sv.MetadataHandler()
 # Final layouts
 layout_main = column(sv_mainplot.plot)
 
-layout_zoom = column(
-    zoom1_plot_agg_x,
-    row(sv_zoomplot.plot, zoom1_plot_agg_y))
+layout_zoom = column(zoom1_plot_agg_x, row(sv_zoomplot.plot, zoom1_plot_agg_y))
 
 layout_utility = column(
-    gridplot([total_intensity_plot, zoom1_intensity_plot],
-             ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
-    row(Spacer(), intensity_stream_reset_button))
+    gridplot(
+        [total_intensity_plot, zoom1_intensity_plot],
+        ncols=1,
+        toolbar_location='left',
+        toolbar_options=dict(logo=None),
+    ),
+    row(Spacer(), intensity_stream_reset_button),
+)
 
 layout_controls = column(colormap_panel, sv_mask.toggle, data_source_tabs)
 
 layout_threshold_aggr = column(
-    threshold_button, threshold_spinner,
+    threshold_button,
+    threshold_spinner,
     Spacer(height=30),
-    aggregate_button, aggregate_time_spinner, aggregate_time_counter_textinput)
+    aggregate_button,
+    aggregate_time_spinner,
+    aggregate_time_counter_textinput,
+)
 
 layout_metadata = column(
-    sv_metadata.datatable,
-    row(sv_metadata.show_all_toggle, sv_metadata.issues_dropdown),
+    sv_metadata.datatable, row(sv_metadata.show_all_toggle, sv_metadata.issues_dropdown)
 )
 
 final_layout = column(
     row(layout_main, layout_controls, column(layout_metadata, layout_utility)),
-    row(layout_zoom, layout_threshold_aggr, sv_hist.plots[0]))
+    row(layout_zoom, layout_threshold_aggr, sv_hist.plots[0]),
+)
 
 doc.add_root(final_layout)
 
@@ -381,10 +416,12 @@ def update_client(image, metadata, reset, aggr_image):
 
     stream_t = datetime.now()
     zoom1_sum_source.stream(
-        new_data=dict(x=[stream_t], y=[total_sum_zoom]), rollover=STREAM_ROLLOVER)
+        new_data=dict(x=[stream_t], y=[total_sum_zoom]), rollover=STREAM_ROLLOVER
+    )
     total_sum_source.stream(
         new_data=dict(x=[stream_t], y=[np.sum(aggr_image, dtype=np.float)]),
-        rollover=STREAM_ROLLOVER)
+        rollover=STREAM_ROLLOVER,
+    )
 
     # Parse and update metadata
     metadata_toshow = sv_metadata.parse(metadata)
@@ -459,9 +496,13 @@ def internal_periodic_callback():
     if sv_rt.current_image.shape != (1, 1):
         doc.add_next_tick_callback(
             partial(
-                update_client, image=sv_rt.current_image, metadata=sv_rt.current_metadata,
-                reset=reset, aggr_image=aggregated_image,
+                update_client,
+                image=sv_rt.current_image,
+                metadata=sv_rt.current_metadata,
+                reset=reset,
+                aggr_image=aggregated_image,
             )
         )
+
 
 doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)

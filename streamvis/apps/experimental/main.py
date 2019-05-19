@@ -4,8 +4,17 @@ from functools import partial
 import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, row
-from bokeh.models import Button, ColumnDataSource, CustomJS, \
-    Dropdown, Panel, Slider, Spacer, Tabs, TextInput
+from bokeh.models import (
+    Button,
+    ColumnDataSource,
+    CustomJS,
+    Dropdown,
+    Panel,
+    Slider,
+    Spacer,
+    Tabs,
+    TextInput,
+)
 from tornado import gen
 
 import streamvis as sv
@@ -32,9 +41,7 @@ hdf5_file_data = lambda pulse: None
 
 
 # Main plot
-sv_mainplot = sv.ImagePlot(
-    plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH,
-)
+sv_mainplot = sv.ImagePlot(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
 
 
 # Create colormapper
@@ -60,11 +67,13 @@ def hdf5_file_path_update():
                     new_menu.append((entry.name, entry.name))
     saved_runs_dropdown.menu = sorted(new_menu)
 
+
 doc.add_periodic_callback(hdf5_file_path_update, HDF5_FILE_PATH_UPDATE_PERIOD)
 
 # ---- folder path text input
 def hdf5_file_path_callback(_attr, _old, _new):
     hdf5_file_path_update()
+
 
 hdf5_file_path = TextInput(title="Folder Path:", value=HDF5_FILE_PATH)
 hdf5_file_path.on_change('value', hdf5_file_path_callback)
@@ -72,6 +81,7 @@ hdf5_file_path.on_change('value', hdf5_file_path_callback)
 # ---- saved runs dropdown menu
 def saved_runs_dropdown_callback(selection):
     saved_runs_dropdown.label = selection
+
 
 saved_runs_dropdown = Dropdown(label="Saved Runs", menu=[])
 saved_runs_dropdown.on_click(saved_runs_dropdown_callback)
@@ -84,10 +94,12 @@ def mx_image(file, dataset, i):
     # hdf5plugin is required to be loaded prior to h5py without a follow-up use
     import hdf5plugin  # pylint: disable=W0611
     import h5py
+
     with h5py.File(file, 'r') as f:
         image = f[dataset][i, :, :].astype('float32')
         metadata = dict(shape=list(image.shape))
     return image, metadata
+
 
 def load_file_button_callback():
     global hdf5_file_data
@@ -95,6 +107,7 @@ def load_file_button_callback():
     hdf5_file_data = partial(mx_image, file=file_name, dataset=hdf5_dataset_path.value)
     sv_rt.current_image, sv_rt.current_metadata = hdf5_file_data(i=hdf5_pulse_slider.value)
     update_client(sv_rt.current_image, sv_rt.current_metadata)
+
 
 load_file_button = Button(label="Load", button_type='default')
 load_file_button.on_click(load_file_button_callback)
@@ -105,22 +118,25 @@ def hdf5_pulse_slider_callback(_attr, _old, new):
     sv_rt.current_image, sv_rt.current_metadata = hdf5_file_data(i=new['value'][0])
     update_client(sv_rt.current_image, sv_rt.current_metadata)
 
+
 hdf5_pulse_slider_source = ColumnDataSource(dict(value=[]))
 hdf5_pulse_slider_source.on_change('data', hdf5_pulse_slider_callback)
 
 hdf5_pulse_slider = Slider(
-    start=0, end=99, value=0, step=1, title="Pulse Number", callback_policy='mouseup')
+    start=0, end=99, value=0, step=1, title="Pulse Number", callback_policy='mouseup'
+)
 
 hdf5_pulse_slider.callback = CustomJS(
-    args=dict(source=hdf5_pulse_slider_source),
-    code="""source.data = {value: [cb_obj.value]}""")
+    args=dict(source=hdf5_pulse_slider_source), code="""source.data = {value: [cb_obj.value]}"""
+)
 
 # assemble
 tab_hdf5file = Panel(
     child=column(
-        hdf5_file_path, saved_runs_dropdown, hdf5_dataset_path, load_file_button,
-        hdf5_pulse_slider),
-    title="HDF5 File")
+        hdf5_file_path, saved_runs_dropdown, hdf5_dataset_path, load_file_button, hdf5_pulse_slider
+    ),
+    title="HDF5 File",
+)
 
 data_source_tabs = Tabs(tabs=[tab_hdf5file])
 
@@ -145,7 +161,7 @@ sv_metadata = sv.MetadataHandler(datatable_height=300, datatable_width=400)
 layout_controls = column(data_source_tabs, colormap_panel)
 
 final_layout = row(
-    layout_controls, sv_mainplot.plot, column(sv_hist.plots[0], sv_metadata.datatable),
+    layout_controls, sv_mainplot.plot, column(sv_hist.plots[0], sv_metadata.datatable)
 )
 
 doc.add_root(final_layout)
@@ -172,7 +188,9 @@ def update_client(image, metadata):
 @gen.coroutine
 def internal_periodic_callback():
     if sv_rt.current_image.shape != (1, 1):
-        doc.add_next_tick_callback(partial(
-            update_client, image=sv_rt.current_image, metadata=sv_rt.current_metadata))
+        doc.add_next_tick_callback(
+            partial(update_client, image=sv_rt.current_image, metadata=sv_rt.current_metadata)
+        )
+
 
 doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)

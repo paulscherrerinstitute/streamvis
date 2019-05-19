@@ -6,9 +6,29 @@ import jungfrau_utils as ju
 import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, \
-    ColumnDataSource, DataRange1d, Grid, Line, LinearAxis, Panel, PanTool, Plot, \
-    ResetTool, Select, Spacer, Spinner, Tabs, TextInput, Title, Toggle, WheelZoomTool
+from bokeh.models import (
+    BasicTicker,
+    BasicTickFormatter,
+    BoxZoomTool,
+    Button,
+    ColumnDataSource,
+    DataRange1d,
+    Grid,
+    Line,
+    LinearAxis,
+    Panel,
+    PanTool,
+    Plot,
+    ResetTool,
+    Select,
+    Spacer,
+    Spinner,
+    Tabs,
+    TextInput,
+    Title,
+    Toggle,
+    WheelZoomTool,
+)
 from tornado import gen
 
 import receiver
@@ -80,16 +100,23 @@ tick_formatter = BasicTickFormatter(precision=1)
 
 # Main plot
 sv_mainplot = sv.ImagePlot(
-    plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH,
-    image_height=image_size_y, image_width=image_size_x,
+    plot_height=MAIN_CANVAS_HEIGHT,
+    plot_width=MAIN_CANVAS_WIDTH,
+    image_height=image_size_y,
+    image_width=image_size_x,
 )
 
 
 # Zoom plot 1
 sv_zoomplot1 = sv.ImagePlot(
-    plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH,
-    image_height=image_size_y, image_width=image_size_x,
-    x_start=ZOOM1_LEFT, x_end=ZOOM1_RIGHT, y_start=ZOOM1_BOTTOM, y_end=ZOOM1_TOP,
+    plot_height=ZOOM_CANVAS_HEIGHT,
+    plot_width=ZOOM_CANVAS_WIDTH,
+    image_height=image_size_y,
+    image_width=image_size_x,
+    x_start=ZOOM1_LEFT,
+    x_end=ZOOM1_RIGHT,
+    y_start=ZOOM1_BOTTOM,
+    y_end=ZOOM1_TOP,
 )
 
 sv_mainplot.add_as_zoom(sv_zoomplot1, line_color='red')
@@ -108,7 +135,8 @@ zoom1_plot_agg_x = Plot(
 # ---- tools
 zoom1_plot_agg_x.toolbar.logo = None
 zoom1_plot_agg_x.add_tools(
-    PanTool(dimensions='height'), WheelZoomTool(dimensions='height'), ResetTool())
+    PanTool(dimensions='height'), WheelZoomTool(dimensions='height'), ResetTool()
+)
 
 # ---- axes
 zoom1_plot_agg_x.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
@@ -120,11 +148,12 @@ zoom1_plot_agg_x.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
 # ---- line glyph
 zoom1_agg_x_source = ColumnDataSource(
-    dict(x=np.arange(image_size_x) + 0.5,  # shift to a pixel center
-         y=np.zeros(image_size_x)))
+    dict(x=np.arange(image_size_x) + 0.5, y=np.zeros(image_size_x))  # shift to a pixel center
+)
 
 zoom1_plot_agg_x.add_glyph(
-    zoom1_agg_x_source, Line(x='x', y='y', line_color='steelblue', line_width=2))
+    zoom1_agg_x_source, Line(x='x', y='y', line_color='steelblue', line_width=2)
+)
 
 
 # Aggregate zoom1 plot along y axis
@@ -146,17 +175,22 @@ zoom1_plot_agg_y.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
 # ---- line glyph
 zoom1_agg_y_source = ColumnDataSource(
-    dict(x=np.zeros(image_size_y),
-         y=np.arange(image_size_y) + 0.5))  # shift to a pixel center
+    dict(x=np.zeros(image_size_y), y=np.arange(image_size_y) + 0.5)  # shift to a pixel center
+)
 
 zoom1_plot_agg_y.add_glyph(zoom1_agg_y_source, Line(x='x', y='y', line_color='steelblue'))
 
 
 # Zoom plot 2
 sv_zoomplot2 = sv.ImagePlot(
-    plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH,
-    image_height=image_size_y, image_width=image_size_x,
-    x_start=ZOOM2_LEFT, x_end=ZOOM2_RIGHT, y_start=ZOOM2_BOTTOM, y_end=ZOOM2_TOP,
+    plot_height=ZOOM_CANVAS_HEIGHT,
+    plot_width=ZOOM_CANVAS_WIDTH,
+    image_height=image_size_y,
+    image_width=image_size_x,
+    x_start=ZOOM2_LEFT,
+    x_end=ZOOM2_RIGHT,
+    y_start=ZOOM2_BOTTOM,
+    y_end=ZOOM2_TOP,
 )
 
 sv_mainplot.add_as_zoom(sv_zoomplot2, line_color='green')
@@ -186,11 +220,12 @@ zoom2_plot_agg_x.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
 # ---- line glyph
 zoom2_agg_x_source = ColumnDataSource(
-    dict(x=np.arange(image_size_x) + 0.5,  # shift to a pixel center
-         y=np.zeros(image_size_x)))
+    dict(x=np.arange(image_size_x) + 0.5, y=np.zeros(image_size_x))  # shift to a pixel center
+)
 
 zoom2_plot_agg_x.add_glyph(
-    zoom2_agg_x_source, Line(x='x', y='y', line_color='steelblue', line_width=2))
+    zoom2_agg_x_source, Line(x='x', y='y', line_color='steelblue', line_width=2)
+)
 
 
 # Aggregate zoom2 plot along y axis
@@ -212,8 +247,8 @@ zoom2_plot_agg_y.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
 # ---- line glyph
 zoom2_agg_y_source = ColumnDataSource(
-    dict(x=np.zeros(image_size_y),
-         y=np.arange(image_size_y) + 0.5))  # shift to a pixel center
+    dict(x=np.zeros(image_size_y), y=np.arange(image_size_y) + 0.5)  # shift to a pixel center
+)
 
 zoom2_plot_agg_y.add_glyph(zoom2_agg_y_source, Line(x='x', y='y', line_color='steelblue'))
 
@@ -244,6 +279,7 @@ def threshold_button_callback(state):
         threshold_flag = False
         threshold_button.button_type = 'default'
 
+
 threshold_button = Toggle(label="Apply Thresholding", active=threshold_flag)
 if threshold_flag:
     threshold_button.button_type = 'primary'
@@ -256,6 +292,7 @@ threshold_button.on_click(threshold_button_callback)
 def threshold_spinner_callback(_attr, _old_value, new_value):
     global threshold
     threshold = new_value
+
 
 threshold_spinner = Spinner(title='Intensity Threshold:', value=threshold, step=0.1)
 threshold_spinner.on_change('value', threshold_spinner_callback)
@@ -270,6 +307,7 @@ def aggregate_button_callback(state):
     else:
         aggregate_flag = False
         aggregate_button.button_type = 'default'
+
 
 aggregate_button = Toggle(label="Apply Aggregation", active=aggregate_flag)
 if aggregate_flag:
@@ -290,13 +328,14 @@ def aggregate_time_spinner_callback(_attr, old_value, new_value):
     else:
         aggregate_time_spinner.value = old_value
 
+
 aggregate_time_spinner = Spinner(title='Aggregate Time:', value=aggregate_time, low=0, step=1)
 aggregate_time_spinner.on_change('value', aggregate_time_spinner_callback)
 
 
 # Aggregate time counter value textinput
 aggregate_time_counter_textinput = TextInput(
-    title='Aggregate Counter:', value=str(aggregate_counter), disabled=True,
+    title='Aggregate Counter:', value=str(aggregate_counter), disabled=True
 )
 
 
@@ -307,20 +346,16 @@ zoom2_spectrum_x_source = ColumnDataSource(dict(x=[], y=[]))
 zoom2_spectrum_y_source = ColumnDataSource(dict(x=[], y=[]))
 
 zoom1_plot_agg_x.add_glyph(
-    zoom1_spectrum_x_source,
-    Line(x='x', y='y', line_color='maroon', line_width=2),
+    zoom1_spectrum_x_source, Line(x='x', y='y', line_color='maroon', line_width=2)
 )
 zoom1_plot_agg_y.add_glyph(
-    zoom1_spectrum_y_source,
-    Line(x='x', y='y', line_color='maroon', line_width=1),
+    zoom1_spectrum_y_source, Line(x='x', y='y', line_color='maroon', line_width=1)
 )
 zoom2_plot_agg_x.add_glyph(
-    zoom2_spectrum_x_source,
-    Line(x='x', y='y', line_color='maroon', line_width=2),
+    zoom2_spectrum_x_source, Line(x='x', y='y', line_color='maroon', line_width=2)
 )
 zoom2_plot_agg_y.add_glyph(
-    zoom2_spectrum_y_source,
-    Line(x='x', y='y', line_color='maroon', line_width=1),
+    zoom2_spectrum_y_source, Line(x='x', y='y', line_color='maroon', line_width=1)
 )
 
 
@@ -331,6 +366,7 @@ def save_spectrum_button_callback():
         saved_spectra[timenow] = current_spectra
         save_spectrum_select.options = [*save_spectrum_select.options, timenow]
         save_spectrum_select.value = timenow
+
 
 save_spectrum_button = Button(label='Save Spectrum')
 save_spectrum_button.on_click(save_spectrum_button_callback)
@@ -351,6 +387,7 @@ def save_spectrum_select_callback(_attr, _old, new):
         zoom2_spectrum_y_source.data.update(x=agg0_2, y=r0_2)
         zoom2_spectrum_x_source.data.update(x=r1_2, y=agg1_2)
 
+
 save_spectrum_select = Select(title='Saved Spectra:', options=['None'], value='None')
 save_spectrum_select.on_change('value', save_spectrum_select_callback)
 
@@ -366,11 +403,13 @@ total_intensity_plot = Plot(
 
 # ---- tools
 total_intensity_plot.add_tools(
-    PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool())
+    PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool()
+)
 
 # ---- axes
 total_intensity_plot.add_layout(
-    LinearAxis(axis_label="Total intensity", formatter=tick_formatter), place='left')
+    LinearAxis(axis_label="Total intensity", formatter=tick_formatter), place='left'
+)
 total_intensity_plot.add_layout(LinearAxis(), place='below')
 
 # ---- grid lines
@@ -393,11 +432,13 @@ zoom1_intensity_plot = Plot(
 
 # ---- tools
 zoom1_intensity_plot.add_tools(
-    PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool())
+    PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool()
+)
 
 # ---- axes
 zoom1_intensity_plot.add_layout(
-    LinearAxis(axis_label="Intensity", formatter=tick_formatter), place='left')
+    LinearAxis(axis_label="Intensity", formatter=tick_formatter), place='left'
+)
 zoom1_intensity_plot.add_layout(LinearAxis(), place='below')
 
 # ---- grid lines
@@ -420,11 +461,13 @@ zoom2_intensity_plot = Plot(
 
 # ---- tools
 zoom2_intensity_plot.add_tools(
-    PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool())
+    PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool()
+)
 
 # ---- axes
 zoom2_intensity_plot.add_layout(
-    LinearAxis(axis_label="Intensity", formatter=tick_formatter), place='left')
+    LinearAxis(axis_label="Intensity", formatter=tick_formatter), place='left'
+)
 zoom2_intensity_plot.add_layout(LinearAxis(), place='below')
 
 # ---- grid lines
@@ -443,6 +486,7 @@ def intensity_stream_reset_button_callback():
     total_sum_source.data.update(x=[1], y=[total_sum_source.data['y'][-1]])
     zoom1_sum_source.data.update(x=[1], y=[zoom1_sum_source.data['y'][-1]])
     zoom2_sum_source.data.update(x=[1], y=[zoom2_sum_source.data['y'][-1]])
+
 
 intensity_stream_reset_button = Button(label="Reset", button_type='default')
 intensity_stream_reset_button.on_click(intensity_stream_reset_button_callback)
@@ -484,9 +528,7 @@ colormap_panel = column(
 
 
 # Metadata datatable
-sv_metadata = sv.MetadataHandler(
-    datatable_height=420, datatable_width=800,
-)
+sv_metadata = sv.MetadataHandler(datatable_height=420, datatable_width=800)
 
 
 # Final layouts
@@ -495,54 +537,66 @@ layout_main = column(sv_mainplot.plot)
 layout_zoom1 = column(
     zoom1_plot_agg_x,
     row(sv_zoomplot1.plot, zoom1_plot_agg_y),
-    row(Spacer(), sv_hist.plots[0], Spacer()))
+    row(Spacer(), sv_hist.plots[0], Spacer()),
+)
 
 layout_zoom2 = column(
     zoom2_plot_agg_x,
     row(sv_zoomplot2.plot, zoom2_plot_agg_y),
-    row(Spacer(), sv_hist.plots[1], Spacer()))
+    row(Spacer(), sv_hist.plots[1], Spacer()),
+)
 
 layout_thr_agg = row(
     column(threshold_button, threshold_spinner),
     Spacer(width=30),
-    column(aggregate_button, aggregate_time_spinner, aggregate_time_counter_textinput))
+    column(aggregate_button, aggregate_time_spinner, aggregate_time_counter_textinput),
+)
 
 layout_spectra = column(save_spectrum_button, save_spectrum_select)
 
 layout_hist_controls = row(
-    column(
-        Spacer(height=20),
-        sv_hist.auto_toggle,
-        sv_hist.upper_spinner,
-        sv_hist.lower_spinner,
-    ),
-    column(
-        Spacer(height=73),
-        sv_hist.nbins_spinner,
-    ),
+    column(Spacer(height=20), sv_hist.auto_toggle, sv_hist.upper_spinner, sv_hist.lower_spinner),
+    column(Spacer(height=73), sv_hist.nbins_spinner),
 )
 
 layout_utility = column(
-    gridplot([total_intensity_plot, zoom1_intensity_plot, zoom2_intensity_plot],
-             ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
-    row(Spacer(width=850), intensity_stream_reset_button))
+    gridplot(
+        [total_intensity_plot, zoom1_intensity_plot, zoom2_intensity_plot],
+        ncols=1,
+        toolbar_location='left',
+        toolbar_options=dict(logo=None),
+    ),
+    row(Spacer(width=850), intensity_stream_reset_button),
+)
 
 layout_controls = column(colormap_panel, sv_mask.toggle, data_source_tabs)
 
 layout_metadata = column(
-    sv_metadata.datatable,
-    row(sv_metadata.show_all_toggle, sv_metadata.issues_dropdown),
+    sv_metadata.datatable, row(sv_metadata.show_all_toggle, sv_metadata.issues_dropdown)
 )
 
 final_layout = column(
     layout_main,
     Spacer(),
-    row(layout_zoom1, Spacer(), layout_zoom2, Spacer(),
-        column(layout_utility, Spacer(height=10),
-               row(layout_controls, Spacer(width=50), layout_metadata))),
-    row(column(Spacer(height=20), layout_thr_agg), Spacer(width=150),
-        column(Spacer(height=20), layout_spectra), Spacer(width=200),
-        layout_hist_controls))
+    row(
+        layout_zoom1,
+        Spacer(),
+        layout_zoom2,
+        Spacer(),
+        column(
+            layout_utility,
+            Spacer(height=10),
+            row(layout_controls, Spacer(width=50), layout_metadata),
+        ),
+    ),
+    row(
+        column(Spacer(height=20), layout_thr_agg),
+        Spacer(width=150),
+        column(Spacer(height=20), layout_spectra),
+        Spacer(width=200),
+        layout_hist_controls,
+    ),
+)
 
 doc.add_root(row(Spacer(width=20), final_layout))
 
@@ -597,15 +651,26 @@ def update_client(image, metadata, reset, aggr_image):
         stream_t += 1
         total_sum_source.stream(
             new_data=dict(x=[stream_t], y=[np.sum(aggr_image, dtype=np.float)]),
-            rollover=STREAM_ROLLOVER)
+            rollover=STREAM_ROLLOVER,
+        )
         zoom1_sum_source.stream(
-            new_data=dict(x=[stream_t], y=[total_sum_zoom1]), rollover=STREAM_ROLLOVER)
+            new_data=dict(x=[stream_t], y=[total_sum_zoom1]), rollover=STREAM_ROLLOVER
+        )
         zoom2_sum_source.stream(
-            new_data=dict(x=[stream_t], y=[total_sum_zoom2]), rollover=STREAM_ROLLOVER)
+            new_data=dict(x=[stream_t], y=[total_sum_zoom2]), rollover=STREAM_ROLLOVER
+        )
 
     # Save spectrum
-    current_spectra = (zoom1_agg_y, zoom1_r_y, zoom1_agg_x, zoom1_r_x,
-                       zoom2_agg_y, zoom2_r_y, zoom2_agg_x, zoom2_r_x)
+    current_spectra = (
+        zoom1_agg_y,
+        zoom1_r_y,
+        zoom1_agg_x,
+        zoom1_r_x,
+        zoom2_agg_y,
+        zoom2_r_y,
+        zoom2_agg_x,
+        zoom2_r_x,
+    )
 
     # Parse metadata
     metadata_toshow = sv_metadata.parse(metadata)
@@ -675,9 +740,13 @@ def internal_periodic_callback():
     if sv_rt.current_image.shape != (1, 1):
         doc.add_next_tick_callback(
             partial(
-                update_client, image=sv_rt.current_image, metadata=sv_rt.current_metadata,
-                reset=reset, aggr_image=aggregated_image,
+                update_client,
+                image=sv_rt.current_image,
+                metadata=sv_rt.current_metadata,
+                reset=reset,
+                aggr_image=aggregated_image,
             )
         )
+
 
 doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)

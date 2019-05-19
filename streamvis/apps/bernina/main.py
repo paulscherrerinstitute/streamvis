@@ -6,9 +6,26 @@ import jungfrau_utils as ju
 import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import BasicTicker, BasicTickFormatter, Button, \
-    ColumnDataSource, DataRange1d, DatetimeAxis, Grid, Line, LinearAxis, Panel, \
-    PanTool, Plot, ResetTool, Spacer, Tabs, Title, Toggle, WheelZoomTool
+from bokeh.models import (
+    BasicTicker,
+    BasicTickFormatter,
+    Button,
+    ColumnDataSource,
+    DataRange1d,
+    DatetimeAxis,
+    Grid,
+    Line,
+    LinearAxis,
+    Panel,
+    PanTool,
+    Plot,
+    ResetTool,
+    Spacer,
+    Tabs,
+    Title,
+    Toggle,
+    WheelZoomTool,
+)
 from tornado import gen
 
 import receiver
@@ -34,8 +51,8 @@ sv_rt = sv.Runtime()
 connected = False
 
 # Currently, it's possible to control only a canvas size, but not a size of the plotting area.
-MAIN_CANVAS_WIDTH = image_size_x//2 + 55 + 40
-MAIN_CANVAS_HEIGHT = image_size_y//2 + 86 + 60
+MAIN_CANVAS_WIDTH = image_size_x // 2 + 55 + 40
+MAIN_CANVAS_HEIGHT = image_size_y // 2 + 86 + 60
 
 ZOOM_CANVAS_WIDTH = 388 + 55
 ZOOM_CANVAS_HEIGHT = 388 + 62
@@ -66,17 +83,24 @@ tick_formatter = BasicTickFormatter(precision=1)
 
 # Main plot
 sv_mainplot = sv.ImagePlot(
-    plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH,
-    image_height=image_size_y, image_width=image_size_x,
+    plot_height=MAIN_CANVAS_HEIGHT,
+    plot_width=MAIN_CANVAS_WIDTH,
+    image_height=image_size_y,
+    image_width=image_size_x,
 )
 
 sv_mainplot.plot.title = Title(text=' ')
 
 # ---- add zoom plot 1
 sv_zoomplot1 = sv.ImagePlot(
-    plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH,
-    image_height=image_size_y, image_width=image_size_x,
-    x_start=ZOOM1_LEFT, x_end=ZOOM1_RIGHT, y_start=ZOOM1_BOTTOM, y_end=ZOOM1_TOP,
+    plot_height=ZOOM_CANVAS_HEIGHT,
+    plot_width=ZOOM_CANVAS_WIDTH,
+    image_height=image_size_y,
+    image_width=image_size_x,
+    x_start=ZOOM1_LEFT,
+    x_end=ZOOM1_RIGHT,
+    y_start=ZOOM1_BOTTOM,
+    y_end=ZOOM1_TOP,
 )
 
 sv_zoomplot1.plot.title = Title(text='Signal roi', text_color='red')
@@ -84,9 +108,14 @@ sv_mainplot.add_as_zoom(sv_zoomplot1, line_color='red')
 
 # ---- add zoom plot 2
 sv_zoomplot2 = sv.ImagePlot(
-    plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH,
-    image_height=image_size_y, image_width=image_size_x,
-    x_start=ZOOM2_LEFT, x_end=ZOOM2_RIGHT, y_start=ZOOM2_BOTTOM, y_end=ZOOM2_TOP,
+    plot_height=ZOOM_CANVAS_HEIGHT,
+    plot_width=ZOOM_CANVAS_WIDTH,
+    image_height=image_size_y,
+    image_width=image_size_x,
+    x_start=ZOOM2_LEFT,
+    x_end=ZOOM2_RIGHT,
+    y_start=ZOOM2_BOTTOM,
+    y_end=ZOOM2_TOP,
 )
 
 sv_zoomplot2.plot.title = Title(text='Background roi', text_color='green')
@@ -107,7 +136,8 @@ total_intensity_plot.add_tools(PanTool(), WheelZoomTool(dimensions='width'), Res
 
 # ---- axes
 total_intensity_plot.add_layout(
-    LinearAxis(axis_label="Total intensity", formatter=tick_formatter), place='left')
+    LinearAxis(axis_label="Total intensity", formatter=tick_formatter), place='left'
+)
 total_intensity_plot.add_layout(DatetimeAxis(), place='below')
 
 # ---- grid lines
@@ -132,8 +162,9 @@ zoom1_intensity_plot = Plot(
 zoom1_intensity_plot.add_tools(PanTool(), WheelZoomTool(dimensions='width'), ResetTool())
 
 # ---- axes
-zoom1_intensity_plot.add_layout(LinearAxis(
-    axis_label="Intensity", formatter=tick_formatter), place='left')
+zoom1_intensity_plot.add_layout(
+    LinearAxis(axis_label="Intensity", formatter=tick_formatter), place='left'
+)
 zoom1_intensity_plot.add_layout(DatetimeAxis(), place='below')
 
 # ---- grid lines
@@ -171,6 +202,7 @@ def intensity_stream_reset_button_callback():
     stream_t = datetime.now()  # keep the latest point in order to prevent full axis reset
     total_sum_source.data.update(x=[stream_t], y=[total_sum_source.data['y'][-1]])
     zoom1_sum_source.data.update(x=[stream_t], y=[zoom1_sum_source.data['y'][-1]])
+
 
 intensity_stream_reset_button = Button(label="Reset", button_type='default')
 intensity_stream_reset_button.on_click(intensity_stream_reset_button_callback)
@@ -213,7 +245,7 @@ colormap_panel = column(
 
 # Metadata datatable
 sv_metadata = sv.MetadataHandler(
-    datatable_height=130, datatable_width=700, check_shape=(IMAGE_SIZE_Y, IMAGE_SIZE_X),
+    datatable_height=130, datatable_width=700, check_shape=(IMAGE_SIZE_Y, IMAGE_SIZE_X)
 )
 
 
@@ -225,28 +257,42 @@ layout_zoom = column(sv_zoomplot1.plot, sv_zoomplot2.plot, Spacer())
 hist_layout = row(sv_hist.plots[0], sv_hist.plots[1], sv_hist.plots[2])
 
 hist_controls = row(
-    Spacer(width=20), column(Spacer(height=19), sv_hist.auto_toggle),
-    sv_hist.lower_spinner, sv_hist.upper_spinner, sv_hist.nbins_spinner,
-    column(Spacer(height=19), sv_hist.log10counts_toggle))
+    Spacer(width=20),
+    column(Spacer(height=19), sv_hist.auto_toggle),
+    sv_hist.lower_spinner,
+    sv_hist.upper_spinner,
+    sv_hist.nbins_spinner,
+    column(Spacer(height=19), sv_hist.log10counts_toggle),
+)
 
 layout_utility = column(
-    gridplot([total_intensity_plot, zoom1_intensity_plot],
-             ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
-    row(Spacer(width=400), intensity_stream_reset_button))
+    gridplot(
+        [total_intensity_plot, zoom1_intensity_plot],
+        ncols=1,
+        toolbar_location='left',
+        toolbar_options=dict(logo=None),
+    ),
+    row(Spacer(width=400), intensity_stream_reset_button),
+)
 
 layout_controls = row(
-    Spacer(width=45), column(colormap_panel, sv_mask.toggle), Spacer(width=45), data_source_tabs,
+    Spacer(width=45), column(colormap_panel, sv_mask.toggle), Spacer(width=45), data_source_tabs
 )
 
 layout_metadata = column(
-    sv_metadata.datatable,
-    row(sv_metadata.show_all_toggle, sv_metadata.issues_dropdown),
+    sv_metadata.datatable, row(sv_metadata.show_all_toggle, sv_metadata.issues_dropdown)
 )
 
 final_layout = column(
-    row(layout_main, Spacer(width=15), column(layout_zoom), Spacer(width=15),
-        column(layout_metadata, layout_utility, layout_controls)),
-    column(hist_layout, hist_controls))
+    row(
+        layout_main,
+        Spacer(width=15),
+        column(layout_zoom),
+        Spacer(width=15),
+        column(layout_metadata, layout_utility, layout_controls),
+    ),
+    column(hist_layout, hist_controls),
+)
 
 doc.add_root(final_layout)
 
@@ -286,8 +332,9 @@ def update_client(image, metadata):
     overlap_x_end = min(sig_x_end, bkg_x_end)
     if (overlap_y_end - overlap_y_start > 0) and (overlap_x_end - overlap_x_start > 0):
         # else no overlap
-        bkg_sum -= np.sum(image[overlap_y_start:overlap_y_end, overlap_x_start:overlap_x_end],
-                          dtype=np.float)
+        bkg_sum -= np.sum(
+            image[overlap_y_start:overlap_y_end, overlap_x_start:overlap_x_end], dtype=np.float
+        )
         bkg_area -= (overlap_y_end - overlap_y_start) * (overlap_x_end - overlap_x_start)
 
     if bkg_area == 0:
@@ -301,7 +348,8 @@ def update_client(image, metadata):
 
     stream_t = datetime.now()
     total_sum_source.stream(
-        new_data=dict(x=[stream_t], y=[np.sum(image, dtype=np.float)]), rollover=STREAM_ROLLOVER)
+        new_data=dict(x=[stream_t], y=[np.sum(image, dtype=np.float)]), rollover=STREAM_ROLLOVER
+    )
     zoom1_sum_source.stream(new_data=dict(x=[stream_t], y=[sig_sum]), rollover=STREAM_ROLLOVER)
 
     # Parse metadata
@@ -355,7 +403,9 @@ def internal_periodic_callback():
                 sv_rt.current_image = sv_rt.current_image.astype('float32', copy=True)
 
     if sv_rt.current_image.shape != (1, 1):
-        doc.add_next_tick_callback(partial(
-            update_client, image=sv_rt.current_image, metadata=sv_rt.current_metadata))
+        doc.add_next_tick_callback(
+            partial(update_client, image=sv_rt.current_image, metadata=sv_rt.current_metadata)
+        )
+
 
 doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)

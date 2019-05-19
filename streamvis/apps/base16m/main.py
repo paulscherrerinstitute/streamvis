@@ -7,11 +7,41 @@ import jungfrau_utils as ju
 import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import BasicTicker, BasicTickFormatter, BoxZoomTool, Button, \
-    Circle, ColumnDataSource, Cross, CustomJSHover, DataRange1d, DataTable, \
-    DatetimeAxis, Ellipse, Grid, HoverTool, Legend, Line, LinearAxis, \
-    NumberFormatter, Panel, PanTool, Plot, Range1d, ResetTool, SaveTool, Slider, \
-    Spacer, TableColumn, Tabs, TapTool, Text, Title, Toggle, WheelZoomTool
+from bokeh.models import (
+    BasicTicker,
+    BasicTickFormatter,
+    BoxZoomTool,
+    Button,
+    Circle,
+    ColumnDataSource,
+    Cross,
+    CustomJSHover,
+    DataRange1d,
+    DataTable,
+    DatetimeAxis,
+    Ellipse,
+    Grid,
+    HoverTool,
+    Legend,
+    Line,
+    LinearAxis,
+    NumberFormatter,
+    Panel,
+    PanTool,
+    Plot,
+    Range1d,
+    ResetTool,
+    SaveTool,
+    Slider,
+    Spacer,
+    TableColumn,
+    Tabs,
+    TapTool,
+    Text,
+    Title,
+    Toggle,
+    WheelZoomTool,
+)
 from bokeh.palettes import Reds9  # pylint: disable=E0611
 from bokeh.transform import linear_cmap
 from tornado import gen
@@ -56,17 +86,18 @@ tick_formatter = BasicTickFormatter(precision=1)
 
 
 # Main plot
-sv_mainplot = sv.ImagePlot(
-    plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH,
-)
+sv_mainplot = sv.ImagePlot(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
 sv_mainplot.toolbar_location = 'below'
 
 # ---- tools
-experiment_params = ColumnDataSource(data=dict(
-    detector_distance=[np.nan],
-    beam_energy=[np.nan],
-    beam_center_x=[np.nan],
-    beam_center_y=[np.nan]))
+experiment_params = ColumnDataSource(
+    data=dict(
+        detector_distance=[np.nan],
+        beam_energy=[np.nan],
+        beam_center_x=[np.nan],
+        beam_center_y=[np.nan],
+    )
+)
 
 resolution_formatter = CustomJSHover(
     args=dict(params=experiment_params),
@@ -83,14 +114,11 @@ resolution_formatter = CustomJSHover(
         var resolution = 6200 / beam_energy / Math.sin(theta)  // 6200 = 1.24 / 2 / 1e-4
 
         return resolution.toFixed(2)
-    """
+    """,
 )
 
 hovertool = HoverTool(
-    tooltips=[
-        ("intensity", "@image"),
-        ("resolution", "@x{resolution} Å"),
-    ],
+    tooltips=[("intensity", "@image"), ("resolution", "@x{resolution} Å")],
     formatters=dict(x=resolution_formatter),
     names=['image_glyph'],
 )
@@ -101,23 +129,29 @@ sv_mainplot.plot.tools[-1] = hovertool
 # ---- peaks circle glyph
 main_image_peaks_source = ColumnDataSource(dict(x=[], y=[]))
 sv_mainplot.plot.add_glyph(
-    main_image_peaks_source, Circle(
-        x='x', y='y', size=15, fill_alpha=0, line_width=3, line_color='white'))
+    main_image_peaks_source,
+    Circle(x='x', y='y', size=15, fill_alpha=0, line_width=3, line_color='white'),
+)
 
 # ---- resolution rings
 main_image_rings_source = ColumnDataSource(dict(x=[], y=[], w=[], h=[]))
 sv_mainplot.plot.add_glyph(
-    main_image_rings_source, Ellipse(
-        x='x', y='y', width='w', height='h', fill_alpha=0, line_color='white'))
+    main_image_rings_source,
+    Ellipse(x='x', y='y', width='w', height='h', fill_alpha=0, line_color='white'),
+)
 
 main_image_rings_text_source = ColumnDataSource(dict(x=[], y=[], text=[]))
 sv_mainplot.plot.add_glyph(
-    main_image_rings_text_source, Text(
-        x='x', y='y', text='text', text_align='center', text_baseline='middle', text_color='white'))
+    main_image_rings_text_source,
+    Text(
+        x='x', y='y', text='text', text_align='center', text_baseline='middle', text_color='white'
+    ),
+)
 
 main_image_rings_center_source = ColumnDataSource(dict(x=[], y=[]))
 sv_mainplot.plot.add_glyph(
-    main_image_rings_center_source, Cross(x='x', y='y', size=15, line_color='red'))
+    main_image_rings_center_source, Cross(x='x', y='y', size=15, line_color='red')
+)
 
 
 # Total sum intensity plot
@@ -132,11 +166,13 @@ main_sum_intensity_plot = Plot(
 # ---- tools
 main_sum_intensity_plot.toolbar.logo = None
 main_sum_intensity_plot.add_tools(
-    PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool())
+    PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool()
+)
 
 # ---- axes
 main_sum_intensity_plot.add_layout(
-    LinearAxis(axis_label="Total intensity", formatter=tick_formatter), place='left')
+    LinearAxis(axis_label="Total intensity", formatter=tick_formatter), place='left'
+)
 main_sum_intensity_plot.add_layout(DatetimeAxis(), place='below')
 
 # ---- grid lines
@@ -160,11 +196,13 @@ aggr_sum_intensity_plot = Plot(
 # ---- tools
 aggr_sum_intensity_plot.toolbar.logo = None
 aggr_sum_intensity_plot.add_tools(
-    PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool())
+    PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool()
+)
 
 # ---- axes
 aggr_sum_intensity_plot.add_layout(
-    LinearAxis(axis_label="Zoom total intensity", formatter=tick_formatter), place='left')
+    LinearAxis(axis_label="Zoom total intensity", formatter=tick_formatter), place='left'
+)
 aggr_sum_intensity_plot.add_layout(DatetimeAxis(), place='below')
 
 # ---- grid lines
@@ -182,14 +220,13 @@ def sum_intensity_reset_button_callback():
     main_sum_intensity_source.data.update(x=[stream_t], y=[main_sum_intensity_source.data['y'][-1]])
     aggr_sum_intensity_source.data.update(x=[stream_t], y=[aggr_sum_intensity_source.data['y'][-1]])
 
+
 sum_intensity_reset_button = Button(label="Reset", button_type='default')
 sum_intensity_reset_button.on_click(sum_intensity_reset_button_callback)
 
 
 # Aggregation plot
-sv_aggrplot = sv.ImagePlot(
-    plot_height=AGGR_CANVAS_HEIGHT, plot_width=AGGR_CANVAS_WIDTH,
-)
+sv_aggrplot = sv.ImagePlot(plot_height=AGGR_CANVAS_HEIGHT, plot_width=AGGR_CANVAS_WIDTH)
 sv_aggrplot.toolbar_location = 'below'
 
 # ---- tools
@@ -198,15 +235,20 @@ sv_aggrplot.plot.tools[-1] = hovertool
 
 # ---- resolution rings
 sv_aggrplot.plot.add_glyph(
-    main_image_rings_source, Ellipse(
-        x='x', y='y', width='w', height='h', fill_alpha=0, line_color='white'))
+    main_image_rings_source,
+    Ellipse(x='x', y='y', width='w', height='h', fill_alpha=0, line_color='white'),
+)
 
 sv_aggrplot.plot.add_glyph(
-    main_image_rings_text_source, Text(
-        x='x', y='y', text='text', text_align='center', text_baseline='middle', text_color='white'))
+    main_image_rings_text_source,
+    Text(
+        x='x', y='y', text='text', text_align='center', text_baseline='middle', text_color='white'
+    ),
+)
 
 sv_aggrplot.plot.add_glyph(
-    main_image_rings_center_source, Cross(x='x', y='y', size=15, line_color='red'))
+    main_image_rings_center_source, Cross(x='x', y='y', size=15, line_color='red')
+)
 
 sv_mainplot.add_as_zoom(sv_aggrplot, line_color='white')
 
@@ -230,11 +272,12 @@ aggr_image_proj_x_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
 # ---- line glyph
 aggr_image_proj_x_source = ColumnDataSource(
-    dict(x=np.arange(image_size_x) + 0.5,  # shift to a pixel center
-         y=np.zeros(image_size_x)))
+    dict(x=np.arange(image_size_x) + 0.5, y=np.zeros(image_size_x))  # shift to a pixel center
+)
 
 aggr_image_proj_x_plot.add_glyph(
-    aggr_image_proj_x_source, Line(x='x', y='y', line_color='steelblue', line_width=2))
+    aggr_image_proj_x_source, Line(x='x', y='y', line_color='steelblue', line_width=2)
+)
 
 
 # Projection of aggregate image onto x axis
@@ -256,11 +299,12 @@ aggr_image_proj_y_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
 # ---- line glyph
 aggr_image_proj_y_source = ColumnDataSource(
-    dict(x=np.zeros(image_size_y),
-         y=np.arange(image_size_y) + 0.5))  # shift to a pixel center
+    dict(x=np.zeros(image_size_y), y=np.arange(image_size_y) + 0.5)  # shift to a pixel center
+)
 
 aggr_image_proj_y_plot.add_glyph(
-    aggr_image_proj_y_source, Line(x='x', y='y', line_color='steelblue', line_width=2))
+    aggr_image_proj_y_source, Line(x='x', y='y', line_color='steelblue', line_width=2)
+)
 
 
 # Create colormapper
@@ -292,14 +336,10 @@ trajectory_plot = Plot(
 trajectory_plot.toolbar.logo = None
 taptool = TapTool(names=['trajectory_circle'])
 trajectory_ht = HoverTool(
-    tooltips=[
-        ("frame", "@frame"),
-        ("number of spots", "@nspots"),
-    ],
-    names=['trajectory_circle'],
+    tooltips=[("frame", "@frame"), ("number of spots", "@nspots")], names=['trajectory_circle']
 )
 trajectory_plot.add_tools(
-    PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool(), taptool, trajectory_ht,
+    PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool(), taptool, trajectory_ht
 )
 
 # ---- axes
@@ -315,7 +355,7 @@ trajectory_line_source = ColumnDataSource(dict(x=[], y=[]))
 trajectory_plot.add_glyph(trajectory_line_source, Line(x='x', y='y'))
 
 # ---- trajectory circle glyph and selection callback
-circle_mapper = linear_cmap(field_name='nspots', palette=['#ffffff']+Reds9[::-1], low=0, high=100)
+circle_mapper = linear_cmap(field_name='nspots', palette=['#ffffff'] + Reds9[::-1], low=0, high=100)
 trajectory_circle_source = ColumnDataSource(dict(x=[], y=[], frame=[], nspots=[]))
 trajectory_plot.add_glyph(
     trajectory_circle_source,
@@ -325,9 +365,11 @@ trajectory_plot.add_glyph(
     name='trajectory_circle',
 )
 
+
 def trajectory_circle_source_callback(_attr, _old, new):
     if new:
         sv_rt.current_metadata, sv_rt.current_image = receiver.data_buffer[new[0]]
+
 
 trajectory_circle_source.selected.on_change('indices', trajectory_circle_source_callback)
 
@@ -367,13 +409,15 @@ hitrate_blue_line = hitrate_plot.add_glyph(
 )
 
 # ---- legend
-hitrate_plot.add_layout(Legend(
-    items=[
-        (f"{receiver.hitrate_buffer_fast.maxlen} shots avg", [hitrate_red_line]),
-        (f"{receiver.hitrate_buffer_slow.maxlen} shots avg", [hitrate_blue_line]),
-    ],
-    location='top_left',
-))
+hitrate_plot.add_layout(
+    Legend(
+        items=[
+            (f"{receiver.hitrate_buffer_fast.maxlen} shots avg", [hitrate_red_line]),
+            (f"{receiver.hitrate_buffer_slow.maxlen} shots avg", [hitrate_blue_line]),
+        ],
+        location='top_left',
+    )
+)
 hitrate_plot.legend.click_policy = "hide"
 
 
@@ -382,8 +426,10 @@ hitrate_plot.legend.click_policy = "hide"
 def image_buffer_slider_callback(_attr, _old, new):
     sv_rt.current_metadata, sv_rt.current_image = image_buffer[new]
 
+
 image_buffer_slider = Slider(
-    start=0, end=59, value=0, step=1, title="Buffered Image", disabled=True)
+    start=0, end=59, value=0, step=1, title="Buffered Image", disabled=True
+)
 image_buffer_slider.on_change('value', image_buffer_slider_callback)
 
 # ---- connect toggle button
@@ -400,6 +446,7 @@ def stream_button_callback(state):
         stream_button.label = 'Connect'
         stream_button.button_type = 'default'
         image_buffer_slider.disabled = False
+
 
 stream_button = Toggle(label="Connect", button_type='default')
 stream_button.on_click(stream_button_callback)
@@ -427,6 +474,7 @@ def resolution_rings_toggle_callback(state):
     else:
         pass
 
+
 resolution_rings_toggle = Toggle(label="Resolution Rings", button_type='default')
 resolution_rings_toggle.on_click(resolution_rings_toggle_callback)
 
@@ -448,13 +496,15 @@ stats_table_columns = [
     TableColumn(field='laser_on_nframes', title="Laser ON frames"),
     TableColumn(field='laser_on_hits', title="Laser ON hits"),
     TableColumn(
-        field='laser_on_hits_ratio', title="Laser ON hits ratio",
+        field='laser_on_hits_ratio',
+        title="Laser ON hits ratio",
         formatter=NumberFormatter(format='(0.00 %)'),
     ),
     TableColumn(field='laser_off_nframes', title="Laser OFF frames"),
     TableColumn(field='laser_off_hits', title="Laser OFF hits"),
     TableColumn(
-        field='laser_off_hits_ratio', title="Laser OFF hits ratio",
+        field='laser_off_hits_ratio',
+        title="Laser OFF hits ratio",
         formatter=NumberFormatter(format='(0.00 %)'),
     ),
 ]
@@ -504,6 +554,7 @@ def reset_stats_table_button_callback():
     receiver.sum_laser_off_hits[0] = 0
     receiver.sum_laser_off_hits_ratio[0] = 0
 
+
 reset_stats_table_button = Button(label="Reset Statistics", button_type='default')
 reset_stats_table_button.on_click(reset_stats_table_button_callback)
 
@@ -511,8 +562,12 @@ reset_stats_table_button.on_click(reset_stats_table_button_callback)
 layout_intensity = column(
     gridplot(
         [main_sum_intensity_plot, aggr_sum_intensity_plot],
-        ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)),
-    row(Spacer(), sum_intensity_reset_button))
+        ncols=1,
+        toolbar_location='left',
+        toolbar_options=dict(logo=None),
+    ),
+    row(Spacer(), sum_intensity_reset_button),
+)
 
 sv_hist.log10counts_toggle.width = 120
 layout_hist = column(
@@ -521,7 +576,8 @@ layout_hist = column(
         sv_hist.nbins_spinner,
         column(
             Spacer(height=19),
-            row(sv_hist.auto_toggle, Spacer(width=10), sv_hist.log10counts_toggle))
+            row(sv_hist.auto_toggle, Spacer(width=10), sv_hist.log10counts_toggle),
+        ),
     ),
     row(sv_hist.lower_spinner, sv_hist.upper_spinner),
 )
@@ -530,21 +586,18 @@ debug_tab = Panel(
     child=column(
         layout_intensity,
         row(
-            layout_hist, Spacer(width=30),
-            column(sv_metadata.datatable, row(Spacer(), sv_metadata.show_all_toggle))
-        )
+            layout_hist,
+            Spacer(width=30),
+            column(sv_metadata.datatable, row(Spacer(), sv_metadata.show_all_toggle)),
+        ),
     ),
     title="Debug",
 )
 
-scan_tab = Panel(
-    child=column(trajectory_plot, hitrate_plot),
-    title="SwissMX",
-)
+scan_tab = Panel(child=column(trajectory_plot, hitrate_plot), title="SwissMX")
 
 statistics_tab = Panel(
-    child=column(stats_table, sum_stats_table, reset_stats_table_button),
-    title="Statistics",
+    child=column(stats_table, sum_stats_table, reset_stats_table_button), title="Statistics"
 )
 
 # assemble
@@ -562,10 +615,7 @@ layout_aggr = column(
 
 layout_controls = column(sv_metadata.issues_dropdown, colormap_panel, data_source_tabs)
 
-layout_side_panel = column(
-    custom_tabs,
-    row(layout_controls, Spacer(width=30), layout_aggr)
-)
+layout_side_panel = column(custom_tabs, row(layout_controls, Spacer(width=30), layout_aggr))
 
 final_layout = row(layout_main, Spacer(width=30), layout_side_panel)
 
@@ -622,8 +672,8 @@ def update_client(image, metadata):
     # Update total intensities plots
     stream_t = datetime.now()
     main_sum_intensity_source.stream(
-        new_data=dict(x=[stream_t], y=[np.sum(image, dtype=np.float)]),
-        rollover=STREAM_ROLLOVER)
+        new_data=dict(x=[stream_t], y=[np.sum(image, dtype=np.float)]), rollover=STREAM_ROLLOVER
+    )
     aggr_y_start = int(np.floor(aggr_y_start))
     aggr_x_start = int(np.floor(aggr_x_start))
     aggr_y_end = int(np.ceil(aggr_y_end))
@@ -639,16 +689,14 @@ def update_client(image, metadata):
     # Update peakfinder plot
     hitrate_line_red_source.stream(
         new_data=dict(
-            x=[stream_t],
-            y=[sum(receiver.hitrate_buffer_fast)/len(receiver.hitrate_buffer_fast)],
+            x=[stream_t], y=[sum(receiver.hitrate_buffer_fast) / len(receiver.hitrate_buffer_fast)]
         ),
         rollover=HITRATE_ROLLOVER,
     )
 
     hitrate_line_blue_source.stream(
         new_data=dict(
-            x=[stream_t],
-            y=[sum(receiver.hitrate_buffer_slow)/len(receiver.hitrate_buffer_slow)],
+            x=[stream_t], y=[sum(receiver.hitrate_buffer_slow) / len(receiver.hitrate_buffer_slow)]
         ),
         rollover=HITRATE_ROLLOVER,
     )
@@ -657,27 +705,34 @@ def update_client(image, metadata):
     if custom_tabs.tabs[custom_tabs.active].title == "SwissMX" and receiver.peakfinder_buffer:
         peakfinder_buffer = np.array(receiver.peakfinder_buffer)
         trajectory_circle_source.data.update(
-            x=peakfinder_buffer[:, 0], y=peakfinder_buffer[:, 1],
-            frame=peakfinder_buffer[:, 2], nspots=peakfinder_buffer[:, 3],
+            x=peakfinder_buffer[:, 0],
+            y=peakfinder_buffer[:, 1],
+            frame=peakfinder_buffer[:, 2],
+            nspots=peakfinder_buffer[:, 3],
         )
 
     # Update mask
     sv_mask.update(metadata.get('pedestal_file'), metadata.get('detector_name'), sv_metadata)
 
     if resolution_rings_toggle.active:
-        if 'detector_distance' in metadata and 'beam_energy' in metadata and \
-            'beam_center_x' in metadata and 'beam_center_y' in metadata:
+        if (
+            'detector_distance' in metadata
+            and 'beam_energy' in metadata
+            and 'beam_center_x' in metadata
+            and 'beam_center_y' in metadata
+        ):
             detector_distance = metadata['detector_distance']
             beam_energy = metadata['beam_energy']
             beam_center_x = metadata['beam_center_x'] * np.ones(len(RESOLUTION_RINGS_POS))
             beam_center_y = metadata['beam_center_y'] * np.ones(len(RESOLUTION_RINGS_POS))
-            theta = np.arcsin(1.24/beam_energy / (2 * RESOLUTION_RINGS_POS*1e-4))  # 1e-4=1e-6/1e-10
+            theta = np.arcsin(1.24 / beam_energy / (2 * RESOLUTION_RINGS_POS * 1e-4))
             diams = 2 * detector_distance * np.tan(2 * theta) / 75e-6
             ring_text = [str(s) + ' Å' for s in RESOLUTION_RINGS_POS]
 
             main_image_rings_source.data.update(x=beam_center_x, y=beam_center_y, h=diams, w=diams)
             main_image_rings_text_source.data.update(
-                x=beam_center_x+diams/2, y=beam_center_y, text=ring_text)
+                x=beam_center_x + diams / 2, y=beam_center_y, text=ring_text
+            )
             main_image_rings_center_source.data.update(x=beam_center_x, y=beam_center_y)
 
         else:
@@ -744,7 +799,10 @@ def internal_periodic_callback():
             else:
                 sv_rt.current_image = sv_rt.current_image.astype('float32', copy=True)
 
-            if not image_buffer or image_buffer[-1] != (sv_rt.current_metadata, sv_rt.current_image):
+            if not image_buffer or image_buffer[-1] != (
+                sv_rt.current_metadata,
+                sv_rt.current_image,
+            ):
                 image_buffer.append((sv_rt.current_metadata, sv_rt.current_image))
 
             trajectory_circle_source.selected.indices = []
@@ -755,7 +813,9 @@ def internal_periodic_callback():
                 image_buffer_slider.value = len(image_buffer) - 1
 
     if sv_rt.current_image.shape != (1, 1):
-        doc.add_next_tick_callback(partial(
-            update_client, image=sv_rt.current_image, metadata=sv_rt.current_metadata))
+        doc.add_next_tick_callback(
+            partial(update_client, image=sv_rt.current_image, metadata=sv_rt.current_metadata)
+        )
+
 
 doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)
