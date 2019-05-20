@@ -131,24 +131,27 @@ sv_mainplot.plot.add_glyph(
 )
 
 # ---- resolution rings
-main_image_rings_source = ColumnDataSource(dict(x=[], y=[], w=[], h=[]))
-sv_mainplot.plot.add_glyph(
-    main_image_rings_source,
-    Ellipse(x='x', y='y', width='w', height='h', fill_alpha=0, line_color='white'),
+resol_rings_source = ColumnDataSource(dict(x=[], y=[], w=[], h=[]))
+resol_rings = Ellipse(
+    x='x', y='y', width='w', height='h', fill_alpha=0, line_color='white', line_alpha=0
 )
+sv_mainplot.plot.add_glyph(resol_rings_source, resol_rings)
 
-main_image_rings_text_source = ColumnDataSource(dict(x=[], y=[], text=[]))
-sv_mainplot.plot.add_glyph(
-    main_image_rings_text_source,
-    Text(
-        x='x', y='y', text='text', text_align='center', text_baseline='middle', text_color='white'
-    ),
+resol_rings_text_source = ColumnDataSource(dict(x=[], y=[], text=[]))
+resol_rings_text = Text(
+    x='x',
+    y='y',
+    text='text',
+    text_align='center',
+    text_baseline='middle',
+    text_color='white',
+    text_alpha=0,
 )
+sv_mainplot.plot.add_glyph(resol_rings_text_source, resol_rings_text)
 
-main_image_rings_center_source = ColumnDataSource(dict(x=[], y=[]))
-sv_mainplot.plot.add_glyph(
-    main_image_rings_center_source, Cross(x='x', y='y', size=15, line_color='red')
-)
+resol_rings_center_source = ColumnDataSource(dict(x=[], y=[]))
+resol_rings_center = Cross(x='x', y='y', size=15, line_color='red', line_alpha=0)
+sv_mainplot.plot.add_glyph(resol_rings_center_source, resol_rings_center)
 
 
 # Total sum intensity plot
@@ -231,21 +234,9 @@ sv_aggrplot.toolbar_location = 'below'
 sv_aggrplot.plot.tools[-1] = hovertool
 
 # ---- resolution rings
-sv_aggrplot.plot.add_glyph(
-    main_image_rings_source,
-    Ellipse(x='x', y='y', width='w', height='h', fill_alpha=0, line_color='white'),
-)
-
-sv_aggrplot.plot.add_glyph(
-    main_image_rings_text_source,
-    Text(
-        x='x', y='y', text='text', text_align='center', text_baseline='middle', text_color='white'
-    ),
-)
-
-sv_aggrplot.plot.add_glyph(
-    main_image_rings_center_source, Cross(x='x', y='y', size=15, line_color='red')
-)
+sv_aggrplot.plot.add_glyph(resol_rings_source, resol_rings)
+sv_aggrplot.plot.add_glyph(resol_rings_text_source, resol_rings_text)
+sv_aggrplot.plot.add_glyph(resol_rings_center_source, resol_rings_center)
 
 sv_mainplot.add_as_zoom(sv_aggrplot, line_color='white')
 
@@ -467,9 +458,13 @@ colormap_panel = column(
 # Resolution rings toggle button
 def resolution_rings_toggle_callback(state):
     if state:
-        pass
+        resol_rings.line_alpha = 1
+        resol_rings_text.text_alpha = 1
+        resol_rings_center.line_alpha = 1
     else:
-        pass
+        resol_rings.line_alpha = 0
+        resol_rings_text.text_alpha = 0
+        resol_rings_center.line_alpha = 0
 
 
 resolution_rings_toggle = Toggle(label="Resolution Rings", button_type='default')
@@ -636,37 +631,33 @@ def update_client(image, metadata):
     # Update mask
     sv_mask.update(metadata.get('pedestal_file'), metadata.get('detector_name'), sv_metadata)
 
-    if resolution_rings_toggle.active:
-        if (
-            'detector_distance' in metadata
-            and 'beam_energy' in metadata
-            and 'beam_center_x' in metadata
-            and 'beam_center_y' in metadata
-        ):
-            detector_distance = metadata['detector_distance']
-            beam_energy = metadata['beam_energy']
-            beam_center_x = metadata['beam_center_x'] * np.ones(len(RESOLUTION_RINGS_POS))
-            beam_center_y = metadata['beam_center_y'] * np.ones(len(RESOLUTION_RINGS_POS))
-            theta = np.arcsin(1.24 / beam_energy / (2 * RESOLUTION_RINGS_POS * 1e-4))
-            diams = 2 * detector_distance * np.tan(2 * theta) / 75e-6
-            ring_text = [str(s) + ' Å' for s in RESOLUTION_RINGS_POS]
+    if (
+        'detector_distance' in metadata
+        and 'beam_energy' in metadata
+        and 'beam_center_x' in metadata
+        and 'beam_center_y' in metadata
+    ):
+        detector_distance = metadata['detector_distance']
+        beam_energy = metadata['beam_energy']
+        beam_center_x = metadata['beam_center_x'] * np.ones(len(RESOLUTION_RINGS_POS))
+        beam_center_y = metadata['beam_center_y'] * np.ones(len(RESOLUTION_RINGS_POS))
+        theta = np.arcsin(1.24 / beam_energy / (2 * RESOLUTION_RINGS_POS * 1e-4))
+        diams = 2 * detector_distance * np.tan(2 * theta) / 75e-6
+        ring_text = [str(s) + ' Å' for s in RESOLUTION_RINGS_POS]
 
-            main_image_rings_source.data.update(x=beam_center_x, y=beam_center_y, h=diams, w=diams)
-            main_image_rings_text_source.data.update(
-                x=beam_center_x + diams / 2, y=beam_center_y, text=ring_text
-            )
-            main_image_rings_center_source.data.update(x=beam_center_x, y=beam_center_y)
-
-        else:
-            main_image_rings_source.data.update(x=[], y=[], h=[], w=[])
-            main_image_rings_text_source.data.update(x=[], y=[], text=[])
-            main_image_rings_center_source.data.update(x=[], y=[])
-            sv_metadata.add_issue("Metadata does not contain all data for resolution rings")
+        resol_rings_source.data.update(x=beam_center_x, y=beam_center_y, h=diams, w=diams)
+        resol_rings_text_source.data.update(
+            x=beam_center_x + diams / 2, y=beam_center_y, text=ring_text
+        )
+        resol_rings_center_source.data.update(x=beam_center_x, y=beam_center_y)
 
     else:
-        main_image_rings_source.data.update(x=[], y=[], h=[], w=[])
-        main_image_rings_text_source.data.update(x=[], y=[], text=[])
-        main_image_rings_center_source.data.update(x=[], y=[])
+        resol_rings_source.data.update(x=[], y=[], h=[], w=[])
+        resol_rings_text_source.data.update(x=[], y=[], text=[])
+        resol_rings_center_source.data.update(x=[], y=[])
+
+        if resolution_rings_toggle.active:
+            sv_metadata.add_issue("Metadata does not contain all data for resolution rings")
 
     sv_metadata.update(metadata_toshow)
 
