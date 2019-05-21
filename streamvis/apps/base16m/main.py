@@ -639,10 +639,7 @@ def internal_periodic_callback():
             else:
                 sv_rt.current_image = sv_rt.current_image.astype('float32', copy=True)
 
-            if not image_buffer or image_buffer[-1] != (
-                sv_rt.current_metadata,
-                sv_rt.current_image,
-            ):
+            if not image_buffer or image_buffer[-1][0] is not sv_rt.current_metadata:
                 image_buffer.append((sv_rt.current_metadata, sv_rt.current_image))
 
             trajectory_circle_source.selected.indices = []
