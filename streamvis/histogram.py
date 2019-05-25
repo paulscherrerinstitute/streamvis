@@ -20,13 +20,11 @@ from bokeh.models import (
 
 
 class Histogram:
-    def __init__(
-        self, nplots, plot_height=350, plot_width=700, init_lower=0, init_upper=1000, init_nbins=100
-    ):
+    def __init__(self, nplots, plot_height=350, plot_width=700, lower=0, upper=1000, nbins=100):
 
-        self._lower = init_lower
-        self._upper = init_upper
-        self._nbins = init_nbins
+        self._lower = lower
+        self._upper = upper
+        self._nbins = nbins
 
         self._counts = [0 for _ in range(nplots)]
 
@@ -153,7 +151,7 @@ class Histogram:
             self.lower_spinner.value = lower
             self.upper_spinner.value = upper
 
-        for ind in range(len(self.plots)):
+        for ind, plot_source in enumerate(self._plot_sources):
             data_i = input_data[ind]
             counts, edges = np.histogram(
                 data_i[data_i != 0], bins=self._nbins, range=(self._lower, self._upper)
@@ -167,6 +165,4 @@ class Histogram:
             else:
                 self._counts[ind] = counts
 
-            self._plot_sources[ind].data.update(
-                left=edges[:-1], right=edges[1:], top=self._counts[ind]
-            )
+            plot_source.data.update(left=edges[:-1], right=edges[1:], top=self._counts[ind])
