@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class Mask:
-    def __init__(self, image_plots):
+    def __init__(self, image_views):
         self.current_file = ''
         self.mask = None
 
@@ -20,8 +20,8 @@ class Mask:
 
         rgba_glyph = ImageRGBA(image='image', x='x', y='y', dw='dw', dh='dh', global_alpha=0)
 
-        for image_plot in image_plots:
-            image_renderer = image_plot.plot.add_glyph(self._source, rgba_glyph)
+        for image_view in image_views:
+            image_renderer = image_view.plot.add_glyph(self._source, rgba_glyph)
             image_renderer.view.source = ColumnDataSource()
 
         # ---- toggle button

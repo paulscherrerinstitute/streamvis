@@ -3,7 +3,7 @@ from bokeh.models import ColumnDataSource, Cross, Ellipse, Text, Toggle
 
 
 class ResolutionRings:
-    def __init__(self, image_plots, positions):
+    def __init__(self, image_views, positions):
         self.positions = positions
 
         # ---- resolution rings
@@ -25,10 +25,10 @@ class ResolutionRings:
         self._center_source = ColumnDataSource(dict(x=[], y=[]))
         cross_glyph = Cross(x='x', y='y', size=15, line_color='red', line_alpha=0)
 
-        for image_plot in image_plots:
-            image_plot.plot.add_glyph(self._source, ellipse_glyph)
-            image_plot.plot.add_glyph(self._source, text_glyph)
-            image_plot.plot.add_glyph(self._center_source, cross_glyph)
+        for image_view in image_views:
+            image_view.plot.add_glyph(self._source, ellipse_glyph)
+            image_view.plot.add_glyph(self._source, text_glyph)
+            image_view.plot.add_glyph(self._center_source, cross_glyph)
 
         # ---- toggle button
         def toggle_callback(state):

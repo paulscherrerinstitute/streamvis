@@ -79,19 +79,19 @@ tick_formatter = BasicTickFormatter(precision=1)
 
 
 # Main plot
-sv_mainplot = sv.ImagePlot(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
+sv_mainview = sv.ImageView(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
 
 # ---- add zoom plot
-sv_zoomplot = sv.ImagePlot(plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH)
+sv_zoomview = sv.ImageView(plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH)
 
-sv_mainplot.add_as_zoom(sv_zoomplot)
+sv_mainview.add_as_zoom(sv_zoomview)
 
 # Aggregate zoom1 plot along x axis
 zoom1_plot_agg_x = Plot(
-    x_range=sv_zoomplot.plot.x_range,
+    x_range=sv_zoomview.plot.x_range,
     y_range=DataRange1d(),
     plot_height=agg_plot_size,
-    plot_width=sv_zoomplot.plot.plot_width,
+    plot_width=sv_zoomview.plot.plot_width,
     toolbar_location=None,
 )
 
@@ -114,8 +114,8 @@ zoom1_plot_agg_x.add_glyph(zoom1_agg_x_source, Line(x='x', y='y', line_color='st
 # Aggregate zoom1 plot along y axis
 zoom1_plot_agg_y = Plot(
     x_range=DataRange1d(),
-    y_range=sv_zoomplot.plot.y_range,
-    plot_height=sv_zoomplot.plot.plot_height,
+    y_range=sv_zoomview.plot.y_range,
+    plot_height=sv_zoomview.plot.plot_height,
     plot_width=agg_plot_size,
     toolbar_location=None,
 )
@@ -137,16 +137,16 @@ zoom1_plot_agg_y.add_glyph(zoom1_agg_y_source, Line(x='x', y='y', line_color='st
 
 
 # Create colormapper
-sv_colormapper = sv.ColorMapper([sv_mainplot, sv_zoomplot])
+sv_colormapper = sv.ColorMapper([sv_mainview, sv_zoomview])
 
 # ---- add colorbar to the main plot
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
 sv_colormapper.color_bar.location = (0, -5)
-sv_mainplot.plot.add_layout(sv_colormapper.color_bar, place='below')
+sv_mainview.plot.add_layout(sv_colormapper.color_bar, place='below')
 
 
 # Add mask to all plots
-sv_mask = sv.Mask([sv_mainplot, sv_zoomplot])
+sv_mask = sv.Mask([sv_mainview, sv_zoomview])
 
 
 # Histogram plot
@@ -347,9 +347,9 @@ sv_metadata = sv.MetadataHandler()
 
 
 # Final layouts
-layout_main = column(sv_mainplot.plot)
+layout_main = column(sv_mainview.plot)
 
-layout_zoom = column(zoom1_plot_agg_x, row(sv_zoomplot.plot, zoom1_plot_agg_y))
+layout_zoom = column(zoom1_plot_agg_x, row(sv_zoomview.plot, zoom1_plot_agg_y))
 
 layout_utility = column(
     gridplot(
@@ -387,13 +387,13 @@ doc.add_root(final_layout)
 @gen.coroutine
 def update_client(image, metadata, reset, aggr_image):
     sv_colormapper.update(aggr_image)
-    sv_mainplot.update(aggr_image)
+    sv_mainview.update(aggr_image)
 
     # Statistics
-    y_start = int(np.floor(sv_zoomplot.y_start))
-    y_end = int(np.ceil(sv_zoomplot.y_end))
-    x_start = int(np.floor(sv_zoomplot.x_start))
-    x_end = int(np.ceil(sv_zoomplot.x_end))
+    y_start = int(np.floor(sv_zoomview.y_start))
+    y_end = int(np.ceil(sv_zoomview.y_end))
+    x_start = int(np.floor(sv_zoomview.x_start))
+    x_end = int(np.ceil(sv_zoomview.x_end))
 
     im_block = aggr_image[y_start:y_end, x_start:x_end]
 

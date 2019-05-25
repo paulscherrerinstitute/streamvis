@@ -82,17 +82,17 @@ tick_formatter = BasicTickFormatter(precision=1)
 
 
 # Main plot
-sv_mainplot = sv.ImagePlot(
+sv_mainview = sv.ImageView(
     plot_height=MAIN_CANVAS_HEIGHT,
     plot_width=MAIN_CANVAS_WIDTH,
     image_height=image_size_y,
     image_width=image_size_x,
 )
 
-sv_mainplot.plot.title = Title(text=' ')
+sv_mainview.plot.title = Title(text=' ')
 
 # ---- add zoom plot 1
-sv_zoomplot1 = sv.ImagePlot(
+sv_zoomview1 = sv.ImageView(
     plot_height=ZOOM_CANVAS_HEIGHT,
     plot_width=ZOOM_CANVAS_WIDTH,
     image_height=image_size_y,
@@ -103,11 +103,11 @@ sv_zoomplot1 = sv.ImagePlot(
     y_end=ZOOM1_TOP,
 )
 
-sv_zoomplot1.plot.title = Title(text='Signal roi', text_color='red')
-sv_mainplot.add_as_zoom(sv_zoomplot1, line_color='red')
+sv_zoomview1.plot.title = Title(text='Signal roi', text_color='red')
+sv_mainview.add_as_zoom(sv_zoomview1, line_color='red')
 
 # ---- add zoom plot 2
-sv_zoomplot2 = sv.ImagePlot(
+sv_zoomview2 = sv.ImageView(
     plot_height=ZOOM_CANVAS_HEIGHT,
     plot_width=ZOOM_CANVAS_WIDTH,
     image_height=image_size_y,
@@ -118,8 +118,8 @@ sv_zoomplot2 = sv.ImagePlot(
     y_end=ZOOM2_TOP,
 )
 
-sv_zoomplot2.plot.title = Title(text='Background roi', text_color='green')
-sv_mainplot.add_as_zoom(sv_zoomplot2, line_color='green')
+sv_zoomview2.plot.title = Title(text='Background roi', text_color='green')
+sv_mainview.add_as_zoom(sv_zoomview2, line_color='green')
 
 
 # Total intensity plot
@@ -177,17 +177,17 @@ zoom1_intensity_plot.add_glyph(zoom1_sum_source, Line(x='x', y='y', line_color='
 
 
 # Create colormapper
-sv_colormapper = sv.ColorMapper([sv_mainplot, sv_zoomplot1, sv_zoomplot2])
+sv_colormapper = sv.ColorMapper([sv_mainview, sv_zoomview1, sv_zoomview2])
 
 # ---- add colorbar to the main plot
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
 sv_colormapper.color_bar.height = 10
 sv_colormapper.color_bar.location = (0, -5)
-sv_mainplot.plot.add_layout(sv_colormapper.color_bar, place='below')
+sv_mainview.plot.add_layout(sv_colormapper.color_bar, place='below')
 
 
 # Add mask to all plots
-sv_mask = sv.Mask([sv_mainplot, sv_zoomplot1, sv_zoomplot2])
+sv_mask = sv.Mask([sv_mainview, sv_zoomview1, sv_zoomview2])
 
 
 # Histogram plots
@@ -250,9 +250,9 @@ sv_metadata = sv.MetadataHandler(
 
 
 # Final layouts
-layout_main = column(Spacer(), sv_mainplot.plot)
+layout_main = column(Spacer(), sv_mainview.plot)
 
-layout_zoom = column(sv_zoomplot1.plot, sv_zoomplot2.plot, Spacer())
+layout_zoom = column(sv_zoomview1.plot, sv_zoomview2.plot, Spacer())
 
 hist_layout = row(sv_hist.plots[0], sv_hist.plots[1], sv_hist.plots[2])
 
@@ -300,23 +300,23 @@ doc.add_root(final_layout)
 @gen.coroutine
 def update_client(image, metadata):
     sv_colormapper.update(image)
-    sv_mainplot.update(image)
+    sv_mainview.update(image)
 
     # Signal roi and intensity
-    sig_y_start = int(np.floor(sv_zoomplot1.y_start))
-    sig_y_end = int(np.ceil(sv_zoomplot1.y_end))
-    sig_x_start = int(np.floor(sv_zoomplot1.x_start))
-    sig_x_end = int(np.ceil(sv_zoomplot1.x_end))
+    sig_y_start = int(np.floor(sv_zoomview1.y_start))
+    sig_y_end = int(np.ceil(sv_zoomview1.y_end))
+    sig_x_start = int(np.floor(sv_zoomview1.x_start))
+    sig_x_end = int(np.ceil(sv_zoomview1.x_end))
 
     im_block1 = image[sig_y_start:sig_y_end, sig_x_start:sig_x_end]
     sig_sum = np.sum(im_block1, dtype=np.float)
     sig_area = (sig_y_end - sig_y_start) * (sig_x_end - sig_x_start)
 
     # Background roi and intensity
-    bkg_y_start = int(np.floor(sv_zoomplot2.y_start))
-    bkg_y_end = int(np.ceil(sv_zoomplot2.y_end))
-    bkg_x_start = int(np.floor(sv_zoomplot2.x_start))
-    bkg_x_end = int(np.ceil(sv_zoomplot2.x_end))
+    bkg_y_start = int(np.floor(sv_zoomview2.y_start))
+    bkg_y_end = int(np.ceil(sv_zoomview2.y_end))
+    bkg_x_start = int(np.floor(sv_zoomview2.x_start))
+    bkg_x_end = int(np.ceil(sv_zoomview2.x_end))
 
     im_block2 = image[bkg_y_start:bkg_y_end, bkg_x_start:bkg_x_end]
     bkg_sum = np.sum(im_block2, dtype=np.float)

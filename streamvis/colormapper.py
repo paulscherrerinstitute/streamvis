@@ -23,7 +23,7 @@ cmap_dict = {
 
 
 class ColorMapper:
-    def __init__(self, image_plots, init_disp_min=0, init_disp_max=1000, init_colormap='plasma'):
+    def __init__(self, image_views, init_disp_min=0, init_disp_max=1000, init_colormap='plasma'):
         self._disp_min = init_disp_min
         self._disp_max = init_disp_max
 
@@ -35,8 +35,8 @@ class ColorMapper:
             palette=cmap_dict[init_colormap], low=init_disp_min, high=init_disp_max
         )
 
-        for image_plot in image_plots:
-            image_plot.image_glyph.color_mapper = lin_colormapper
+        for image_view in image_views:
+            image_view.image_glyph.color_mapper = lin_colormapper
 
         color_bar = ColorBar(
             color_mapper=lin_colormapper,
@@ -74,15 +74,15 @@ class ColorMapper:
         # ---- colormap scale radiobutton group
         def scale_radiobuttongroup_callback(selection):
             if selection == 0:  # Linear
-                for image_plot in image_plots:
-                    image_plot.image_glyph.color_mapper = lin_colormapper
+                for image_view in image_views:
+                    image_view.image_glyph.color_mapper = lin_colormapper
                 color_bar.color_mapper = lin_colormapper
                 color_bar.ticker = BasicTicker()
 
             else:  # Logarithmic
                 if self._disp_min > 0:
-                    for image_plot in image_plots:
-                        image_plot.image_glyph.color_mapper = log_colormapper
+                    for image_view in image_views:
+                        image_view.image_glyph.color_mapper = log_colormapper
                     color_bar.color_mapper = log_colormapper
                     color_bar.ticker = LogTicker()
                 else:

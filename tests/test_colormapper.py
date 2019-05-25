@@ -19,7 +19,7 @@ test_disp_ranges = [
 
 @pytest.mark.parametrize("init_disp_min,init_disp_max", test_disp_ranges)
 def test_update_lin_auto(init_disp_min, init_disp_max):
-    im = sv.ImagePlot()
+    im = sv.ImageView()
     sv_cm = sv.ColorMapper([im], init_disp_min=init_disp_min, init_disp_max=init_disp_max)
     sv_cm.auto_toggle.active = True
     sv_cm.update(test_image)
@@ -30,7 +30,7 @@ def test_update_lin_auto(init_disp_min, init_disp_max):
 
 @pytest.mark.parametrize("init_disp_min,init_disp_max", test_disp_ranges)
 def test_update_lin_no_auto(init_disp_min, init_disp_max):
-    im = sv.ImagePlot()
+    im = sv.ImageView()
     sv_cm = sv.ColorMapper([im], init_disp_min=init_disp_min, init_disp_max=init_disp_max)
     sv_cm.update(test_image)
 
@@ -40,7 +40,7 @@ def test_update_lin_no_auto(init_disp_min, init_disp_max):
 
 @pytest.mark.parametrize("init_disp_min,init_disp_max", test_disp_ranges)
 def test_update_log_auto(init_disp_min, init_disp_max):
-    im = sv.ImagePlot()
+    im = sv.ImageView()
     sv_cm = sv.ColorMapper([im], init_disp_min=init_disp_min, init_disp_max=init_disp_max)
     sv_cm.scale_radiobuttongroup.active = 1
     sv_cm.auto_toggle.active = True
@@ -52,7 +52,7 @@ def test_update_log_auto(init_disp_min, init_disp_max):
 
 @pytest.mark.parametrize("init_disp_min,init_disp_max", test_disp_ranges)
 def test_update_log_no_auto(init_disp_min, init_disp_max):
-    im = sv.ImagePlot()
+    im = sv.ImageView()
     sv_cm = sv.ColorMapper([im], init_disp_min=init_disp_min, init_disp_max=init_disp_max)
     sv_cm.scale_radiobuttongroup.active = 1
     sv_cm.update(test_image)

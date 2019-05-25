@@ -20,7 +20,7 @@ from bokeh.models import (
 from PIL import Image as PIL_Image
 
 
-class ImagePlot:
+class ImageView:
     def __init__(
         self,
         plot_height=894,

@@ -11,7 +11,7 @@ test_pil_image = PIL_Image.fromarray(test_image)
 
 @pytest.fixture(scope='function')
 def im_plot_with_cm():
-    im_plot = sv.ImagePlot()
+    im_plot = sv.ImageView()
 
     yield im_plot
 

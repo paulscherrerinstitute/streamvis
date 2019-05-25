@@ -99,7 +99,7 @@ tick_formatter = BasicTickFormatter(precision=1)
 
 
 # Main plot
-sv_mainplot = sv.ImagePlot(
+sv_mainview = sv.ImageView(
     plot_height=MAIN_CANVAS_HEIGHT,
     plot_width=MAIN_CANVAS_WIDTH,
     image_height=image_size_y,
@@ -108,7 +108,7 @@ sv_mainplot = sv.ImagePlot(
 
 
 # Zoom plot 1
-sv_zoomplot1 = sv.ImagePlot(
+sv_zoomview1 = sv.ImageView(
     plot_height=ZOOM_CANVAS_HEIGHT,
     plot_width=ZOOM_CANVAS_WIDTH,
     image_height=image_size_y,
@@ -119,16 +119,16 @@ sv_zoomplot1 = sv.ImagePlot(
     y_end=ZOOM1_TOP,
 )
 
-sv_mainplot.add_as_zoom(sv_zoomplot1, line_color='red')
+sv_mainview.add_as_zoom(sv_zoomview1, line_color='red')
 
 
 # Aggregate zoom1 plot along x axis
 zoom1_plot_agg_x = Plot(
     title=Title(text="Zoom Area 1"),
-    x_range=sv_zoomplot1.plot.x_range,
+    x_range=sv_zoomview1.plot.x_range,
     y_range=DataRange1d(),
     plot_height=ZOOM_AGG_X_PLOT_HEIGHT,
-    plot_width=sv_zoomplot1.plot.plot_width,
+    plot_width=sv_zoomview1.plot.plot_width,
     toolbar_location='left',
 )
 
@@ -159,8 +159,8 @@ zoom1_plot_agg_x.add_glyph(
 # Aggregate zoom1 plot along y axis
 zoom1_plot_agg_y = Plot(
     x_range=DataRange1d(),
-    y_range=sv_zoomplot1.plot.y_range,
-    plot_height=sv_zoomplot1.plot.plot_height,
+    y_range=sv_zoomview1.plot.y_range,
+    plot_height=sv_zoomview1.plot.plot_height,
     plot_width=ZOOM_AGG_Y_PLOT_WIDTH,
     toolbar_location=None,
 )
@@ -182,7 +182,7 @@ zoom1_plot_agg_y.add_glyph(zoom1_agg_y_source, Line(x='x', y='y', line_color='st
 
 
 # Zoom plot 2
-sv_zoomplot2 = sv.ImagePlot(
+sv_zoomview2 = sv.ImageView(
     plot_height=ZOOM_CANVAS_HEIGHT,
     plot_width=ZOOM_CANVAS_WIDTH,
     image_height=image_size_y,
@@ -193,16 +193,16 @@ sv_zoomplot2 = sv.ImagePlot(
     y_end=ZOOM2_TOP,
 )
 
-sv_mainplot.add_as_zoom(sv_zoomplot2, line_color='green')
+sv_mainview.add_as_zoom(sv_zoomview2, line_color='green')
 
 
 # Aggregate zoom2 plot along x axis
 zoom2_plot_agg_x = Plot(
     title=Title(text="Zoom Area 2"),
-    x_range=sv_zoomplot2.plot.x_range,
+    x_range=sv_zoomview2.plot.x_range,
     y_range=DataRange1d(),
     plot_height=ZOOM_AGG_X_PLOT_HEIGHT,
-    plot_width=sv_zoomplot2.plot.plot_width,
+    plot_width=sv_zoomview2.plot.plot_width,
     toolbar_location='left',
 )
 
@@ -231,8 +231,8 @@ zoom2_plot_agg_x.add_glyph(
 # Aggregate zoom2 plot along y axis
 zoom2_plot_agg_y = Plot(
     x_range=DataRange1d(),
-    y_range=sv_zoomplot2.plot.y_range,
-    plot_height=sv_zoomplot2.plot.plot_height,
+    y_range=sv_zoomview2.plot.y_range,
+    plot_height=sv_zoomview2.plot.plot_height,
     plot_width=ZOOM_AGG_Y_PLOT_WIDTH,
     toolbar_location=None,
 )
@@ -254,20 +254,20 @@ zoom2_plot_agg_y.add_glyph(zoom2_agg_y_source, Line(x='x', y='y', line_color='st
 
 
 # Create colormapper
-sv_colormapper = sv.ColorMapper([sv_mainplot, sv_zoomplot1, sv_zoomplot2])
+sv_colormapper = sv.ColorMapper([sv_mainview, sv_zoomview1, sv_zoomview2])
 
 # ---- add colorbar to the main plot
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
 sv_colormapper.color_bar.location = (0, -5)
-sv_mainplot.plot.add_layout(sv_colormapper.color_bar, place='below')
+sv_mainview.plot.add_layout(sv_colormapper.color_bar, place='below')
 
 
 # Add mask to all plots
-sv_mask = sv.Mask([sv_mainplot, sv_zoomplot1, sv_zoomplot2])
+sv_mask = sv.Mask([sv_mainview, sv_zoomview1, sv_zoomview2])
 
 
 # Histogram zoom plots
-sv_hist = sv.Histogram(nplots=2, plot_height=280, plot_width=sv_zoomplot1.plot.plot_width)
+sv_hist = sv.Histogram(nplots=2, plot_height=280, plot_width=sv_zoomview1.plot.plot_width)
 
 # Intensity threshold toggle button
 def threshold_button_callback(state):
@@ -532,17 +532,17 @@ sv_metadata = sv.MetadataHandler(datatable_height=420, datatable_width=800)
 
 
 # Final layouts
-layout_main = column(sv_mainplot.plot)
+layout_main = column(sv_mainview.plot)
 
 layout_zoom1 = column(
     zoom1_plot_agg_x,
-    row(sv_zoomplot1.plot, zoom1_plot_agg_y),
+    row(sv_zoomview1.plot, zoom1_plot_agg_y),
     row(Spacer(), sv_hist.plots[0], Spacer()),
 )
 
 layout_zoom2 = column(
     zoom2_plot_agg_x,
-    row(sv_zoomplot2.plot, zoom2_plot_agg_y),
+    row(sv_zoomview2.plot, zoom2_plot_agg_y),
     row(Spacer(), sv_hist.plots[1], Spacer()),
 )
 
@@ -606,12 +606,12 @@ def update_client(image, metadata, reset, aggr_image):
     global stream_t, current_spectra
 
     sv_colormapper.update(aggr_image)
-    sv_mainplot.update(aggr_image)
+    sv_mainview.update(aggr_image)
 
-    y_start1 = int(np.floor(sv_zoomplot1.y_start))
-    y_end1 = int(np.ceil(sv_zoomplot1.y_end))
-    x_start1 = int(np.floor(sv_zoomplot1.x_start))
-    x_end1 = int(np.ceil(sv_zoomplot1.x_end))
+    y_start1 = int(np.floor(sv_zoomview1.y_start))
+    y_end1 = int(np.ceil(sv_zoomview1.y_end))
+    x_start1 = int(np.floor(sv_zoomview1.x_start))
+    x_end1 = int(np.ceil(sv_zoomview1.x_end))
 
     im_block1 = aggr_image[y_start1:y_end1, x_start1:x_end1]
 
@@ -624,10 +624,10 @@ def update_client(image, metadata, reset, aggr_image):
     zoom1_agg_y_source.data.update(x=zoom1_agg_y, y=zoom1_r_y)
     zoom1_agg_x_source.data.update(x=zoom1_r_x, y=zoom1_agg_x)
 
-    y_start2 = int(np.floor(sv_zoomplot2.y_start))
-    y_end2 = int(np.ceil(sv_zoomplot2.y_end))
-    x_start2 = int(np.floor(sv_zoomplot2.x_start))
-    x_end2 = int(np.ceil(sv_zoomplot2.x_end))
+    y_start2 = int(np.floor(sv_zoomview2.y_start))
+    y_end2 = int(np.ceil(sv_zoomview2.y_end))
+    x_start2 = int(np.floor(sv_zoomview2.x_start))
+    x_end2 = int(np.ceil(sv_zoomview2.x_end))
 
     im_block2 = aggr_image[y_start2:y_end2, x_start2:x_end2]
 

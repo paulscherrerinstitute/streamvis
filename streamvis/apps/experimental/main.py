@@ -41,16 +41,16 @@ hdf5_file_data = lambda pulse: None
 
 
 # Main plot
-sv_mainplot = sv.ImagePlot(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
+sv_mainview = sv.ImageView(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
 
 
 # Create colormapper
-sv_colormapper = sv.ColorMapper([sv_mainplot])
+sv_colormapper = sv.ColorMapper([sv_mainview])
 
 # ---- add colorbar to the main plot
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
 sv_colormapper.color_bar.location = (0, -5)
-sv_mainplot.plot.add_layout(sv_colormapper.color_bar, place='below')
+sv_mainview.plot.add_layout(sv_colormapper.color_bar, place='below')
 
 
 # Histogram plot
@@ -161,7 +161,7 @@ sv_metadata = sv.MetadataHandler(datatable_height=300, datatable_width=400)
 layout_controls = column(data_source_tabs, colormap_panel)
 
 final_layout = row(
-    layout_controls, sv_mainplot.plot, column(sv_hist.plots[0], sv_metadata.datatable)
+    layout_controls, sv_mainview.plot, column(sv_hist.plots[0], sv_metadata.datatable)
 )
 
 doc.add_root(final_layout)
@@ -170,13 +170,13 @@ doc.add_root(final_layout)
 @gen.coroutine
 def update_client(image, metadata):
     sv_colormapper.update(image)
-    sv_mainplot.update(image)
+    sv_mainview.update(image)
 
     # Statistics
-    y_start = int(np.floor(sv_mainplot.y_start))
-    y_end = int(np.ceil(sv_mainplot.y_end))
-    x_start = int(np.floor(sv_mainplot.x_start))
-    x_end = int(np.ceil(sv_mainplot.x_end))
+    y_start = int(np.floor(sv_mainview.y_start))
+    y_end = int(np.ceil(sv_mainview.y_end))
+    x_start = int(np.floor(sv_mainview.x_start))
+    x_end = int(np.ceil(sv_mainview.x_end))
 
     im_block = image[y_start:y_end, x_start:x_end]
     sv_hist.update([im_block])

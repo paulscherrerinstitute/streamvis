@@ -80,8 +80,8 @@ tick_formatter = BasicTickFormatter(precision=1)
 
 
 # Main plot
-sv_mainplot = sv.ImagePlot(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
-sv_mainplot.toolbar_location = 'below'
+sv_mainview = sv.ImageView(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
+sv_mainview.toolbar_location = 'below'
 
 # ---- tools
 experiment_params = ColumnDataSource(
@@ -118,11 +118,11 @@ hovertool = HoverTool(
 )
 
 # replace the existing HoverTool
-sv_mainplot.plot.tools[-1] = hovertool
+sv_mainview.plot.tools[-1] = hovertool
 
 # ---- peaks circle glyph
 main_image_peaks_source = ColumnDataSource(dict(x=[], y=[]))
-sv_mainplot.plot.add_glyph(
+sv_mainview.plot.add_glyph(
     main_image_peaks_source,
     Circle(x='x', y='y', size=15, fill_alpha=0, line_width=3, line_color='white'),
 )
@@ -200,14 +200,14 @@ sum_intensity_reset_button.on_click(sum_intensity_reset_button_callback)
 
 
 # Aggregation plot
-sv_aggrplot = sv.ImagePlot(plot_height=AGGR_CANVAS_HEIGHT, plot_width=AGGR_CANVAS_WIDTH)
+sv_aggrplot = sv.ImageView(plot_height=AGGR_CANVAS_HEIGHT, plot_width=AGGR_CANVAS_WIDTH)
 sv_aggrplot.toolbar_location = 'below'
 
 # ---- tools
 # replace the existing HoverTool
 sv_aggrplot.plot.tools[-1] = hovertool
 
-sv_mainplot.add_as_zoom(sv_aggrplot, line_color='white')
+sv_mainview.add_as_zoom(sv_aggrplot, line_color='white')
 
 
 # Projection of aggregate image onto x axis
@@ -265,19 +265,19 @@ aggr_image_proj_y_plot.add_glyph(
 
 
 # Create colormapper
-sv_colormapper = sv.ColorMapper([sv_mainplot, sv_aggrplot])
+sv_colormapper = sv.ColorMapper([sv_mainview, sv_aggrplot])
 
 # ---- add colorbar to the main plot
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
-sv_mainplot.plot.add_layout(sv_colormapper.color_bar, place='above')
+sv_mainview.plot.add_layout(sv_colormapper.color_bar, place='above')
 
 
 # Add resolution rings to both plots
-sv_resolrings = sv.ResolutionRings([sv_mainplot, sv_aggrplot], RESOLUTION_RINGS_POS)
+sv_resolrings = sv.ResolutionRings([sv_mainview, sv_aggrplot], RESOLUTION_RINGS_POS)
 
 
 # Add mask to both plots
-sv_mask = sv.Mask([sv_mainplot, sv_aggrplot])
+sv_mask = sv.Mask([sv_mainview, sv_aggrplot])
 
 
 # Histogram plot
@@ -480,7 +480,7 @@ custom_tabs = Tabs(tabs=[debug_tab, scan_tab], height=960, width=1400)
 
 
 # Final layouts
-layout_main = column(sv_mainplot.plot)
+layout_main = column(sv_mainview.plot)
 
 layout_aggr = column(
     aggr_image_proj_x_plot,
@@ -500,7 +500,7 @@ doc.add_root(row(Spacer(width=50), final_layout))
 @gen.coroutine
 def update_client(image, metadata):
     sv_colormapper.update(image)
-    resized_images = sv_mainplot.update(image)
+    resized_images = sv_mainview.update(image)
 
     aggr_image = resized_images[1]
     aggr_image_height, aggr_image_width = aggr_image.shape
