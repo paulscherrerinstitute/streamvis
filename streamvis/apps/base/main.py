@@ -1,4 +1,3 @@
-from datetime import datetime
 from functools import partial
 
 import h5py
@@ -8,27 +7,21 @@ from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
 from bokeh.models import (
     BasicTicker,
-    BasicTickFormatter,
-    BoxZoomTool,
-    Button,
     ColumnDataSource,
     CustomJS,
     DataRange1d,
-    DatetimeAxis,
     Grid,
     Line,
     LinearAxis,
     Panel,
-    PanTool,
     Plot,
-    ResetTool,
     Slider,
     Spacer,
     Spinner,
     Tabs,
     TextInput,
+    Title,
     Toggle,
-    WheelZoomTool,
 )
 from tornado import gen
 
@@ -60,7 +53,6 @@ ZOOM_CANVAS_HEIGHT = 600 + 30
 DEBUG_INTENSITY_WIDTH = 700
 
 APP_FPS = 1
-STREAM_ROLLOVER = 36000
 
 agg_plot_size = 200
 
@@ -73,9 +65,6 @@ aggregate_flag = False
 aggregated_image = 0
 aggregate_time = 0
 aggregate_counter = 1
-
-# Custom tick formatter for displaying large numbers
-tick_formatter = BasicTickFormatter(precision=1)
 
 
 # Main plot
@@ -153,71 +142,13 @@ sv_mask = sv.Mask([sv_mainview, sv_zoomview])
 sv_hist = sv.Histogram(nplots=1, plot_height=400, plot_width=700)
 
 
-# Total intensity plot
-total_intensity_plot = Plot(
-    x_range=DataRange1d(),
-    y_range=DataRange1d(),
-    plot_height=agg_plot_size,
-    plot_width=DEBUG_INTENSITY_WIDTH,
+# Total sum intensity plots
+sv_streamgraph = sv.StreamGraph(
+    nplots=2, plot_height=agg_plot_size, plot_width=DEBUG_INTENSITY_WIDTH, rollover=36000
 )
-
-# ---- tools
-total_intensity_plot.add_tools(
-    PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool()
-)
-
-# ---- axes
-total_intensity_plot.add_layout(
-    LinearAxis(axis_label="Image intensity", formatter=tick_formatter), place='left'
-)
-total_intensity_plot.add_layout(DatetimeAxis(major_label_text_font_size='0pt'), place='below')
-
-# ---- grid lines
-total_intensity_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-total_intensity_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-# ---- line glyph
-total_sum_source = ColumnDataSource(dict(x=[], y=[]))
-total_intensity_plot.add_glyph(total_sum_source, Line(x='x', y='y'))
-
-
-# Zoom1 intensity plot
-zoom1_intensity_plot = Plot(
-    x_range=total_intensity_plot.x_range,
-    y_range=DataRange1d(),
-    plot_height=agg_plot_size,
-    plot_width=DEBUG_INTENSITY_WIDTH,
-)
-
-# ---- tools
-zoom1_intensity_plot.add_tools(
-    PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool()
-)
-
-# ---- axes
-zoom1_intensity_plot.add_layout(
-    LinearAxis(axis_label="Zoom Intensity", formatter=tick_formatter), place='left'
-)
-zoom1_intensity_plot.add_layout(DatetimeAxis(), place='below')
-
-# ---- grid lines
-zoom1_intensity_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-zoom1_intensity_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-# ---- line glyph
-zoom1_sum_source = ColumnDataSource(dict(x=[], y=[]))
-zoom1_intensity_plot.add_glyph(zoom1_sum_source, Line(x='x', y='y', line_color='red'))
-
-
-# Intensity stream reset button
-def intensity_stream_reset_button_callback():
-    stream_t = datetime.now()  # keep the latest point in order to prevent full axis reset
-    total_sum_source.data.update(x=[stream_t], y=[total_sum_source.data['y'][-1]])
-    zoom1_sum_source.data.update(x=[stream_t], y=[zoom1_sum_source.data['y'][-1]])
-
-
-intensity_stream_reset_button = Button(label="Reset", button_type='default')
-intensity_stream_reset_button.on_click(intensity_stream_reset_button_callback)
+sv_streamgraph.plots[0].title = Title(text="Total intensity")
+sv_streamgraph.plots[1].title = Title(text="Zoom total intensity")
+sv_streamgraph.glyphs[1].line_color = 'red'
 
 
 # Stream panel
@@ -353,12 +284,9 @@ layout_zoom = column(zoom1_plot_agg_x, row(sv_zoomview.plot, zoom1_plot_agg_y))
 
 layout_utility = column(
     gridplot(
-        [total_intensity_plot, zoom1_intensity_plot],
-        ncols=1,
-        toolbar_location='left',
-        toolbar_options=dict(logo=None),
+        sv_streamgraph.plots, ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)
     ),
-    row(Spacer(), intensity_stream_reset_button),
+    row(Spacer(), sv_streamgraph.reset_button),
 )
 
 layout_controls = column(colormap_panel, sv_mask.toggle, data_source_tabs)
@@ -414,14 +342,8 @@ def update_client(image, metadata, reset, aggr_image):
             im_block = image[y_start:y_end, x_start:x_end]
             sv_hist.update([im_block], accumulate=True)
 
-    stream_t = datetime.now()
-    zoom1_sum_source.stream(
-        new_data=dict(x=[stream_t], y=[total_sum_zoom]), rollover=STREAM_ROLLOVER
-    )
-    total_sum_source.stream(
-        new_data=dict(x=[stream_t], y=[np.sum(aggr_image, dtype=np.float)]),
-        rollover=STREAM_ROLLOVER,
-    )
+    # Update total intensities plots
+    sv_streamgraph.update([np.sum(aggr_image, dtype=np.float), total_sum_zoom])
 
     # Parse and update metadata
     metadata_toshow = sv_metadata.parse(metadata)

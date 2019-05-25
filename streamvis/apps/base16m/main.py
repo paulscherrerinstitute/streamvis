@@ -9,9 +9,7 @@ from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
 from bokeh.models import (
     BasicTicker,
-    BasicTickFormatter,
     BoxZoomTool,
-    Button,
     Circle,
     ColumnDataSource,
     CustomJSHover,
@@ -68,15 +66,11 @@ AGGR_PROJ_X_CANVAS_HEIGHT = 150 + 11
 AGGR_PROJ_Y_CANVAS_WIDTH = 150 + 31
 
 APP_FPS = 1
-STREAM_ROLLOVER = 36000
 HITRATE_ROLLOVER = 1200
 image_buffer = deque(maxlen=60)
 
 # Resolution rings positions in angstroms
 RESOLUTION_RINGS_POS = np.array([2, 2.2, 2.6, 3, 5, 10])
-
-# Custom tick formatter for displaying large numbers
-tick_formatter = BasicTickFormatter(precision=1)
 
 
 # Main plot
@@ -128,75 +122,10 @@ sv_mainview.plot.add_glyph(
 )
 
 
-# Total sum intensity plot
-main_sum_intensity_plot = Plot(
-    x_range=DataRange1d(),
-    y_range=DataRange1d(),
-    plot_height=200,
-    plot_width=1350,
-    toolbar_location='below',
-)
-
-# ---- tools
-main_sum_intensity_plot.toolbar.logo = None
-main_sum_intensity_plot.add_tools(
-    PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool()
-)
-
-# ---- axes
-main_sum_intensity_plot.add_layout(
-    LinearAxis(axis_label="Total intensity", formatter=tick_formatter), place='left'
-)
-main_sum_intensity_plot.add_layout(DatetimeAxis(), place='below')
-
-# ---- grid lines
-main_sum_intensity_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-main_sum_intensity_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-# ---- line glyph
-main_sum_intensity_source = ColumnDataSource(dict(x=[], y=[]))
-main_sum_intensity_plot.add_glyph(main_sum_intensity_source, Line(x='x', y='y'))
-
-
-# Aggr total sum intensity plot
-aggr_sum_intensity_plot = Plot(
-    x_range=DataRange1d(),
-    y_range=DataRange1d(),
-    plot_height=200,
-    plot_width=1350,
-    toolbar_location='below',
-)
-
-# ---- tools
-aggr_sum_intensity_plot.toolbar.logo = None
-aggr_sum_intensity_plot.add_tools(
-    PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool()
-)
-
-# ---- axes
-aggr_sum_intensity_plot.add_layout(
-    LinearAxis(axis_label="Zoom total intensity", formatter=tick_formatter), place='left'
-)
-aggr_sum_intensity_plot.add_layout(DatetimeAxis(), place='below')
-
-# ---- grid lines
-aggr_sum_intensity_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-aggr_sum_intensity_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-# ---- line glyph
-aggr_sum_intensity_source = ColumnDataSource(dict(x=[], y=[]))
-aggr_sum_intensity_plot.add_glyph(aggr_sum_intensity_source, Line(x='x', y='y'))
-
-
-# Intensity stream reset button
-def sum_intensity_reset_button_callback():
-    stream_t = datetime.now()  # keep the latest point in order to prevent full axis reset
-    main_sum_intensity_source.data.update(x=[stream_t], y=[main_sum_intensity_source.data['y'][-1]])
-    aggr_sum_intensity_source.data.update(x=[stream_t], y=[aggr_sum_intensity_source.data['y'][-1]])
-
-
-sum_intensity_reset_button = Button(label="Reset", button_type='default')
-sum_intensity_reset_button.on_click(sum_intensity_reset_button_callback)
+# Total sum intensity plots
+sv_streamgraph = sv.StreamGraph(nplots=2, plot_height=200, plot_width=1350, rollover=36000)
+sv_streamgraph.plots[0].title = Title(text="Total intensity")
+sv_streamgraph.plots[1].title = Title(text="Zoom total intensity")
 
 
 # Aggregation plot
@@ -440,12 +369,9 @@ sv_metadata = sv.MetadataHandler(datatable_height=360, datatable_width=650)
 # Custom tabs
 layout_intensity = column(
     gridplot(
-        [main_sum_intensity_plot, aggr_sum_intensity_plot],
-        ncols=1,
-        toolbar_location='left',
-        toolbar_options=dict(logo=None),
+        sv_streamgraph.plots, ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)
     ),
-    row(Spacer(), sum_intensity_reset_button),
+    row(Spacer(), sv_streamgraph.reset_button),
 )
 
 sv_hist.log10counts_toggle.width = 120
@@ -545,23 +471,19 @@ def update_client(image, metadata):
     )
 
     # Update total intensities plots
-    stream_t = datetime.now()
-    main_sum_intensity_source.stream(
-        new_data=dict(x=[stream_t], y=[np.sum(image, dtype=np.float)]), rollover=STREAM_ROLLOVER
-    )
     aggr_y_start = int(np.floor(aggr_y_start))
     aggr_x_start = int(np.floor(aggr_x_start))
     aggr_y_end = int(np.ceil(aggr_y_end))
     aggr_x_end = int(np.ceil(aggr_x_end))
-    aggr_sum_intensity_source.stream(
-        new_data=dict(
-            x=[stream_t],
-            y=[np.sum(image[aggr_y_start:aggr_y_end, aggr_x_start:aggr_x_end], dtype=np.float)],
-        ),
-        rollover=STREAM_ROLLOVER,
+    sv_streamgraph.update(
+        [
+            np.sum(image, dtype=np.float),
+            np.sum(image[aggr_y_start:aggr_y_end, aggr_x_start:aggr_x_end], dtype=np.float),
+        ]
     )
 
     # Update peakfinder plot
+    stream_t = datetime.now()
     hitrate_line_red_source.stream(
         new_data=dict(
             x=[stream_t], y=[sum(receiver.hitrate_buffer_fast) / len(receiver.hitrate_buffer_fast)]

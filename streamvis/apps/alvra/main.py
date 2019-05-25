@@ -8,8 +8,6 @@ from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
 from bokeh.models import (
     BasicTicker,
-    BasicTickFormatter,
-    BoxZoomTool,
     Button,
     ColumnDataSource,
     DataRange1d,
@@ -93,9 +91,6 @@ aggregate_counter = 1
 
 current_spectra = None
 saved_spectra = dict()
-
-# Custom tick formatter for displaying large numbers
-tick_formatter = BasicTickFormatter(precision=1)
 
 
 # Main plot
@@ -392,104 +387,19 @@ save_spectrum_select = Select(title='Saved Spectra:', options=['None'], value='N
 save_spectrum_select.on_change('value', save_spectrum_select_callback)
 
 
-# Total intensity plot
-total_intensity_plot = Plot(
-    title=Title(text="Total Intensity"),
-    x_range=DataRange1d(),
-    y_range=DataRange1d(),
+# Total sum intensity plots
+sv_streamgraph = sv.StreamGraph(
+    nplots=3,
     plot_height=TOTAL_INT_PLOT_HEIGHT,
     plot_width=TOTAL_INT_PLOT_WIDTH,
+    rollover=36000,
+    mode='number',
 )
-
-# ---- tools
-total_intensity_plot.add_tools(
-    PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool()
-)
-
-# ---- axes
-total_intensity_plot.add_layout(
-    LinearAxis(axis_label="Total intensity", formatter=tick_formatter), place='left'
-)
-total_intensity_plot.add_layout(LinearAxis(), place='below')
-
-# ---- grid lines
-total_intensity_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-total_intensity_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-# ---- line glyph
-total_sum_source = ColumnDataSource(dict(x=[], y=[]))
-total_intensity_plot.add_glyph(total_sum_source, Line(x='x', y='y'))
-
-
-# Zoom1 intensity plot
-zoom1_intensity_plot = Plot(
-    title=Title(text="Zoom Area 1 Total Intensity"),
-    x_range=total_intensity_plot.x_range,
-    y_range=DataRange1d(),
-    plot_height=TOTAL_INT_PLOT_HEIGHT,
-    plot_width=TOTAL_INT_PLOT_WIDTH,
-)
-
-# ---- tools
-zoom1_intensity_plot.add_tools(
-    PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool()
-)
-
-# ---- axes
-zoom1_intensity_plot.add_layout(
-    LinearAxis(axis_label="Intensity", formatter=tick_formatter), place='left'
-)
-zoom1_intensity_plot.add_layout(LinearAxis(), place='below')
-
-# ---- grid lines
-zoom1_intensity_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-zoom1_intensity_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-# ---- line glyph
-zoom1_sum_source = ColumnDataSource(dict(x=[], y=[]))
-zoom1_intensity_plot.add_glyph(zoom1_sum_source, Line(x='x', y='y', line_color='red'))
-
-
-# Zoom2 intensity plot
-zoom2_intensity_plot = Plot(
-    title=Title(text="Zoom Area 2 Total Intensity"),
-    x_range=total_intensity_plot.x_range,
-    y_range=DataRange1d(),
-    plot_height=TOTAL_INT_PLOT_HEIGHT,
-    plot_width=TOTAL_INT_PLOT_WIDTH,
-)
-
-# ---- tools
-zoom2_intensity_plot.add_tools(
-    PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool()
-)
-
-# ---- axes
-zoom2_intensity_plot.add_layout(
-    LinearAxis(axis_label="Intensity", formatter=tick_formatter), place='left'
-)
-zoom2_intensity_plot.add_layout(LinearAxis(), place='below')
-
-# ---- grid lines
-zoom2_intensity_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-zoom2_intensity_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-# ---- line glyph
-zoom2_sum_source = ColumnDataSource(dict(x=[], y=[]))
-zoom2_intensity_plot.add_glyph(zoom2_sum_source, Line(x='x', y='y', line_color='green'))
-
-
-# Intensity stream reset button
-def intensity_stream_reset_button_callback():
-    global stream_t
-    stream_t = 1  # keep the latest point in order to prevent full axis reset
-    total_sum_source.data.update(x=[1], y=[total_sum_source.data['y'][-1]])
-    zoom1_sum_source.data.update(x=[1], y=[zoom1_sum_source.data['y'][-1]])
-    zoom2_sum_source.data.update(x=[1], y=[zoom2_sum_source.data['y'][-1]])
-
-
-intensity_stream_reset_button = Button(label="Reset", button_type='default')
-intensity_stream_reset_button.on_click(intensity_stream_reset_button_callback)
+sv_streamgraph.plots[0].title = Title(text="Total Intensity")
+sv_streamgraph.plots[1].title = Title(text="Zoom Area 1 Total Intensity")
+sv_streamgraph.glyphs[1].line_color = 'red'
+sv_streamgraph.plots[2].title = Title(text="Zoom Area 2 Total Intensity")
+sv_streamgraph.glyphs[2].line_color = 'green'
 
 
 # Stream panel
@@ -561,12 +471,9 @@ layout_hist_controls = row(
 
 layout_utility = column(
     gridplot(
-        [total_intensity_plot, zoom1_intensity_plot, zoom2_intensity_plot],
-        ncols=1,
-        toolbar_location='left',
-        toolbar_options=dict(logo=None),
+        sv_streamgraph.plots, ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)
     ),
-    row(Spacer(width=850), intensity_stream_reset_button),
+    row(Spacer(width=850), sv_streamgraph.reset_button),
 )
 
 layout_controls = column(colormap_panel, sv_mask.toggle, data_source_tabs)
@@ -648,16 +555,9 @@ def update_client(image, metadata, reset, aggr_image):
             im_block2 = image[y_start2:y_end2, x_start2:x_end2]
             sv_hist.update([im_block1, im_block2], accumulate=True)
 
-        stream_t += 1
-        total_sum_source.stream(
-            new_data=dict(x=[stream_t], y=[np.sum(aggr_image, dtype=np.float)]),
-            rollover=STREAM_ROLLOVER,
-        )
-        zoom1_sum_source.stream(
-            new_data=dict(x=[stream_t], y=[total_sum_zoom1]), rollover=STREAM_ROLLOVER
-        )
-        zoom2_sum_source.stream(
-            new_data=dict(x=[stream_t], y=[total_sum_zoom2]), rollover=STREAM_ROLLOVER
+        # Update total intensities plots
+        sv_streamgraph.update(
+            [np.sum(aggr_image, dtype=np.float), total_sum_zoom1, total_sum_zoom2]
         )
 
     # Save spectrum
