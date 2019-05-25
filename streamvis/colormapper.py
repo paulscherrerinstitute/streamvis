@@ -23,17 +23,15 @@ cmap_dict = {
 
 
 class ColorMapper:
-    def __init__(self, image_views, init_disp_min=0, init_disp_max=1000, init_colormap='plasma'):
-        self._disp_min = init_disp_min
-        self._disp_max = init_disp_max
+    def __init__(self, image_views, disp_min=0, disp_max=1000, colormap='plasma'):
+        self._disp_min = disp_min
+        self._disp_max = disp_max
 
         lin_colormapper = LinearColorMapper(
-            palette=cmap_dict[init_colormap], low=init_disp_min, high=init_disp_max
+            palette=cmap_dict[colormap], low=disp_min, high=disp_max
         )
 
-        log_colormapper = LogColorMapper(
-            palette=cmap_dict[init_colormap], low=init_disp_min, high=init_disp_max
-        )
+        log_colormapper = LogColorMapper(palette=cmap_dict[colormap], low=disp_min, high=disp_max)
 
         for image_view in image_views:
             image_view.image_glyph.color_mapper = lin_colormapper
@@ -54,7 +52,7 @@ class ColorMapper:
                 lin_colormapper.palette = cmap_dict[new]
                 log_colormapper.palette = cmap_dict[new]
 
-        select = Select(title="Colormap:", value=init_colormap, options=list(cmap_dict.keys()))
+        select = Select(title="Colormap:", value=colormap, options=list(cmap_dict.keys()))
         select.on_change('value', select_callback)
         self.select = select
 
@@ -106,10 +104,7 @@ class ColorMapper:
                 display_max_spinner.value = old_value
 
         display_max_spinner = Spinner(
-            title='Maximal Display Value:',
-            value=init_disp_max,
-            step=0.1,
-            disabled=auto_toggle.active,
+            title='Maximal Display Value:', value=disp_max, step=0.1, disabled=auto_toggle.active
         )
         display_max_spinner.on_change('value', display_max_spinner_callback)
         self.display_max_spinner = display_max_spinner
@@ -128,10 +123,7 @@ class ColorMapper:
                 display_min_spinner.value = old_value
 
         display_min_spinner = Spinner(
-            title='Minimal Display Value:',
-            value=init_disp_min,
-            step=0.1,
-            disabled=auto_toggle.active,
+            title='Minimal Display Value:', value=disp_min, step=0.1, disabled=auto_toggle.active
         )
         display_min_spinner.on_change('value', display_min_spinner_callback)
         self.display_min_spinner = display_min_spinner
