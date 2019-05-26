@@ -190,7 +190,10 @@ layout_utility = column(
     gridplot(
         sv_streamgraph.plots, ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)
     ),
-    row(Spacer(width=400), sv_streamgraph.reset_button),
+    row(
+        sv_streamgraph.moving_average_spinner,
+        column(Spacer(height=19), sv_streamgraph.reset_button),
+    ),
 )
 
 layout_controls = row(

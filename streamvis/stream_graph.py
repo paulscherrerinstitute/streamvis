@@ -1,4 +1,6 @@
+from collections import deque
 from datetime import datetime
+from itertools import islice
 
 from bokeh.models import (
     BasicTicker,
@@ -14,8 +16,11 @@ from bokeh.models import (
     PanTool,
     Plot,
     ResetTool,
+    Spinner,
     WheelZoomTool,
 )
+
+MAXLEN = 100
 
 
 class StreamGraph:
@@ -23,6 +28,8 @@ class StreamGraph:
         self.rollover = rollover
         self.mode = mode
         self._stream_t = 0
+        self._buffers = []
+        self._window = 1
 
         # Custom tick formatter for displaying large numbers
         tick_formatter = BasicTickFormatter(precision=1)
@@ -68,6 +75,18 @@ class StreamGraph:
             self.plots.append(plot)
             self.glyphs.append(line)
             self._sources.append(source)
+            self._buffers.append(deque(maxlen=MAXLEN))
+
+        # Moving average spinner
+        def moving_average_spinner_callback(_attr, _old_value, new_value):
+            if moving_average_spinner.low <= new_value <= moving_average_spinner.high:
+                self._window = new_value
+
+        moving_average_spinner = Spinner(
+            title='Moving Average Window:', value=self._window, low=1, high=MAXLEN
+        )
+        moving_average_spinner.on_change('value', moving_average_spinner_callback)
+        self.moving_average_spinner = moving_average_spinner
 
         # Reset button
         def reset_button_callback():
@@ -90,5 +109,7 @@ class StreamGraph:
         elif self.mode == 'number':
             self._stream_t += 1
 
-        for ind, source in enumerate(self._sources):
-            source.stream(dict(x=[self._stream_t], y=[values[ind]]), rollover=self.rollover)
+        for value, source, buffer in zip(values, self._sources, self._buffers):
+            buffer.append(value)
+            average = sum(islice(reversed(buffer), self._window)) / self._window
+            source.stream(dict(x=[self._stream_t], y=[average]), rollover=self.rollover)

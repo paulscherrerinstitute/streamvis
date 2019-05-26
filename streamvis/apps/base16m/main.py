@@ -371,7 +371,10 @@ layout_intensity = column(
     gridplot(
         sv_streamgraph.plots, ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)
     ),
-    row(Spacer(), sv_streamgraph.reset_button),
+    row(
+        sv_streamgraph.moving_average_spinner,
+        column(Spacer(height=19), sv_streamgraph.reset_button),
+    ),
 )
 
 sv_hist.log10counts_toggle.width = 120
