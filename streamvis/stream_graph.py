@@ -11,6 +11,7 @@ from bokeh.models import (
     DataRange1d,
     DatetimeAxis,
     Grid,
+    Legend,
     Line,
     LinearAxis,
     PanTool,
@@ -68,9 +69,20 @@ class StreamGraph:
             plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
             # ---- line glyph
-            source = ColumnDataSource(dict(x=[], y=[]))
+            source = ColumnDataSource(dict(x=[], y=[], x_avg=[], y_avg=[]))
             line = Line(x='x', y='y')
-            plot.add_glyph(source, line)
+            line_avg = Line(x='x_avg', y='y_avg', line_color='red')
+            line_renderer = plot.add_glyph(source, line)
+            line_avg_renderer = plot.add_glyph(source, line_avg)
+
+            # ---- legend
+            plot.add_layout(
+                Legend(
+                    items=[("per frame", [line_renderer]), ("moving average", [line_avg_renderer])],
+                    location='top_left',
+                )
+            )
+            plot.legend.click_policy = "hide"
 
             self.plots.append(plot)
             self.glyphs.append(line)
@@ -97,7 +109,12 @@ class StreamGraph:
                 self._stream_t = 1
 
             for source in self._sources:
-                source.data.update(x=[self._stream_t], y=[source.data['y'][-1]])
+                source.data.update(
+                    x=[self._stream_t],
+                    y=[source.data['y'][-1]],
+                    x_avg=[self._stream_t],
+                    y_avg=[source.data['y_avg'][-1]],
+                )
 
         reset_button = Button(label="Reset", button_type='default')
         reset_button.on_click(reset_button_callback)
@@ -112,4 +129,7 @@ class StreamGraph:
         for value, source, buffer in zip(values, self._sources, self._buffers):
             buffer.append(value)
             average = sum(islice(reversed(buffer), self._window)) / self._window
-            source.stream(dict(x=[self._stream_t], y=[average]), rollover=self.rollover)
+            source.stream(
+                dict(x=[self._stream_t], y=[value], x_avg=[self._stream_t], y_avg=[average]),
+                rollover=self.rollover,
+            )
