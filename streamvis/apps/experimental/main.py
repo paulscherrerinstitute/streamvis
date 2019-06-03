@@ -15,7 +15,6 @@ from bokeh.models import (
     Tabs,
     TextInput,
 )
-from tornado import gen
 
 import streamvis as sv
 
@@ -167,8 +166,7 @@ final_layout = row(
 doc.add_root(final_layout)
 
 
-@gen.coroutine
-def update_client(image, metadata):
+async def update_client(image, metadata):
     sv_colormapper.update(image)
     sv_mainview.update(image)
 
@@ -185,8 +183,7 @@ def update_client(image, metadata):
     sv_metadata.update(metadata)
 
 
-@gen.coroutine
-def internal_periodic_callback():
+async def internal_periodic_callback():
     if sv_rt.current_image.shape != (1, 1):
         doc.add_next_tick_callback(
             partial(update_client, image=sv_rt.current_image, metadata=sv_rt.current_metadata)

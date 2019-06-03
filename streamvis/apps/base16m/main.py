@@ -36,7 +36,6 @@ from bokeh.models import (
 )
 from bokeh.palettes import Reds9  # pylint: disable=E0611
 from bokeh.transform import linear_cmap
-from tornado import gen
 
 import receiver
 import streamvis as sv
@@ -426,8 +425,7 @@ final_layout = row(layout_main, Spacer(width=30), layout_side_panel)
 doc.add_root(row(Spacer(width=50), final_layout))
 
 
-@gen.coroutine
-def update_client(image, metadata):
+async def update_client(image, metadata):
     sv_colormapper.update(image)
     resized_images = sv_mainview.update(image)
 
@@ -519,8 +517,7 @@ def update_client(image, metadata):
     sv_metadata.update(metadata_toshow)
 
 
-@gen.coroutine
-def internal_periodic_callback():
+async def internal_periodic_callback():
     global current_gain_file, current_pedestal_file, jf_calib
 
     if connected:

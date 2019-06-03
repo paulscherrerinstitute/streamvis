@@ -27,7 +27,6 @@ from bokeh.models import (
     Toggle,
     WheelZoomTool,
 )
-from tornado import gen
 
 import receiver
 import streamvis as sv
@@ -511,8 +510,7 @@ final_layout = column(
 doc.add_root(row(Spacer(width=20), final_layout))
 
 
-@gen.coroutine
-def update_client(image, metadata, reset, aggr_image):
+async def update_client(image, metadata, reset, aggr_image):
     global stream_t, current_spectra
 
     sv_colormapper.update(aggr_image)
@@ -584,8 +582,7 @@ def update_client(image, metadata, reset, aggr_image):
     sv_metadata.update(metadata_toshow)
 
 
-@gen.coroutine
-def internal_periodic_callback():
+async def internal_periodic_callback():
     global aggregate_counter, aggregated_image, current_gain_file, current_pedestal_file, jf_calib
     reset = True
 
