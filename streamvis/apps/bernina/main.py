@@ -7,9 +7,9 @@ from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
 from bokeh.models import Panel, Spacer, Tabs, Title, Toggle
 
-import receiver
 import streamvis as sv
 
+receiver = sv.receiver
 doc = curdoc()
 doc.title = receiver.args.page_title
 

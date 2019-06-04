@@ -24,9 +24,9 @@ from bokeh.models import (
     Toggle,
 )
 
-import receiver
 import streamvis as sv
 
+receiver = sv.receiver
 doc = curdoc()
 doc.title = receiver.args.page_title
 
