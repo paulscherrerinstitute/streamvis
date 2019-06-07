@@ -25,7 +25,7 @@ requirements:
     - jungfrau_utils==0.2.5
 
 about:
-  home: https://github.com/ivan-usov/streamvis
+  home: https://github.com/paulscherrerinstitute/streamvis
   summary: {{ data['description'] }}
   license: GNU GPLv3
   license_file: LICENSE
