@@ -13,8 +13,9 @@ group.add_argument('--detector-backend-address')
 group.add_argument('--bind-address')
 parser.add_argument('--page-title', default="JF-Base16M - StreamVis")
 parser.add_argument('--buffer-size', type=int, default=1)
-parser.add_argument('--hit-threshold', type=int, default=15)
 args = parser.parse_args()
+
+HIT_THRESHOLD = 15
 
 data_buffer = deque(maxlen=args.buffer_size)
 peakfinder_buffer = deque(maxlen=args.buffer_size)
@@ -108,7 +109,7 @@ def stream_receive():
 
 def process_received_data(metadata, image):
     global run_name, last_hit_data
-    is_hit = 'number_of_spots' in metadata and metadata['number_of_spots'] > args.hit_threshold
+    is_hit = 'number_of_spots' in metadata and metadata['number_of_spots'] > HIT_THRESHOLD
 
     if 'run_name' in metadata:
         if metadata['run_name'] != run_name:
