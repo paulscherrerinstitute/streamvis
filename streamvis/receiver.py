@@ -14,9 +14,10 @@ args = parser.parse_args()
 
 
 class Receiver:
-    def __init__(self):
+    def __init__(self, on_receive=None):
         self.buffer = deque(maxlen=args.buffer_size)
         self.state = 'polling'
+        self.on_receive = on_receive
 
     def start(self):
         zmq_context = zmq.Context(io_threads=2)
@@ -40,6 +41,10 @@ class Receiver:
                 image = np.frombuffer(image.buffer, dtype=metadata['type']).reshape(
                     metadata['shape']
                 )
+
+                if self.on_receive is not None:
+                    self.on_receive(metadata, image)
+
                 self.buffer.append((metadata, image))
                 self.state = 'receiving'
 
