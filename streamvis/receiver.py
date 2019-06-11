@@ -12,34 +12,39 @@ parser.add_argument('--page-title', default="StreamVis")
 parser.add_argument('--buffer-size', type=int, default=1)
 args = parser.parse_args()
 
-data_buffer = deque(maxlen=args.buffer_size)
 
-state = 'polling'
+class Receiver:
+    def __init__(self):
+        self.buffer = deque(maxlen=args.buffer_size)
+        self.state = 'polling'
 
-zmq_context = zmq.Context(io_threads=2)
-zmq_socket = zmq_context.socket(zmq.SUB)
-zmq_socket.setsockopt_string(zmq.SUBSCRIBE, "")
-if args.detector_backend_address:
-    zmq_socket.connect(args.detector_backend_address)
-elif args.bind_address:
-    zmq_socket.bind(args.bind_address)
-else:  # Initial default behaviour
-    zmq_socket.connect('tcp://127.0.0.1:9001')
+    def start(self):
+        zmq_context = zmq.Context(io_threads=2)
+        zmq_socket = zmq_context.socket(zmq.SUB)
+        zmq_socket.setsockopt_string(zmq.SUBSCRIBE, "")
+        if args.detector_backend_address:
+            zmq_socket.connect(args.detector_backend_address)
+        elif args.bind_address:
+            zmq_socket.bind(args.bind_address)
+        else:  # Initial default behaviour
+            zmq_socket.connect('tcp://127.0.0.1:9001')
 
-poller = zmq.Poller()
-poller.register(zmq_socket, zmq.POLLIN)
+        poller = zmq.Poller()
+        poller.register(zmq_socket, zmq.POLLIN)
+
+        while True:
+            events = dict(poller.poll(1000))
+            if zmq_socket in events:
+                metadata = zmq_socket.recv_json(flags=0)
+                image = zmq_socket.recv(flags=0, copy=False, track=False)
+                image = np.frombuffer(image.buffer, dtype=metadata['type']).reshape(
+                    metadata['shape']
+                )
+                self.buffer.append((metadata, image))
+                self.state = 'receiving'
+
+            else:
+                self.state = 'polling'
 
 
-def stream_receive():
-    global state
-    while True:
-        events = dict(poller.poll(1000))
-        if zmq_socket in events:
-            metadata = zmq_socket.recv_json(flags=0)
-            image = zmq_socket.recv(flags=0, copy=False, track=False)
-            image = np.frombuffer(image.buffer, dtype=metadata['type']).reshape(metadata['shape'])
-            data_buffer.append((metadata, image))
-            state = 'receiving'
-
-        else:
-            state = 'polling'
+current = Receiver()

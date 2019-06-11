@@ -17,7 +17,6 @@ args = parser.parse_args()
 
 HIT_THRESHOLD = 15
 
-data_buffer = deque(maxlen=args.buffer_size)
 peakfinder_buffer = deque(maxlen=args.buffer_size)
 last_hit_data = (None, None)
 hitrate_buffer_fast = deque(maxlen=50)
@@ -72,39 +71,45 @@ sum_stats_table_dict = dict(
     laser_off_hits_ratio=sum_laser_off_hits_ratio,
 )
 
-state = 'polling'
 
-zmq_context = zmq.Context(io_threads=2)
-zmq_socket = zmq_context.socket(zmq.SUB)
-zmq_socket.setsockopt_string(zmq.SUBSCRIBE, "")
-if args.detector_backend_address:
-    zmq_socket.connect(args.detector_backend_address)
-elif args.bind_address:
-    zmq_socket.bind(args.bind_address)
-else:  # Initial default behaviour
-    zmq_socket.connect('tcp://127.0.0.1:9001')
+class Receiver:
+    def __init__(self):
+        self.state = 'polling'
+        self.buffer = deque(maxlen=args.buffer_size)
 
-poller = zmq.Poller()
-poller.register(zmq_socket, zmq.POLLIN)
+    def start(self):
+        zmq_context = zmq.Context(io_threads=2)
+        zmq_socket = zmq_context.socket(zmq.SUB)
+        zmq_socket.setsockopt_string(zmq.SUBSCRIBE, "")
+        if args.detector_backend_address:
+            zmq_socket.connect(args.detector_backend_address)
+        elif args.bind_address:
+            zmq_socket.bind(args.bind_address)
+        else:  # Initial default behaviour
+            zmq_socket.connect('tcp://127.0.0.1:9001')
+
+        poller = zmq.Poller()
+        poller.register(zmq_socket, zmq.POLLIN)
+
+        while True:
+            events = dict(poller.poll(1000))
+            if zmq_socket in events:
+                metadata = zmq_socket.recv_json(flags=0)
+
+                image = zmq_socket.recv(flags=0, copy=False, track=False)
+                image = np.frombuffer(image.buffer, dtype=metadata['type']).reshape(
+                    metadata['shape']
+                )
+
+                process_received_data(metadata, image)
+                self.buffer.append((metadata, image))
+                self.state = 'receiving'
+
+            else:
+                self.state = 'polling'
 
 
-def stream_receive():
-    global state
-    while True:
-        events = dict(poller.poll(1000))
-        if zmq_socket in events:
-            metadata = zmq_socket.recv_json(flags=0)
-
-            image = zmq_socket.recv(flags=0, copy=False, track=False)
-            image = np.frombuffer(image.buffer, dtype=metadata['type']).reshape(metadata['shape'])
-
-            process_received_data(metadata, image)
-            data_buffer.append((metadata, image))
-
-            state = 'receiving'
-
-        else:
-            state = 'polling'
+current = Receiver()
 
 
 def process_received_data(metadata, image):
@@ -113,7 +118,7 @@ def process_received_data(metadata, image):
 
     if 'run_name' in metadata:
         if metadata['run_name'] != run_name:
-            data_buffer.clear()
+            current.buffer.clear()
             peakfinder_buffer.clear()
             run_name = metadata['run_name']
 

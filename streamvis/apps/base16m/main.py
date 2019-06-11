@@ -257,7 +257,7 @@ trajectory_plot.add_glyph(
 
 def trajectory_circle_source_callback(_attr, _old, new):
     if new:
-        sv_rt.current_metadata, sv_rt.current_image = receiver.data_buffer[new[0]]
+        sv_rt.current_metadata, sv_rt.current_image = receiver.current.buffer[new[0]]
 
 
 trajectory_circle_source.selected.on_change('indices', trajectory_circle_source_callback)
@@ -521,11 +521,11 @@ async def internal_periodic_callback():
     global current_gain_file, current_pedestal_file, jf_calib
 
     if connected:
-        if receiver.state == 'polling':
+        if receiver.current.state == 'polling':
             stream_button.label = 'Polling'
             stream_button.button_type = 'warning'
 
-        elif receiver.state == 'receiving':
+        elif receiver.current.state == 'receiving':
             stream_button.label = 'Receiving'
             stream_button.button_type = 'success'
 
@@ -533,7 +533,7 @@ async def internal_periodic_callback():
                 if receiver.last_hit_data != (None, None):
                     sv_rt.current_metadata, sv_rt.current_image = receiver.last_hit_data
             else:
-                sv_rt.current_metadata, sv_rt.current_image = receiver.data_buffer[-1]
+                sv_rt.current_metadata, sv_rt.current_image = receiver.current.buffer[-1]
 
             if sv_rt.current_image.dtype != np.float16 and sv_rt.current_image.dtype != np.float32:
                 gain_file = sv_rt.current_metadata.get('gain_file')

@@ -26,9 +26,9 @@ from bokeh.models import (
 
 import streamvis as sv
 
-receiver = sv.receiver
+receiver = sv.receiver.current
 doc = curdoc()
-doc.title = receiver.args.page_title
+doc.title = sv.receiver.args.page_title
 
 # initial image size to organize placeholders for actual data
 image_size_x = 100
@@ -153,7 +153,7 @@ sv_streamgraph.glyphs[1].line_color = 'red'
 # Stream panel
 # ---- image buffer slider
 def image_buffer_slider_callback(_attr, _old, new):
-    md, image = receiver.data_buffer[round(new['value'][0])]
+    md, image = receiver.buffer[round(new['value'][0])]
     doc.add_next_tick_callback(partial(update_client, image=image, metadata=md))
 
 
@@ -369,11 +369,11 @@ async def internal_periodic_callback():
             stream_button.button_type = 'success'
 
             # Set slider to the right-most position
-            if len(receiver.data_buffer) > 1:
-                image_buffer_slider.end = len(receiver.data_buffer) - 1
-                image_buffer_slider.value = len(receiver.data_buffer) - 1
+            if len(receiver.buffer) > 1:
+                image_buffer_slider.end = len(receiver.buffer) - 1
+                image_buffer_slider.value = len(receiver.buffer) - 1
 
-            sv_rt.current_metadata, sv_rt.current_image = receiver.data_buffer[-1]
+            sv_rt.current_metadata, sv_rt.current_image = receiver.buffer[-1]
 
             if sv_rt.current_image.dtype != np.float16 and sv_rt.current_image.dtype != np.float32:
                 gain_file = sv_rt.current_metadata.get('gain_file')

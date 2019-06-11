@@ -30,9 +30,9 @@ from bokeh.models import (
 
 import streamvis as sv
 
-receiver = sv.receiver
+receiver = sv.receiver.current
 doc = curdoc()
-doc.title = receiver.args.page_title
+doc.title = sv.receiver.args.page_title
 
 # Expected image sizes for the detector
 IMAGE_SIZE_X = 9216 + (9 - 1) * 6 + 2 * 3 * 9
@@ -595,7 +595,7 @@ async def internal_periodic_callback():
             stream_button.label = 'Receiving'
             stream_button.button_type = 'success'
 
-            sv_rt.current_metadata, sv_rt.current_image = receiver.data_buffer[-1]
+            sv_rt.current_metadata, sv_rt.current_image = receiver.buffer[-1]
 
             if sv_rt.current_image.dtype != np.float16 and sv_rt.current_image.dtype != np.float32:
                 gain_file = sv_rt.current_metadata.get('gain_file')
