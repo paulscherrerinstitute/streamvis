@@ -59,8 +59,6 @@ TOTAL_INT_PLOT_HEIGHT = 200
 TOTAL_INT_PLOT_WIDTH = 1150
 
 APP_FPS = 1
-stream_t = 0
-STREAM_ROLLOVER = 3600
 
 ZOOM_WIDTH = 1030
 ZOOM_HEIGHT = IMAGE_SIZE_Y
@@ -495,7 +493,7 @@ doc.add_root(row(Spacer(width=20), final_layout))
 
 
 async def update_client(image, metadata, reset, aggr_image):
-    global stream_t, current_spectra
+    global current_spectra
 
     sv_colormapper.update(aggr_image)
     sv_mainview.update(aggr_image)
