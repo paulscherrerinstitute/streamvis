@@ -44,6 +44,7 @@ def update_statistics():
 
 
 # reset statistics button
+# TODO: fix race condition with receiver thread
 def reset_stats_button_callback():
     receiver.run_name = ''
 

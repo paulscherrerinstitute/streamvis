@@ -95,7 +95,7 @@ def send_array(socket, array, frame_num, pulseid, flags=0, copy=False, track=Fal
 if __name__ == "__main__":
     pulse_id = 0
     ctx = zmq.Context()
-    skt = ctx.socket(zmq.PUB)
+    skt = ctx.socket(zmq.PUB)  # pylint: disable=E1101
     skt.bind('tcp://127.0.0.1:9001')
     im_gen = simul_image_gen()
 

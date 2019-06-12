@@ -24,8 +24,8 @@ class Receiver:
 
     def start(self):
         zmq_context = zmq.Context(io_threads=2)
-        zmq_socket = zmq_context.socket(zmq.SUB)
-        zmq_socket.setsockopt_string(zmq.SUBSCRIBE, "")
+        zmq_socket = zmq_context.socket(zmq.SUB)  # pylint: disable=E1101
+        zmq_socket.setsockopt_string(zmq.SUBSCRIBE, "")  # pylint: disable=E1101
         if args.detector_backend_address:
             zmq_socket.connect(args.detector_backend_address)
         elif args.bind_address:
