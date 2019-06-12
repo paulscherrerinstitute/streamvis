@@ -14,14 +14,12 @@ from bokeh.models import (
     Grid,
     Line,
     LinearAxis,
-    Panel,
     PanTool,
     Plot,
     ResetTool,
     Select,
     Spacer,
     Spinner,
-    Tabs,
     TextInput,
     Title,
     Toggle,
@@ -383,8 +381,7 @@ sv_streamgraph.plots[2].title = Title(text="Zoom Area 2 Total Intensity")
 sv_streamgraph.glyphs[2].line_color = 'green'
 
 
-# Stream panel
-# ---- connect toggle button
+# Stream toggle button
 def stream_button_callback(state):
     global connected
     if state:
@@ -400,10 +397,6 @@ def stream_button_callback(state):
 
 stream_button = Toggle(label="Connect", button_type='default')
 stream_button.on_click(stream_button_callback)
-
-# assemble
-tab_stream = Panel(child=column(stream_button), title="Stream")
-data_source_tabs = Tabs(tabs=[tab_stream])
 
 
 # Colormapper panel
@@ -460,7 +453,7 @@ layout_utility = column(
     ),
 )
 
-layout_controls = column(colormap_panel, sv_mask.toggle, data_source_tabs)
+layout_controls = column(colormap_panel, sv_mask.toggle, stream_button)
 
 layout_metadata = column(
     sv_metadata.datatable, row(sv_metadata.show_all_toggle, sv_metadata.issues_dropdown)

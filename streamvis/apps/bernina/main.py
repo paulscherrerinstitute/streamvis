@@ -5,7 +5,7 @@ import jungfrau_utils as ju
 import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import Panel, Spacer, Tabs, Title, Toggle
+from bokeh.models import Spacer, Title, Toggle
 
 import streamvis as sv
 
@@ -124,8 +124,7 @@ sv_hist.plots[2].title = Title(text="Background roi", text_color='green')
 sv_hist.auto_toggle.width = 300
 
 
-# Stream panel
-# ---- connect toggle button
+# Stream toggle button
 def stream_button_callback(state):
     global connected
     if state:
@@ -141,10 +140,6 @@ def stream_button_callback(state):
 
 stream_button = Toggle(label="Connect", button_type='default')
 stream_button.on_click(stream_button_callback)
-
-# assemble
-tab_stream = Panel(child=column(stream_button), title="Stream")
-data_source_tabs = Tabs(tabs=[tab_stream])
 
 
 # Colormapper panel
@@ -192,7 +187,7 @@ layout_utility = column(
 )
 
 layout_controls = row(
-    Spacer(width=45), column(colormap_panel, sv_mask.toggle), Spacer(width=45), data_source_tabs
+    Spacer(width=45), column(colormap_panel, sv_mask.toggle), Spacer(width=45), stream_button
 )
 
 layout_metadata = column(

@@ -9,10 +9,8 @@ from bokeh.models import (
     ColumnDataSource,
     CustomJS,
     Dropdown,
-    Panel,
     Slider,
     Spacer,
-    Tabs,
     TextInput,
 )
 
@@ -126,14 +124,9 @@ hdf5_pulse_slider.callback = CustomJS(
 )
 
 # assemble
-tab_hdf5file = Panel(
-    child=column(
-        hdf5_file_path, saved_runs_dropdown, hdf5_dataset_path, load_file_button, hdf5_pulse_slider
-    ),
-    title="HDF5 File",
+hdf5_panel = column(
+    hdf5_file_path, saved_runs_dropdown, hdf5_dataset_path, load_file_button, hdf5_pulse_slider
 )
-
-data_source_tabs = Tabs(tabs=[tab_hdf5file])
 
 
 # Colormapper panel
@@ -153,7 +146,7 @@ sv_metadata = sv.MetadataHandler(datatable_height=300, datatable_width=400)
 
 
 # Final layouts
-layout_controls = column(data_source_tabs, colormap_panel)
+layout_controls = column(hdf5_panel, colormap_panel)
 
 final_layout = row(
     layout_controls, sv_mainview.plot, column(sv_hist.plots[0], sv_metadata.datatable)

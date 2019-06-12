@@ -13,12 +13,10 @@ from bokeh.models import (
     Grid,
     Line,
     LinearAxis,
-    Panel,
     Plot,
     Slider,
     Spacer,
     Spinner,
-    Tabs,
     TextInput,
     Title,
     Toggle,
@@ -176,8 +174,7 @@ stream_button = Toggle(label="Connect", button_type='default')
 stream_button.on_click(stream_button_callback)
 
 # assemble
-tab_stream = Panel(child=column(image_buffer_slider, stream_button), title="Stream")
-data_source_tabs = Tabs(tabs=[tab_stream])
+stream_panel = column(image_buffer_slider, stream_button)
 
 
 # Colormapper panel
@@ -281,7 +278,7 @@ layout_utility = column(
     ),
 )
 
-layout_controls = column(colormap_panel, sv_mask.toggle, data_source_tabs)
+layout_controls = column(colormap_panel, sv_mask.toggle, stream_panel)
 
 layout_threshold_aggr = column(
     threshold_button,

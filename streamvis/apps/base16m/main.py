@@ -331,8 +331,7 @@ stream_button = Toggle(label="Connect", button_type='default')
 stream_button.on_click(stream_button_callback)
 
 # assemble
-tab_stream = Panel(child=column(image_buffer_slider, stream_button), title="Stream")
-data_source_tabs = Tabs(tabs=[tab_stream])
+stream_panel = column(image_buffer_slider, stream_button)
 
 
 # Colormaper panel
@@ -406,7 +405,7 @@ layout_aggr = column(
     row(sv_resolrings.toggle, sv_mask.toggle, show_only_hits_toggle),
 )
 
-layout_controls = column(sv_metadata.issues_dropdown, colormap_panel, data_source_tabs)
+layout_controls = column(sv_metadata.issues_dropdown, colormap_panel, stream_panel)
 
 layout_side_panel = column(custom_tabs, row(layout_controls, Spacer(width=30), layout_aggr))
 
