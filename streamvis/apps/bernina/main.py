@@ -17,10 +17,6 @@ doc.title = sv.receiver.args.page_title
 IMAGE_SIZE_X = 1030
 IMAGE_SIZE_Y = 1554
 
-# initial image size to organize placeholders for actual data
-image_size_x = IMAGE_SIZE_X
-image_size_y = IMAGE_SIZE_Y
-
 current_gain_file = ''
 current_pedestal_file = ''
 jf_calib = None
@@ -30,8 +26,8 @@ sv_rt = sv.Runtime()
 connected = False
 
 # Currently, it's possible to control only a canvas size, but not a size of the plotting area.
-MAIN_CANVAS_WIDTH = image_size_x // 2 + 55 + 40
-MAIN_CANVAS_HEIGHT = image_size_y // 2 + 86 + 60
+MAIN_CANVAS_WIDTH = IMAGE_SIZE_X // 2 + 55 + 40
+MAIN_CANVAS_HEIGHT = IMAGE_SIZE_Y // 2 + 86 + 60
 
 ZOOM_CANVAS_WIDTH = 388 + 55
 ZOOM_CANVAS_HEIGHT = 388 + 62
@@ -60,8 +56,8 @@ ZOOM2_TOP = ZOOM2_BOTTOM + ZOOM_HEIGHT
 sv_mainview = sv.ImageView(
     plot_height=MAIN_CANVAS_HEIGHT,
     plot_width=MAIN_CANVAS_WIDTH,
-    image_height=image_size_y,
-    image_width=image_size_x,
+    image_height=IMAGE_SIZE_Y,
+    image_width=IMAGE_SIZE_X,
 )
 
 sv_mainview.plot.title = Title(text=' ')
@@ -70,8 +66,8 @@ sv_mainview.plot.title = Title(text=' ')
 sv_zoomview1 = sv.ImageView(
     plot_height=ZOOM_CANVAS_HEIGHT,
     plot_width=ZOOM_CANVAS_WIDTH,
-    image_height=image_size_y,
-    image_width=image_size_x,
+    image_height=IMAGE_SIZE_Y,
+    image_width=IMAGE_SIZE_X,
     x_start=ZOOM1_LEFT,
     x_end=ZOOM1_RIGHT,
     y_start=ZOOM1_BOTTOM,
@@ -85,8 +81,8 @@ sv_mainview.add_as_zoom(sv_zoomview1, line_color='red')
 sv_zoomview2 = sv.ImageView(
     plot_height=ZOOM_CANVAS_HEIGHT,
     plot_width=ZOOM_CANVAS_WIDTH,
-    image_height=image_size_y,
-    image_width=image_size_x,
+    image_height=IMAGE_SIZE_Y,
+    image_width=IMAGE_SIZE_X,
     x_start=ZOOM2_LEFT,
     x_end=ZOOM2_RIGHT,
     y_start=ZOOM2_BOTTOM,

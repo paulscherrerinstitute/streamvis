@@ -38,10 +38,6 @@ doc.title = sv.receiver.args.page_title
 IMAGE_SIZE_X = 9216 + (9 - 1) * 6 + 2 * 3 * 9
 IMAGE_SIZE_Y = 514
 
-# initial image size to organize placeholders for actual data
-image_size_x = IMAGE_SIZE_X
-image_size_y = IMAGE_SIZE_Y
-
 current_gain_file = ''
 current_pedestal_file = ''
 jf_calib = None
@@ -67,7 +63,7 @@ stream_t = 0
 STREAM_ROLLOVER = 3600
 
 ZOOM_WIDTH = 1030
-ZOOM_HEIGHT = image_size_y
+ZOOM_HEIGHT = IMAGE_SIZE_Y
 
 ZOOM1_LEFT = (ZOOM_WIDTH + 6) * 2
 ZOOM1_BOTTOM = 0
@@ -96,8 +92,8 @@ saved_spectra = dict()
 sv_mainview = sv.ImageView(
     plot_height=MAIN_CANVAS_HEIGHT,
     plot_width=MAIN_CANVAS_WIDTH,
-    image_height=image_size_y,
-    image_width=image_size_x,
+    image_height=IMAGE_SIZE_Y,
+    image_width=IMAGE_SIZE_X,
 )
 
 
@@ -105,8 +101,8 @@ sv_mainview = sv.ImageView(
 sv_zoomview1 = sv.ImageView(
     plot_height=ZOOM_CANVAS_HEIGHT,
     plot_width=ZOOM_CANVAS_WIDTH,
-    image_height=image_size_y,
-    image_width=image_size_x,
+    image_height=IMAGE_SIZE_Y,
+    image_width=IMAGE_SIZE_X,
     x_start=ZOOM1_LEFT,
     x_end=ZOOM1_RIGHT,
     y_start=ZOOM1_BOTTOM,
@@ -141,10 +137,7 @@ zoom1_plot_agg_x.add_layout(Grid(dimension=0, ticker=BasicTicker()))
 zoom1_plot_agg_x.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
 # ---- line glyph
-zoom1_agg_x_source = ColumnDataSource(
-    dict(x=np.arange(image_size_x) + 0.5, y=np.zeros(image_size_x))  # shift to a pixel center
-)
-
+zoom1_agg_x_source = ColumnDataSource(dict(x=[], y=[]))
 zoom1_plot_agg_x.add_glyph(
     zoom1_agg_x_source, Line(x='x', y='y', line_color='steelblue', line_width=2)
 )
@@ -168,10 +161,7 @@ zoom1_plot_agg_y.add_layout(Grid(dimension=0, ticker=BasicTicker()))
 zoom1_plot_agg_y.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
 # ---- line glyph
-zoom1_agg_y_source = ColumnDataSource(
-    dict(x=np.zeros(image_size_y), y=np.arange(image_size_y) + 0.5)  # shift to a pixel center
-)
-
+zoom1_agg_y_source = ColumnDataSource(dict(x=[], y=[]))
 zoom1_plot_agg_y.add_glyph(zoom1_agg_y_source, Line(x='x', y='y', line_color='steelblue'))
 
 
@@ -179,8 +169,8 @@ zoom1_plot_agg_y.add_glyph(zoom1_agg_y_source, Line(x='x', y='y', line_color='st
 sv_zoomview2 = sv.ImageView(
     plot_height=ZOOM_CANVAS_HEIGHT,
     plot_width=ZOOM_CANVAS_WIDTH,
-    image_height=image_size_y,
-    image_width=image_size_x,
+    image_height=IMAGE_SIZE_Y,
+    image_width=IMAGE_SIZE_X,
     x_start=ZOOM2_LEFT,
     x_end=ZOOM2_RIGHT,
     y_start=ZOOM2_BOTTOM,
@@ -213,10 +203,7 @@ zoom2_plot_agg_x.add_layout(Grid(dimension=0, ticker=BasicTicker()))
 zoom2_plot_agg_x.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
 # ---- line glyph
-zoom2_agg_x_source = ColumnDataSource(
-    dict(x=np.arange(image_size_x) + 0.5, y=np.zeros(image_size_x))  # shift to a pixel center
-)
-
+zoom2_agg_x_source = ColumnDataSource(dict(x=[], y=[]))
 zoom2_plot_agg_x.add_glyph(
     zoom2_agg_x_source, Line(x='x', y='y', line_color='steelblue', line_width=2)
 )
@@ -240,10 +227,7 @@ zoom2_plot_agg_y.add_layout(Grid(dimension=0, ticker=BasicTicker()))
 zoom2_plot_agg_y.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
 # ---- line glyph
-zoom2_agg_y_source = ColumnDataSource(
-    dict(x=np.zeros(image_size_y), y=np.arange(image_size_y) + 0.5)  # shift to a pixel center
-)
-
+zoom2_agg_y_source = ColumnDataSource(dict(x=[], y=[]))
 zoom2_plot_agg_y.add_glyph(zoom2_agg_y_source, Line(x='x', y='y', line_color='steelblue'))
 
 
@@ -525,8 +509,8 @@ async def update_client(image, metadata, reset, aggr_image):
 
     zoom1_agg_y = np.sum(im_block1, axis=1)
     zoom1_agg_x = np.sum(im_block1, axis=0)
-    zoom1_r_y = np.arange(y_start1, y_end1) + 0.5
-    zoom1_r_x = np.arange(x_start1, x_end1) + 0.5
+    zoom1_r_y = np.arange(y_start1, y_end1) + 0.5  # shift to a pixel center
+    zoom1_r_x = np.arange(x_start1, x_end1) + 0.5  # shift to a pixel center
 
     total_sum_zoom1 = np.sum(im_block1)
     zoom1_agg_y_source.data.update(x=zoom1_agg_y, y=zoom1_r_y)
@@ -541,8 +525,8 @@ async def update_client(image, metadata, reset, aggr_image):
 
     zoom2_agg_y = np.sum(im_block2, axis=1)
     zoom2_agg_x = np.sum(im_block2, axis=0)
-    zoom2_r_y = np.arange(y_start2, y_end2) + 0.5
-    zoom2_r_x = np.arange(x_start2, x_end2) + 0.5
+    zoom2_r_y = np.arange(y_start2, y_end2) + 0.5  # shift to a pixel center
+    zoom2_r_x = np.arange(x_start2, x_end2) + 0.5  # shift to a pixel center
 
     total_sum_zoom2 = np.sum(im_block2)
     zoom2_agg_y_source.data.update(x=zoom2_agg_y, y=zoom2_r_y)

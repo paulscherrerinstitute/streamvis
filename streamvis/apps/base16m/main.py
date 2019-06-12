@@ -43,10 +43,6 @@ import streamvis as sv
 doc = curdoc()
 doc.title = receiver.args.page_title
 
-# initial image size to organize placeholders for actual data
-image_size_x = 1
-image_size_y = 1
-
 sv_rt = sv.Runtime()
 
 current_gain_file = ''
@@ -156,10 +152,7 @@ aggr_image_proj_x_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
 aggr_image_proj_x_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
 # ---- line glyph
-aggr_image_proj_x_source = ColumnDataSource(
-    dict(x=np.arange(image_size_x) + 0.5, y=np.zeros(image_size_x))  # shift to a pixel center
-)
-
+aggr_image_proj_x_source = ColumnDataSource(dict(x=[], y=[]))
 aggr_image_proj_x_plot.add_glyph(
     aggr_image_proj_x_source, Line(x='x', y='y', line_color='steelblue', line_width=2)
 )
@@ -183,10 +176,7 @@ aggr_image_proj_y_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
 aggr_image_proj_y_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
 # ---- line glyph
-aggr_image_proj_y_source = ColumnDataSource(
-    dict(x=np.zeros(image_size_y), y=np.arange(image_size_y) + 0.5)  # shift to a pixel center
-)
-
+aggr_image_proj_y_source = ColumnDataSource(dict(x=[], y=[]))
 aggr_image_proj_y_plot.add_glyph(
     aggr_image_proj_y_source, Line(x='x', y='y', line_color='steelblue', line_width=2)
 )

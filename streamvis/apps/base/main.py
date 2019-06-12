@@ -30,10 +30,6 @@ receiver = sv.receiver.current
 doc = curdoc()
 doc.title = sv.receiver.args.page_title
 
-# initial image size to organize placeholders for actual data
-image_size_x = 100
-image_size_y = 100
-
 current_gain_file = ''
 current_pedestal_file = ''
 jf_calib = None
@@ -92,10 +88,7 @@ zoom1_plot_agg_x.add_layout(Grid(dimension=0, ticker=BasicTicker()))
 zoom1_plot_agg_x.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
 # ---- line glyph
-zoom1_agg_x_source = ColumnDataSource(
-    dict(x=np.arange(image_size_x) + 0.5, y=np.zeros(image_size_x))  # shift to a pixel center
-)
-
+zoom1_agg_x_source = ColumnDataSource(dict(x=[], y=[]))
 zoom1_plot_agg_x.add_glyph(zoom1_agg_x_source, Line(x='x', y='y', line_color='steelblue'))
 
 
@@ -117,10 +110,7 @@ zoom1_plot_agg_y.add_layout(Grid(dimension=0, ticker=BasicTicker()))
 zoom1_plot_agg_y.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
 # ---- line glyph
-zoom1_agg_y_source = ColumnDataSource(
-    dict(x=np.zeros(image_size_y), y=np.arange(image_size_y) + 0.5)  # shift to a pixel center
-)
-
+zoom1_agg_y_source = ColumnDataSource(dict(x=[], y=[]))
 zoom1_plot_agg_y.add_glyph(zoom1_agg_y_source, Line(x='x', y='y', line_color='steelblue'))
 
 
@@ -328,8 +318,8 @@ async def update_client(image, metadata, reset, aggr_image):
 
     agg_y = np.mean(im_block, axis=1)
     agg_x = np.mean(im_block, axis=0)
-    r_y = np.arange(y_start, y_end) + 0.5
-    r_x = np.arange(x_start, x_end) + 0.5
+    r_y = np.arange(y_start, y_end) + 0.5  # shift to a pixel center
+    r_x = np.arange(x_start, x_end) + 0.5  # shift to a pixel center
 
     total_sum_zoom = np.sum(im_block)
     zoom1_agg_y_source.data.update(x=agg_y, y=r_y)
