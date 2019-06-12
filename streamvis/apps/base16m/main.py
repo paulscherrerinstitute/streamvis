@@ -330,21 +330,6 @@ def stream_button_callback(state):
 stream_button = Toggle(label="Connect", button_type='default')
 stream_button.on_click(stream_button_callback)
 
-# assemble
-stream_panel = column(image_buffer_slider, stream_button)
-
-
-# Colormaper panel
-colormap_panel = column(
-    sv_colormapper.select,
-    Spacer(height=10),
-    sv_colormapper.scale_radiobuttongroup,
-    Spacer(height=10),
-    sv_colormapper.auto_toggle,
-    sv_colormapper.display_max_spinner,
-    sv_colormapper.display_min_spinner,
-)
-
 
 # Show only hits toggle
 show_only_hits_toggle = Toggle(label="Show Only Hits", button_type='default')
@@ -397,7 +382,15 @@ custom_tabs = Tabs(tabs=[debug_tab, scan_tab], height=960, width=1400)
 
 
 # Final layouts
-layout_main = column(sv_mainview.plot)
+colormap_panel = column(
+    sv_colormapper.select,
+    sv_colormapper.scale_radiobuttongroup,
+    sv_colormapper.auto_toggle,
+    sv_colormapper.display_max_spinner,
+    sv_colormapper.display_min_spinner,
+)
+
+stream_panel = column(image_buffer_slider, stream_button)
 
 layout_aggr = column(
     gridplot(
@@ -411,7 +404,7 @@ layout_controls = column(sv_metadata.issues_dropdown, colormap_panel, stream_pan
 
 layout_side_panel = column(custom_tabs, row(layout_controls, Spacer(width=30), layout_aggr))
 
-final_layout = row(layout_main, Spacer(width=30), layout_side_panel)
+final_layout = row(sv_mainview.plot, Spacer(width=30), layout_side_panel)
 
 doc.add_root(row(Spacer(width=50), final_layout))
 

@@ -142,18 +142,6 @@ stream_button = Toggle(label="Connect", button_type='default')
 stream_button.on_click(stream_button_callback)
 
 
-# Colormapper panel
-colormap_panel = column(
-    sv_colormapper.select,
-    Spacer(height=10),
-    sv_colormapper.scale_radiobuttongroup,
-    Spacer(height=10),
-    sv_colormapper.auto_toggle,
-    sv_colormapper.display_max_spinner,
-    sv_colormapper.display_min_spinner,
-)
-
-
 # Metadata datatable
 sv_metadata = sv.MetadataHandler(
     datatable_height=130, datatable_width=700, check_shape=(IMAGE_SIZE_Y, IMAGE_SIZE_X)
@@ -161,6 +149,14 @@ sv_metadata = sv.MetadataHandler(
 
 
 # Final layouts
+colormap_panel = column(
+    sv_colormapper.select,
+    sv_colormapper.scale_radiobuttongroup,
+    sv_colormapper.auto_toggle,
+    sv_colormapper.display_max_spinner,
+    sv_colormapper.display_min_spinner,
+)
+
 layout_main = gridplot(
     [[sv_mainview.plot, column(sv_zoomview1.plot, sv_zoomview2.plot)]], merge_tools=False
 )
@@ -186,16 +182,20 @@ layout_utility = column(
     ),
 )
 
-layout_controls = row(
-    Spacer(width=45), column(colormap_panel, sv_mask.toggle), Spacer(width=45), stream_button
-)
+layout_controls = row(colormap_panel, column(Spacer(height=19), sv_mask.toggle, stream_button))
 
 layout_metadata = column(
     sv_metadata.datatable, row(sv_metadata.show_all_toggle, sv_metadata.issues_dropdown)
 )
 
 final_layout = column(
-    row(layout_main, Spacer(width=15), column(layout_metadata, layout_utility, layout_controls)),
+    row(
+        layout_main,
+        Spacer(width=15),
+        column(
+            layout_metadata, Spacer(height=30), layout_utility, Spacer(height=30), layout_controls
+        ),
+    ),
     column(hist_layout, hist_controls),
 )
 

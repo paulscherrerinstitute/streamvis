@@ -4,15 +4,7 @@ from functools import partial
 import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, row
-from bokeh.models import (
-    Button,
-    ColumnDataSource,
-    CustomJS,
-    Dropdown,
-    Slider,
-    Spacer,
-    TextInput,
-)
+from bokeh.models import Button, ColumnDataSource, CustomJS, Dropdown, Slider, TextInput
 
 import streamvis as sv
 
@@ -123,29 +115,24 @@ hdf5_pulse_slider.callback = CustomJS(
     args=dict(source=hdf5_pulse_slider_source), code="""source.data = {value: [cb_obj.value]}"""
 )
 
-# assemble
-hdf5_panel = column(
-    hdf5_file_path, saved_runs_dropdown, hdf5_dataset_path, load_file_button, hdf5_pulse_slider
-)
-
-
-# Colormapper panel
-colormap_panel = column(
-    sv_colormapper.select,
-    Spacer(height=10),
-    sv_colormapper.scale_radiobuttongroup,
-    Spacer(height=10),
-    sv_colormapper.auto_toggle,
-    sv_colormapper.display_max_spinner,
-    sv_colormapper.display_min_spinner,
-)
-
 
 # Metadata datatable
 sv_metadata = sv.MetadataHandler(datatable_height=300, datatable_width=400)
 
 
 # Final layouts
+colormap_panel = column(
+    sv_colormapper.select,
+    sv_colormapper.scale_radiobuttongroup,
+    sv_colormapper.auto_toggle,
+    sv_colormapper.display_max_spinner,
+    sv_colormapper.display_min_spinner,
+)
+
+hdf5_panel = column(
+    hdf5_file_path, saved_runs_dropdown, hdf5_dataset_path, load_file_button, hdf5_pulse_slider
+)
+
 layout_controls = column(hdf5_panel, colormap_panel)
 
 final_layout = row(

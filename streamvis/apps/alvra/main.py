@@ -386,33 +386,27 @@ stream_button = Toggle(label="Connect", button_type='default')
 stream_button.on_click(stream_button_callback)
 
 
-# Colormapper panel
-colormap_panel = column(
-    sv_colormapper.select,
-    Spacer(height=10),
-    sv_colormapper.scale_radiobuttongroup,
-    Spacer(height=10),
-    sv_colormapper.auto_toggle,
-    sv_colormapper.display_max_spinner,
-    sv_colormapper.display_min_spinner,
-)
-
-
 # Metadata datatable
 sv_metadata = sv.MetadataHandler(datatable_height=420, datatable_width=800)
 
 
 # Final layouts
-layout_main = column(sv_mainview.plot)
+colormap_panel = column(
+    sv_colormapper.select,
+    sv_colormapper.scale_radiobuttongroup,
+    sv_colormapper.auto_toggle,
+    sv_colormapper.display_max_spinner,
+    sv_colormapper.display_min_spinner,
+)
 
 layout_zoom1 = column(
     gridplot([[zoom1_plot_agg_x, None], [sv_zoomview1.plot, zoom1_plot_agg_y]], merge_tools=False),
-    row(Spacer(), sv_hist.plots[0], Spacer()),
+    sv_hist.plots[0],
 )
 
 layout_zoom2 = column(
     gridplot([[zoom2_plot_agg_x, None], [sv_zoomview2.plot, zoom2_plot_agg_y]], merge_tools=False),
-    row(Spacer(), sv_hist.plots[1], Spacer()),
+    sv_hist.plots[1],
 )
 
 layout_thr_agg = row(
@@ -425,7 +419,7 @@ layout_spectra = column(save_spectrum_button, save_spectrum_select)
 
 layout_hist_controls = row(
     column(Spacer(height=20), sv_hist.auto_toggle, sv_hist.upper_spinner, sv_hist.lower_spinner),
-    column(Spacer(height=73), sv_hist.nbins_spinner),
+    column(Spacer(height=62), sv_hist.nbins_spinner),
 )
 
 layout_utility = column(
@@ -438,20 +432,17 @@ layout_utility = column(
     ),
 )
 
-layout_controls = column(colormap_panel, sv_mask.toggle, stream_button)
+layout_controls = column(colormap_panel, Spacer(height=30), sv_mask.toggle, stream_button)
 
 layout_metadata = column(
     sv_metadata.datatable, row(sv_metadata.show_all_toggle, sv_metadata.issues_dropdown)
 )
 
 final_layout = column(
-    layout_main,
-    Spacer(),
+    sv_mainview.plot,
     row(
         layout_zoom1,
-        Spacer(),
         layout_zoom2,
-        Spacer(),
         column(
             layout_utility,
             Spacer(height=10),

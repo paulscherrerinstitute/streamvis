@@ -173,21 +173,6 @@ def stream_button_callback(state):
 stream_button = Toggle(label="Connect", button_type='default')
 stream_button.on_click(stream_button_callback)
 
-# assemble
-stream_panel = column(image_buffer_slider, stream_button)
-
-
-# Colormapper panel
-colormap_panel = column(
-    sv_colormapper.select,
-    Spacer(height=10),
-    sv_colormapper.scale_radiobuttongroup,
-    Spacer(height=10),
-    sv_colormapper.auto_toggle,
-    sv_colormapper.display_max_spinner,
-    sv_colormapper.display_min_spinner,
-)
-
 
 # Intensity threshold toggle button
 def threshold_button_callback(state):
@@ -264,7 +249,15 @@ sv_metadata = sv.MetadataHandler()
 
 
 # Final layouts
-layout_main = column(sv_mainview.plot)
+colormap_panel = column(
+    sv_colormapper.select,
+    sv_colormapper.scale_radiobuttongroup,
+    sv_colormapper.auto_toggle,
+    sv_colormapper.display_max_spinner,
+    sv_colormapper.display_min_spinner,
+)
+
+stream_panel = column(image_buffer_slider, stream_button)
 
 layout_zoom = gridplot(
     [[zoom1_plot_agg_x, None], [sv_zoomview.plot, zoom1_plot_agg_y]], merge_tools=False
@@ -296,7 +289,7 @@ layout_metadata = column(
 )
 
 final_layout = column(
-    row(layout_main, layout_controls, column(layout_metadata, layout_utility)),
+    row(sv_mainview.plot, layout_controls, column(layout_metadata, layout_utility)),
     row(layout_zoom, layout_threshold_aggr, sv_hist.plots[0]),
 )
 
