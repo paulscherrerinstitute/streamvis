@@ -31,7 +31,7 @@ class Mask:
             else:
                 rgba_glyph.global_alpha = 0
 
-        toggle = Toggle(label="Mask", button_type='default')
+        toggle = Toggle(label="Show Mask", button_type='default')
         toggle.on_click(toggle_callback)
         self.toggle = toggle
 
