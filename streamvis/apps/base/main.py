@@ -266,7 +266,9 @@ sv_metadata = sv.MetadataHandler()
 # Final layouts
 layout_main = column(sv_mainview.plot)
 
-layout_zoom = column(zoom1_plot_agg_x, row(sv_zoomview.plot, zoom1_plot_agg_y))
+layout_zoom = gridplot(
+    [[zoom1_plot_agg_x, None], [sv_zoomview.plot, zoom1_plot_agg_y]], merge_tools=False
+)
 
 layout_utility = column(
     gridplot(

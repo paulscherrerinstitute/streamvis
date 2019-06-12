@@ -161,11 +161,11 @@ sv_metadata = sv.MetadataHandler(
 
 
 # Final layouts
-layout_main = column(Spacer(), sv_mainview.plot)
+layout_main = gridplot(
+    [[sv_mainview.plot, column(sv_zoomview1.plot, sv_zoomview2.plot)]], merge_tools=False
+)
 
-layout_zoom = column(sv_zoomview1.plot, sv_zoomview2.plot, Spacer())
-
-hist_layout = row(sv_hist.plots[0], sv_hist.plots[1], sv_hist.plots[2])
+hist_layout = gridplot([[sv_hist.plots[0], sv_hist.plots[1], sv_hist.plots[2]]], merge_tools=False)
 
 hist_controls = row(
     Spacer(width=20),
@@ -195,13 +195,7 @@ layout_metadata = column(
 )
 
 final_layout = column(
-    row(
-        layout_main,
-        Spacer(width=15),
-        column(layout_zoom),
-        Spacer(width=15),
-        column(layout_metadata, layout_utility, layout_controls),
-    ),
+    row(layout_main, Spacer(width=15), column(layout_metadata, layout_utility, layout_controls)),
     column(hist_layout, hist_controls),
 )
 

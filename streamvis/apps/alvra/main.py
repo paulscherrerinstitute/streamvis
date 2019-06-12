@@ -14,16 +14,13 @@ from bokeh.models import (
     Grid,
     Line,
     LinearAxis,
-    PanTool,
     Plot,
-    ResetTool,
     Select,
     Spacer,
     Spinner,
     TextInput,
     Title,
     Toggle,
-    WheelZoomTool,
 )
 
 import streamvis as sv
@@ -115,13 +112,7 @@ zoom1_plot_agg_x = Plot(
     y_range=DataRange1d(),
     plot_height=ZOOM_AGG_X_PLOT_HEIGHT,
     plot_width=sv_zoomview1.plot.plot_width,
-    toolbar_location='left',
-)
-
-# ---- tools
-zoom1_plot_agg_x.toolbar.logo = None
-zoom1_plot_agg_x.add_tools(
-    PanTool(dimensions='height'), WheelZoomTool(dimensions='height'), ResetTool()
+    toolbar_location=None,
 )
 
 # ---- axes
@@ -183,12 +174,8 @@ zoom2_plot_agg_x = Plot(
     y_range=DataRange1d(),
     plot_height=ZOOM_AGG_X_PLOT_HEIGHT,
     plot_width=sv_zoomview2.plot.plot_width,
-    toolbar_location='left',
+    toolbar_location=None,
 )
-
-# ---- tools
-zoom2_plot_agg_x.toolbar.logo = None
-zoom2_plot_agg_x.add_tools(zoom1_plot_agg_x.tools[0], zoom1_plot_agg_x.tools[1], ResetTool())
 
 # ---- axes
 zoom2_plot_agg_x.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
@@ -419,14 +406,12 @@ sv_metadata = sv.MetadataHandler(datatable_height=420, datatable_width=800)
 layout_main = column(sv_mainview.plot)
 
 layout_zoom1 = column(
-    zoom1_plot_agg_x,
-    row(sv_zoomview1.plot, zoom1_plot_agg_y),
+    gridplot([[zoom1_plot_agg_x, None], [sv_zoomview1.plot, zoom1_plot_agg_y]], merge_tools=False),
     row(Spacer(), sv_hist.plots[0], Spacer()),
 )
 
 layout_zoom2 = column(
-    zoom2_plot_agg_x,
-    row(sv_zoomview2.plot, zoom2_plot_agg_y),
+    gridplot([[zoom2_plot_agg_x, None], [sv_zoomview2.plot, zoom2_plot_agg_y]], merge_tools=False),
     row(Spacer(), sv_hist.plots[1], Spacer()),
 )
 

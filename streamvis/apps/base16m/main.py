@@ -400,8 +400,10 @@ custom_tabs = Tabs(tabs=[debug_tab, scan_tab], height=960, width=1400)
 layout_main = column(sv_mainview.plot)
 
 layout_aggr = column(
-    aggr_image_proj_x_plot,
-    row(sv_aggrplot.plot, aggr_image_proj_y_plot),
+    gridplot(
+        [[aggr_image_proj_x_plot, None], [sv_aggrplot.plot, aggr_image_proj_y_plot]],
+        merge_tools=False,
+    ),
     row(sv_resolrings.toggle, sv_mask.toggle, show_only_hits_toggle),
 )
 
