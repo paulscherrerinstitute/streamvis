@@ -1,8 +1,11 @@
 import argparse
+import logging
 from collections import deque
 
 import numpy as np
 import zmq
+
+logger = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser()
 group = parser.add_mutually_exclusive_group()
@@ -38,9 +41,14 @@ class Receiver:
             if zmq_socket in events:
                 metadata = zmq_socket.recv_json(flags=0)
                 image = zmq_socket.recv(flags=0, copy=False, track=False)
-                image = np.frombuffer(image.buffer, dtype=metadata['type']).reshape(
-                    metadata['shape']
-                )
+
+                dtype = metadata.get('type')
+                shape = metadata.get('shape')
+                if dtype is None or shape is None:
+                    logger.error("Cannot find 'type' and/or 'shape' in received metadata")
+                    continue
+
+                image = np.frombuffer(image.buffer, dtype=dtype).reshape(shape)
 
                 if self.on_receive is not None:
                     self.on_receive(metadata, image)
