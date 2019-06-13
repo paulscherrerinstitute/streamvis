@@ -11,7 +11,6 @@ parser = argparse.ArgumentParser()
 group = parser.add_mutually_exclusive_group()
 group.add_argument('--detector-backend-address')
 group.add_argument('--bind-address')
-parser.add_argument('--page-title', default="StreamVis")
 parser.add_argument('--buffer-size', type=int, default=1)
 args = parser.parse_args()
 

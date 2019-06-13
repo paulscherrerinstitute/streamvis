@@ -27,7 +27,7 @@ import streamvis as sv
 
 receiver = sv.receiver.current
 doc = curdoc()
-doc.title = sv.receiver.args.page_title
+doc.title = sv.page_title
 
 # Expected image sizes for the detector
 IMAGE_SIZE_X = 9216 + (9 - 1) * 6 + 2 * 3 * 9

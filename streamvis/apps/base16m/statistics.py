@@ -3,9 +3,10 @@ from bokeh.layouts import column
 from bokeh.models import Button, ColumnDataSource, DataTable, NumberFormatter, TableColumn
 
 import receiver
+import streamvis as sv
 
 doc = curdoc()
-doc.title = f"{receiver.args.page_title} Statistics"
+doc.title = f"{sv.page_title} Statistics"
 
 table_columns = [
     TableColumn(field='run_names', title="Run Name"),

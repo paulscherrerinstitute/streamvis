@@ -41,7 +41,7 @@ import receiver
 import streamvis as sv
 
 doc = curdoc()
-doc.title = receiver.args.page_title
+doc.title = sv.page_title
 
 sv_rt = sv.Runtime()
 

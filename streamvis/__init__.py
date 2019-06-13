@@ -6,3 +6,5 @@ from .metadata import MetadataHandler
 from .resolution_rings import ResolutionRings
 from .runtime import Runtime
 from .stream_graph import StreamGraph
+
+page_title = ""

@@ -7,6 +7,8 @@ from bokeh.application.application import Application
 from bokeh.application.handlers import DirectoryHandler, ScriptHandler
 from bokeh.server.server import Server
 
+import streamvis as sv
+
 logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -44,6 +46,10 @@ def main():
     )
 
     parser.add_argument(
+        '--page-title', type=str, default="StreamVis", help="browser tab title for the application"
+    )
+
+    parser.add_argument(
         '--args',
         nargs=argparse.REMAINDER,
         default=[],
@@ -51,6 +57,8 @@ def main():
     )
 
     args = parser.parse_args()
+
+    sv.page_title = args.page_title
 
     app_path = os.path.join(apps_path, args.app)
     logger.info(app_path)
