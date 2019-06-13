@@ -8,9 +8,8 @@ import zmq
 logger = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser()
-group = parser.add_mutually_exclusive_group()
-group.add_argument('--detector-backend-address')
-group.add_argument('--bind-address')
+parser.add_argument('--connection-mode', choices=['connect', 'bind'], default='connect')
+parser.add_argument('--address', default='tcp://127.0.0.1:9001')
 parser.add_argument('--buffer-size', type=int, default=1)
 args = parser.parse_args()
 
@@ -25,12 +24,13 @@ class Receiver:
         zmq_context = zmq.Context(io_threads=2)
         zmq_socket = zmq_context.socket(zmq.SUB)  # pylint: disable=E1101
         zmq_socket.setsockopt_string(zmq.SUBSCRIBE, "")  # pylint: disable=E1101
-        if args.detector_backend_address:
-            zmq_socket.connect(args.detector_backend_address)
-        elif args.bind_address:
-            zmq_socket.bind(args.bind_address)
-        else:  # Initial default behaviour
-            zmq_socket.connect('tcp://127.0.0.1:9001')
+
+        if args.connection_mode == 'connect':
+            zmq_socket.connect(args.address)
+        elif args.connection_mode == 'bind':
+            zmq_socket.bind(args.address)
+        else:
+            raise RuntimeError("Unknown connection mode {args.connection_mode}")
 
         poller = zmq.Poller()
         poller.register(zmq_socket, zmq.POLLIN)
