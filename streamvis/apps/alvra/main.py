@@ -1,8 +1,6 @@
 from datetime import datetime
 from functools import partial
 
-import h5py
-import jungfrau_utils as ju
 import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
@@ -32,10 +30,6 @@ doc.title = sv.page_title
 # Expected image sizes for the detector
 IMAGE_SIZE_X = 9216 + (9 - 1) * 6 + 2 * 3 * 9
 IMAGE_SIZE_Y = 514
-
-current_gain_file = ''
-current_pedestal_file = ''
-jf_calib = None
 
 sv_rt = sv.Runtime()
 
@@ -534,7 +528,7 @@ async def update_client(image, metadata, reset, aggr_image):
 
 
 async def internal_periodic_callback():
-    global aggregate_counter, aggregated_image, current_gain_file, current_pedestal_file, jf_calib
+    global aggregate_counter, aggregated_image
     reset = True
 
     if connected:
@@ -546,33 +540,7 @@ async def internal_periodic_callback():
             stream_button.label = 'Receiving'
             stream_button.button_type = 'success'
 
-            sv_rt.current_metadata, sv_rt.current_image = receiver.buffer[-1]
-
-            if sv_rt.current_image.dtype != np.float16 and sv_rt.current_image.dtype != np.float32:
-                gain_file = sv_rt.current_metadata.get('gain_file')
-                pedestal_file = sv_rt.current_metadata.get('pedestal_file')
-                detector_name = sv_rt.current_metadata.get('detector_name')
-                is_correction_data_present = gain_file and pedestal_file and detector_name
-
-                if is_correction_data_present:
-                    if current_gain_file != gain_file or current_pedestal_file != pedestal_file:
-                        # Update gain/pedestal filenames and JungfrauCalibration
-                        current_gain_file = gain_file
-                        current_pedestal_file = pedestal_file
-
-                        with h5py.File(current_gain_file, 'r') as h5gain:
-                            gain = h5gain['/gains'][:]
-
-                        with h5py.File(current_pedestal_file, 'r') as h5pedestal:
-                            pedestal = h5pedestal['/gains'][:]
-                            pixel_mask = h5pedestal['/pixel_mask'][:].astype(np.int32)
-
-                        jf_calib = ju.JungfrauCalibration(gain, pedestal, pixel_mask)
-
-                    sv_rt.current_image = jf_calib.apply_gain_pede(sv_rt.current_image)
-                    sv_rt.current_image = ju.apply_geometry(sv_rt.current_image, detector_name)
-            else:
-                sv_rt.current_image = sv_rt.current_image.astype('float32', copy=True)
+            sv_rt.current_metadata, sv_rt.current_image = receiver.get_image(-1)
 
             sv_rt.current_image = sv_rt.current_image.copy()
             if threshold_flag:

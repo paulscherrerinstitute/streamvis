@@ -127,4 +127,9 @@ def on_receive(metadata, image):
         hitrate_buffer_slow.append(0)
 
 
-current = receiver.Receiver(on_receive=on_receive)
+class Base16MReceiver(receiver.Receiver):
+    def get_last_hit(self):
+        metadata, image = last_hit_data
+        return self.apply_jf_conversion(metadata, image)
+
+current = Base16MReceiver(on_receive=on_receive)

@@ -1,6 +1,8 @@
 import logging
 from collections import deque
 
+import h5py
+import jungfrau_utils as ju
 import numpy as np
 import zmq
 
@@ -14,6 +16,10 @@ class Receiver:
         self.buffer = deque(maxlen=sv.buffer_size)
         self.state = 'polling'
         self.on_receive = on_receive
+
+        self.gain_file = ''
+        self.pedestal_file = ''
+        self.jf_calib = None
 
     def start(self):
         zmq_context = zmq.Context(io_threads=2)
@@ -53,5 +59,36 @@ class Receiver:
             else:
                 self.state = 'polling'
 
+    def get_image(self, index):
+        metadata, image = self.buffer[index]
+        return self.apply_jf_conversion(metadata, image)
+
+    def apply_jf_conversion(self, metadata, image):
+        if image.dtype != np.float16 and image.dtype != np.float32:
+            gain_file = metadata.get('gain_file')
+            pedestal_file = metadata.get('pedestal_file')
+            detector_name = metadata.get('detector_name')
+
+            if gain_file and pedestal_file and detector_name:
+                if self.gain_file != gain_file or self.pedestal_file != pedestal_file:
+                    # Update gain/pedestal filenames and JungfrauCalibration
+                    self.gain_file = gain_file
+                    self.pedestal_file = pedestal_file
+
+                    with h5py.File(self.gain_file, 'r') as h5gain:
+                        gain = h5gain['/gains'][:]
+
+                    with h5py.File(self.pedestal_file, 'r') as h5pedestal:
+                        pedestal = h5pedestal['/gains'][:]
+                        pixel_mask = h5pedestal['/pixel_mask'][:].astype(np.int32)
+
+                    self.jf_calib = ju.JungfrauCalibration(gain, pedestal, pixel_mask)
+
+                image = self.jf_calib.apply_gain_pede(image)
+                image = ju.apply_geometry(image, detector_name)
+        else:
+            image = image.astype('float32', copy=True)
+
+        return metadata, image
 
 current = Receiver()
