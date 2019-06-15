@@ -8,3 +8,6 @@ from .runtime import Runtime
 from .stream_graph import StreamGraph
 
 page_title = ""
+connection_mode = ""
+address = ""
+buffer_size = ""

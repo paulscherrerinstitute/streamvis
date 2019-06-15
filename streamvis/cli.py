@@ -33,7 +33,7 @@ def main():
     parser.add_argument('app', type=str, choices=available_apps, help="streamvis application")
 
     parser.add_argument(
-        '--port', type=int, default=5006, help="the port to listen on for HTTP requests"
+        '--port', type=int, default=5006, help="a port to listen on for HTTP requests"
     )
 
     parser.add_argument(
@@ -42,11 +42,34 @@ def main():
         type=str,
         action='append',
         default=None,
-        help="hostname that can connect to the server websocket",
+        help="a hostname that can connect to the server websocket",
     )
 
     parser.add_argument(
         '--page-title', type=str, default="StreamVis", help="browser tab title for the application"
+    )
+
+    parser.add_argument(
+        '--address',
+        metavar='PROTOCOL://HOST:PORT',
+        type=str,
+        default='tcp://127.0.0.1:9001',
+        help="an address string for zmq socket",
+    )
+
+    parser.add_argument(
+        '--connection-mode',
+        type=str,
+        choices=['connect', 'bind'],
+        default='connect',
+        help="whether to bind a socket to an address or connect to a remote socket with an address",
+    )
+
+    parser.add_argument(
+        '--buffer-size',
+        type=int,
+        default=1,
+        help="a number of last received zmq messages to keep in memory",
     )
 
     parser.add_argument(
@@ -59,6 +82,9 @@ def main():
     args = parser.parse_args()
 
     sv.page_title = args.page_title
+    sv.connection_mode = args.connection_mode
+    sv.address = args.address
+    sv.buffer_size = args.buffer_size
 
     app_path = os.path.join(apps_path, args.app)
     logger.info(app_path)

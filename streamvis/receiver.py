@@ -1,22 +1,17 @@
-import argparse
 import logging
 from collections import deque
 
 import numpy as np
 import zmq
 
-logger = logging.getLogger(__name__)
+import streamvis as sv
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--connection-mode', choices=['connect', 'bind'], default='connect')
-parser.add_argument('--address', default='tcp://127.0.0.1:9001')
-parser.add_argument('--buffer-size', type=int, default=1)
-args = parser.parse_args()
+logger = logging.getLogger(__name__)
 
 
 class Receiver:
     def __init__(self, on_receive=None):
-        self.buffer = deque(maxlen=args.buffer_size)
+        self.buffer = deque(maxlen=sv.buffer_size)
         self.state = 'polling'
         self.on_receive = on_receive
 
@@ -25,12 +20,12 @@ class Receiver:
         zmq_socket = zmq_context.socket(zmq.SUB)  # pylint: disable=E1101
         zmq_socket.setsockopt_string(zmq.SUBSCRIBE, "")  # pylint: disable=E1101
 
-        if args.connection_mode == 'connect':
-            zmq_socket.connect(args.address)
-        elif args.connection_mode == 'bind':
-            zmq_socket.bind(args.address)
+        if sv.connection_mode == 'connect':
+            zmq_socket.connect(sv.address)
+        elif sv.connection_mode == 'bind':
+            zmq_socket.bind(sv.address)
         else:
-            raise RuntimeError("Unknown connection mode {args.connection_mode}")
+            raise RuntimeError("Unknown connection mode {sv.connection_mode}")
 
         poller = zmq.Poller()
         poller.register(zmq_socket, zmq.POLLIN)

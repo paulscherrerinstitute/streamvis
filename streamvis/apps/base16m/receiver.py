@@ -2,13 +2,12 @@ from collections import deque
 
 import numpy as np
 
+import streamvis as sv
 from streamvis import receiver
-
-args = receiver.args
 
 HIT_THRESHOLD = 15
 
-peakfinder_buffer = deque(maxlen=args.buffer_size)
+peakfinder_buffer = deque(maxlen=sv.buffer_size)
 last_hit_data = (None, None)
 hitrate_buffer_fast = deque(maxlen=50)
 hitrate_buffer_slow = deque(maxlen=500)
