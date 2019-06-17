@@ -69,7 +69,7 @@ class Receiver:
             pedestal_file = metadata.get('pedestal_file')
             detector_name = metadata.get('detector_name')
 
-            if gain_file and pedestal_file and detector_name:
+            if gain_file and pedestal_file:
                 if self.gain_file != gain_file or self.pedestal_file != pedestal_file:
                     # Update gain/pedestal filenames and JungfrauCalibration
                     self.gain_file = gain_file
@@ -85,6 +85,8 @@ class Receiver:
                     self.jf_calib = ju.JungfrauCalibration(gain, pedestal, pixel_mask)
 
                 image = self.jf_calib.apply_gain_pede(image)
+
+            if detector_name:
                 image = ju.apply_geometry(image, detector_name)
         else:
             image = image.astype('float32', copy=True)
