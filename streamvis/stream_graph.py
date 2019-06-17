@@ -128,7 +128,7 @@ class StreamGraph:
 
         for value, source, buffer in zip(values, self._sources, self._buffers):
             buffer.append(value)
-            average = sum(islice(reversed(buffer), self._window)) / self._window
+            average = sum(islice(reversed(buffer), self._window)) / min(self._window, len(buffer))
             source.stream(
                 dict(x=[self._stream_t], y=[value], x_avg=[self._stream_t], y_avg=[average]),
                 rollover=self.rollover,
