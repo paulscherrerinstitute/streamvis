@@ -357,9 +357,7 @@ sv_streamgraph = sv.StreamGraph(
 )
 sv_streamgraph.plots[0].title = Title(text="Total Intensity")
 sv_streamgraph.plots[1].title = Title(text="Zoom Area 1 Total Intensity")
-sv_streamgraph.glyphs[1].line_color = 'red'
 sv_streamgraph.plots[2].title = Title(text="Zoom Area 2 Total Intensity")
-sv_streamgraph.glyphs[2].line_color = 'green'
 
 
 # Stream toggle button

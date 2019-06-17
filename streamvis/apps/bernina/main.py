@@ -93,7 +93,6 @@ sv_streamgraph = sv.StreamGraph(
 )
 sv_streamgraph.plots[0].title = Title(text="Total intensity")
 sv_streamgraph.plots[1].title = Title(text="Normalized signal−background Intensity")
-sv_streamgraph.glyphs[1].line_color = 'red'
 
 
 # Create colormapper

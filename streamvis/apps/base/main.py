@@ -129,7 +129,6 @@ sv_streamgraph = sv.StreamGraph(
 )
 sv_streamgraph.plots[0].title = Title(text="Total intensity")
 sv_streamgraph.plots[1].title = Title(text="Zoom total intensity")
-sv_streamgraph.glyphs[1].line_color = 'red'
 
 
 # Stream panel
