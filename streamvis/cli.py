@@ -19,8 +19,10 @@ def main():
     This is a wrapper around bokeh server that provides an interface to launch
     applications bundled with the streamvis package.
     """
+    base_path = os.path.dirname(os.path.abspath(__file__))
+
     # Discover streamvis apps
-    apps_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'apps')
+    apps_path = os.path.join(base_path, 'apps')
     available_apps = []
     for module_info in pkgutil.iter_modules([apps_path]):
         if module_info.ispkg:
@@ -92,12 +94,10 @@ def main():
     applications = dict()  # List of bokeh applications
 
     handler = DirectoryHandler(filename=app_path, argv=args.args)
-    applications['/'] = Application(handler)
+    applications['/app'] = Application(handler)
 
-    statistics_file = os.path.join(app_path, 'statistics.py')
-    if os.path.isfile(statistics_file):
-        statistics_handler = ScriptHandler(filename=statistics_file)
-        applications['/statistics'] = Application(statistics_handler)
+    statistics_handler = ScriptHandler(filename=os.path.join(base_path, 'statistics.py'))
+    applications['/statistics'] = Application(statistics_handler)
 
     server = Server(
         applications, port=args.port, allow_websocket_origin=args.allow_websocket_origin
