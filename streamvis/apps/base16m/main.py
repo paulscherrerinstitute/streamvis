@@ -35,9 +35,9 @@ from bokeh.models import (
 from bokeh.palettes import Reds9  # pylint: disable=E0611
 from bokeh.transform import linear_cmap
 
-import receiver
 import streamvis as sv
 
+receiver = sv.receiver
 doc = curdoc()
 doc.title = sv.page_title
 
@@ -241,7 +241,7 @@ trajectory_plot.add_glyph(
 
 def trajectory_circle_source_callback(_attr, _old, new):
     if new:
-        sv_rt.current_metadata, sv_rt.current_image = receiver.current.buffer[new[0]]
+        sv_rt.current_metadata, sv_rt.current_image = receiver.current.get_image(new[0])
 
 
 trajectory_circle_source.selected.on_change('indices', trajectory_circle_source_callback)

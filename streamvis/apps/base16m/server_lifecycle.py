@@ -1,5 +1,5 @@
 from threading import Thread
-import receiver
+from streamvis import receiver
 
 
 def on_server_loaded(_server_context):

@@ -2,9 +2,9 @@ from bokeh.io import curdoc
 from bokeh.layouts import column
 from bokeh.models import Button, ColumnDataSource, DataTable, NumberFormatter, TableColumn
 
-import receiver
 import streamvis as sv
 
+receiver = sv.receiver
 doc = curdoc()
 doc.title = f"{sv.page_title} Statistics"
 
