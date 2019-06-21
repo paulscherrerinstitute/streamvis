@@ -29,10 +29,10 @@ table_columns = [
     ),
 ]
 
-table_source = ColumnDataSource(receiver.stats)
+table_source = ColumnDataSource(receiver.stats.data)
 table = DataTable(source=table_source, columns=table_columns, height=50, index_position=None)
 
-sum_table_source = ColumnDataSource(receiver.sum_stats)
+sum_table_source = ColumnDataSource(receiver.stats.sum_data)
 sum_table = DataTable(
     source=sum_table_source, columns=table_columns, height=50, index_position=None,
 )
@@ -40,21 +40,13 @@ sum_table = DataTable(
 
 # update statistics callback
 def update_statistics():
-    table_source.data = receiver.stats
-    sum_table_source.data = receiver.sum_stats
+    table_source.data = receiver.stats.data
+    sum_table_source.data = receiver.stats.sum_data
 
 
 # reset statistics button
-# TODO: fix race condition with receiver thread
 def reset_stats_button_callback():
-    receiver.current_run_name = ''
-
-    for val in receiver.stats.values():
-        val.clear()
-
-    for key, val in receiver.sum_stats.items():
-        if key != 'run_names':
-            val[0] = 0
+    receiver.stats.reset()
 
 
 reset_stats_button = Button(label="Reset Statistics", button_type='default')

@@ -1,6 +1,7 @@
 import copy
 import logging
 from collections import deque
+from threading import RLock
 
 import h5py
 import jungfrau_utils as ju
@@ -14,96 +15,108 @@ logger = logging.getLogger(__name__)
 HIT_THRESHOLD = 15
 
 peakfinder_buffer = deque(maxlen=sv.buffer_size)
-last_hit_data = (None, None)
 hitrate_buffer_fast = deque(maxlen=50)
 hitrate_buffer_slow = deque(maxlen=500)
 
-current_run_name = ''
 
-stats = dict(
-    run_names=[],
-    nframes=[],
-    bad_frames=[],
-    sat_pix_nframes=[],
-    laser_on_nframes=[],
-    laser_on_hits=[],
-    laser_on_hits_ratio=[],
-    laser_off_nframes=[],
-    laser_off_hits=[],
-    laser_off_hits_ratio=[],
-)
+class StatisticsHandler:
+    def __init__(self, hit_threshold):
+        self.hit_threshold = hit_threshold
+        self.current_run_name = None
+        self.last_hit = (None, None)
+        self._lock = RLock()
 
-sum_stats = copy.deepcopy(stats)
-for _key, _value in sum_stats.items():
-    if _key == 'run_names':
-        _value.append("Summary")
-    else:
-        _value.append(0)
+        self.data = dict(
+            run_names=[],
+            nframes=[],
+            bad_frames=[],
+            sat_pix_nframes=[],
+            laser_on_nframes=[],
+            laser_on_hits=[],
+            laser_on_hits_ratio=[],
+            laser_off_nframes=[],
+            laser_off_hits=[],
+            laser_off_hits_ratio=[],
+        )
 
-def proc_on_receive(metadata, image):
-    global current_run_name, last_hit_data
-
-    number_of_spots = metadata.get('number_of_spots')
-    is_hit = number_of_spots and number_of_spots > HIT_THRESHOLD
-
-    if 'run_name' in metadata:
-        if metadata['run_name'] != current_run_name:
-            current.buffer.clear()
-            peakfinder_buffer.clear()
-            current_run_name = metadata['run_name']
-
-            # add row for a new run name
-            for _key, _value in stats.items():
-                if _key == 'run_names':
-                    _value.append(current_run_name)
-                else:
-                    _value.append(0)
-
-        swissmx_x = metadata.get('swissmx_x')
-        swissmx_y = metadata.get('swissmx_y')
-        frame = metadata.get('frame')
-        if swissmx_x and swissmx_y and frame and number_of_spots:
-            peakfinder_buffer.append(np.array([swissmx_x, swissmx_y, frame, number_of_spots]))
-
-        stats['nframes'][-1] += 1
-        sum_stats['nframes'][-1] += 1
-
-        if 'is_good_frame' in metadata and not metadata['is_good_frame']:
-            stats['bad_frames'][-1] += 1
-            sum_stats['bad_frames'][-1] += 1
-
-        if 'saturated_pixels' in metadata and metadata['saturated_pixels'] != 0:
-            stats['sat_pix_nframes'][-1] += 1
-            sum_stats['sat_pix_nframes'][-1] += 1
-
-        laser_on = metadata.get('laser_on')
-        if laser_on is not None:
-            if laser_on:
-                switch = 'laser_on'
+        self.sum_data = copy.deepcopy(self.data)
+        for key, val in self.sum_data.items():
+            if key == 'run_names':
+                val.append("Summary")
             else:
-                switch = 'laser_off'
+                val.append(0)
 
-            stats[f'{switch}_nframes'][-1] += 1
-            sum_stats[f'{switch}_nframes'][-1] += 1
+    def parse(self, metadata, image):
+        number_of_spots = metadata.get('number_of_spots')
+        is_hit = number_of_spots and number_of_spots > self.hit_threshold
 
-            if is_hit:
-                stats[f'{switch}_hits'][-1] += 1
-                sum_stats[f'{switch}_hits'][-1] += 1
+        run_name = metadata.get('run_name')
+        if run_name:
+            swissmx_x = metadata.get('swissmx_x')
+            swissmx_y = metadata.get('swissmx_y')
+            frame = metadata.get('frame')
+            if swissmx_x and swissmx_y and frame and number_of_spots:
+                peakfinder_buffer.append(
+                    np.array([swissmx_x, swissmx_y, frame, number_of_spots])
+                )
 
-            stats[f'{switch}_hits_ratio'][-1] = (
-                stats[f'{switch}_hits'][-1] / stats[f'{switch}_nframes'][-1]
-            )
-            sum_stats[f'{switch}_hits_ratio'][-1] = (
-                sum_stats[f'{switch}_hits'][-1] / sum_stats[f'{switch}_nframes'][-1]
-            )
+            with self._lock:
+                if run_name != self.current_run_name:
+                    current.buffer.clear()
+                    peakfinder_buffer.clear()
+                    self.current_run_name = run_name
+                    for key, val in self.data.items():
+                        if key == 'run_names':
+                            val.append(run_name)
+                        else:
+                            val.append(0)
 
-    if is_hit:
-        last_hit_data = (metadata, image)
-        hitrate_buffer_fast.append(1)
-        hitrate_buffer_slow.append(1)
-    else:
-        hitrate_buffer_fast.append(0)
-        hitrate_buffer_slow.append(0)
+                self.increment('nframes')
+
+                if 'is_good_frame' in metadata and not metadata['is_good_frame']:
+                    self.increment('bad_frames')
+
+                if 'saturated_pixels' in metadata and metadata['saturated_pixels'] != 0:
+                    self.increment('sat_pix_nframes')
+
+                laser_on = metadata.get('laser_on')
+                if laser_on is not None:
+                    switch = 'laser_on' if laser_on else 'laser_off'
+
+                    self.increment(f'{switch}_nframes')
+
+                    if is_hit:
+                        self.increment(f'{switch}_hits')
+
+                    self.data[f'{switch}_hits_ratio'][-1] = (
+                        self.data[f'{switch}_hits'][-1] / self.data[f'{switch}_nframes'][-1]
+                    )
+                    self.sum_data[f'{switch}_hits_ratio'][-1] = (
+                        self.sum_data[f'{switch}_hits'][-1] / self.sum_data[f'{switch}_nframes'][-1]
+                    )
+
+        if is_hit:
+            self.last_hit = (metadata, image)
+            hitrate_buffer_fast.append(1)
+            hitrate_buffer_slow.append(1)
+        else:
+            hitrate_buffer_fast.append(0)
+            hitrate_buffer_slow.append(0)
+
+    def increment(self, key):
+        self.data[key][-1] += 1
+        self.sum_data[key][-1] += 1
+
+    def reset(self):
+        with self._lock:
+            self.current_run_name = None
+
+            for val in self.data.values():
+                val.clear()
+
+            for key, val in self.sum_data.items():
+                if key != 'run_names':
+                    val[0] = 0
 
 
 class Receiver:
@@ -159,7 +172,7 @@ class Receiver:
         return self.apply_jf_conversion(metadata, image)
 
     def get_last_hit(self):
-        metadata, image = last_hit_data
+        metadata, image = stats.last_hit
         return self.apply_jf_conversion(metadata, image)
 
     def apply_jf_conversion(self, metadata, image):
@@ -193,4 +206,5 @@ class Receiver:
         return metadata, image
 
 
-current = Receiver(on_receive=proc_on_receive)
+stats = StatisticsHandler(hit_threshold=HIT_THRESHOLD)
+current = Receiver(on_receive=stats.parse)

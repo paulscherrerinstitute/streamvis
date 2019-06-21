@@ -513,7 +513,7 @@ async def internal_periodic_callback():
             stream_button.button_type = 'success'
 
             if show_only_hits_toggle.active:
-                if receiver.last_hit_data != (None, None):
+                if sv.receiver.stats.last_hit != (None, None):
                     sv_rt.current_metadata, sv_rt.current_image = receiver.current.get_last_hit()
             else:
                 sv_rt.current_metadata, sv_rt.current_image = receiver.current.get_image(-1)
