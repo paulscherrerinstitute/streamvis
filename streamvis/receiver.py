@@ -52,14 +52,6 @@ class StatisticsHandler:
 
         run_name = metadata.get('run_name')
         if run_name:
-            swissmx_x = metadata.get('swissmx_x')
-            swissmx_y = metadata.get('swissmx_y')
-            frame = metadata.get('frame')
-            if swissmx_x and swissmx_y and frame and number_of_spots:
-                peakfinder_buffer.append(
-                    np.array([swissmx_x, swissmx_y, frame, number_of_spots])
-                )
-
             with self._lock:
                 if run_name != self.current_run_name:
                     current.buffer.clear()
@@ -70,6 +62,14 @@ class StatisticsHandler:
                             val.append(run_name)
                         else:
                             val.append(0)
+
+                swissmx_x = metadata.get('swissmx_x')
+                swissmx_y = metadata.get('swissmx_y')
+                frame = metadata.get('frame')
+                if swissmx_x and swissmx_y and frame and number_of_spots:
+                    peakfinder_buffer.append(
+                        np.array([swissmx_x, swissmx_y, frame, number_of_spots])
+                    )
 
                 self.increment('nframes')
 
