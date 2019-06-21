@@ -29,10 +29,10 @@ table_columns = [
     ),
 ]
 
-table_source = ColumnDataSource(receiver.stats_table_dict)
+table_source = ColumnDataSource(receiver.stats)
 table = DataTable(source=table_source, columns=table_columns, height=50, index_position=None)
 
-sum_table_source = ColumnDataSource(receiver.sum_stats_table_dict)
+sum_table_source = ColumnDataSource(receiver.sum_stats)
 sum_table = DataTable(
     source=sum_table_source, columns=table_columns, height=50, index_position=None,
 )
@@ -40,35 +40,21 @@ sum_table = DataTable(
 
 # update statistics callback
 def update_statistics():
-    table_source.data = receiver.stats_table_dict
-    sum_table_source.data = receiver.sum_stats_table_dict
+    table_source.data = receiver.stats
+    sum_table_source.data = receiver.sum_stats
 
 
 # reset statistics button
 # TODO: fix race condition with receiver thread
 def reset_stats_button_callback():
-    receiver.run_name = ''
+    receiver.current_run_name = ''
 
-    receiver.run_names.clear()
-    receiver.nframes.clear()
-    receiver.bad_frames.clear()
-    receiver.sat_pix_nframes.clear()
-    receiver.laser_on_nframes.clear()
-    receiver.laser_on_hits.clear()
-    receiver.laser_on_hits_ratio.clear()
-    receiver.laser_off_nframes.clear()
-    receiver.laser_off_hits.clear()
-    receiver.laser_off_hits_ratio.clear()
+    for val in receiver.stats.values():
+        val.clear()
 
-    receiver.sum_nframes[0] = 0
-    receiver.sum_bad_frames[0] = 0
-    receiver.sum_sat_pix_nframes[0] = 0
-    receiver.sum_laser_on_nframes[0] = 0
-    receiver.sum_laser_on_hits[0] = 0
-    receiver.sum_laser_on_hits_ratio[0] = 0
-    receiver.sum_laser_off_nframes[0] = 0
-    receiver.sum_laser_off_hits[0] = 0
-    receiver.sum_laser_off_hits_ratio[0] = 0
+    for key, val in receiver.sum_stats.items():
+        if key != 'run_names':
+            val[0] = 0
 
 
 reset_stats_button = Button(label="Reset Statistics", button_type='default')
