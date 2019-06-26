@@ -128,6 +128,9 @@ class Receiver:
         self.gain_file = ''
         self.pedestal_file = ''
         self.jf_calib = None
+        self.pixel_mask = None
+
+        self.current_module_map = None
 
     def start(self):
         zmq_context = zmq.Context(io_threads=2)
@@ -176,6 +179,15 @@ class Receiver:
         return self.apply_jf_conversion(metadata, image)
 
     def apply_jf_conversion(self, metadata, image):
+        module_map = metadata.get('module_map')
+        if module_map is not None and -1 in module_map:
+            # fill disabled modules with zeros
+            image_ext = np.zeros((512 * len(module_map), 1024), dtype=image.dtype)
+            for i, m in enumerate(module_map):
+                if m != -1:
+                    image_ext[512 * i : 512 * (i + 1), :] = image[512 * m : 512 * (m + 1), :]
+            image = image_ext
+
         if image.dtype != np.float16 and image.dtype != np.float32:
             gain_file = metadata.get('gain_file')
             pedestal_file = metadata.get('pedestal_file')
@@ -193,8 +205,24 @@ class Receiver:
                     with h5py.File(self.pedestal_file, 'r') as h5pedestal:
                         pedestal = h5pedestal['/gains'][:]
                         pixel_mask = h5pedestal['/pixel_mask'][:].astype(np.int32)
+                        self.pixel_mask = pixel_mask
 
-                    self.jf_calib = ju.JungfrauCalibration(gain, pedestal, pixel_mask)
+                    self.jf_calib = ju.JungfrauCalibration(gain, pedestal)
+                    self.jf_calib.pixel_mask = self.pixel_mask.copy()
+
+                # adapt the mask if the configuration has changed
+                if self.current_module_map != module_map:
+                    self.current_module_map = module_map
+                    if module_map is None:
+                        self.jf_calib.pixel_mask = self.pixel_mask.copy()
+                    else:
+                        for i, m in enumerate(module_map):
+                            if m != -1:
+                                self.jf_calib.pixel_mask[
+                                    512 * i : 512 * (i + 1), :
+                                ] = self.pixel_mask[512 * i : 512 * (i + 1), :]
+                            else:
+                                self.jf_calib.pixel_mask[512 * i : 512 * (i + 1), :] = 1
 
                 image = self.jf_calib.apply_gain_pede(image)
 
