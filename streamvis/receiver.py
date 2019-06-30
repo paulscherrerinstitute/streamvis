@@ -16,11 +16,11 @@ HIT_THRESHOLD = 15
 
 
 class StatisticsHandler:
-    def __init__(self, hit_threshold):
+    def __init__(self, hit_threshold, buffer_size=1):
         self.hit_threshold = hit_threshold
         self.current_run_name = None
         self.last_hit = (None, None)
-        self.peakfinder_buffer = deque(maxlen=sv.buffer_size)
+        self.peakfinder_buffer = deque(maxlen=buffer_size)
         self.hitrate_buffer_fast = deque(maxlen=50)
         self.hitrate_buffer_slow = deque(maxlen=500)
         self._lock = RLock()
@@ -119,8 +119,8 @@ class StatisticsHandler:
 
 
 class Receiver:
-    def __init__(self, on_receive=None):
-        self.buffer = deque(maxlen=sv.buffer_size)
+    def __init__(self, on_receive=None, buffer_size=1):
+        self.buffer = deque(maxlen=buffer_size)
         self.state = 'polling'
         self.on_receive = on_receive
 
@@ -131,17 +131,17 @@ class Receiver:
 
         self.current_module_map = None
 
-    def start(self):
+    def start(self, connection_mode, address):
         zmq_context = zmq.Context(io_threads=2)
         zmq_socket = zmq_context.socket(zmq.SUB)  # pylint: disable=E1101
         zmq_socket.setsockopt_string(zmq.SUBSCRIBE, "")  # pylint: disable=E1101
 
-        if sv.connection_mode == 'connect':
-            zmq_socket.connect(sv.address)
-        elif sv.connection_mode == 'bind':
-            zmq_socket.bind(sv.address)
+        if connection_mode == 'connect':
+            zmq_socket.connect(address)
+        elif connection_mode == 'bind':
+            zmq_socket.bind(address)
         else:
-            raise RuntimeError("Unknown connection mode {sv.connection_mode}")
+            raise RuntimeError("Unknown connection mode {connection_mode}")
 
         poller = zmq.Poller()
         poller.register(zmq_socket, zmq.POLLIN)
@@ -233,5 +233,5 @@ class Receiver:
         return metadata, image
 
 
-stats = StatisticsHandler(hit_threshold=HIT_THRESHOLD)
-current = Receiver(on_receive=stats.parse)
+stats = StatisticsHandler(hit_threshold=HIT_THRESHOLD, buffer_size=sv.buffer_size)
+current = Receiver(on_receive=stats.parse, buffer_size=sv.buffer_size)
