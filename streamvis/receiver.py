@@ -53,7 +53,6 @@ class StatisticsHandler:
         if run_name:
             with self._lock:
                 if run_name != self.current_run_name:
-                    current.buffer.clear()
                     self.peakfinder_buffer.clear()
                     self.current_run_name = run_name
                     for key, val in self.data.items():

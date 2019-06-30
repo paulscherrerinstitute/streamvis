@@ -241,7 +241,8 @@ trajectory_plot.add_glyph(
 
 def trajectory_circle_source_callback(_attr, _old, new):
     if new:
-        sv_rt.current_metadata, sv_rt.current_image = receiver.current.get_image(new[0])
+        index_from_last = new[0] - len(trajectory_circle_source.data['x'])
+        sv_rt.current_metadata, sv_rt.current_image = receiver.current.get_image(index_from_last)
 
 
 trajectory_circle_source.selected.on_change('indices', trajectory_circle_source_callback)
