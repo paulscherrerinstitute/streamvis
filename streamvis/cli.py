@@ -2,6 +2,8 @@ import argparse
 import logging
 import os
 import pkgutil
+from functools import partial
+from threading import Thread
 
 from bokeh.application.application import Application
 from bokeh.application.handlers import DirectoryHandler, ScriptHandler
@@ -86,13 +88,16 @@ def main():
     args = parser.parse_args()
 
     sv.page_title = args.page_title
-    sv.connection_mode = args.connection_mode
-    sv.address = args.address
 
     stats = sv.StatisticsHandler(hit_threshold=HIT_THRESHOLD, buffer_size=args.buffer_size)
     sv.current_receiver = sv.Receiver(
         stats=stats, on_receive=stats.parse, buffer_size=args.buffer_size
     )
+
+    # Start receiver in a separate thread
+    start_receiver = partial(sv.current_receiver.start, args.connection_mode, args.address)
+    t = Thread(target=start_receiver, daemon=True)
+    t.start()
 
     app_path = os.path.join(apps_path, args.app)
     logger.info(app_path)
