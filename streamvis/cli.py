@@ -12,6 +12,8 @@ import streamvis as sv
 logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+HIT_THRESHOLD = 15
+
 
 def main():
     """The streamvis command line interface.
@@ -86,7 +88,11 @@ def main():
     sv.page_title = args.page_title
     sv.connection_mode = args.connection_mode
     sv.address = args.address
-    sv.buffer_size = args.buffer_size
+
+    stats = sv.StatisticsHandler(hit_threshold=HIT_THRESHOLD, buffer_size=args.buffer_size)
+    sv.current_receiver = sv.Receiver(
+        stats=stats, on_receive=stats.parse, buffer_size=args.buffer_size
+    )
 
     app_path = os.path.join(apps_path, args.app)
     logger.info(app_path)

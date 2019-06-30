@@ -4,7 +4,7 @@ from bokeh.models import Button, ColumnDataSource, DataTable, NumberFormatter, T
 
 import streamvis as sv
 
-receiver = sv.receiver
+receiver = sv.current_receiver
 doc = curdoc()
 doc.title = f"{sv.page_title} Statistics"
 

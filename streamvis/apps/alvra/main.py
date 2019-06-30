@@ -23,7 +23,7 @@ from bokeh.models import (
 
 import streamvis as sv
 
-receiver = sv.receiver.current
+receiver = sv.current_receiver
 doc = curdoc()
 doc.title = sv.page_title
 

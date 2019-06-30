@@ -7,7 +7,7 @@ from bokeh.models import Spacer, Title, Toggle
 
 import streamvis as sv
 
-receiver = sv.receiver.current
+receiver = sv.current_receiver
 doc = curdoc()
 doc.title = sv.page_title
 

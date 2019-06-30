@@ -8,11 +8,7 @@ import jungfrau_utils as ju
 import numpy as np
 import zmq
 
-import streamvis as sv
-
 logger = logging.getLogger(__name__)
-
-HIT_THRESHOLD = 15
 
 
 class StatisticsHandler:
@@ -118,7 +114,7 @@ class StatisticsHandler:
 
 
 class Receiver:
-    def __init__(self, on_receive=None, buffer_size=1):
+    def __init__(self, stats, on_receive=None, buffer_size=1):
         self.buffer = deque(maxlen=buffer_size)
         self.state = 'polling'
         self.on_receive = on_receive
@@ -129,6 +125,7 @@ class Receiver:
         self.pixel_mask = None
 
         self.current_module_map = None
+        self.stats = stats
 
     def start(self, connection_mode, address):
         zmq_context = zmq.Context(io_threads=2)
@@ -173,7 +170,7 @@ class Receiver:
         return self.apply_jf_conversion(metadata, image)
 
     def get_last_hit(self):
-        metadata, image = stats.last_hit
+        metadata, image = self.stats.last_hit
         return self.apply_jf_conversion(metadata, image)
 
     def apply_jf_conversion(self, metadata, image):
@@ -230,7 +227,3 @@ class Receiver:
             image = image.astype('float32', copy=True)
 
         return metadata, image
-
-
-stats = StatisticsHandler(hit_threshold=HIT_THRESHOLD, buffer_size=sv.buffer_size)
-current = Receiver(on_receive=stats.parse, buffer_size=sv.buffer_size)

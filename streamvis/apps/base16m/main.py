@@ -37,7 +37,7 @@ from bokeh.transform import linear_cmap
 
 import streamvis as sv
 
-receiver = sv.receiver
+receiver = sv.current_receiver
 doc = curdoc()
 doc.title = sv.page_title
 
@@ -242,7 +242,7 @@ trajectory_plot.add_glyph(
 def trajectory_circle_source_callback(_attr, _old, new):
     if new:
         index_from_last = new[0] - len(trajectory_circle_source.data['x'])
-        sv_rt.current_metadata, sv_rt.current_image = receiver.current.get_image(index_from_last)
+        sv_rt.current_metadata, sv_rt.current_image = receiver.get_image(index_from_last)
 
 
 trajectory_circle_source.selected.on_change('indices', trajectory_circle_source_callback)
@@ -507,19 +507,19 @@ async def update_client(image, metadata):
 
 async def internal_periodic_callback():
     if connected:
-        if receiver.current.state == 'polling':
+        if receiver.state == 'polling':
             stream_button.label = 'Polling'
             stream_button.button_type = 'warning'
 
-        elif receiver.current.state == 'receiving':
+        elif receiver.state == 'receiving':
             stream_button.label = 'Receiving'
             stream_button.button_type = 'success'
 
             if show_only_hits_toggle.active:
-                if sv.receiver.stats.last_hit != (None, None):
-                    sv_rt.current_metadata, sv_rt.current_image = receiver.current.get_last_hit()
+                if receiver.stats.last_hit != (None, None):
+                    sv_rt.current_metadata, sv_rt.current_image = receiver.get_last_hit()
             else:
-                sv_rt.current_metadata, sv_rt.current_image = receiver.current.get_image(-1)
+                sv_rt.current_metadata, sv_rt.current_image = receiver.get_image(-1)
 
             if not image_buffer or image_buffer[-1][0] is not sv_rt.current_metadata:
                 image_buffer.append((sv_rt.current_metadata, sv_rt.current_image))
