@@ -14,16 +14,15 @@ logger = logging.getLogger(__name__)
 
 HIT_THRESHOLD = 15
 
-peakfinder_buffer = deque(maxlen=sv.buffer_size)
-hitrate_buffer_fast = deque(maxlen=50)
-hitrate_buffer_slow = deque(maxlen=500)
-
 
 class StatisticsHandler:
     def __init__(self, hit_threshold):
         self.hit_threshold = hit_threshold
         self.current_run_name = None
         self.last_hit = (None, None)
+        self.peakfinder_buffer = deque(maxlen=sv.buffer_size)
+        self.hitrate_buffer_fast = deque(maxlen=50)
+        self.hitrate_buffer_slow = deque(maxlen=500)
         self._lock = RLock()
 
         self.data = dict(
@@ -55,7 +54,7 @@ class StatisticsHandler:
             with self._lock:
                 if run_name != self.current_run_name:
                     current.buffer.clear()
-                    peakfinder_buffer.clear()
+                    self.peakfinder_buffer.clear()
                     self.current_run_name = run_name
                     for key, val in self.data.items():
                         if key == 'run_names':
@@ -67,7 +66,7 @@ class StatisticsHandler:
                 swissmx_y = metadata.get('swissmx_y')
                 frame = metadata.get('frame')
                 if swissmx_x and swissmx_y and frame and number_of_spots:
-                    peakfinder_buffer.append(
+                    self.peakfinder_buffer.append(
                         np.array([swissmx_x, swissmx_y, frame, number_of_spots])
                     )
 
@@ -97,11 +96,11 @@ class StatisticsHandler:
 
         if is_hit:
             self.last_hit = (metadata, image)
-            hitrate_buffer_fast.append(1)
-            hitrate_buffer_slow.append(1)
+            self.hitrate_buffer_fast.append(1)
+            self.hitrate_buffer_slow.append(1)
         else:
-            hitrate_buffer_fast.append(0)
-            hitrate_buffer_slow.append(0)
+            self.hitrate_buffer_fast.append(0)
+            self.hitrate_buffer_slow.append(0)
 
     def increment(self, key):
         self.data[key][-1] += 1

@@ -285,8 +285,8 @@ hitrate_blue_line = hitrate_plot.add_glyph(
 hitrate_plot.add_layout(
     Legend(
         items=[
-            (f"{receiver.hitrate_buffer_fast.maxlen} shots avg", [hitrate_red_line]),
-            (f"{receiver.hitrate_buffer_slow.maxlen} shots avg", [hitrate_blue_line]),
+            (f"{receiver.stats.hitrate_buffer_fast.maxlen} shots avg", [hitrate_red_line]),
+            (f"{receiver.stats.hitrate_buffer_slow.maxlen} shots avg", [hitrate_blue_line]),
         ],
         location='top_left',
     )
@@ -472,21 +472,23 @@ async def update_client(image, metadata):
     stream_t = datetime.now()
     hitrate_line_red_source.stream(
         new_data=dict(
-            x=[stream_t], y=[sum(receiver.hitrate_buffer_fast) / len(receiver.hitrate_buffer_fast)]
+            x=[stream_t],
+            y=[sum(receiver.stats.hitrate_buffer_fast) / len(receiver.stats.hitrate_buffer_fast)],
         ),
         rollover=HITRATE_ROLLOVER,
     )
 
     hitrate_line_blue_source.stream(
         new_data=dict(
-            x=[stream_t], y=[sum(receiver.hitrate_buffer_slow) / len(receiver.hitrate_buffer_slow)]
+            x=[stream_t],
+            y=[sum(receiver.stats.hitrate_buffer_slow) / len(receiver.stats.hitrate_buffer_slow)],
         ),
         rollover=HITRATE_ROLLOVER,
     )
 
     # Update scan positions
-    if custom_tabs.tabs[custom_tabs.active].title == "SwissMX" and receiver.peakfinder_buffer:
-        peakfinder_buffer = np.array(receiver.peakfinder_buffer)
+    if custom_tabs.tabs[custom_tabs.active].title == "SwissMX" and receiver.stats.peakfinder_buffer:
+        peakfinder_buffer = np.array(receiver.stats.peakfinder_buffer)
         trajectory_circle_source.data.update(
             x=peakfinder_buffer[:, 0],
             y=peakfinder_buffer[:, 1],
