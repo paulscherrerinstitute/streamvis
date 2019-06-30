@@ -70,8 +70,11 @@ class StatisticsHandler:
                 if 'is_good_frame' in metadata and not metadata['is_good_frame']:
                     self.increment('bad_frames')
 
-                if 'saturated_pixels' in metadata and metadata['saturated_pixels'] != 0:
-                    self.increment('sat_pix_nframes')
+                if 'saturated_pixels' in metadata:
+                    if metadata['saturated_pixels'] != 0:
+                        self.increment('sat_pix_nframes')
+                else:
+                    self.data['sat_pix_nframes'][-1] = np.nan
 
                 laser_on = metadata.get('laser_on')
                 if laser_on is not None:
@@ -88,6 +91,13 @@ class StatisticsHandler:
                     self.sum_data[f'{switch}_hits_ratio'][-1] = (
                         self.sum_data[f'{switch}_hits'][-1] / self.sum_data[f'{switch}_nframes'][-1]
                     )
+                else:
+                    self.data['laser_on_nframes'][-1] = np.nan
+                    self.data['laser_on_hits'][-1] = np.nan
+                    self.data['laser_on_hits_ratio'][-1] = np.nan
+                    self.data['laser_off_nframes'][-1] = np.nan
+                    self.data['laser_off_hits'][-1] = np.nan
+                    self.data['laser_off_hits_ratio'][-1] = np.nan
 
         if is_hit:
             self.last_hit = (metadata, image)
