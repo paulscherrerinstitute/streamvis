@@ -6,7 +6,7 @@ from functools import partial
 from threading import Thread
 
 from bokeh.application.application import Application
-from bokeh.application.handlers import DirectoryHandler, ScriptHandler
+from bokeh.application.handlers import ScriptHandler
 from bokeh.server.server import Server
 
 import streamvis as sv
@@ -29,8 +29,7 @@ def main():
     apps_path = os.path.join(base_path, 'apps')
     available_apps = []
     for module_info in pkgutil.iter_modules([apps_path]):
-        if module_info.ispkg:
-            available_apps.append(module_info.name)
+        available_apps.append(module_info.name)
 
     parser = argparse.ArgumentParser(
         prog='streamvis', formatter_class=argparse.ArgumentDefaultsHelpFormatter
@@ -99,12 +98,12 @@ def main():
     t = Thread(target=start_receiver, daemon=True)
     t.start()
 
-    app_path = os.path.join(apps_path, args.app)
+    app_path = os.path.join(apps_path, args.app + '.py')
     logger.info(app_path)
 
     applications = dict()  # List of bokeh applications
 
-    handler = DirectoryHandler(filename=app_path, argv=args.args)
+    handler = ScriptHandler(filename=app_path, argv=args.args)
     applications['/app'] = Application(handler)
 
     statistics_handler = ScriptHandler(filename=os.path.join(base_path, 'statistics.py'))
