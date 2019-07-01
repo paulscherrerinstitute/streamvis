@@ -104,7 +104,7 @@ def main():
     applications = dict()  # List of bokeh applications
 
     handler = ScriptHandler(filename=app_path, argv=args.args)
-    applications['/app'] = Application(handler)
+    applications['/'] = Application(handler)
 
     statistics_handler = ScriptHandler(filename=os.path.join(base_path, 'statistics.py'))
     applications['/statistics'] = Application(statistics_handler)
