@@ -136,9 +136,7 @@ stream_button.on_click(stream_button_callback)
 
 
 # Metadata datatable
-sv_metadata = sv.MetadataHandler(
-    datatable_height=130, datatable_width=700, check_shape=(IMAGE_SIZE_Y, IMAGE_SIZE_X)
-)
+sv_metadata = sv.MetadataHandler(datatable_height=130, datatable_width=700)
 
 
 # Final layouts
