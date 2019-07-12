@@ -8,6 +8,7 @@ from bokeh.models import (
     BasicTicker,
     Button,
     ColumnDataSource,
+    CustomJS,
     DataRange1d,
     Grid,
     Line,
@@ -360,6 +361,11 @@ sv_streamgraph.plots[1].title = Title(text="Zoom Area 1 Total Intensity")
 sv_streamgraph.plots[2].title = Title(text="Zoom Area 2 Total Intensity")
 
 
+# Open statistics button
+open_stats_button = Button(label='Open Statistics')
+open_stats_button.js_on_click(CustomJS(code="window.open('/statistics');"))
+
+
 # Stream toggle button
 def stream_button_callback(state):
     global connected
@@ -424,7 +430,9 @@ layout_utility = column(
     ),
 )
 
-layout_controls = column(colormap_panel, Spacer(height=30), sv_mask.toggle, stream_button)
+layout_controls = column(
+    colormap_panel, Spacer(height=30), sv_mask.toggle, open_stats_button, stream_button
+)
 
 layout_metadata = column(
     sv_metadata.datatable, row(sv_metadata.show_all_toggle, sv_metadata.issues_dropdown)

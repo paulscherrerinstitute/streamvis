@@ -3,7 +3,7 @@ from functools import partial
 import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import Spacer, Title, Toggle
+from bokeh.models import Button, CustomJS, Spacer, Title, Toggle
 
 import streamvis as sv
 
@@ -117,6 +117,11 @@ sv_hist.plots[2].title = Title(text="Background roi", text_color='green')
 sv_hist.auto_toggle.width = 300
 
 
+# Open statistics button
+open_stats_button = Button(label='Open Statistics')
+open_stats_button.js_on_click(CustomJS(code="window.open('/statistics');"))
+
+
 # Stream toggle button
 def stream_button_callback(state):
     global connected
@@ -173,7 +178,9 @@ layout_utility = column(
     ),
 )
 
-layout_controls = row(colormap_panel, column(Spacer(height=19), sv_mask.toggle, stream_button))
+layout_controls = row(
+    colormap_panel, column(Spacer(height=19), sv_mask.toggle, open_stats_button, stream_button)
+)
 
 layout_metadata = column(
     sv_metadata.datatable, row(sv_metadata.show_all_toggle, sv_metadata.issues_dropdown)

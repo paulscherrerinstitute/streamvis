@@ -8,8 +8,10 @@ from bokeh.layouts import column, gridplot, row
 from bokeh.models import (
     BasicTicker,
     BoxZoomTool,
+    Button,
     Circle,
     ColumnDataSource,
+    CustomJS,
     CustomJSHover,
     DataRange1d,
     DatetimeAxis,
@@ -295,6 +297,11 @@ hitrate_plot.add_layout(
 hitrate_plot.legend.click_policy = "hide"
 
 
+# Open statistics button
+open_stats_button = Button(label='Open Statistics')
+open_stats_button.js_on_click(CustomJS(code="window.open('/statistics');"))
+
+
 # Stream panel
 # ---- image buffer slider
 def image_buffer_slider_callback(_attr, _old, new):
@@ -402,7 +409,9 @@ layout_aggr = column(
     row(sv_resolrings.toggle, sv_mask.toggle, show_only_hits_toggle),
 )
 
-layout_controls = column(sv_metadata.issues_dropdown, colormap_panel, stream_panel)
+layout_controls = column(
+    sv_metadata.issues_dropdown, colormap_panel, open_stats_button, stream_panel
+)
 
 layout_side_panel = column(custom_tabs, row(layout_controls, Spacer(width=30), layout_aggr))
 

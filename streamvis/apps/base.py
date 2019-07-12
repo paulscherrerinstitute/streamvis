@@ -5,6 +5,7 @@ from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
 from bokeh.models import (
     BasicTicker,
+    Button,
     ColumnDataSource,
     CustomJS,
     DataRange1d,
@@ -129,6 +130,11 @@ sv_streamgraph = sv.StreamGraph(
 )
 sv_streamgraph.plots[0].title = Title(text="Total intensity")
 sv_streamgraph.plots[1].title = Title(text="Zoom total intensity")
+
+
+# Open statistics button
+open_stats_button = Button(label='Open Statistics')
+open_stats_button.js_on_click(CustomJS(code="window.open('/statistics');"))
 
 
 # Stream panel
@@ -266,7 +272,7 @@ layout_utility = column(
     ),
 )
 
-layout_controls = column(colormap_panel, sv_mask.toggle, stream_panel)
+layout_controls = column(colormap_panel, sv_mask.toggle, open_stats_button, stream_panel)
 
 layout_threshold_aggr = column(
     threshold_button,
