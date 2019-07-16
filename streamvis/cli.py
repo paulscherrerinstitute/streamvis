@@ -35,6 +35,8 @@ def main():
         prog='streamvis', formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
 
+    parser.add_argument('-v', '--version', action='version', version=f"%(prog)s {sv.__version__}")
+
     parser.add_argument('app', type=str, choices=available_apps, help="streamvis application")
 
     parser.add_argument(
