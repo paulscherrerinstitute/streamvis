@@ -54,8 +54,11 @@ class ResolutionRings:
         if detector_distance and beam_energy and beam_center_x and beam_center_y:
             beam_center_x *= np.ones(len(self.positions))
             beam_center_y *= np.ones(len(self.positions))
-            theta = np.arcsin(1.24 / beam_energy / (2 * self.positions * 1e-4))
+            # if '6200 / beam_energy > 1', then arcsin returns nan
+            theta = np.arcsin(6200 / beam_energy / self.positions)  # 6200 = 1.24 / 2 / 1e-4
             diams = 2 * detector_distance * np.tan(2 * theta) / 75e-6
+            # if '2 * theta > pi / 2 <==> diams < 0', then return nan
+            diams[diams < 0] = np.nan
             ring_text = [str(s) + ' Å' for s in self.positions]
 
             self._source.data.update(
