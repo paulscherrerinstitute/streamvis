@@ -15,6 +15,9 @@ doc.title = sv.page_title
 IMAGE_SIZE_X = 1030
 IMAGE_SIZE_Y = 1554
 
+# Resolution rings positions in angstroms
+RESOLUTION_RINGS_POS = np.array([2, 2.2, 2.6, 3, 5, 10])
+
 sv_rt = sv.Runtime()
 
 connected = False
@@ -105,6 +108,10 @@ sv_colormapper.color_bar.location = (0, -5)
 sv_mainview.plot.add_layout(sv_colormapper.color_bar, place='below')
 
 
+# Add resolution rings to both plots
+sv_resolrings = sv.ResolutionRings([sv_mainview, sv_zoomview1, sv_zoomview2], RESOLUTION_RINGS_POS)
+
+
 # Add mask to all plots
 sv_mask = sv.Mask([sv_mainview, sv_zoomview1, sv_zoomview2])
 
@@ -179,7 +186,7 @@ layout_utility = column(
 )
 
 layout_controls = row(
-    colormap_panel, column(Spacer(height=19), sv_mask.toggle, open_stats_button, stream_button)
+    colormap_panel, column(Spacer(height=19), sv_resolrings.toggle, sv_mask.toggle, open_stats_button, stream_button)
 )
 
 layout_metadata = column(
@@ -256,6 +263,8 @@ async def update_client(image, metadata):
 
     # Update mask
     sv_mask.update(metadata.get('pedestal_file'), metadata.get('detector_name'), sv_metadata)
+
+    sv_resolrings.update(metadata, sv_metadata)
 
     sv_metadata.update(metadata_toshow)
 
