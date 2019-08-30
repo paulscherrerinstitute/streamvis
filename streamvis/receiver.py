@@ -4,9 +4,10 @@ from collections import deque
 from threading import RLock
 
 import h5py
-import jungfrau_utils as ju
 import numpy as np
 import zmq
+
+from jungfrau_utils import JFDataHandler
 
 logger = logging.getLogger(__name__)
 
@@ -132,9 +133,7 @@ class Receiver:
         self.gain_file = ''
         self.pedestal_file = ''
         self.jf_handler = None
-        self.pixel_mask = None
 
-        self.module_map = None
         self.stats = stats
 
     def start(self, connection_mode, address):
@@ -190,64 +189,62 @@ class Receiver:
             image = image.astype('float32', copy=True)
             return metadata, image
 
+        detector_name = metadata.get('detector_name')
+        # initial setup of JFDataHandler for a particular detector_name
+        if self.jf_handler is None or self.jf_handler.detector_name != detector_name:
+            try:
+                self.jf_handler = JFDataHandler(detector_name)
+            except KeyError:
+                # do not apply any conversions or corrections, because detector_name is unknown
+                image = image.astype('float32', copy=True)
+                return metadata, image
+
+            self.gain_file = ''
+            self.pedestal_file = ''
+
         gain_file = metadata.get('gain_file')
+        if gain_file:
+            self._set_gain_file(gain_file)
+
         pedestal_file = metadata.get('pedestal_file')
+        if pedestal_file:
+            self._set_pedestal_file(pedestal_file)
+
+        module_map = metadata.get('module_map')
+        if module_map:
+            self.jf_handler.module_map = np.array(module_map)
+
         if gain_file and pedestal_file:
-            if self.jf_handler is None:
-                # initial setup of JFDataHandler
-                self.gain_file = gain_file
-                self.pedestal_file = pedestal_file
-
-                gain = self.read_gain_file(gain_file)
-                pedestal, pixel_mask = self.read_pedestal_file(pedestal_file)
-                self.jf_handler = ju.JFDataHandler(gain, pedestal, pixel_mask)
-
-            if self.gain_file != gain_file:
-                self.gain_file = gain_file
-
-                gain = self.read_gain_file(gain_file)
-                self.jf_handler.G = gain
-
-            if self.pedestal_file != pedestal_file:
-                self.pedestal_file = pedestal_file
-
-                pedestal, pixel_mask = self.read_pedestal_file(pedestal_file)
-                self.jf_handler.P = pedestal
-                self.jf_handler.pixel_mask = pixel_mask
-
-            module_map = metadata.get('module_map')
-            if self.module_map != module_map:
-                self.module_map = module_map
-                self.jf_handler.module_map = module_map
-
             image = self.jf_handler.apply_gain_pede(image)
 
-        detector_name = metadata.get('detector_name')
-        if detector_name:
-            image = ju.apply_geometry(image, detector_name)
+        image = self.jf_handler.apply_geometry(image)
 
         return metadata, image
 
-    @staticmethod
-    def read_gain_file(filename):
+    def _set_gain_file(self, filename):
+        if filename == self.gain_file:
+            return
+
         try:
-            with h5py.File(self.gain_file, 'r') as h5gain:
+            with h5py.File(filename, 'r') as h5gain:
                 gain = h5gain['/gains'][:]
         except:
             logger.exception(f'Can not read gain file {filename}')
-            gain = None
 
-        return gain
+        self.gain_file = filename
+        self.jf_handler.G = gain
 
-    @staticmethod
-    def read_pedestal_file(filename):
+    def _set_pedestal_file(self, filename):
+        if filename == self.pedestal_file:
+            return
+
         try:
-            with h5py.File(self.pedestal_file, 'r') as h5pedestal:
+            with h5py.File(filename, 'r') as h5pedestal:
                 pedestal = h5pedestal['/gains'][:]
-                pixel_mask = h5pedestal['/pixel_mask'][:].astype(np.int32)
+                pixel_mask = h5pedestal['/pixel_mask'][:]
         except:
             logger.exception(f'Can not read pedestal file {filename}')
-            pedestal = None
-            pixel_mask = None
 
-        return pedestal, pixel_mask
+        self.pedestal_file = filename
+        self.jf_handler.P = pedestal
+        self.jf_handler.pixel_mask = pixel_mask
