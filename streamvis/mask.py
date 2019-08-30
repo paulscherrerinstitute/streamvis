@@ -36,25 +36,30 @@ class Mask:
         self.toggle = toggle
 
     def update(self, pedestal_file, detector_name, sv_metadata):
-        if pedestal_file and detector_name and self.current_file != pedestal_file:
-            self.current_file = pedestal_file
-            try:
-                with h5py.File(self.current_file, 'r') as h5f:
-                    mask_data = h5f['/pixel_mask'][:].astype(bool)
+        if pedestal_file and detector_name:
+            if self.current_file != pedestal_file:
+                self.current_file = pedestal_file
+                try:
+                    with h5py.File(self.current_file, 'r') as h5f:
+                        mask_data = h5f['/pixel_mask'][:].astype(bool)
 
-                mask_data = ~ju.apply_geometry(~mask_data, detector_name)
+                    mask_data = ~ju.apply_geometry(~mask_data, detector_name)
 
-                mask = np.zeros((*mask_data.shape, 4), dtype='uint8')
-                mask[:, :, 1] = 255
-                mask[:, :, 3] = 255 * mask_data
+                    mask = np.zeros((*mask_data.shape, 4), dtype='uint8')
+                    mask[:, :, 1] = 255
+                    mask[:, :, 3] = 255 * mask_data
 
-                self.mask = mask
-                self._source.data.update(image=[mask], dh=[mask.shape[0]], dw=[mask.shape[1]])
+                    self.mask = mask
+                    self._source.data.update(image=[mask], dh=[mask.shape[0]], dw=[mask.shape[1]])
 
-            except Exception:
-                logger.exception('Failed to load pedestal file: %s', pedestal_file)
-                self.mask = None
-                self._source.data.update(image=[placeholder])
+                except Exception:
+                    logger.exception('Failed to load pedestal file: %s', pedestal_file)
+                    self.mask = None
+                    self._source.data.update(image=[placeholder])
+
+        else:
+            self.mask = None
+            self._source.data.update(image=[placeholder])
 
         if self.toggle.active and self.mask is None:
             sv_metadata.add_issue('No pedestal file has been provided')
