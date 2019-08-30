@@ -2,11 +2,20 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "base",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/streamvis/cli.py",
-            "args": ["base"],
+            "args": [
+                "base"
+            ],
             "console": "internalConsole",
             "env": {},
         },
@@ -15,7 +24,9 @@
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/streamvis/cli.py",
-            "args": ["alvra"],
+            "args": [
+                "alvra"
+            ],
             "console": "internalConsole",
             "env": {},
         },
@@ -24,7 +35,9 @@
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/streamvis/cli.py",
-            "args": ["bernina"],
+            "args": [
+                "bernina"
+            ],
             "console": "internalConsole",
             "env": {},
         },
@@ -33,7 +46,9 @@
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/streamvis/cli.py",
-            "args": ["base16m"],
+            "args": [
+                "base16m"
+            ],
             "console": "internalConsole",
             "env": {},
         },
@@ -42,7 +57,9 @@
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/streamvis/cli.py",
-            "args": ["experimental"],
+            "args": [
+                "experimental"
+            ],
             "console": "internalConsole",
             "env": {},
         },
