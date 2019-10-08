@@ -230,6 +230,7 @@ class Receiver:
                 gain = h5gain['/gains'][:]
         except:
             logger.exception(f'Can not read gain file {filename}')
+            gain = None
 
         self.gain_file = filename
         self.jf_handler.G = gain
@@ -244,6 +245,8 @@ class Receiver:
                 pixel_mask = h5pedestal['/pixel_mask'][:]
         except:
             logger.exception(f'Can not read pedestal file {filename}')
+            pedestal = None
+            pixel_mask = None
 
         self.pedestal_file = filename
         self.jf_handler.P = pedestal
