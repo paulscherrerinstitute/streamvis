@@ -214,7 +214,7 @@ class Receiver:
         if module_map:
             self.jf_handler.module_map = np.array(module_map)
 
-        if gain_file and pedestal_file:
+        if self.jf_handler.G is not None and self.jf_handler.P is not None:
             image = self.jf_handler.apply_gain_pede(image)
 
         image = self.jf_handler.apply_geometry(image)
