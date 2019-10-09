@@ -388,6 +388,12 @@ stream_button.on_click(stream_button_callback)
 sv_metadata = sv.MetadataHandler(datatable_height=420, datatable_width=800)
 
 
+# Data type select
+data_type_select = Select(
+    title="Data type:", value="Image", options=["Image", "Gains"]
+)
+
+
 # Final layouts
 colormap_panel = column(
     sv_colormapper.select,
@@ -431,7 +437,12 @@ layout_utility = column(
 )
 
 layout_controls = column(
-    colormap_panel, Spacer(height=30), sv_mask.toggle, open_stats_button, stream_button
+    colormap_panel,
+    Spacer(height=30),
+    sv_mask.toggle,
+    open_stats_button,
+    data_type_select,
+    stream_button,
 )
 
 layout_metadata = column(
@@ -546,7 +557,10 @@ async def internal_periodic_callback():
             stream_button.label = 'Receiving'
             stream_button.button_type = 'success'
 
-            sv_rt.current_metadata, sv_rt.current_image = receiver.get_image(-1)
+            if data_type_select.value == "Image":
+                sv_rt.current_metadata, sv_rt.current_image = receiver.get_image(-1)
+            elif data_type_select.value == "Gains":
+                sv_rt.current_metadata, sv_rt.current_image = receiver.get_image_gains(-1)
 
             sv_rt.current_image = sv_rt.current_image.copy()
             if threshold_flag:

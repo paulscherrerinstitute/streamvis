@@ -26,6 +26,7 @@ from bokeh.models import (
     Range1d,
     ResetTool,
     SaveTool,
+    Select,
     Slider,
     Spacer,
     Tabs,
@@ -244,7 +245,10 @@ trajectory_plot.add_glyph(
 def trajectory_circle_source_callback(_attr, _old, new):
     if new:
         index_from_last = new[0] - len(trajectory_circle_source.data['x'])
-        sv_rt.current_metadata, sv_rt.current_image = receiver.get_image(index_from_last)
+        if data_type_select.value == "Image":
+            sv_rt.current_metadata, sv_rt.current_image = receiver.get_image(index_from_last)
+        elif data_type_select.value == "Gains":
+            sv_rt.current_metadata, sv_rt.current_image = receiver.get_image_gains(index_from_last)
 
 
 trajectory_circle_source.selected.on_change('indices', trajectory_circle_source_callback)
@@ -348,6 +352,12 @@ show_only_hits_toggle = Toggle(label="Show Only Hits", button_type='default')
 sv_metadata = sv.MetadataHandler(datatable_height=360, datatable_width=650)
 
 
+# Data type select
+data_type_select = Select(
+    title="Data type:", value="Image", options=["Image", "Gains"]
+)
+
+
 # Custom tabs
 layout_intensity = column(
     gridplot(
@@ -410,7 +420,7 @@ layout_aggr = column(
 )
 
 layout_controls = column(
-    sv_metadata.issues_dropdown, colormap_panel, open_stats_button, stream_panel
+    sv_metadata.issues_dropdown, colormap_panel, open_stats_button, data_type_select, stream_panel
 )
 
 layout_side_panel = column(custom_tabs, row(layout_controls, Spacer(width=30), layout_aggr))
@@ -526,9 +536,15 @@ async def internal_periodic_callback():
 
             if show_only_hits_toggle.active:
                 if receiver.stats.last_hit != (None, None):
-                    sv_rt.current_metadata, sv_rt.current_image = receiver.get_last_hit()
+                    if data_type_select.value == "Image":
+                        sv_rt.current_metadata, sv_rt.current_image = receiver.get_last_hit()
+                    elif data_type_select.value == "Gains":
+                        sv_rt.current_metadata, sv_rt.current_image = receiver.get_last_hit_gains()
             else:
-                sv_rt.current_metadata, sv_rt.current_image = receiver.get_image(-1)
+                if data_type_select.value == "Image":
+                    sv_rt.current_metadata, sv_rt.current_image = receiver.get_image(-1)
+                elif data_type_select.value == "Gains":
+                    sv_rt.current_metadata, sv_rt.current_image = receiver.get_image_gains(-1)
 
             if not image_buffer or image_buffer[-1][0] is not sv_rt.current_metadata:
                 image_buffer.append((sv_rt.current_metadata, sv_rt.current_image))

@@ -182,6 +182,16 @@ class Receiver:
         metadata, image = self.stats.last_hit
         return self.apply_jf_conversion(metadata, image)
 
+    def get_image_gains(self, index):
+        metadata, image = self.buffer[index]
+        image = self.get_gains(image)
+        return metadata, self.jf_handler.apply_geometry(image)
+
+    def get_last_hit_gains(self):
+        metadata, image = self.stats.last_hit
+        image = self.get_gains(image)
+        return metadata, self.jf_handler.apply_geometry(image)
+
     def apply_jf_conversion(self, metadata, image):
         if image.dtype == np.float16 or image.dtype == np.float32:
             # do not apply any conversions or corrections, because for dtype float16 or float32
@@ -220,6 +230,10 @@ class Receiver:
         image = self.jf_handler.apply_geometry(image)
 
         return metadata, image
+
+    @staticmethod
+    def get_gains(image):
+        return image >> 14
 
     def _set_gain_file(self, filename):
         if filename == self.gain_file:

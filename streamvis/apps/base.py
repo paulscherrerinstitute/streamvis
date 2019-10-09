@@ -13,6 +13,7 @@ from bokeh.models import (
     Line,
     LinearAxis,
     Plot,
+    Select,
     Slider,
     Spacer,
     Spinner,
@@ -247,6 +248,12 @@ aggregate_time_counter_textinput = TextInput(
 sv_metadata = sv.MetadataHandler()
 
 
+# Data type select
+data_type_select = Select(
+    title="Data type:", value="Image", options=["Image", "Gains"]
+)
+
+
 # Final layouts
 colormap_panel = column(
     sv_colormapper.select,
@@ -272,7 +279,9 @@ layout_utility = column(
     ),
 )
 
-layout_controls = column(colormap_panel, sv_mask.toggle, open_stats_button, stream_panel)
+layout_controls = column(
+    colormap_panel, sv_mask.toggle, open_stats_button, data_type_select, stream_panel
+)
 
 layout_threshold_aggr = column(
     threshold_button,
@@ -354,7 +363,10 @@ async def internal_periodic_callback():
                 image_buffer_slider.end = len(receiver.buffer) - 1
                 image_buffer_slider.value = len(receiver.buffer) - 1
 
-            sv_rt.current_metadata, sv_rt.current_image = receiver.get_image(-1)
+            if data_type_select.value == "Image":
+                sv_rt.current_metadata, sv_rt.current_image = receiver.get_image(-1)
+            elif data_type_select.value == "Gains":
+                sv_rt.current_metadata, sv_rt.current_image = receiver.get_image_gains(-1)
 
             sv_rt.current_image = sv_rt.current_image.copy()
             if threshold_flag:
