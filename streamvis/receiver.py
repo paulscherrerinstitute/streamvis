@@ -184,11 +184,17 @@ class Receiver:
 
     def get_image_gains(self, index):
         metadata, image = self.buffer[index]
+        if image.dtype == np.float16 or image.dtype == np.float32:
+            return metadata, image
+
         image = self.get_gains(image)
         return metadata, self.jf_handler.apply_geometry(image)
 
     def get_last_hit_gains(self):
         metadata, image = self.stats.last_hit
+        if image.dtype == np.float16 or image.dtype == np.float32:
+            return metadata, image
+
         image = self.get_gains(image)
         return metadata, self.jf_handler.apply_geometry(image)
 
