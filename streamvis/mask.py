@@ -1,7 +1,5 @@
 import logging
 
-import h5py
-import jungfrau_utils as ju
 import numpy as np
 from bokeh.models import ColumnDataSource, ImageRGBA, Toggle
 
@@ -12,6 +10,9 @@ logger = logging.getLogger(__name__)
 
 class Mask:
     def __init__(self, image_views):
+        import streamvis as sv
+        self.receiver = sv.current_receiver
+
         self.current_file = ''
         self.mask = None
 
@@ -35,31 +36,27 @@ class Mask:
         toggle.on_click(toggle_callback)
         self.toggle = toggle
 
-    def update(self, pedestal_file, detector_name, sv_metadata):
-        if pedestal_file and detector_name:
-            if self.current_file != pedestal_file:
-                self.current_file = pedestal_file
-                try:
-                    with h5py.File(self.current_file, 'r') as h5f:
-                        mask_data = h5f['/pixel_mask'][:].astype(bool)
+    def update(self, sv_metadata):
+        receiver = self.receiver
+        if receiver.pedestal_file and receiver.jf_handler.pixel_mask is not None:
+            if self.current_file != receiver.pedestal_file:
+                mm = receiver.jf_handler.module_map
+                receiver.jf_handler.module_map = None
+                mask_data = ~receiver.jf_handler.apply_geometry(~receiver.jf_handler.pixel_mask)
+                receiver.jf_handler.module_map = mm
 
-                    mask_data = ~ju.apply_geometry(~mask_data, detector_name)
+                mask = np.zeros((*mask_data.shape, 4), dtype='uint8')
+                mask[:, :, 1] = 255
+                mask[:, :, 3] = 255 * mask_data
 
-                    mask = np.zeros((*mask_data.shape, 4), dtype='uint8')
-                    mask[:, :, 1] = 255
-                    mask[:, :, 3] = 255 * mask_data
-
-                    self.mask = mask
-                    self._source.data.update(image=[mask], dh=[mask.shape[0]], dw=[mask.shape[1]])
-
-                except Exception:
-                    logger.exception('Failed to load pedestal file: %s', pedestal_file)
-                    self.mask = None
-                    self._source.data.update(image=[placeholder])
+                self.mask = mask
+                self._source.data.update(image=[mask], dh=[mask.shape[0]], dw=[mask.shape[1]])
 
         else:
             self.mask = None
             self._source.data.update(image=[placeholder])
+
+        self.current_file = receiver.pedestal_file
 
         if self.toggle.active and self.mask is None:
             sv_metadata.add_issue('No pedestal file has been provided')

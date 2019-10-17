@@ -517,7 +517,7 @@ async def update_client(image, metadata):
         )
 
     # Update mask
-    sv_mask.update(metadata.get('pedestal_file'), metadata.get('detector_name'), sv_metadata)
+    sv_mask.update(sv_metadata)
 
     sv_resolrings.update(metadata, sv_metadata)
 

@@ -539,7 +539,7 @@ async def update_client(image, metadata, reset, aggr_image):
     metadata_toshow = sv_metadata.parse(metadata)
 
     # Update mask
-    sv_mask.update(metadata.get('pedestal_file'), metadata.get('detector_name'), sv_metadata)
+    sv_mask.update(sv_metadata)
 
     sv_metadata.update(metadata_toshow)
 
