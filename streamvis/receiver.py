@@ -212,13 +212,8 @@ class Receiver:
             self.gain_file = ''
             self.pedestal_file = ''
 
-        gain_file = metadata.get('gain_file')
-        if gain_file:
-            self._set_gain_file(gain_file)
-
-        pedestal_file = metadata.get('pedestal_file')
-        if pedestal_file:
-            self._set_pedestal_file(pedestal_file)
+        self._set_gain_file(metadata.get('gain_file'))
+        self._set_pedestal_file(metadata.get('pedestal_file'))
 
         module_map = metadata.get('module_map')
         if module_map:
@@ -239,11 +234,14 @@ class Receiver:
         if filename == self.gain_file:
             return
 
-        try:
-            with h5py.File(filename, 'r') as h5gain:
-                gain = h5gain['/gains'][:]
-        except:
-            logger.exception(f'Can not read gain file {filename}')
+        if filename:
+            try:
+                with h5py.File(filename, 'r') as h5gain:
+                    gain = h5gain['/gains'][:]
+            except:
+                logger.exception(f'Can not read gain file {filename}')
+                gain = None
+        else:
             gain = None
 
         self.gain_file = filename
@@ -253,12 +251,16 @@ class Receiver:
         if filename == self.pedestal_file:
             return
 
-        try:
-            with h5py.File(filename, 'r') as h5pedestal:
-                pedestal = h5pedestal['/gains'][:]
-                pixel_mask = h5pedestal['/pixel_mask'][:]
-        except:
-            logger.exception(f'Can not read pedestal file {filename}')
+        if filename:
+            try:
+                with h5py.File(filename, 'r') as h5pedestal:
+                    pedestal = h5pedestal['/gains'][:]
+                    pixel_mask = h5pedestal['/pixel_mask'][:]
+            except:
+                logger.exception(f'Can not read pedestal file {filename}')
+                pedestal = None
+                pixel_mask = None
+        else:
             pedestal = None
             pixel_mask = None
 
