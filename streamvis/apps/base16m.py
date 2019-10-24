@@ -191,6 +191,10 @@ sv_mainview.plot.add_layout(sv_colormapper.color_bar, place='above')
 sv_resolrings = sv.ResolutionRings([sv_mainview, sv_aggrplot], RESOLUTION_RINGS_POS)
 
 
+# Add intensity roi
+sv_intensity_roi = sv.IntensityROI([sv_mainview, sv_aggrplot])
+
+
 # Add mask to both plots
 sv_mask = sv.Mask([sv_mainview, sv_aggrplot])
 
@@ -353,9 +357,7 @@ sv_metadata = sv.MetadataHandler(datatable_height=360, datatable_width=650)
 
 
 # Data type select
-data_type_select = Select(
-    title="Data type:", value="Image", options=["Image", "Gains"]
-)
+data_type_select = Select(title="Data type:", value="Image", options=["Image", "Gains"])
 
 
 # Custom tabs
@@ -520,6 +522,7 @@ async def update_client(image, metadata):
     sv_mask.update(sv_metadata)
 
     sv_resolrings.update(metadata, sv_metadata)
+    sv_intensity_roi.update(metadata, sv_metadata)
 
     sv_metadata.update(metadata_toshow)
 

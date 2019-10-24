@@ -121,6 +121,10 @@ sv_mainview.plot.add_layout(sv_colormapper.color_bar, place='below')
 sv_mask = sv.Mask([sv_mainview, sv_zoomview])
 
 
+# Add intensity roi
+sv_intensity_roi = sv.IntensityROI([sv_mainview, sv_zoomview])
+
+
 # Histogram plot
 sv_hist = sv.Histogram(nplots=1, plot_height=400, plot_width=700)
 
@@ -249,9 +253,7 @@ sv_metadata = sv.MetadataHandler()
 
 
 # Data type select
-data_type_select = Select(
-    title="Data type:", value="Image", options=["Image", "Gains"]
-)
+data_type_select = Select(title="Data type:", value="Image", options=["Image", "Gains"])
 
 
 # Final layouts
@@ -341,6 +343,8 @@ async def update_client(image, metadata, reset, aggr_image):
 
     # Update mask
     sv_mask.update(sv_metadata)
+
+    sv_intensity_roi.update(metadata, sv_metadata)
 
     sv_metadata.update(metadata_toshow)
 

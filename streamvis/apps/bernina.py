@@ -112,6 +112,10 @@ sv_mainview.plot.add_layout(sv_colormapper.color_bar, place='below')
 sv_resolrings = sv.ResolutionRings([sv_mainview, sv_zoomview1, sv_zoomview2], RESOLUTION_RINGS_POS)
 
 
+# Add intensity roi
+sv_intensity_roi = sv.IntensityROI([sv_mainview, sv_zoomview1, sv_zoomview2])
+
+
 # Add mask to all plots
 sv_mask = sv.Mask([sv_mainview, sv_zoomview1, sv_zoomview2])
 
@@ -152,9 +156,7 @@ sv_metadata = sv.MetadataHandler(datatable_height=130, datatable_width=700)
 
 
 # Data type select
-data_type_select = Select(
-    title="Data type:", value="Image", options=["Image", "Gains"]
-)
+data_type_select = Select(title="Data type:", value="Image", options=["Image", "Gains"])
 
 
 # Final layouts
@@ -279,6 +281,7 @@ async def update_client(image, metadata):
     sv_mask.update(sv_metadata)
 
     sv_resolrings.update(metadata, sv_metadata)
+    sv_intensity_roi.update(metadata, sv_metadata)
 
     sv_metadata.update(metadata_toshow)
 
