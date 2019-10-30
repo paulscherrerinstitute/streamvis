@@ -109,12 +109,13 @@ class StreamGraph:
                 self._stream_t = 1
 
             for source in self._sources:
-                source.data.update(
-                    x=[self._stream_t],
-                    y=[source.data['y'][-1]],
-                    x_avg=[self._stream_t],
-                    y_avg=[source.data['y_avg'][-1]],
-                )
+                if source.data['x']:
+                    source.data.update(
+                        x=[self._stream_t],
+                        y=[source.data['y'][-1]],
+                        x_avg=[self._stream_t],
+                        y_avg=[source.data['y_avg'][-1]],
+                    )
 
         reset_button = Button(label="Reset", button_type='default')
         reset_button.on_click(reset_button_callback)
