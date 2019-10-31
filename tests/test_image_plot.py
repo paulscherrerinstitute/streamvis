@@ -9,8 +9,8 @@ test_image = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float32)
 test_pil_image = PIL_Image.fromarray(test_image)
 
 
-@pytest.fixture(scope='function')
-def im_plot_with_cm():
+@pytest.fixture(name='im_plot_with_cm', scope='function')
+def _im_plot_with_cm():
     im_plot = sv.ImageView()
 
     yield im_plot

@@ -4,8 +4,8 @@ import pytest
 import streamvis as sv
 
 
-@pytest.fixture(scope='function')
-def sv_hist_single_plot():
+@pytest.fixture(name='sv_hist_single_plot', scope='function')
+def _sv_hist_single_plot():
     sv_hist = sv.Histogram(nplots=1)
     yield sv_hist
 
