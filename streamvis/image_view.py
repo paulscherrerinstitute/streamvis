@@ -19,6 +19,23 @@ from bokeh.models import (
 )
 from PIL import Image as PIL_Image
 
+js_reset = """
+    // reset to the updated image size area
+    var data = image_source.data
+    source.x_range.start = data.reset_x_start[0];
+    source.x_range.end = data.reset_x_end[0];
+    source.y_range.start = data.reset_y_start[0];
+    source.y_range.end = data.reset_y_end[0];
+    source.change.emit();
+"""
+
+js_move_zoom = """
+    var data = source.data;
+    data['%s'] = [cb_obj.start];
+    data['%s'] = [cb_obj.end];
+    source.change.emit();
+"""
+
 
 class ImageView:
     def __init__(
@@ -117,19 +134,8 @@ class ImageView:
         )
 
         # ---- overwrite reset tool behavior
-        jscode_reset = """
-            // reset to the updated image size area
-            var data = image_source.data
-            source.x_range.start = data.reset_x_start[0];
-            source.x_range.end = data.reset_x_end[0];
-            source.y_range.start = data.reset_y_start[0];
-            source.y_range.end = data.reset_y_end[0];
-            source.change.emit();
-        """
-
         plot.js_on_event(
-            Reset,
-            CustomJS(args=dict(source=plot, image_source=self._image_source), code=jscode_reset),
+            Reset, CustomJS(args=dict(source=plot, image_source=self._image_source), code=js_reset)
         )
 
         self.plot = plot
@@ -156,19 +162,12 @@ class ImageView:
         )
         self.plot.add_glyph(area_source, area_rect)
 
-        jscode_move_zoom = """
-            var data = source.data;
-            data['%s'] = [cb_obj.start];
-            data['%s'] = [cb_obj.end];
-            source.change.emit();
-        """
-
         image_plot.plot.x_range.callback = CustomJS(
-            args=dict(source=area_source), code=jscode_move_zoom % ('left', 'right')
+            args=dict(source=area_source), code=js_move_zoom % ('left', 'right')
         )
 
         image_plot.plot.y_range.callback = CustomJS(
-            args=dict(source=area_source), code=jscode_move_zoom % ('bottom', 'top')
+            args=dict(source=area_source), code=js_move_zoom % ('bottom', 'top')
         )
 
         self.zoom_plots.append(image_plot)
