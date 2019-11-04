@@ -3,11 +3,10 @@ import logging
 from collections import deque
 from threading import RLock
 
-import h5py
 import numpy as np
 import zmq
 
-from jungfrau_utils import JFDataHandler
+from jungfrau_utils import StreamAdapter
 
 logger = logging.getLogger(__name__)
 
@@ -130,9 +129,7 @@ class Receiver:
         self.state = 'polling'
         self.on_receive = on_receive
 
-        self.gain_file = ''
-        self.pedestal_file = ''
-        self.jf_handler = None
+        self.jf_adapter = StreamAdapter()
 
         self.stats = stats
 
@@ -176,100 +173,46 @@ class Receiver:
 
     def get_image(self, index):
         metadata, image = self.buffer[index]
-        return self.apply_jf_conversion(metadata, image)
+        image = self.jf_adapter.process(image, metadata)
+        return metadata, image
 
     def get_last_hit(self):
         metadata, image = self.stats.last_hit
-        return self.apply_jf_conversion(metadata, image)
+        image = self.jf_adapter.process(image, metadata)
+        return metadata, image
 
     def get_image_gains(self, index):
         metadata, image = self.buffer[index]
-        if image.dtype == np.float16 or image.dtype == np.float32:
+        if image.dtype != np.uint16:
             return metadata, image
 
-        image = self.get_gains(image)
-        return metadata, self.jf_handler.apply_geometry(image)
+        image = self.jf_adapter.get_gains(image)
 
-    def get_last_hit_gains(self):
-        metadata, image = self.stats.last_hit
-        if image.dtype == np.float16 or image.dtype == np.float32:
-            return metadata, image
-
-        image = self.get_gains(image)
-        return metadata, self.jf_handler.apply_geometry(image)
-
-    def apply_jf_conversion(self, metadata, image):
-        if image.dtype == np.float16 or image.dtype == np.float32:
-            # do not apply any conversions or corrections, because for dtype float16 or float32
-            # it is already done either on a detector backend or elsewhere
-            image = image.astype('float32', copy=True)
-            return metadata, image
-
-        detector_name = metadata.get('detector_name')
-        # initial setup of JFDataHandler for a particular detector_name
-        if self.jf_handler is None or self.jf_handler.detector_name != detector_name:
-            try:
-                self.jf_handler = JFDataHandler(detector_name)
-            except KeyError:
-                # do not apply any conversions or corrections, because detector_name is unknown
-                image = image.astype('float32', copy=True)
-                return metadata, image
-
-            self.gain_file = ''
-            self.pedestal_file = ''
-
-        self._set_gain_file(metadata.get('gain_file'))
-        self._set_pedestal_file(metadata.get('pedestal_file'))
-
-        module_map = metadata.get('module_map')
-        if module_map:
-            self.jf_handler.module_map = np.array(module_map)
-
-        if self.jf_handler.G is not None and self.jf_handler.P is not None:
-            image = self.jf_handler.apply_gain_pede(image)
-
-        image = self.jf_handler.apply_geometry(image)
+        handler = self.jf_adapter.handler
+        if handler is not None:
+            image = image[np.newaxis]
+            if handler.is_stripsel():
+                image = handler._apply_geometry_stripsel(image)
+            else:
+                image = handler._apply_geometry(image)
+            image = image[0]
 
         return metadata, image
 
-    @staticmethod
-    def get_gains(image):
-        return image >> 14
+    def get_last_hit_gains(self):
+        metadata, image = self.stats.last_hit
+        if image.dtype != np.uint16:
+            return metadata, image
 
-    def _set_gain_file(self, filename):
-        if filename == self.gain_file:
-            return
+        image = self.jf_adapter.get_gains(image)
 
-        if filename:
-            try:
-                with h5py.File(filename, 'r') as h5gain:
-                    gain = h5gain['/gains'][:]
-            except:
-                logger.exception(f'Can not read gain file {filename}')
-                gain = None
-        else:
-            gain = None
+        handler = self.jf_adapter.handler
+        if handler is not None:
+            image = image[np.newaxis]
+            if handler.is_stripsel():
+                image = handler._apply_geometry_stripsel(image)
+            else:
+                image = handler._apply_geometry(image)
+            image = image[0]
 
-        self.gain_file = filename
-        self.jf_handler.G = gain
-
-    def _set_pedestal_file(self, filename):
-        if filename == self.pedestal_file:
-            return
-
-        if filename:
-            try:
-                with h5py.File(filename, 'r') as h5pedestal:
-                    pedestal = h5pedestal['/gains'][:]
-                    pixel_mask = h5pedestal['/pixel_mask'][:]
-            except:
-                logger.exception(f'Can not read pedestal file {filename}')
-                pedestal = None
-                pixel_mask = None
-        else:
-            pedestal = None
-            pixel_mask = None
-
-        self.pedestal_file = filename
-        self.jf_handler.P = pedestal
-        self.jf_handler.pixel_mask = pixel_mask
+        return metadata, image

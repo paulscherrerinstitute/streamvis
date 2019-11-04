@@ -37,13 +37,12 @@ class Mask:
         self.toggle = toggle
 
     def update(self, sv_metadata):
-        receiver = self.receiver
-        if receiver.pedestal_file and receiver.jf_handler.pixel_mask is not None:
-            if self.current_file != receiver.pedestal_file:
-                mm = receiver.jf_handler.module_map
-                receiver.jf_handler.module_map = None
-                mask_data = ~receiver.jf_handler.apply_geometry(~receiver.jf_handler.pixel_mask)
-                receiver.jf_handler.module_map = mm
+        handler = self.receiver.jf_adapter.handler
+        if handler is not None and handler.pedestal_file and handler.pixel_mask is not None:
+            if self.current_file != handler.pedestal_file:
+                self.current_file = handler.pedestal_file
+
+                mask_data = handler.shaped_pixel_mask
 
                 mask = np.zeros((*mask_data.shape, 4), dtype='uint8')
                 mask[:, :, 1] = 255
@@ -55,8 +54,6 @@ class Mask:
         else:
             self.mask = None
             self._source.data.update(image=[placeholder])
-
-        self.current_file = receiver.pedestal_file
 
         if self.toggle.active and self.mask is None:
             sv_metadata.add_issue('No pedestal file has been provided')
