@@ -135,6 +135,10 @@ class ImageView:
 
         self.plot = plot
 
+    @property
+    def displayed_image(self):
+        return self._image_source.data['image'][0]
+
     # a reason for the additional boundary checks:
     # https://github.com/bokeh/bokeh/issues/8118
     @property
@@ -245,10 +249,5 @@ class ImageView:
         else:
             self._pvalue_source.data.update(x=[], y=[], text=[])
 
-        if self.zoom_plots:
-            resized_image = [resized_image]
-            for zoom_plot in self.zoom_plots:
-                zoom_resized_image = zoom_plot.update(image, pil_image)
-                resized_image.append(zoom_resized_image)
-
-        return resized_image
+        for zoom_plot in self.zoom_plots:
+            zoom_plot.update(image, pil_image)

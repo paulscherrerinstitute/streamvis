@@ -434,9 +434,9 @@ doc.add_root(row(Spacer(width=50), final_layout))
 
 async def update_client(image, metadata):
     sv_colormapper.update(image)
-    resized_images = sv_mainview.update(image)
+    sv_mainview.update(image)
 
-    aggr_image = resized_images[1]
+    aggr_image = sv_aggrplot.displayed_image
     aggr_image_height, aggr_image_width = aggr_image.shape
 
     aggr_y_start = sv_aggrplot.y_start
