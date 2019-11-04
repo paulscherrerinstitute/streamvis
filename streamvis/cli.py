@@ -88,8 +88,6 @@ def main():
 
     args = parser.parse_args()
 
-    sv.page_title = args.page_title
-
     stats = sv.StatisticsHandler(hit_threshold=HIT_THRESHOLD, buffer_size=args.buffer_size)
     sv.current_receiver = sv.Receiver(
         stats=stats, on_receive=stats.parse, buffer_size=args.buffer_size
@@ -103,13 +101,15 @@ def main():
     app_path = os.path.join(apps_path, args.app + '.py')
     logger.info(app_path)
 
+    sv_handler = sv.StreamvisHandler(args)
+
     applications = dict()  # List of bokeh applications
 
     handler = ScriptHandler(filename=app_path, argv=args.args)
-    applications['/'] = Application(handler)
+    applications['/'] = Application(sv_handler, handler)
 
     statistics_handler = ScriptHandler(filename=os.path.join(base_path, 'statistics.py'))
-    applications['/statistics'] = Application(statistics_handler)
+    applications['/statistics'] = Application(sv_handler, statistics_handler)
 
     server = Server(
         applications, port=args.port, allow_websocket_origin=args.allow_websocket_origin

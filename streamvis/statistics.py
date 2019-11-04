@@ -9,7 +9,7 @@ import streamvis as sv
 
 receiver = sv.current_receiver
 doc = curdoc()
-doc.title = f"{sv.page_title} Statistics"
+doc.title = f"{doc.title} Statistics"
 
 all_table_columns = {
     'run_names': TableColumn(field='run_names', title="Run Name"),

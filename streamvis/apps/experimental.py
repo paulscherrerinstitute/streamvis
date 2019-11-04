@@ -9,7 +9,6 @@ from bokeh.models import Button, ColumnDataSource, CustomJS, Dropdown, Slider, T
 import streamvis as sv
 
 doc = curdoc()
-doc.title = sv.page_title
 
 sv_rt = sv.Runtime()
 
