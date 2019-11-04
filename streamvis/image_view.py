@@ -61,11 +61,6 @@ class ImageView:
         if y_end is None:
             y_end = image_height
 
-        self.x_start = x_start
-        self.x_end = x_end
-        self.y_start = y_start
-        self.y_end = y_end
-
         self.zoom_plots = []
 
         plot = Plot(
@@ -140,6 +135,24 @@ class ImageView:
 
         self.plot = plot
 
+    # a reason for the additional boundary checks:
+    # https://github.com/bokeh/bokeh/issues/8118
+    @property
+    def x_start(self):
+        return max(self.plot.x_range.start, self.plot.x_range.bounds[0])
+
+    @property
+    def x_end(self):
+        return min(self.plot.x_range.end, self.plot.x_range.bounds[1])
+
+    @property
+    def y_start(self):
+        return max(self.plot.y_range.start, self.plot.y_range.bounds[0])
+
+    @property
+    def y_end(self):
+        return min(self.plot.y_range.end, self.plot.y_range.bounds[1])
+
     def add_as_zoom(self, image_plot, line_color='red'):
         # ---- add quad glyph of zoom area to the main plot
         area_source = ColumnDataSource(
@@ -196,12 +209,6 @@ class ImageView:
             self.plot.x_range.end = pil_image.width
             self.plot.y_range.bounds = (0, pil_image.height)
             self.plot.x_range.bounds = (0, pil_image.width)
-
-        # see https://github.com/bokeh/bokeh/issues/8118
-        self.y_start = max(self.plot.y_range.start, 0)
-        self.y_end = min(self.plot.y_range.end, pil_image.height)
-        self.x_start = max(self.plot.x_range.start, 0)
-        self.x_end = min(self.plot.x_range.end, pil_image.width)
 
         resized_image = np.asarray(
             pil_image.resize(
