@@ -9,7 +9,9 @@ from bokeh.application.application import Application
 from bokeh.application.handlers import ScriptHandler
 from bokeh.server.server import Server
 
-import streamvis as sv
+from streamvis import __version__
+from streamvis.receiver import Receiver, StatisticsHandler
+from streamvis.handler import StreamvisHandler
 
 logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -35,7 +37,7 @@ def main():
         prog='streamvis', formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
 
-    parser.add_argument('-v', '--version', action='version', version=f"%(prog)s {sv.__version__}")
+    parser.add_argument('-v', '--version', action='version', version=f"%(prog)s {__version__}")
 
     parser.add_argument('app', type=str, choices=available_apps, help="streamvis application")
 
@@ -88,8 +90,8 @@ def main():
 
     args = parser.parse_args()
 
-    stats = sv.StatisticsHandler(hit_threshold=HIT_THRESHOLD, buffer_size=args.buffer_size)
-    receiver = sv.Receiver(stats=stats, on_receive=stats.parse, buffer_size=args.buffer_size)
+    stats = StatisticsHandler(hit_threshold=HIT_THRESHOLD, buffer_size=args.buffer_size)
+    receiver = Receiver(stats=stats, on_receive=stats.parse, buffer_size=args.buffer_size)
 
     # Start receiver in a separate thread
     start_receiver = partial(receiver.start, args.connection_mode, args.address)
@@ -99,7 +101,7 @@ def main():
     app_path = os.path.join(apps_path, args.app + '.py')
     logger.info(app_path)
 
-    sv_handler = sv.StreamvisHandler(receiver, args)
+    sv_handler = StreamvisHandler(receiver, args)
 
     applications = dict()  # List of bokeh applications
 
