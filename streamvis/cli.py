@@ -16,8 +16,6 @@ from streamvis.handler import StreamvisHandler
 logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-HIT_THRESHOLD = 15
-
 
 def main():
     """The streamvis command line interface.
@@ -82,6 +80,13 @@ def main():
     )
 
     parser.add_argument(
+        '--hit-threshold',
+        type=int,
+        default=15,
+        help="a number of spots above which a shot is registered in statistics as 'hit'",
+    )
+
+    parser.add_argument(
         '--args',
         nargs=argparse.REMAINDER,
         default=[],
@@ -90,7 +95,7 @@ def main():
 
     args = parser.parse_args()
 
-    stats = StatisticsHandler(hit_threshold=HIT_THRESHOLD, buffer_size=args.buffer_size)
+    stats = StatisticsHandler(hit_threshold=args.hit_threshold, buffer_size=args.buffer_size)
     receiver = Receiver(stats=stats, on_receive=stats.parse, buffer_size=args.buffer_size)
 
     # Start receiver in a separate thread
