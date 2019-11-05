@@ -11,5 +11,3 @@ from .intensity_roi import IntensityROI
 from .handler import StreamvisHandler
 
 __version__ = "0.6.3"
-
-current_receiver = None

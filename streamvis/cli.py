@@ -89,19 +89,17 @@ def main():
     args = parser.parse_args()
 
     stats = sv.StatisticsHandler(hit_threshold=HIT_THRESHOLD, buffer_size=args.buffer_size)
-    sv.current_receiver = sv.Receiver(
-        stats=stats, on_receive=stats.parse, buffer_size=args.buffer_size
-    )
+    receiver = sv.Receiver(stats=stats, on_receive=stats.parse, buffer_size=args.buffer_size)
 
     # Start receiver in a separate thread
-    start_receiver = partial(sv.current_receiver.start, args.connection_mode, args.address)
+    start_receiver = partial(receiver.start, args.connection_mode, args.address)
     t = Thread(target=start_receiver, daemon=True)
     t.start()
 
     app_path = os.path.join(apps_path, args.app + '.py')
     logger.info(app_path)
 
-    sv_handler = sv.StreamvisHandler(args)
+    sv_handler = sv.StreamvisHandler(receiver, args)
 
     applications = dict()  # List of bokeh applications
 

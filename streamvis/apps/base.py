@@ -24,8 +24,8 @@ from bokeh.models import (
 
 import streamvis as sv
 
-receiver = sv.current_receiver
 doc = curdoc()
+receiver = doc.receiver
 
 sv_rt = sv.Runtime()
 

@@ -7,8 +7,8 @@ from bokeh.models import Button, CustomJS, Select, Spacer, Title, Toggle
 
 import streamvis as sv
 
-receiver = sv.current_receiver
 doc = curdoc()
+receiver = doc.receiver
 
 # Expected image sizes for the detector
 IMAGE_SIZE_X = 1030

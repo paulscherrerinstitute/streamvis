@@ -1,6 +1,7 @@
 import logging
 
 import numpy as np
+from bokeh.io import curdoc
 from bokeh.models import ColumnDataSource, ImageRGBA, Toggle
 
 placeholder = np.ones((1, 1, 4), dtype='uint8')
@@ -10,8 +11,8 @@ logger = logging.getLogger(__name__)
 
 class Mask:
     def __init__(self, image_views):
-        import streamvis as sv
-        self.receiver = sv.current_receiver
+        doc = curdoc()
+        self.receiver = doc.receiver
 
         self.current_file = ''
         self.mask = None

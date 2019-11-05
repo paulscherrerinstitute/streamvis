@@ -5,10 +5,8 @@ from bokeh.io import curdoc
 from bokeh.layouts import column
 from bokeh.models import Button, ColumnDataSource, DataTable, NumberFormatter, TableColumn
 
-import streamvis as sv
-
-receiver = sv.current_receiver
 doc = curdoc()
+receiver = doc.receiver
 doc.title = f"{doc.title} Statistics"
 
 all_table_columns = {
