@@ -39,8 +39,6 @@ ZOOM_CANVAS_HEIGHT = 514 + 30
 
 ZOOM_AGG_Y_PLOT_WIDTH = 200
 ZOOM_AGG_X_PLOT_HEIGHT = 370
-TOTAL_INT_PLOT_HEIGHT = 200
-TOTAL_INT_PLOT_WIDTH = 1150
 
 APP_FPS = 1
 
@@ -266,11 +264,7 @@ save_spectrum_select.on_change('value', save_spectrum_select_callback)
 
 # Total sum intensity plots
 sv_streamgraph = sv.StreamGraph(
-    nplots=3,
-    plot_height=TOTAL_INT_PLOT_HEIGHT,
-    plot_width=TOTAL_INT_PLOT_WIDTH,
-    rollover=36000,
-    mode='number',
+    nplots=3, plot_height=200, plot_width=1150, rollover=36000, mode='number'
 )
 sv_streamgraph.plots[0].title = Title(text="Total Intensity")
 sv_streamgraph.plots[1].title = Title(text="Zoom Area 1 Total Intensity")

@@ -51,10 +51,10 @@ connected = False
 MAIN_CANVAS_WIDTH = 2200 + 55
 MAIN_CANVAS_HEIGHT = 1900 + 64
 
-AGGR_CANVAS_WIDTH = 850 + 55
-AGGR_CANVAS_HEIGHT = 760 + 30
-AGGR_PROJ_X_CANVAS_HEIGHT = 150 + 11
-AGGR_PROJ_Y_CANVAS_WIDTH = 150 + 31
+ZOOM_CANVAS_WIDTH = 850 + 55
+ZOOM_CANVAS_HEIGHT = 760 + 30
+ZOOM_PROJ_X_CANVAS_HEIGHT = 150 + 11
+ZOOM_PROJ_Y_CANVAS_WIDTH = 150 + 31
 
 APP_FPS = 1
 HITRATE_ROLLOVER = 1200
@@ -119,25 +119,25 @@ sv_streamgraph.plots[0].title = Title(text="Total intensity")
 sv_streamgraph.plots[1].title = Title(text="Zoom total intensity")
 
 
-# Aggregation plot
-sv_aggrplot = sv.ImageView(plot_height=AGGR_CANVAS_HEIGHT, plot_width=AGGR_CANVAS_WIDTH)
-sv_aggrplot.toolbar_location = 'below'
+# Zoom plot
+sv_zoomview = sv.ImageView(plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH)
+sv_zoomview.toolbar_location = 'below'
 
 # ---- tools
 # replace the existing HoverTool
-sv_aggrplot.plot.tools[-1] = hovertool
+sv_zoomview.plot.tools[-1] = hovertool
 
-sv_mainview.add_as_zoom(sv_aggrplot, line_color='white')
+sv_mainview.add_as_zoom(sv_zoomview, line_color='white')
 
-sv_aggr_proj_v = sv.Projection(sv_aggrplot, 'vertical', plot_height=AGGR_PROJ_X_CANVAS_HEIGHT)
-sv_aggr_proj_v.plot.renderers[0].glyph.line_width = 2
+sv_zoom_proj_v = sv.Projection(sv_zoomview, 'vertical', plot_height=ZOOM_PROJ_X_CANVAS_HEIGHT)
+sv_zoom_proj_v.plot.renderers[0].glyph.line_width = 2
 
-sv_aggr_proj_h = sv.Projection(sv_aggrplot, 'horizontal', plot_width=AGGR_PROJ_Y_CANVAS_WIDTH)
-sv_aggr_proj_h.plot.renderers[0].glyph.line_width = 2
+sv_zoom_proj_h = sv.Projection(sv_zoomview, 'horizontal', plot_width=ZOOM_PROJ_Y_CANVAS_WIDTH)
+sv_zoom_proj_h.plot.renderers[0].glyph.line_width = 2
 
 
 # Create colormapper
-sv_colormapper = sv.ColorMapper([sv_mainview, sv_aggrplot])
+sv_colormapper = sv.ColorMapper([sv_mainview, sv_zoomview])
 
 # ---- add colorbar to the main plot
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
@@ -145,15 +145,15 @@ sv_mainview.plot.add_layout(sv_colormapper.color_bar, place='above')
 
 
 # Add resolution rings to both plots
-sv_resolrings = sv.ResolutionRings([sv_mainview, sv_aggrplot], RESOLUTION_RINGS_POS)
+sv_resolrings = sv.ResolutionRings([sv_mainview, sv_zoomview], RESOLUTION_RINGS_POS)
 
 
 # Add intensity roi
-sv_intensity_roi = sv.IntensityROI([sv_mainview, sv_aggrplot])
+sv_intensity_roi = sv.IntensityROI([sv_mainview, sv_zoomview])
 
 
 # Add mask to both plots
-sv_mask = sv.Mask([sv_mainview, sv_aggrplot])
+sv_mask = sv.Mask([sv_mainview, sv_zoomview])
 
 
 # Histogram plot
@@ -370,10 +370,9 @@ colormap_panel = column(
 
 stream_panel = column(image_buffer_slider, stream_button)
 
-layout_aggr = column(
+layout_zoom = column(
     gridplot(
-        [[sv_aggr_proj_v.plot, None], [sv_aggrplot.plot, sv_aggr_proj_h.plot]],
-        merge_tools=False,
+        [[sv_zoom_proj_v.plot, None], [sv_zoomview.plot, sv_zoom_proj_h.plot]], merge_tools=False
     ),
     row(sv_resolrings.toggle, sv_mask.toggle, show_only_hits_toggle),
 )
@@ -382,7 +381,7 @@ layout_controls = column(
     sv_metadata.issues_dropdown, colormap_panel, open_stats_button, data_type_select, stream_panel
 )
 
-layout_side_panel = column(custom_tabs, row(layout_controls, Spacer(width=30), layout_aggr))
+layout_side_panel = column(custom_tabs, row(layout_controls, Spacer(width=30), layout_zoom))
 
 final_layout = row(sv_mainview.plot, Spacer(width=30), layout_side_panel)
 
@@ -393,18 +392,11 @@ async def update_client(image, metadata):
     sv_colormapper.update(image)
     sv_mainview.update(image)
 
-    aggr_image = sv_aggrplot.displayed_image
-
-    sv_aggr_proj_v.update(image)
-    sv_aggr_proj_h.update(image)
-
-    aggr_y_start = sv_aggrplot.y_start
-    aggr_y_end = sv_aggrplot.y_end
-    aggr_x_start = sv_aggrplot.x_start
-    aggr_x_end = sv_aggrplot.x_end
+    sv_zoom_proj_v.update(image)
+    sv_zoom_proj_h.update(image)
 
     if custom_tabs.tabs[custom_tabs.active].title == "Debug":
-        sv_hist.update([aggr_image])
+        sv_hist.update([sv_zoomview.displayed_image])
 
     # Parse metadata
     metadata_toshow = sv_metadata.parse(metadata)
@@ -430,14 +422,14 @@ async def update_client(image, metadata):
     )
 
     # Update total intensities plots
-    aggr_y_start = int(np.floor(aggr_y_start))
-    aggr_x_start = int(np.floor(aggr_x_start))
-    aggr_y_end = int(np.ceil(aggr_y_end))
-    aggr_x_end = int(np.ceil(aggr_x_end))
+    zoom_y_start = int(np.floor(sv_zoomview.y_start))
+    zoom_x_start = int(np.floor(sv_zoomview.x_start))
+    zoom_y_end = int(np.ceil(sv_zoomview.y_end))
+    zoom_x_end = int(np.ceil(sv_zoomview.x_end))
     sv_streamgraph.update(
         [
             np.sum(image, dtype=np.float),
-            np.sum(image[aggr_y_start:aggr_y_end, aggr_x_start:aggr_x_end], dtype=np.float),
+            np.sum(image[zoom_y_start:zoom_y_end, zoom_x_start:zoom_x_end], dtype=np.float),
         ]
     )
 

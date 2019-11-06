@@ -65,14 +65,14 @@ class StatisticsHandler:
                         np.array([swissmx_x, swissmx_y, frame, number_of_spots])
                     )
 
-                self.increment('nframes')
+                self._increment('nframes')
 
                 if 'is_good_frame' in metadata and not metadata['is_good_frame']:
-                    self.increment('bad_frames')
+                    self._increment('bad_frames')
 
                 if 'saturated_pixels' in metadata:
                     if metadata['saturated_pixels'] != 0:
-                        self.increment('sat_pix_nframes')
+                        self._increment('sat_pix_nframes')
                 else:
                     self.data['sat_pix_nframes'][-1] = np.nan
 
@@ -80,10 +80,10 @@ class StatisticsHandler:
                 if laser_on is not None:
                     switch = 'laser_on' if laser_on else 'laser_off'
 
-                    self.increment(f'{switch}_nframes')
+                    self._increment(f'{switch}_nframes')
 
                     if is_hit:
-                        self.increment(f'{switch}_hits')
+                        self._increment(f'{switch}_hits')
 
                     self.data[f'{switch}_hits_ratio'][-1] = (
                         self.data[f'{switch}_hits'][-1] / self.data[f'{switch}_nframes'][-1]
@@ -107,7 +107,7 @@ class StatisticsHandler:
             self.hitrate_buffer_fast.append(0)
             self.hitrate_buffer_slow.append(0)
 
-    def increment(self, key):
+    def _increment(self, key):
         self.data[key][-1] += 1
         self.sum_data[key][-1] += 1
 

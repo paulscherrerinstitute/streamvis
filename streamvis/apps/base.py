@@ -32,11 +32,7 @@ MAIN_CANVAS_HEIGHT = 800 + 60
 ZOOM_CANVAS_WIDTH = 600 + 55
 ZOOM_CANVAS_HEIGHT = 600 + 30
 
-DEBUG_INTENSITY_WIDTH = 700
-
 APP_FPS = 1
-
-agg_plot_size = 200
 
 # threshold data parameters
 threshold_flag = False
@@ -83,9 +79,7 @@ sv_hist = sv.Histogram(nplots=1, plot_height=400, plot_width=700)
 
 
 # Total sum intensity plots
-sv_streamgraph = sv.StreamGraph(
-    nplots=2, plot_height=agg_plot_size, plot_width=DEBUG_INTENSITY_WIDTH, rollover=36000
-)
+sv_streamgraph = sv.StreamGraph(nplots=2, plot_height=200, plot_width=700, rollover=36000)
 sv_streamgraph.plots[0].title = Title(text="Total intensity")
 sv_streamgraph.plots[1].title = Title(text="Zoom total intensity")
 

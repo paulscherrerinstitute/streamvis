@@ -61,7 +61,7 @@ class ImageView:
         if y_end is None:
             y_end = image_height
 
-        self.zoom_plots = []
+        self.zoom_views = []
 
         plot = Plot(
             x_range=Range1d(x_start, x_end, bounds=(0, image_width)),
@@ -157,14 +157,14 @@ class ImageView:
     def y_end(self):
         return min(self.plot.y_range.end, self.plot.y_range.bounds[1])
 
-    def add_as_zoom(self, image_plot, line_color='red'):
+    def add_as_zoom(self, image_view, line_color='red'):
         # ---- add quad glyph of zoom area to the main plot
         area_source = ColumnDataSource(
             dict(
-                left=[image_plot.x_start],
-                right=[image_plot.x_end],
-                bottom=[image_plot.y_start],
-                top=[image_plot.y_end],
+                left=[image_view.x_start],
+                right=[image_view.x_end],
+                bottom=[image_view.y_start],
+                top=[image_view.y_end],
             )
         )
 
@@ -179,15 +179,15 @@ class ImageView:
         )
         self.plot.add_glyph(area_source, area_rect)
 
-        image_plot.plot.x_range.callback = CustomJS(
+        image_view.plot.x_range.callback = CustomJS(
             args=dict(source=area_source), code=js_move_zoom % ('left', 'right')
         )
 
-        image_plot.plot.y_range.callback = CustomJS(
+        image_view.plot.y_range.callback = CustomJS(
             args=dict(source=area_source), code=js_move_zoom % ('bottom', 'top')
         )
 
-        self.zoom_plots.append(image_plot)
+        self.zoom_views.append(image_view)
 
     def update(self, image, pil_image=None):
         if pil_image is None:
@@ -249,5 +249,5 @@ class ImageView:
         else:
             self._pvalue_source.data.update(x=[], y=[], text=[])
 
-        for zoom_plot in self.zoom_plots:
-            zoom_plot.update(image, pil_image)
+        for zoom_view in self.zoom_views:
+            zoom_view.update(image, pil_image)
