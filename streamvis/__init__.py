@@ -7,5 +7,6 @@ from .resolution_rings import ResolutionRings
 from .runtime import Runtime
 from .stream_graph import StreamGraph
 from .intensity_roi import IntensityROI
+from .projection import Projection
 
 __version__ = "0.6.3"

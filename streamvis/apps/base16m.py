@@ -129,53 +129,11 @@ sv_aggrplot.plot.tools[-1] = hovertool
 
 sv_mainview.add_as_zoom(sv_aggrplot, line_color='white')
 
+sv_aggr_proj_v = sv.Projection(sv_aggrplot, 'vertical', plot_height=AGGR_PROJ_X_CANVAS_HEIGHT)
+sv_aggr_proj_v.plot.renderers[0].glyph.line_width = 2
 
-# Projection of aggregate image onto x axis
-aggr_image_proj_x_plot = Plot(
-    x_range=sv_aggrplot.plot.x_range,
-    y_range=DataRange1d(),
-    plot_height=AGGR_PROJ_X_CANVAS_HEIGHT,
-    plot_width=sv_aggrplot.plot.plot_width,
-    toolbar_location=None,
-)
-
-# ---- axes
-aggr_image_proj_x_plot.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
-aggr_image_proj_x_plot.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='below')
-
-# ---- grid lines
-aggr_image_proj_x_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-aggr_image_proj_x_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-# ---- line glyph
-aggr_image_proj_x_source = ColumnDataSource(dict(x=[], y=[]))
-aggr_image_proj_x_plot.add_glyph(
-    aggr_image_proj_x_source, Line(x='x', y='y', line_color='steelblue', line_width=2)
-)
-
-
-# Projection of aggregate image onto x axis
-aggr_image_proj_y_plot = Plot(
-    x_range=DataRange1d(),
-    y_range=sv_aggrplot.plot.y_range,
-    plot_height=sv_aggrplot.plot.plot_height,
-    plot_width=AGGR_PROJ_Y_CANVAS_WIDTH,
-    toolbar_location=None,
-)
-
-# ---- axes
-aggr_image_proj_y_plot.add_layout(LinearAxis(), place='above')
-aggr_image_proj_y_plot.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='left')
-
-# ---- grid lines
-aggr_image_proj_y_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-aggr_image_proj_y_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-# ---- line glyph
-aggr_image_proj_y_source = ColumnDataSource(dict(x=[], y=[]))
-aggr_image_proj_y_plot.add_glyph(
-    aggr_image_proj_y_source, Line(x='x', y='y', line_color='steelblue', line_width=2)
-)
+sv_aggr_proj_h = sv.Projection(sv_aggrplot, 'horizontal', plot_width=AGGR_PROJ_Y_CANVAS_WIDTH)
+sv_aggr_proj_h.plot.renderers[0].glyph.line_width = 2
 
 
 # Create colormapper
@@ -414,7 +372,7 @@ stream_panel = column(image_buffer_slider, stream_button)
 
 layout_aggr = column(
     gridplot(
-        [[aggr_image_proj_x_plot, None], [sv_aggrplot.plot, aggr_image_proj_y_plot]],
+        [[sv_aggr_proj_v.plot, None], [sv_aggrplot.plot, sv_aggr_proj_h.plot]],
         merge_tools=False,
     ),
     row(sv_resolrings.toggle, sv_mask.toggle, show_only_hits_toggle),
@@ -436,17 +394,14 @@ async def update_client(image, metadata):
     sv_mainview.update(image)
 
     aggr_image = sv_aggrplot.displayed_image
-    aggr_image_height, aggr_image_width = aggr_image.shape
+
+    sv_aggr_proj_v.update(image)
+    sv_aggr_proj_h.update(image)
 
     aggr_y_start = sv_aggrplot.y_start
     aggr_y_end = sv_aggrplot.y_end
     aggr_x_start = sv_aggrplot.x_start
     aggr_x_end = sv_aggrplot.x_end
-
-    aggr_image_proj_x = aggr_image.mean(axis=0)
-    aggr_image_proj_y = aggr_image.mean(axis=1)
-    aggr_image_proj_r_y = np.linspace(aggr_y_start, aggr_y_end, aggr_image_height)
-    aggr_image_proj_r_x = np.linspace(aggr_x_start, aggr_x_end, aggr_image_width)
 
     if custom_tabs.tabs[custom_tabs.active].title == "Debug":
         sv_hist.update([aggr_image])
@@ -465,9 +420,6 @@ async def update_client(image, metadata):
             sv_metadata.add_issue('Spots data is inconsistent')
     else:
         main_image_peaks_source.data.update(x=[], y=[])
-
-    aggr_image_proj_y_source.data.update(x=aggr_image_proj_y, y=aggr_image_proj_r_y)
-    aggr_image_proj_x_source.data.update(x=aggr_image_proj_r_x, y=aggr_image_proj_x)
 
     # Update hover tool experiment parameters
     experiment_params.data.update(

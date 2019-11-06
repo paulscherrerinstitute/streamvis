@@ -4,15 +4,9 @@ import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
 from bokeh.models import (
-    BasicTicker,
     Button,
     ColumnDataSource,
     CustomJS,
-    DataRange1d,
-    Grid,
-    Line,
-    LinearAxis,
-    Plot,
     Select,
     Slider,
     Spacer,
@@ -63,48 +57,8 @@ sv_zoomview = sv.ImageView(plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVA
 
 sv_mainview.add_as_zoom(sv_zoomview)
 
-# Aggregate zoom1 plot along x axis
-zoom1_plot_agg_x = Plot(
-    x_range=sv_zoomview.plot.x_range,
-    y_range=DataRange1d(),
-    plot_height=agg_plot_size,
-    plot_width=sv_zoomview.plot.plot_width,
-    toolbar_location=None,
-)
-
-# ---- axes
-zoom1_plot_agg_x.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
-zoom1_plot_agg_x.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='below')
-
-# ---- grid lines
-zoom1_plot_agg_x.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-zoom1_plot_agg_x.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-# ---- line glyph
-zoom1_agg_x_source = ColumnDataSource(dict(x=[], y=[]))
-zoom1_plot_agg_x.add_glyph(zoom1_agg_x_source, Line(x='x', y='y', line_color='steelblue'))
-
-
-# Aggregate zoom1 plot along y axis
-zoom1_plot_agg_y = Plot(
-    x_range=DataRange1d(),
-    y_range=sv_zoomview.plot.y_range,
-    plot_height=sv_zoomview.plot.plot_height,
-    plot_width=agg_plot_size,
-    toolbar_location=None,
-)
-
-# ---- axes
-zoom1_plot_agg_y.add_layout(LinearAxis(), place='above')
-zoom1_plot_agg_y.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='left')
-
-# ---- grid lines
-zoom1_plot_agg_y.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-zoom1_plot_agg_y.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-# ---- line glyph
-zoom1_agg_y_source = ColumnDataSource(dict(x=[], y=[]))
-zoom1_plot_agg_y.add_glyph(zoom1_agg_y_source, Line(x='x', y='y', line_color='steelblue'))
+sv_zoom_proj_v = sv.Projection(sv_zoomview, 'vertical')
+sv_zoom_proj_h = sv.Projection(sv_zoomview, 'horizontal')
 
 
 # Create colormapper
@@ -267,7 +221,7 @@ colormap_panel = column(
 stream_panel = column(image_buffer_slider, stream_button)
 
 layout_zoom = gridplot(
-    [[zoom1_plot_agg_x, None], [sv_zoomview.plot, zoom1_plot_agg_y]], merge_tools=False
+    [[sv_zoom_proj_v.plot, None], [sv_zoomview.plot, sv_zoom_proj_h.plot]], merge_tools=False
 )
 
 layout_utility = column(
@@ -309,6 +263,9 @@ async def update_client(image, metadata, reset, aggr_image):
     sv_colormapper.update(aggr_image)
     sv_mainview.update(aggr_image)
 
+    sv_zoom_proj_v.update(aggr_image)
+    sv_zoom_proj_h.update(aggr_image)
+
     # Statistics
     y_start = int(np.floor(sv_zoomview.y_start))
     y_end = int(np.ceil(sv_zoomview.y_end))
@@ -316,15 +273,7 @@ async def update_client(image, metadata, reset, aggr_image):
     x_end = int(np.ceil(sv_zoomview.x_end))
 
     im_block = aggr_image[y_start:y_end, x_start:x_end]
-
-    agg_y = np.mean(im_block, axis=1)
-    agg_x = np.mean(im_block, axis=0)
-    r_y = np.arange(y_start, y_end) + 0.5  # shift to a pixel center
-    r_x = np.arange(x_start, x_end) + 0.5  # shift to a pixel center
-
     total_sum_zoom = np.sum(im_block)
-    zoom1_agg_y_source.data.update(x=agg_y, y=r_y)
-    zoom1_agg_x_source.data.update(x=r_x, y=agg_x)
 
     # Update histogram
     if connected and receiver.state == 'receiving':

@@ -5,15 +5,10 @@ import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
 from bokeh.models import (
-    BasicTicker,
     Button,
     ColumnDataSource,
     CustomJS,
-    DataRange1d,
-    Grid,
     Line,
-    LinearAxis,
-    Plot,
     Select,
     Spacer,
     Spinner,
@@ -98,52 +93,11 @@ sv_zoomview1 = sv.ImageView(
 
 sv_mainview.add_as_zoom(sv_zoomview1, line_color='red')
 
+sv_zoom1_proj_v = sv.Projection(sv_zoomview1, 'vertical', plot_height=ZOOM_AGG_X_PLOT_HEIGHT)
+sv_zoom1_proj_v.plot.title = Title(text="Zoom Area 1")
+sv_zoom1_proj_v.plot.renderers[0].glyph.line_width = 2
 
-# Aggregate zoom1 plot along x axis
-zoom1_plot_agg_x = Plot(
-    title=Title(text="Zoom Area 1"),
-    x_range=sv_zoomview1.plot.x_range,
-    y_range=DataRange1d(),
-    plot_height=ZOOM_AGG_X_PLOT_HEIGHT,
-    plot_width=sv_zoomview1.plot.plot_width,
-    toolbar_location=None,
-)
-
-# ---- axes
-zoom1_plot_agg_x.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
-zoom1_plot_agg_x.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='below')
-
-# ---- grid lines
-zoom1_plot_agg_x.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-zoom1_plot_agg_x.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-# ---- line glyph
-zoom1_agg_x_source = ColumnDataSource(dict(x=[], y=[]))
-zoom1_plot_agg_x.add_glyph(
-    zoom1_agg_x_source, Line(x='x', y='y', line_color='steelblue', line_width=2)
-)
-
-
-# Aggregate zoom1 plot along y axis
-zoom1_plot_agg_y = Plot(
-    x_range=DataRange1d(),
-    y_range=sv_zoomview1.plot.y_range,
-    plot_height=sv_zoomview1.plot.plot_height,
-    plot_width=ZOOM_AGG_Y_PLOT_WIDTH,
-    toolbar_location=None,
-)
-
-# ---- axes
-zoom1_plot_agg_y.add_layout(LinearAxis(), place='above')
-zoom1_plot_agg_y.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='left')
-
-# ---- grid lines
-zoom1_plot_agg_y.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-zoom1_plot_agg_y.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-# ---- line glyph
-zoom1_agg_y_source = ColumnDataSource(dict(x=[], y=[]))
-zoom1_plot_agg_y.add_glyph(zoom1_agg_y_source, Line(x='x', y='y', line_color='steelblue'))
+sv_zoom1_proj_h = sv.Projection(sv_zoomview1, 'horizontal', plot_width=ZOOM_AGG_Y_PLOT_WIDTH)
 
 
 # Zoom plot 2
@@ -160,52 +114,11 @@ sv_zoomview2 = sv.ImageView(
 
 sv_mainview.add_as_zoom(sv_zoomview2, line_color='green')
 
+sv_zoom2_proj_v = sv.Projection(sv_zoomview2, 'vertical', plot_height=ZOOM_AGG_X_PLOT_HEIGHT)
+sv_zoom2_proj_v.plot.title = Title(text="Zoom Area 2")
+sv_zoom2_proj_v.plot.renderers[0].glyph.line_width = 2
 
-# Aggregate zoom2 plot along x axis
-zoom2_plot_agg_x = Plot(
-    title=Title(text="Zoom Area 2"),
-    x_range=sv_zoomview2.plot.x_range,
-    y_range=DataRange1d(),
-    plot_height=ZOOM_AGG_X_PLOT_HEIGHT,
-    plot_width=sv_zoomview2.plot.plot_width,
-    toolbar_location=None,
-)
-
-# ---- axes
-zoom2_plot_agg_x.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
-zoom2_plot_agg_x.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='below')
-
-# ---- grid lines
-zoom2_plot_agg_x.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-zoom2_plot_agg_x.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-# ---- line glyph
-zoom2_agg_x_source = ColumnDataSource(dict(x=[], y=[]))
-zoom2_plot_agg_x.add_glyph(
-    zoom2_agg_x_source, Line(x='x', y='y', line_color='steelblue', line_width=2)
-)
-
-
-# Aggregate zoom2 plot along y axis
-zoom2_plot_agg_y = Plot(
-    x_range=DataRange1d(),
-    y_range=sv_zoomview2.plot.y_range,
-    plot_height=sv_zoomview2.plot.plot_height,
-    plot_width=ZOOM_AGG_Y_PLOT_WIDTH,
-    toolbar_location=None,
-)
-
-# ---- axes
-zoom2_plot_agg_y.add_layout(LinearAxis(), place='above')
-zoom2_plot_agg_y.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='left')
-
-# ---- grid lines
-zoom2_plot_agg_y.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-zoom2_plot_agg_y.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-# ---- line glyph
-zoom2_agg_y_source = ColumnDataSource(dict(x=[], y=[]))
-zoom2_plot_agg_y.add_glyph(zoom2_agg_y_source, Line(x='x', y='y', line_color='steelblue'))
+sv_zoom2_proj_h = sv.Projection(sv_zoomview2, 'horizontal', plot_width=ZOOM_AGG_Y_PLOT_WIDTH)
 
 
 # Create colormapper
@@ -304,16 +217,16 @@ zoom1_spectrum_y_source = ColumnDataSource(dict(x=[], y=[]))
 zoom2_spectrum_x_source = ColumnDataSource(dict(x=[], y=[]))
 zoom2_spectrum_y_source = ColumnDataSource(dict(x=[], y=[]))
 
-zoom1_plot_agg_x.add_glyph(
+sv_zoom1_proj_v.plot.add_glyph(
     zoom1_spectrum_x_source, Line(x='x', y='y', line_color='maroon', line_width=2)
 )
-zoom1_plot_agg_y.add_glyph(
+sv_zoom1_proj_h.plot.add_glyph(
     zoom1_spectrum_y_source, Line(x='x', y='y', line_color='maroon', line_width=1)
 )
-zoom2_plot_agg_x.add_glyph(
+sv_zoom2_proj_v.plot.add_glyph(
     zoom2_spectrum_x_source, Line(x='x', y='y', line_color='maroon', line_width=2)
 )
-zoom2_plot_agg_y.add_glyph(
+sv_zoom2_proj_h.plot.add_glyph(
     zoom2_spectrum_y_source, Line(x='x', y='y', line_color='maroon', line_width=1)
 )
 
@@ -405,12 +318,16 @@ colormap_panel = column(
 )
 
 layout_zoom1 = column(
-    gridplot([[zoom1_plot_agg_x, None], [sv_zoomview1.plot, zoom1_plot_agg_y]], merge_tools=False),
+    gridplot(
+        [[sv_zoom1_proj_v.plot, None], [sv_zoomview1.plot, sv_zoom1_proj_h.plot]], merge_tools=False
+    ),
     sv_hist.plots[0],
 )
 
 layout_zoom2 = column(
-    gridplot([[zoom2_plot_agg_x, None], [sv_zoomview2.plot, zoom2_plot_agg_y]], merge_tools=False),
+    gridplot(
+        [[sv_zoom2_proj_v.plot, None], [sv_zoomview2.plot, sv_zoom2_proj_h.plot]], merge_tools=False
+    ),
     sv_hist.plots[1],
 )
 
@@ -479,6 +396,12 @@ async def update_client(image, metadata, reset, aggr_image):
     sv_colormapper.update(aggr_image)
     sv_mainview.update(aggr_image)
 
+    sv_zoom1_proj_v.update(aggr_image)
+    sv_zoom1_proj_h.update(aggr_image)
+
+    sv_zoom2_proj_v.update(aggr_image)
+    sv_zoom2_proj_h.update(aggr_image)
+
     y_start1 = int(np.floor(sv_zoomview1.y_start))
     y_end1 = int(np.ceil(sv_zoomview1.y_end))
     x_start1 = int(np.floor(sv_zoomview1.x_start))
@@ -486,14 +409,7 @@ async def update_client(image, metadata, reset, aggr_image):
 
     im_block1 = aggr_image[y_start1:y_end1, x_start1:x_end1]
 
-    zoom1_agg_y = np.sum(im_block1, axis=1)
-    zoom1_agg_x = np.sum(im_block1, axis=0)
-    zoom1_r_y = np.arange(y_start1, y_end1) + 0.5  # shift to a pixel center
-    zoom1_r_x = np.arange(x_start1, x_end1) + 0.5  # shift to a pixel center
-
     total_sum_zoom1 = np.sum(im_block1)
-    zoom1_agg_y_source.data.update(x=zoom1_agg_y, y=zoom1_r_y)
-    zoom1_agg_x_source.data.update(x=zoom1_r_x, y=zoom1_agg_x)
 
     y_start2 = int(np.floor(sv_zoomview2.y_start))
     y_end2 = int(np.ceil(sv_zoomview2.y_end))
@@ -502,14 +418,7 @@ async def update_client(image, metadata, reset, aggr_image):
 
     im_block2 = aggr_image[y_start2:y_end2, x_start2:x_end2]
 
-    zoom2_agg_y = np.sum(im_block2, axis=1)
-    zoom2_agg_x = np.sum(im_block2, axis=0)
-    zoom2_r_y = np.arange(y_start2, y_end2) + 0.5  # shift to a pixel center
-    zoom2_r_x = np.arange(x_start2, x_end2) + 0.5  # shift to a pixel center
-
     total_sum_zoom2 = np.sum(im_block2)
-    zoom2_agg_y_source.data.update(x=zoom2_agg_y, y=zoom2_r_y)
-    zoom2_agg_x_source.data.update(x=zoom2_r_x, y=zoom2_agg_x)
 
     if connected and receiver.state == 'receiving':
         if reset:
@@ -526,14 +435,14 @@ async def update_client(image, metadata, reset, aggr_image):
 
     # Save spectrum
     current_spectra = (
-        zoom1_agg_y,
-        zoom1_r_y,
-        zoom1_agg_x,
-        zoom1_r_x,
-        zoom2_agg_y,
-        zoom2_r_y,
-        zoom2_agg_x,
-        zoom2_r_x,
+        sv_zoom1_proj_h.x,
+        sv_zoom1_proj_h.y,
+        sv_zoom1_proj_v.y,
+        sv_zoom1_proj_v.x,
+        sv_zoom2_proj_h.x,
+        sv_zoom2_proj_h.y,
+        sv_zoom2_proj_v.y,
+        sv_zoom2_proj_v.x,
     )
 
     # Parse metadata
