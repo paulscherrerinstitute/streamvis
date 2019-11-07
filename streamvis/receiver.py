@@ -13,6 +13,12 @@ logger = logging.getLogger(__name__)
 
 class StatisticsHandler:
     def __init__(self, hit_threshold, buffer_size=1):
+        """Initialize a statistics handler.
+
+        Args:
+            hit_threshold (int): A number of spots, above which a shot is registered as 'hit'.
+            buffer_size (int, optional): A peakfinder buffer size. Defaults to 1.
+        """
         self.hit_threshold = hit_threshold
         self.current_run_name = None
         self.last_hit = (None, None)
@@ -42,6 +48,12 @@ class StatisticsHandler:
                 val.append(0)
 
     def parse(self, metadata, image):
+        """Extract statistics from a metadata and an associated image.
+
+        Args:
+            metadata (dict): A dictionary with metadata.
+            image (ndarray): An associated image.
+        """
         number_of_spots = metadata.get('number_of_spots')
         is_hit = number_of_spots and number_of_spots > self.hit_threshold
 
@@ -112,6 +124,8 @@ class StatisticsHandler:
         self.sum_data[key][-1] += 1
 
     def reset(self):
+        """Reset statistics entries.
+        """
         with self._lock:
             self.current_run_name = None
 
@@ -125,6 +139,15 @@ class StatisticsHandler:
 
 class Receiver:
     def __init__(self, stats, on_receive=None, buffer_size=1):
+        """Initialize a jungfrau receiver.
+
+        Args:
+            stats (StatisticsHandler): An instance of jungfrau statistics handler.
+            on_receive (function, optional): Execute function with each received metadata and image
+                as input arguments. Defaults to None.
+            buffer_size (int, optional): A number of last received zmq messages to keep in memory.
+                Defaults to 1.
+        """
         self.buffer = deque(maxlen=buffer_size)
         self.state = 'polling'
         self.on_receive = on_receive
@@ -134,6 +157,15 @@ class Receiver:
         self.stats = stats
 
     def start(self, connection_mode, address):
+        """[summary]
+
+        Args:
+            connection_mode (str): Use either 'connect' or 'bind' zmq_socket methods.
+            address (str): The address string, e.g. 'tcp://127.0.0.1:9001'.
+
+        Raises:
+            RuntimeError: Unknown connection mode.
+        """
         zmq_context = zmq.Context(io_threads=2)
         zmq_socket = zmq_context.socket(zmq.SUB)  # pylint: disable=E1101
         zmq_socket.setsockopt_string(zmq.SUBSCRIBE, "")  # pylint: disable=E1101
@@ -172,16 +204,22 @@ class Receiver:
                 self.state = 'polling'
 
     def get_image(self, index):
+        """Get metadata and image with the index.
+        """
         metadata, image = self.buffer[index]
         image = self.jf_adapter.process(image, metadata)
         return metadata, image
 
     def get_last_hit(self):
+        """Get metadata and last hit image.
+        """
         metadata, image = self.stats.last_hit
         image = self.jf_adapter.process(image, metadata)
         return metadata, image
 
     def get_image_gains(self, index):
+        """Get metadata and gains of image with the index.
+        """
         metadata, image = self.buffer[index]
         if image.dtype != np.uint16:
             return metadata, image
@@ -200,6 +238,8 @@ class Receiver:
         return metadata, image
 
     def get_last_hit_gains(self):
+        """Get metadata and gains of last hit image.
+        """
         metadata, image = self.stats.last_hit
         if image.dtype != np.uint16:
             return metadata, image

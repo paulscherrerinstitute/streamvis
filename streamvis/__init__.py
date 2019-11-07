@@ -1,3 +1,8 @@
+"""
+Streamvis project is a webserver and a collection of apps for visualization of data streams.
+It is based on bokeh and generally works with zmq streams.
+"""
+
 from .colormapper import ColorMapper
 from .histogram import Histogram
 from .image_view import ImageView

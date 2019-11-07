@@ -4,6 +4,12 @@ from bokeh.models import ColumnDataSource, Cross, Ellipse, Text, Toggle
 
 class ResolutionRings:
     def __init__(self, image_views, positions):
+        """Initialize a resolution rings overlay.
+
+        Args:
+            image_views (ImageView): Associated streamvis image view instances.
+            positions (ndarray): Scattering radii in Angstroms.
+        """
         self.positions = positions
 
         # ---- resolution rings
@@ -46,6 +52,12 @@ class ResolutionRings:
         self.toggle = toggle
 
     def update(self, metadata, sv_metadata):
+        """Trigger an update for the resolution rings overlay.
+
+        Args:
+            metadata (dict): A dictionary with current metadata.
+            sv_metadata (MetadataHandler): Report update issues to that metadata handler.
+        """
         detector_distance = metadata.get('detector_distance')
         beam_energy = metadata.get('beam_energy')
         beam_center_x = metadata.get('beam_center_x')

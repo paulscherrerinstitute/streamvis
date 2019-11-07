@@ -24,6 +24,14 @@ cmap_dict = {
 
 class ColorMapper:
     def __init__(self, image_views, disp_min=0, disp_max=1000, colormap='plasma'):
+        """Initialize a colormapper.
+
+        Args:
+            image_views (ImageView): Associated streamvis image view instances.
+            disp_min (int, optional): Initial minimal display value. Defaults to 0.
+            disp_max (int, optional): Initial maximal display value. Defaults to 1000.
+            colormap (str, optional): Initial colormap. Defaults to 'plasma'.
+        """
         self._disp_min = disp_min
         self._disp_max = disp_max
 
@@ -129,6 +137,11 @@ class ColorMapper:
         self.display_min_spinner = display_min_spinner
 
     def update(self, image):
+        """Trigger an update for the colormapper.
+
+        Args:
+            image (ndarray): A source image for colormapper.
+        """
         if self.auto_toggle.active:
             image_min = int(np.min(image))
             image_max = int(np.max(image))

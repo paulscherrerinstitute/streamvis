@@ -3,6 +3,11 @@ from bokeh.models import ColumnDataSource, Quad, Text
 
 class IntensityROI:
     def __init__(self, image_views):
+        """Initialize a intensity ROI overlay.
+
+        Args:
+            image_views (ImageView): Associated streamvis image view instances.
+        """
         self._source = ColumnDataSource(
             dict(left=[], right=[], bottom=[], top=[], text_x=[], text_y=[], text=[])
         )
@@ -24,6 +29,12 @@ class IntensityROI:
             image_view.plot.add_glyph(self._source, text_glyph)
 
     def update(self, metadata, sv_metadata):
+        """Trigger an update for the intensity ROI overlay.
+
+        Args:
+            metadata (dict): A dictionary with current metadata.
+            sv_metadata (MetadataHandler): Report update issues to that metadata handler.
+        """
         roi_x1 = metadata.get('roi_x1')
         roi_x2 = metadata.get('roi_x2')
         roi_y1 = metadata.get('roi_y1')

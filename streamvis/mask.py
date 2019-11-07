@@ -11,6 +11,11 @@ logger = logging.getLogger(__name__)
 
 class Mask:
     def __init__(self, image_views):
+        """Initialize a mask overlay.
+
+        Args:
+            image_views (ImageView): Associated streamvis image view instances.
+        """
         doc = curdoc()
         self.receiver = doc.receiver
 
@@ -38,6 +43,11 @@ class Mask:
         self.toggle = toggle
 
     def update(self, sv_metadata):
+        """Trigger an update for the mask overlay.
+
+        Args:
+            sv_metadata (MetadataHandler): Report update issues to that metadata handler.
+        """
         handler = self.receiver.jf_adapter.handler
         if handler is not None and handler.pedestal_file and handler.pixel_mask is not None:
             if self.current_file != handler.pedestal_file:

@@ -21,7 +21,16 @@ from bokeh.models import (
 
 class Histogram:
     def __init__(self, nplots, plot_height=350, plot_width=700, lower=0, upper=1000, nbins=100):
+        """Initialize histogram plots.
 
+        Args:
+            nplots (int): Number of histogram plots that will share common controls.
+            plot_height (int, optional): Height of plot area in screen pixels. Defaults to 350.
+            plot_width (int, optional): Width of plot area in screen pixels. Defaults to 700.
+            lower (int, optional): Initial lower range of the bins. Defaults to 0.
+            upper (int, optional): Initial upper range of the bins. Defaults to 1000.
+            nbins (int, optional): Initial number of the bins. Defaults to 100.
+        """
         self._lower = lower
         self._upper = upper
         self._nbins = nbins
@@ -141,6 +150,13 @@ class Histogram:
         self.log10counts_toggle = log10counts_toggle
 
     def update(self, input_data, accumulate=False):
+        """Trigger an update for the histogram plots.
+
+        Args:
+            input_data (ndarray): Source values for histogram plots.
+            accumulate (bool, optional): Add together bin values of the previous and current data.
+                Defaults to False.
+        """
         if self.auto_toggle.active and not accumulate:  # automatic
             lower = math.floor(min([np.amin(im) for im in input_data]))
             upper = math.ceil(max([np.amax(im) for im in input_data]))

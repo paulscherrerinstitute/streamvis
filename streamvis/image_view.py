@@ -49,6 +49,22 @@ class ImageView:
         y_start=None,
         y_end=None,
     ):
+        """Initialize image view plot.
+
+        Args:
+            plot_height (int, optional): Height of plot area in screen pixels. Defaults to 894.
+            plot_width (int, optional): Width of plot area in screen pixels. Defaults to 854.
+            image_height (int, optional): Image height in pixels. Defaults to 100.
+            image_width (int, optional): Image width in pixels. Defaults to 100.
+            x_start (int, optional): Initial x-axis start value. If None, then equals to 0.
+                Defaults to None.
+            x_end (int, optional): Initial x-axis end value. If None, then equals to image_width.
+                Defaults to None.
+            y_start (int, optional): Initial y-axis start value. If None, then equals to 0.
+                Defaults to None.
+            y_end (int, optional): Initial y-axis end value. If None, then equals to image_height.
+                Defaults to None.
+        """
         if x_start is None:
             x_start = 0
 
@@ -137,27 +153,43 @@ class ImageView:
 
     @property
     def displayed_image(self):
+        """Return resized image that is currently displayed (readonly).
+        """
         return self._image_source.data['image'][0]
 
     # a reason for the additional boundary checks:
     # https://github.com/bokeh/bokeh/issues/8118
     @property
     def x_start(self):
+        """Current x-axis start value (readonly).
+        """
         return max(self.plot.x_range.start, self.plot.x_range.bounds[0])
 
     @property
     def x_end(self):
+        """Current x-axis end value (readonly).
+        """
         return min(self.plot.x_range.end, self.plot.x_range.bounds[1])
 
     @property
     def y_start(self):
+        """Current y-axis start value (readonly).
+        """
         return max(self.plot.y_range.start, self.plot.y_range.bounds[0])
 
     @property
     def y_end(self):
+        """Current y-axis end value (readonly).
+        """
         return min(self.plot.y_range.end, self.plot.y_range.bounds[1])
 
     def add_as_zoom(self, image_view, line_color='red'):
+        """Add an ImageView plot as a zoom view.
+
+        Args:
+            image_plot (ImageView): Associated streamvis image view instance.
+            line_color (str, optional): Zoom border box color. Defaults to 'red'.
+        """
         # ---- add quad glyph of zoom area to the main plot
         area_source = ColumnDataSource(
             dict(
@@ -190,6 +222,13 @@ class ImageView:
         self.zoom_views.append(image_view)
 
     def update(self, image, pil_image=None):
+        """Trigger an update for the image view plot.
+
+        Args:
+            image (ndarray): A source image for image view.
+            pil_image (Image, optional): A source image for image view converted to PIL Image.
+                Defaults to None.
+        """
         if pil_image is None:
             pil_image = PIL_Image.fromarray(image)
 

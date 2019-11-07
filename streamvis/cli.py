@@ -31,6 +31,7 @@ def main():
     for module_info in pkgutil.iter_modules([apps_path]):
         available_apps.append(module_info.name)
 
+    # Prepare argument parser
     parser = argparse.ArgumentParser(
         prog='streamvis', formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
@@ -95,7 +96,15 @@ def main():
 
     args = parser.parse_args()
 
+    app_path = os.path.join(apps_path, args.app + '.py')
+    logger.info(app_path)
+
+    # StatisticsHandler is used by Receiver to gather statistical information (mainly from message
+    # metadata) to be displayed in 'statistics' application, all messages are being processed.
     stats = StatisticsHandler(hit_threshold=args.hit_threshold, buffer_size=args.buffer_size)
+
+    # Receiver gets messages via zmq stream, reconstruct images (only those that are being
+    # requested), and manages statistics with StatisticsHandler
     receiver = Receiver(stats=stats, on_receive=stats.parse, buffer_size=args.buffer_size)
 
     # Start receiver in a separate thread
@@ -103,16 +112,17 @@ def main():
     t = Thread(target=start_receiver, daemon=True)
     t.start()
 
-    app_path = os.path.join(apps_path, args.app + '.py')
-    logger.info(app_path)
-
+    # StreamvisHandler is a custom bokeh application Handler, which sets some of the core
+    # properties for new bokeh documents created by all applications.
     sv_handler = StreamvisHandler(receiver, args)
 
     applications = dict()  # List of bokeh applications
 
+    # Main application
     handler = ScriptHandler(filename=app_path, argv=args.args)
     applications['/'] = Application(sv_handler, handler)
 
+    # Statistics application
     statistics_handler = ScriptHandler(filename=os.path.join(base_path, 'statistics.py'))
     applications['/statistics'] = Application(sv_handler, statistics_handler)
 

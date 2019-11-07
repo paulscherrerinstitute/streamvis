@@ -8,6 +8,14 @@ default_entries = ['frame', 'pulse_id', 'is_good_frame', 'saturated_pixels']
 
 class MetadataHandler:
     def __init__(self, datatable_height=300, datatable_width=700, check_shape=None):
+        """Initialize a metadata handler.
+
+        Args:
+            datatable_height (int, optional): Height of datatable in screen pixels. Defaults to 300.
+            datatable_width (int, optional): Width of plot area in screen pixels. Defaults to 700.
+            check_shape (tuple, optional): A tuple to be used for checking shape of received images.
+                If None, then no shape checks are conducted. Defaults to None.
+        """
         # If we should verify image shape
         self.check_shape = check_shape
 
@@ -38,9 +46,22 @@ class MetadataHandler:
         self.show_all_toggle = show_all_toggle
 
     def add_issue(self, issue):
+        """Add an issue to be displayed in metadata issues dropdown.
+
+        Args:
+            issue (str): Description text for the issue.
+        """
         self._issues_menu.append((issue, ''))
 
     def parse(self, metadata):
+        """Parse metadata for general issues.
+
+        Args:
+            metadata (dict): A dictionary with current metadata.
+
+        Returns:
+            dict: Metadata entries to be displayed in a datatable.
+        """
         # Prepare a dictionary with metadata entries to show
         if self.show_all_toggle.active:
             metadata_toshow = metadata
@@ -108,6 +129,11 @@ class MetadataHandler:
         return metadata_toshow
 
     def update(self, metadata_toshow):
+        """Trigger an update for the metadata handler.
+
+        Args:
+            metadata_toshow (dict): Metadata entries to be displayed in a datatable.
+        """
         # Unpack metadata
         self._datatable_source.data.update(
             metadata=list(map(str, metadata_toshow.keys())),

@@ -6,6 +6,17 @@ DEFAULT_PLOT_SIZE = 200
 
 class Projection:
     def __init__(self, image_view, direction, plot_height=None, plot_width=None):
+        """Initialize a projection plot.
+
+        Args:
+            image_view (ImageView): Associated streamvis image view instance.
+            direction (str): Display plot projection along the direction - 'horizontal', 'vertical'.
+            plot_height (int, optional): Height of plot area in screen pixels. Defaults to None.
+            plot_width (int, optional): Width of plot area in screen pixels. Defaults to None.
+
+        Raises:
+            ValueError: Projection direction can be either 'horizontal' or 'vertical'.
+        """
         if direction not in ('horizontal', 'vertical'):
             raise ValueError("Projection direction can be either 'horizontal' or 'vertical'")
 
@@ -62,13 +73,22 @@ class Projection:
 
     @property
     def x(self):
+        """Current x-axis values (readonly).
+        """
         return self._line_source.data['x']
 
     @property
     def y(self):
+        """Current y-axis values (readonly).
+        """
         return self._line_source.data['y']
 
     def update(self, image):
+        """Trigger an update for the projection plot.
+
+        Args:
+            image (ndarray): A source image for projection.
+        """
         y_start = int(np.floor(self._image_view.y_start))
         y_end = int(np.ceil(self._image_view.y_end))
         x_start = int(np.floor(self._image_view.x_start))
