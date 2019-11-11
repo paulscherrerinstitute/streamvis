@@ -36,7 +36,8 @@ APP_FPS = 1
 
 # threshold data parameters
 threshold_flag = False
-threshold = 0
+threshold_min = 0
+threshold_max = 1000
 
 # aggregate data parameters
 aggregate_flag = False
@@ -144,14 +145,24 @@ else:
 threshold_button.on_click(threshold_button_callback)
 
 
-# Intensity threshold value spinner
-def threshold_spinner_callback(_attr, _old_value, new_value):
-    global threshold
-    threshold = new_value
+# Minimal intensity threshold value spinner
+def threshold_min_spinner_callback(_attr, _old_value, new_value):
+    global threshold_min
+    threshold_min = new_value
 
 
-threshold_spinner = Spinner(title='Intensity Threshold:', value=threshold, step=0.1)
-threshold_spinner.on_change('value', threshold_spinner_callback)
+threshold_min_spinner = Spinner(title='Minimal Intensity Threshold:', value=threshold_min, step=0.1)
+threshold_min_spinner.on_change('value', threshold_min_spinner_callback)
+
+
+# Maximal intensity threshold value spinner
+def threshold_max_spinner_callback(_attr, _old_value, new_value):
+    global threshold_max
+    threshold_max = new_value
+
+
+threshold_max_spinner = Spinner(title='Maximal Intensity Threshold:', value=threshold_max, step=0.1)
+threshold_max_spinner.on_change('value', threshold_max_spinner_callback)
 
 
 # Aggregation time toggle button
@@ -234,7 +245,8 @@ layout_controls = column(
 
 layout_threshold_aggr = column(
     threshold_button,
-    threshold_spinner,
+    threshold_max_spinner,
+    threshold_min_spinner,
     Spacer(height=30),
     aggregate_button,
     aggregate_time_spinner,
@@ -316,7 +328,8 @@ async def internal_periodic_callback():
 
             sv_rt.current_image = sv_rt.current_image.copy()
             if threshold_flag:
-                sv_rt.current_image[sv_rt.current_image < threshold] = 0
+                ind = (sv_rt.current_image < threshold_min) | (threshold_max < sv_rt.current_image)
+                sv_rt.current_image[ind] = 0
 
             if aggregate_flag and (aggregate_time == 0 or aggregate_time > aggregate_counter):
                 aggregated_image += sv_rt.current_image

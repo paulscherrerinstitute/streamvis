@@ -57,7 +57,8 @@ ZOOM2_TOP = ZOOM2_BOTTOM + ZOOM_HEIGHT
 
 # Initial values (can be changed through the gui)
 threshold_flag = False
-threshold = 0
+threshold_min = 0
+threshold_max = 1000
 
 aggregate_flag = False
 aggregated_image = 0
@@ -158,14 +159,24 @@ else:
 threshold_button.on_click(threshold_button_callback)
 
 
-# Intensity threshold value spinner
-def threshold_spinner_callback(_attr, _old_value, new_value):
-    global threshold
-    threshold = new_value
+# Minimal intensity threshold value spinner
+def threshold_min_spinner_callback(_attr, _old_value, new_value):
+    global threshold_min
+    threshold_min = new_value
 
 
-threshold_spinner = Spinner(title='Intensity Threshold:', value=threshold, step=0.1)
-threshold_spinner.on_change('value', threshold_spinner_callback)
+threshold_min_spinner = Spinner(title='Minimal Intensity Threshold:', value=threshold_min, step=0.1)
+threshold_min_spinner.on_change('value', threshold_min_spinner_callback)
+
+
+# Maximal intensity threshold value spinner
+def threshold_max_spinner_callback(_attr, _old_value, new_value):
+    global threshold_max
+    threshold_max = new_value
+
+
+threshold_max_spinner = Spinner(title='Maximal Intensity Threshold:', value=threshold_max, step=0.1)
+threshold_max_spinner.on_change('value', threshold_max_spinner_callback)
 
 
 # Aggregation time toggle button
@@ -326,7 +337,7 @@ layout_zoom2 = column(
 )
 
 layout_thr_agg = row(
-    column(threshold_button, threshold_spinner),
+    column(threshold_button, threshold_max_spinner, threshold_min_spinner),
     Spacer(width=30),
     column(aggregate_button, aggregate_time_spinner, aggregate_time_counter_textinput),
 )
@@ -470,7 +481,8 @@ async def internal_periodic_callback():
 
             sv_rt.current_image = sv_rt.current_image.copy()
             if threshold_flag:
-                sv_rt.current_image[sv_rt.current_image < threshold] = 0
+                ind = (sv_rt.current_image < threshold_min) | (threshold_max < sv_rt.current_image)
+                sv_rt.current_image[ind] = 0
 
             if aggregate_flag and (aggregate_time == 0 or aggregate_time > aggregate_counter):
                 aggregated_image += sv_rt.current_image
