@@ -31,8 +31,8 @@ js_reset = """
 
 js_move_zoom = """
     var data = source.data;
-    data['%s'] = [cb_obj.start];
-    data['%s'] = [cb_obj.end];
+    data['{start}'] = [cb_obj.start];
+    data['{end}'] = [cb_obj.end];
     source.change.emit();
 """
 
@@ -212,11 +212,11 @@ class ImageView:
         self.plot.add_glyph(area_source, area_rect)
 
         image_view.plot.x_range.callback = CustomJS(
-            args=dict(source=area_source), code=js_move_zoom % ('left', 'right')
+            args=dict(source=area_source), code=js_move_zoom.format(start='left', end='right')
         )
 
         image_view.plot.y_range.callback = CustomJS(
-            args=dict(source=area_source), code=js_move_zoom % ('bottom', 'top')
+            args=dict(source=area_source), code=js_move_zoom.format(start='bottom', end='top')
         )
 
         self.zoom_views.append(image_view)
