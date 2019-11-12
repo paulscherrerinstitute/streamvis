@@ -35,6 +35,8 @@ from bokeh.models import (
     Toggle,
     WheelZoomTool,
 )
+
+# TODO: remove pylint exception after https://github.com/bokeh/bokeh/issues/9248 is fixed
 from bokeh.palettes import Reds9  # pylint: disable=E0611
 from bokeh.transform import linear_cmap
 
