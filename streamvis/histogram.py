@@ -116,16 +116,10 @@ class Histogram:
         self.upper_spinner = upper_spinner
 
         # ---- histogram number of bins
-        def nbins_spinner_callback(_attr, old_value, new_value):
-            if isinstance(new_value, int):
-                if new_value > 0:
-                    self._counts = [0 for _ in range(nplots)]
-                else:
-                    nbins_spinner.value = old_value
-            else:
-                nbins_spinner.value = old_value
+        def nbins_spinner_callback(_attr, _old_value, _new_value):
+            self._counts = [0 for _ in range(nplots)]
 
-        nbins_spinner = Spinner(title='Number of Bins:', value=nbins, step=1)
+        nbins_spinner = Spinner(title='Number of Bins:', low=1, value=nbins, step=1)
         nbins_spinner.on_change('value', nbins_spinner_callback)
         self.nbins_spinner = nbins_spinner
 

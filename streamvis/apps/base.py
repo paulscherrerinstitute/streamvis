@@ -185,15 +185,9 @@ aggregate_button.on_click(aggregate_button_callback)
 
 
 # Aggregation time value spinner
-def aggregate_time_spinner_callback(_attr, old_value, new_value):
+def aggregate_time_spinner_callback(_attr, _old_value, new_value):
     global aggregate_time
-    if isinstance(new_value, int):
-        if new_value >= 0:
-            aggregate_time = new_value
-        else:
-            aggregate_time_spinner.value = old_value
-    else:
-        aggregate_time_spinner.value = old_value
+    aggregate_time = new_value
 
 
 aggregate_time_spinner = Spinner(title='Aggregate Time:', value=aggregate_time, low=0, step=1)
