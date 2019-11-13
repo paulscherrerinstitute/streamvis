@@ -31,7 +31,7 @@ def test_plot_sizes(plot_height, plot_width):
 @pytest.mark.parametrize("value", [0, -1, 1, 350, 800, -1000])
 def test_update_single_value(sv_hist_single_plot, value):
     data = [np.array(value)]
-    default_nbins = sv_hist_single_plot._nbins
+    default_nbins = sv_hist_single_plot.nbins
     sv_hist_single_plot.update(data)
 
     assert len(sv_hist_single_plot._plot_sources[0].data['left']) == default_nbins
@@ -41,7 +41,7 @@ def test_update_single_value(sv_hist_single_plot, value):
 
 def test_update_array(sv_hist_single_plot):
     data = [np.random.randint(-100, 100, 1000)]
-    default_nbins = sv_hist_single_plot._nbins
+    default_nbins = sv_hist_single_plot.nbins
     sv_hist_single_plot.update(data)
 
     assert len(sv_hist_single_plot._plot_sources[0].data['left']) == default_nbins

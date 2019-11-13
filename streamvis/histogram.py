@@ -31,10 +31,6 @@ class Histogram:
             upper (int, optional): Initial upper range of the bins. Defaults to 1000.
             nbins (int, optional): Initial number of the bins. Defaults to 100.
         """
-        self._lower = lower
-        self._upper = upper
-        self._nbins = nbins
-
         self._counts = [0 for _ in range(nplots)]
 
         # Histogram plots
@@ -95,28 +91,26 @@ class Histogram:
 
         # ---- histogram lower range
         def lower_spinner_callback(_attr, old_value, new_value):
-            if new_value < self._upper:
-                self._lower = new_value
+            if new_value < self.upper:
                 self._counts = [0 for _ in range(nplots)]
             else:
                 lower_spinner.value = old_value
 
         lower_spinner = Spinner(
-            title='Lower Range:', value=self._lower, step=0.1, disabled=auto_toggle.active
+            title='Lower Range:', value=lower, step=0.1, disabled=auto_toggle.active
         )
         lower_spinner.on_change('value', lower_spinner_callback)
         self.lower_spinner = lower_spinner
 
         # ---- histogram upper range
         def upper_spinner_callback(_attr, old_value, new_value):
-            if new_value > self._lower:
-                self._upper = new_value
+            if new_value > self.lower:
                 self._counts = [0 for _ in range(nplots)]
             else:
                 upper_spinner.value = old_value
 
         upper_spinner = Spinner(
-            title='Upper Range:', value=self._upper, step=0.1, disabled=auto_toggle.active
+            title='Upper Range:', value=upper, step=0.1, disabled=auto_toggle.active
         )
         upper_spinner.on_change('value', upper_spinner_callback)
         self.upper_spinner = upper_spinner
@@ -125,14 +119,13 @@ class Histogram:
         def nbins_spinner_callback(_attr, old_value, new_value):
             if isinstance(new_value, int):
                 if new_value > 0:
-                    self._nbins = new_value
                     self._counts = [0 for _ in range(nplots)]
                 else:
                     nbins_spinner.value = old_value
             else:
                 nbins_spinner.value = old_value
 
-        nbins_spinner = Spinner(title='Number of Bins:', value=self._nbins, step=1)
+        nbins_spinner = Spinner(title='Number of Bins:', value=nbins, step=1)
         nbins_spinner.on_change('value', nbins_spinner_callback)
         self.nbins_spinner = nbins_spinner
 
@@ -149,6 +142,24 @@ class Histogram:
         log10counts_toggle.on_click(log10counts_toggle_callback)
         self.log10counts_toggle = log10counts_toggle
 
+    @property
+    def lower(self):
+        """Lower range of the bins (readonly)
+        """
+        return self.lower_spinner.value
+
+    @property
+    def upper(self):
+        """Upper range of the bins (readonly)
+        """
+        return self.upper_spinner.value
+
+    @property
+    def nbins(self):
+        """Number of the bins (readonly)
+        """
+        return self.nbins_spinner.value
+
     def update(self, input_data, accumulate=False):
         """Trigger an update for the histogram plots.
 
@@ -163,14 +174,13 @@ class Histogram:
             if lower == upper:
                 upper += 1
 
-            # this will also update self._lower and self._upper
             self.lower_spinner.value = lower
             self.upper_spinner.value = upper
 
         for ind, plot_source in enumerate(self._plot_sources):
             data_i = input_data[ind]
             counts, edges = np.histogram(
-                data_i[data_i != 0], bins=self._nbins, range=(self._lower, self._upper)
+                data_i[data_i != 0], bins=self.nbins, range=(self.lower, self.upper)
             )
 
             if self.log10counts_toggle.active:
