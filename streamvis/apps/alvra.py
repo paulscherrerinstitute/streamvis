@@ -65,9 +65,6 @@ aggregated_image = 0
 aggregate_time = 0
 aggregate_counter = 1
 
-current_spectra = None
-saved_spectra = dict()
-
 
 # Main plot
 sv_mainview = sv.ImageView(
@@ -241,12 +238,25 @@ sv_zoom2_proj_h.plot.add_glyph(
 
 
 # Save spectrum button
+saved_spectra = {'None': ([], [], [], [], [], [], [], [])}
+
+
 def save_spectrum_button_callback():
-    if current_spectra is not None:
-        timenow = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        saved_spectra[timenow] = current_spectra
-        save_spectrum_select.options = [*save_spectrum_select.options, timenow]
-        save_spectrum_select.value = timenow
+    current_spectra = (
+        sv_zoom1_proj_h.x,
+        sv_zoom1_proj_h.y,
+        sv_zoom1_proj_v.x,
+        sv_zoom1_proj_v.y,
+        sv_zoom2_proj_h.x,
+        sv_zoom2_proj_h.y,
+        sv_zoom2_proj_v.x,
+        sv_zoom2_proj_v.y,
+    )
+
+    timenow = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    saved_spectra[timenow] = current_spectra
+    save_spectrum_select.options = [*save_spectrum_select.options, timenow]
+    save_spectrum_select.value = timenow
 
 
 save_spectrum_button = Button(label='Save Spectrum')
@@ -255,18 +265,12 @@ save_spectrum_button.on_click(save_spectrum_button_callback)
 
 # Saved spectrum select
 def save_spectrum_select_callback(_attr, _old, new):
-    if new == 'None':
-        zoom1_spectrum_x_source.data.update(x=[], y=[])
-        zoom1_spectrum_y_source.data.update(x=[], y=[])
-        zoom2_spectrum_x_source.data.update(x=[], y=[])
-        zoom2_spectrum_y_source.data.update(x=[], y=[])
+    (z1_hx, z1_hy, z1_vx, z1_vy, z2_hx, z2_hy, z2_vx, z2_vy) = saved_spectra[new]
 
-    else:
-        (agg0_1, r0_1, agg1_1, r1_1, agg0_2, r0_2, agg1_2, r1_2) = saved_spectra[new]
-        zoom1_spectrum_y_source.data.update(x=agg0_1, y=r0_1)
-        zoom1_spectrum_x_source.data.update(x=r1_1, y=agg1_1)
-        zoom2_spectrum_y_source.data.update(x=agg0_2, y=r0_2)
-        zoom2_spectrum_x_source.data.update(x=r1_2, y=agg1_2)
+    zoom1_spectrum_y_source.data.update(x=z1_hx, y=z1_hy)
+    zoom1_spectrum_x_source.data.update(x=z1_vx, y=z1_vy)
+    zoom2_spectrum_y_source.data.update(x=z2_hx, y=z2_hy)
+    zoom2_spectrum_x_source.data.update(x=z2_vx, y=z2_vy)
 
 
 save_spectrum_select = Select(title='Saved Spectra:', options=['None'], value='None')
@@ -396,8 +400,6 @@ doc.add_root(row(Spacer(width=20), final_layout))
 
 
 async def update_client(image, metadata, reset, aggr_image):
-    global current_spectra
-
     sv_colormapper.update(aggr_image)
     sv_mainview.update(aggr_image)
 
@@ -437,18 +439,6 @@ async def update_client(image, metadata, reset, aggr_image):
         sv_streamgraph.update(
             [np.sum(aggr_image, dtype=np.float), total_sum_zoom1, total_sum_zoom2]
         )
-
-    # Save spectrum
-    current_spectra = (
-        sv_zoom1_proj_h.x,
-        sv_zoom1_proj_h.y,
-        sv_zoom1_proj_v.y,
-        sv_zoom1_proj_v.x,
-        sv_zoom2_proj_h.x,
-        sv_zoom2_proj_h.y,
-        sv_zoom2_proj_v.y,
-        sv_zoom2_proj_v.x,
-    )
 
     # Parse metadata
     metadata_toshow = sv_metadata.parse(metadata)
