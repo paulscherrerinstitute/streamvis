@@ -23,6 +23,8 @@ cmap_dict = {
     'cividis': Cividis256,
 }
 
+STEP = 0.1
+
 
 class ColorMapper:
     def __init__(self, image_views, disp_min=0, disp_max=1000, colormap='plasma'):
@@ -98,35 +100,39 @@ class ColorMapper:
         self.scale_radiobuttongroup = scale_radiobuttongroup
 
         # ---- colormap display max value
-        def display_max_spinner_callback(_attr, old_value, new_value):
-            if new_value > self.disp_min:
-                if new_value <= 0:
-                    scale_radiobuttongroup.active = 0
+        def display_max_spinner_callback(_attr, _old_value, new_value):
+            self.display_min_spinner.high = new_value - STEP
+            if new_value <= 0:
+                scale_radiobuttongroup.active = 0
 
-                lin_colormapper.high = new_value
-                log_colormapper.high = new_value
-            else:
-                display_max_spinner.value = old_value
+            lin_colormapper.high = new_value
+            log_colormapper.high = new_value
 
         display_max_spinner = Spinner(
-            title='Maximal Display Value:', value=disp_max, step=0.1, disabled=auto_toggle.active
+            title='Maximal Display Value:',
+            low=disp_min + STEP,
+            value=disp_max,
+            step=STEP,
+            disabled=auto_toggle.active,
         )
         display_max_spinner.on_change('value', display_max_spinner_callback)
         self.display_max_spinner = display_max_spinner
 
         # ---- colormap display min value
-        def display_min_spinner_callback(_attr, old_value, new_value):
-            if new_value < self.disp_max:
-                if new_value <= 0:
-                    scale_radiobuttongroup.active = 0
+        def display_min_spinner_callback(_attr, _old_value, new_value):
+            self.display_max_spinner.low = new_value + STEP
+            if new_value <= 0:
+                scale_radiobuttongroup.active = 0
 
-                lin_colormapper.low = new_value
-                log_colormapper.low = new_value
-            else:
-                display_min_spinner.value = old_value
+            lin_colormapper.low = new_value
+            log_colormapper.low = new_value
 
         display_min_spinner = Spinner(
-            title='Minimal Display Value:', value=disp_min, step=0.1, disabled=auto_toggle.active
+            title='Minimal Display Value:',
+            high=disp_max - STEP,
+            value=disp_min,
+            step=STEP,
+            disabled=auto_toggle.active,
         )
         display_min_spinner.on_change('value', display_min_spinner_callback)
         self.display_min_spinner = display_min_spinner
