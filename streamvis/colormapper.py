@@ -34,9 +34,6 @@ class ColorMapper:
             disp_max (int, optional): Initial maximal display value. Defaults to 1000.
             colormap (str, optional): Initial colormap. Defaults to 'plasma'.
         """
-        self._disp_min = disp_min
-        self._disp_max = disp_max
-
         lin_colormapper = LinearColorMapper(
             palette=cmap_dict[colormap], low=disp_min, high=disp_max
         )
@@ -88,7 +85,7 @@ class ColorMapper:
                 color_bar.ticker = BasicTicker()
 
             else:  # Logarithmic
-                if self._disp_min > 0:
+                if self.disp_min > 0:
                     for image_view in image_views:
                         image_view.image_glyph.color_mapper = log_colormapper
                     color_bar.color_mapper = log_colormapper
@@ -102,14 +99,12 @@ class ColorMapper:
 
         # ---- colormap display max value
         def display_max_spinner_callback(_attr, old_value, new_value):
-            if new_value > self._disp_min:
-                self._disp_max = new_value
-
+            if new_value > self.disp_min:
                 if new_value <= 0:
                     scale_radiobuttongroup.active = 0
 
-                lin_colormapper.high = self._disp_max
-                log_colormapper.high = self._disp_max
+                lin_colormapper.high = new_value
+                log_colormapper.high = new_value
             else:
                 display_max_spinner.value = old_value
 
@@ -121,14 +116,12 @@ class ColorMapper:
 
         # ---- colormap display min value
         def display_min_spinner_callback(_attr, old_value, new_value):
-            if new_value < self._disp_max:
-                self._disp_min = new_value
-
+            if new_value < self.disp_max:
                 if new_value <= 0:
                     scale_radiobuttongroup.active = 0
 
-                lin_colormapper.low = self._disp_min
-                log_colormapper.low = self._disp_min
+                lin_colormapper.low = new_value
+                log_colormapper.low = new_value
             else:
                 display_min_spinner.value = old_value
 
@@ -137,6 +130,18 @@ class ColorMapper:
         )
         display_min_spinner.on_change('value', display_min_spinner_callback)
         self.display_min_spinner = display_min_spinner
+
+    @property
+    def disp_min(self):
+        """Minimal display value (readonly)
+        """
+        return self.display_min_spinner.value
+
+    @property
+    def disp_max(self):
+        """Maximal display value (readonly)
+        """
+        return self.display_max_spinner.value
 
     def update(self, image):
         """Trigger an update for the colormapper.
@@ -151,6 +156,8 @@ class ColorMapper:
             if image_min <= 0:  # switch to linear colormap
                 self.scale_radiobuttongroup.active = 0
 
-            self._disp_max = np.inf  # force update independently on current display values
+            # force update independently on current display values
+            self.display_max_spinner.value = np.inf
+
             self.display_min_spinner.value = image_min
             self.display_max_spinner.value = image_max
