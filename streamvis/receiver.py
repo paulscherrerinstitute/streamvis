@@ -207,6 +207,8 @@ class Receiver:
         """Get metadata and image with the index.
         """
         metadata, image = self.buffer[index]
+        if 'saturated_pixels' not in metadata:
+            metadata['saturated_pixels'] = np.count_nonzero(image == self.get_saturated_value())
         image = self.jf_adapter.process(image, metadata)
         return metadata, image
 
@@ -214,6 +216,8 @@ class Receiver:
         """Get metadata and last hit image.
         """
         metadata, image = self.stats.last_hit
+        if 'saturated_pixels' not in metadata:
+            metadata['saturated_pixels'] = np.count_nonzero(image == self.get_saturated_value())
         image = self.jf_adapter.process(image, metadata)
         return metadata, image
 
@@ -256,3 +260,13 @@ class Receiver:
             image = image[0]
 
         return metadata, image
+
+    def get_saturated_value(self):
+        """Get a value for saturated pixels.
+        """
+        if self.jf_adapter.handler and self.jf_adapter.handler.highgain:
+            saturated_value = 0b0011111111111111  # 16383
+        else:
+            saturated_value = 0b1100000000000000  # 49152
+
+        return saturated_value
