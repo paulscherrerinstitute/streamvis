@@ -18,6 +18,8 @@ from bokeh.models import (
     WheelZoomTool,
 )
 
+STEP = 1
+
 
 class Histogram:
     def __init__(self, nplots, plot_height=350, plot_width=700, lower=0, upper=1000, nbins=100):
@@ -90,27 +92,31 @@ class Histogram:
         self.auto_toggle = auto_toggle
 
         # ---- histogram lower range
-        def lower_spinner_callback(_attr, old_value, new_value):
-            if new_value < self.upper:
-                self._counts = [0 for _ in range(nplots)]
-            else:
-                lower_spinner.value = old_value
+        def lower_spinner_callback(_attr, _old_value, new_value):
+            self.upper_spinner.low = new_value + STEP
+            self._counts = [0 for _ in range(nplots)]
 
         lower_spinner = Spinner(
-            title='Lower Range:', value=lower, step=0.1, disabled=auto_toggle.active
+            title='Lower Range:',
+            high=upper - STEP,
+            value=lower,
+            step=STEP,
+            disabled=auto_toggle.active,
         )
         lower_spinner.on_change('value', lower_spinner_callback)
         self.lower_spinner = lower_spinner
 
         # ---- histogram upper range
-        def upper_spinner_callback(_attr, old_value, new_value):
-            if new_value > self.lower:
-                self._counts = [0 for _ in range(nplots)]
-            else:
-                upper_spinner.value = old_value
+        def upper_spinner_callback(_attr, _old_value, new_value):
+            self.lower_spinner.high = new_value - STEP
+            self._counts = [0 for _ in range(nplots)]
 
         upper_spinner = Spinner(
-            title='Upper Range:', value=upper, step=0.1, disabled=auto_toggle.active
+            title='Upper Range:',
+            low=lower + STEP,
+            value=upper,
+            step=STEP,
+            disabled=auto_toggle.active,
         )
         upper_spinner.on_change('value', upper_spinner_callback)
         self.upper_spinner = upper_spinner
@@ -119,7 +125,7 @@ class Histogram:
         def nbins_spinner_callback(_attr, _old_value, _new_value):
             self._counts = [0 for _ in range(nplots)]
 
-        nbins_spinner = Spinner(title='Number of Bins:', low=1, value=nbins, step=1)
+        nbins_spinner = Spinner(title='Number of Bins:', low=1, value=nbins)
         nbins_spinner.on_change('value', nbins_spinner_callback)
         self.nbins_spinner = nbins_spinner
 
