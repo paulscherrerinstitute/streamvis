@@ -13,5 +13,6 @@ from .runtime import Runtime
 from .stream_graph import StreamGraph
 from .intensity_roi import IntensityROI
 from .projection import Projection
+from .input_control import StreamControl
 
 __version__ = "0.6.3"

@@ -3,7 +3,7 @@ from functools import partial
 import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import Button, CustomJS, Select, Spacer, Title, Toggle
+from bokeh.models import Button, CustomJS, Select, Spacer, Title
 
 import streamvis as sv
 
@@ -18,8 +18,6 @@ IMAGE_SIZE_Y = 1554
 RESOLUTION_RINGS_POS = np.array([2, 2.2, 2.6, 3, 5, 10])
 
 sv_rt = sv.Runtime()
-
-connected = False
 
 # Currently, it's possible to control only a canvas size, but not a size of the plotting area.
 MAIN_CANVAS_WIDTH = IMAGE_SIZE_X // 2 + 55 + 40
@@ -131,21 +129,7 @@ open_stats_button.js_on_click(CustomJS(code="window.open('/statistics');"))
 
 
 # Stream toggle button
-def stream_button_callback(state):
-    global connected
-    if state:
-        connected = True
-        stream_button.label = 'Connecting'
-        stream_button.button_type = 'default'
-
-    else:
-        connected = False
-        stream_button.label = 'Connect'
-        stream_button.button_type = 'default'
-
-
-stream_button = Toggle(label="Connect", button_type='default')
-stream_button.on_click(stream_button_callback)
+sv_streamctrl = sv.StreamControl()
 
 
 # Metadata datatable
@@ -198,7 +182,7 @@ layout_controls = row(
         sv_mask.toggle,
         open_stats_button,
         data_type_select,
-        stream_button,
+        sv_streamctrl.toggle,
     ),
 )
 
@@ -284,19 +268,11 @@ async def update_client(image, metadata):
 
 
 async def internal_periodic_callback():
-    if connected:
-        if receiver.state == 'polling':
-            stream_button.label = 'Polling'
-            stream_button.button_type = 'warning'
-
-        elif receiver.state == 'receiving':
-            stream_button.label = 'Receiving'
-            stream_button.button_type = 'success'
-
-            if data_type_select.value == "Image":
-                sv_rt.current_metadata, sv_rt.current_image = receiver.get_image(-1)
-            elif data_type_select.value == "Gains":
-                sv_rt.current_metadata, sv_rt.current_image = receiver.get_image_gains(-1)
+    if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
+        if data_type_select.value == "Image":
+            sv_rt.current_metadata, sv_rt.current_image = receiver.get_image(-1)
+        elif data_type_select.value == "Gains":
+            sv_rt.current_metadata, sv_rt.current_image = receiver.get_image_gains(-1)
 
     if sv_rt.current_image.shape != (1, 1):
         doc.add_next_tick_callback(

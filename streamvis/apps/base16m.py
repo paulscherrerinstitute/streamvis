@@ -47,8 +47,6 @@ receiver = doc.receiver
 
 sv_rt = sv.Runtime()
 
-connected = False
-
 # Currently, it's possible to control only a canvas size, but not a size of the plotting area.
 MAIN_CANVAS_WIDTH = 2200 + 55
 MAIN_CANVAS_HEIGHT = 1900 + 64
@@ -287,24 +285,8 @@ image_buffer_slider = Slider(
 )
 image_buffer_slider.on_change('value', image_buffer_slider_callback)
 
-# ---- connect toggle button
-def stream_button_callback(state):
-    global connected
-    if state:
-        connected = True
-        stream_button.label = 'Connecting'
-        stream_button.button_type = 'default'
-        image_buffer_slider.disabled = True
-
-    else:
-        connected = False
-        stream_button.label = 'Connect'
-        stream_button.button_type = 'default'
-        image_buffer_slider.disabled = False
-
-
-stream_button = Toggle(label="Connect", button_type='default')
-stream_button.on_click(stream_button_callback)
+# ---- stream toggle button
+sv_streamctrl = sv.StreamControl()
 
 
 # Show only hits toggle
@@ -370,7 +352,7 @@ colormap_panel = column(
     sv_colormapper.display_min_spinner,
 )
 
-stream_panel = column(image_buffer_slider, stream_button)
+stream_panel = column(image_buffer_slider, sv_streamctrl.toggle)
 
 layout_zoom = column(
     gridplot(
@@ -463,7 +445,7 @@ async def update_client(image, metadata):
             nspots=peakfinder_buffer[:, 3],
         )
 
-    if connected and receiver.state == 'receiving':
+    if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
         trajectory_circle_source.selected.indices = []
 
     # Update mask
@@ -476,34 +458,26 @@ async def update_client(image, metadata):
 
 
 async def internal_periodic_callback():
-    if connected:
-        if receiver.state == 'polling':
-            stream_button.label = 'Polling'
-            stream_button.button_type = 'warning'
-
-        elif receiver.state == 'receiving':
-            stream_button.label = 'Receiving'
-            stream_button.button_type = 'success'
-
-            if show_only_hits_toggle.active:
-                if receiver.stats.last_hit != (None, None):
-                    if data_type_select.value == "Image":
-                        sv_rt.current_metadata, sv_rt.current_image = receiver.get_last_hit()
-                    elif data_type_select.value == "Gains":
-                        sv_rt.current_metadata, sv_rt.current_image = receiver.get_last_hit_gains()
-            else:
+    if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
+        if show_only_hits_toggle.active:
+            if receiver.stats.last_hit != (None, None):
                 if data_type_select.value == "Image":
-                    sv_rt.current_metadata, sv_rt.current_image = receiver.get_image(-1)
+                    sv_rt.current_metadata, sv_rt.current_image = receiver.get_last_hit()
                 elif data_type_select.value == "Gains":
-                    sv_rt.current_metadata, sv_rt.current_image = receiver.get_image_gains(-1)
+                    sv_rt.current_metadata, sv_rt.current_image = receiver.get_last_hit_gains()
+        else:
+            if data_type_select.value == "Image":
+                sv_rt.current_metadata, sv_rt.current_image = receiver.get_image(-1)
+            elif data_type_select.value == "Gains":
+                sv_rt.current_metadata, sv_rt.current_image = receiver.get_image_gains(-1)
 
-            if not image_buffer or image_buffer[-1][0] is not sv_rt.current_metadata:
-                image_buffer.append((sv_rt.current_metadata, sv_rt.current_image))
+        if not image_buffer or image_buffer[-1][0] is not sv_rt.current_metadata:
+            image_buffer.append((sv_rt.current_metadata, sv_rt.current_image))
 
-            # Set slider to the right-most position
-            if len(image_buffer) > 1:
-                image_buffer_slider.end = len(image_buffer) - 1
-                image_buffer_slider.value = len(image_buffer) - 1
+        # Set slider to the right-most position
+        if len(image_buffer) > 1:
+            image_buffer_slider.end = len(image_buffer) - 1
+            image_buffer_slider.value = len(image_buffer) - 1
 
     if sv_rt.current_image.shape != (1, 1):
         doc.add_next_tick_callback(
