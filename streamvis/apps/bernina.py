@@ -32,8 +32,6 @@ DEBUG_INTENSITY_WIDTH = 700
 
 APP_FPS = 1
 
-util_plot_size = 160
-
 ZOOM_WIDTH = 500
 ZOOM_HEIGHT = 500
 
@@ -91,7 +89,7 @@ sv_mainview.add_as_zoom(sv_zoomview2, line_color='green')
 
 # Total sum intensity plots
 sv_streamgraph = sv.StreamGraph(
-    nplots=2, plot_height=util_plot_size, plot_width=DEBUG_INTENSITY_WIDTH, rollover=36000
+    nplots=2, plot_height=160, plot_width=DEBUG_INTENSITY_WIDTH, rollover=36000
 )
 sv_streamgraph.plots[0].title = Title(text="Total intensity")
 sv_streamgraph.plots[1].title = Title(text="Normalized signal−background Intensity")

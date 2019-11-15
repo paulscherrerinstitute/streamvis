@@ -463,6 +463,9 @@ async def update_client(image, metadata):
             nspots=peakfinder_buffer[:, 3],
         )
 
+    if connected and receiver.state == 'receiving':
+        trajectory_circle_source.selected.indices = []
+
     # Update mask
     sv_mask.update(sv_metadata)
 
@@ -496,8 +499,6 @@ async def internal_periodic_callback():
 
             if not image_buffer or image_buffer[-1][0] is not sv_rt.current_metadata:
                 image_buffer.append((sv_rt.current_metadata, sv_rt.current_image))
-
-            trajectory_circle_source.selected.indices = []
 
             # Set slider to the right-most position
             if len(image_buffer) > 1:
