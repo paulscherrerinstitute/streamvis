@@ -5,10 +5,8 @@ from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
 from bokeh.models import (
     Button,
-    ColumnDataSource,
     CustomJS,
     Select,
-    Slider,
     Spacer,
     Spinner,
     TextInput,
@@ -90,25 +88,7 @@ open_stats_button = Button(label='Open Statistics')
 open_stats_button.js_on_click(CustomJS(code="window.open('/statistics');"))
 
 
-# Stream panel
-# ---- image buffer slider
-def image_buffer_slider_callback(_attr, _old, new):
-    md, image = receiver.buffer[round(new['value'][0])]
-    doc.add_next_tick_callback(partial(update_client, image=image, metadata=md))
-
-
-image_buffer_slider_source = ColumnDataSource(dict(value=[]))
-image_buffer_slider_source.on_change('data', image_buffer_slider_callback)
-
-image_buffer_slider = Slider(
-    start=0, end=1, value=0, step=1, title="Buffered Image", callback_policy='mouseup'
-)
-
-image_buffer_slider.callback = CustomJS(
-    args=dict(source=image_buffer_slider_source), code="""source.data = {value: [cb_obj.value]}"""
-)
-
-# ---- connect toggle button
+# Stream toggle button
 def stream_button_callback(state):
     global connected
     if state:
@@ -217,8 +197,6 @@ colormap_panel = column(
     sv_colormapper.display_min_spinner,
 )
 
-stream_panel = column(image_buffer_slider, stream_button)
-
 layout_zoom = gridplot(
     [[sv_zoom_proj_v.plot, None], [sv_zoomview.plot, sv_zoom_proj_h.plot]], merge_tools=False
 )
@@ -234,7 +212,7 @@ layout_utility = column(
 )
 
 layout_controls = column(
-    colormap_panel, sv_mask.toggle, open_stats_button, data_type_select, stream_panel
+    colormap_panel, sv_mask.toggle, open_stats_button, data_type_select, stream_button
 )
 
 layout_threshold_aggr = column(
@@ -309,11 +287,6 @@ async def internal_periodic_callback():
         elif receiver.state == 'receiving':
             stream_button.label = 'Receiving'
             stream_button.button_type = 'success'
-
-            # Set slider to the right-most position
-            if len(receiver.buffer) > 1:
-                image_buffer_slider.end = len(receiver.buffer) - 1
-                image_buffer_slider.value = len(receiver.buffer) - 1
 
             if data_type_select.value == "Image":
                 sv_rt.current_metadata, sv_rt.current_image = receiver.get_image(-1)
