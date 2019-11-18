@@ -3,12 +3,11 @@ from functools import partial
 import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import Button, CustomJS, Select, Spacer, Spinner, TextInput, Title, Toggle
+from bokeh.models import Button, CustomJS, Spacer, Spinner, TextInput, Title, Toggle
 
 import streamvis as sv
 
 doc = curdoc()
-receiver = doc.receiver
 
 sv_rt = sv.Runtime()
 
@@ -159,10 +158,6 @@ aggregate_time_counter_textinput = TextInput(
 sv_metadata = sv.MetadataHandler()
 
 
-# Data type select
-data_type_select = Select(title="Data type:", value="Image", options=["Image", "Gains"])
-
-
 # Final layouts
 colormap_panel = column(
     sv_colormapper.select,
@@ -187,7 +182,11 @@ layout_utility = column(
 )
 
 layout_controls = column(
-    colormap_panel, sv_mask.toggle, open_stats_button, data_type_select, sv_streamctrl.toggle
+    colormap_panel,
+    sv_mask.toggle,
+    open_stats_button,
+    sv_streamctrl.datatype_select,
+    sv_streamctrl.toggle,
 )
 
 layout_threshold_aggr = column(
@@ -255,10 +254,7 @@ async def internal_periodic_callback():
     reset = True
 
     if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
-        if data_type_select.value == "Image":
-            sv_rt.current_metadata, sv_rt.current_image = receiver.get_image(-1)
-        elif data_type_select.value == "Gains":
-            sv_rt.current_metadata, sv_rt.current_image = receiver.get_image_gains(-1)
+        sv_rt.current_metadata, sv_rt.current_image = sv_streamctrl.get_stream_data(-1)
 
         sv_rt.current_image = sv_rt.current_image.copy()
         if threshold_flag:

@@ -1,5 +1,5 @@
-from bokeh.models import Toggle
 from bokeh.io import curdoc
+from bokeh.models import Select, Toggle
 
 
 class StreamControl:
@@ -17,6 +17,10 @@ class StreamControl:
         toggle.on_click(toggle_callback)
         self.toggle = toggle
 
+        # data type select
+        datatype_select = Select(title="Data type:", value="Image", options=["Image", "Gains"])
+        self.datatype_select = datatype_select
+
         doc.add_periodic_callback(self._update_toggle_view, 1000)
 
     @property
@@ -30,6 +34,22 @@ class StreamControl:
         """Return the stream receiver state (readonly)
         """
         return self.receiver.state == 'receiving'
+
+    def get_stream_data(self, index):
+        """Get data from the stream receiver.
+
+        Args:
+            index (int): index into data buffer of receiver
+
+        Returns:
+            (dict, ndarray): metadata and image at index
+        """
+        if self.datatype_select.value == "Image":
+            metadata, image = self.receiver.get_image(index)
+        elif self.datatype_select.value == "Gains":
+            metadata, image = self.receiver.get_image_gains(index)
+
+        return metadata, image
 
     def _update_toggle_view(self):
         """Update label and button type of the toggle
