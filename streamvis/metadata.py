@@ -126,6 +126,10 @@ class MetadataHandler:
             self.add_issue(f"Expected image shape is {self.check_shape}")
             metadata_toshow['shape'] = shape
 
+        daq_rec = metadata.get('daq_rec')
+        if daq_rec and bool(daq_rec & 0b1):
+            metadata_toshow['highgain'] = True
+
         return metadata_toshow
 
     def update(self, metadata_toshow):
