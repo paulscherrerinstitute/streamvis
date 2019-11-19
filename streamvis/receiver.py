@@ -208,7 +208,10 @@ class Receiver:
         """
         metadata, image = self.buffer[index]
         if 'saturated_pixels' not in metadata:
-            metadata['saturated_pixels'] = np.count_nonzero(image == self.get_saturated_value())
+            is_saturated = image == self.get_saturated_value()
+            if self.jf_adapter.handler and self.jf_adapter.handler.pixel_mask is not None:
+                is_saturated &= np.invert(self.jf_adapter.handler.pixel_mask)
+            metadata['saturated_pixels'] = np.count_nonzero(is_saturated)
         image = self.jf_adapter.process(image, metadata)
         return metadata, image
 
@@ -217,7 +220,10 @@ class Receiver:
         """
         metadata, image = self.stats.last_hit
         if 'saturated_pixels' not in metadata:
-            metadata['saturated_pixels'] = np.count_nonzero(image == self.get_saturated_value())
+            is_saturated = image == self.get_saturated_value()
+            if self.jf_adapter.handler and self.jf_adapter.handler.pixel_mask is not None:
+                is_saturated &= np.invert(self.jf_adapter.handler.pixel_mask)
+            metadata['saturated_pixels'] = np.count_nonzero(is_saturated)
         image = self.jf_adapter.process(image, metadata)
         return metadata, image
 
