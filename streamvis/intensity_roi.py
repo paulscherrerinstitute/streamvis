@@ -1,4 +1,4 @@
-from bokeh.models import ColumnDataSource, Quad, Text
+from bokeh.models import ColumnDataSource, Quad, Text, Toggle
 
 
 class IntensityROI:
@@ -8,11 +8,18 @@ class IntensityROI:
         Args:
             image_views (ImageView): Associated streamvis image view instances.
         """
+        # ---- intensity ROIs
         self._source = ColumnDataSource(
             dict(left=[], right=[], bottom=[], top=[], text_x=[], text_y=[], text=[])
         )
         quad_glyph = Quad(
-            left='left', right='right', bottom='bottom', top='top', fill_alpha=0, line_color='white'
+            left='left',
+            right='right',
+            bottom='bottom',
+            top='top',
+            fill_alpha=0,
+            line_color='white',
+            line_alpha=0,
         )
 
         text_glyph = Text(
@@ -22,11 +29,25 @@ class IntensityROI:
             text_align='right',
             text_baseline='top',
             text_color='white',
+            text_alpha=0,
         )
 
         for image_view in image_views:
             image_view.plot.add_glyph(self._source, quad_glyph)
             image_view.plot.add_glyph(self._source, text_glyph)
+
+        # ---- toggle button
+        def toggle_callback(state):
+            if state:
+                quad_glyph.line_alpha = 1
+                text_glyph.text_alpha = 1
+            else:
+                quad_glyph.line_alpha = 0
+                text_glyph.text_alpha = 0
+
+        toggle = Toggle(label="Intensity ROIs", button_type='default')
+        toggle.on_click(toggle_callback)
+        self.toggle = toggle
 
     def update(self, metadata, sv_metadata):
         """Trigger an update for the intensity ROI overlay.
@@ -59,3 +80,6 @@ class IntensityROI:
             self._source.data.update(
                 left=[], right=[], bottom=[], top=[], text_x=[], text_y=[], text=[]
             )
+
+            if self.toggle.active:
+                sv_metadata.add_issue("Metadata does not contain data for intensity ROIs")

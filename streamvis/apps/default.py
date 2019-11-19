@@ -185,6 +185,7 @@ layout_controls = column(
     colormap_panel,
     sv_mask.toggle,
     open_stats_button,
+    sv_intensity_roi.toggle,
     sv_streamctrl.datatype_select,
     sv_streamctrl.toggle,
 )

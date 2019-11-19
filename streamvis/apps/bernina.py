@@ -174,6 +174,7 @@ layout_controls = row(
     column(
         Spacer(height=19),
         sv_resolrings.toggle,
+        sv_intensity_roi.toggle,
         sv_mask.toggle,
         open_stats_button,
         sv_streamctrl.datatype_select,

@@ -357,6 +357,7 @@ layout_controls = column(
     sv_metadata.issues_dropdown,
     colormap_panel,
     open_stats_button,
+    sv_intensity_roi.toggle,
     sv_streamctrl.datatype_select,
     stream_panel,
 )

@@ -341,6 +341,7 @@ layout_controls = column(
     Spacer(height=30),
     sv_mask.toggle,
     open_stats_button,
+    sv_intensity_roi.toggle,
     sv_streamctrl.datatype_select,
     sv_streamctrl.toggle,
 )
