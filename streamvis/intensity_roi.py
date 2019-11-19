@@ -56,4 +56,6 @@ class IntensityROI:
                 )
 
         else:
-            self._source.data.update(x=[], y=[], w=[], h=[], text_x=[], text_y=[], text=[])
+            self._source.data.update(
+                left=[], right=[], bottom=[], top=[], text_x=[], text_y=[], text=[]
+            )
