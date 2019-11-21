@@ -15,4 +15,4 @@ from .intensity_roi import IntensityROI
 from .projection import Projection
 from .input_control import StreamControl
 
-__version__ = "0.7.0"
+__version__ = "0.7.1"
