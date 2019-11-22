@@ -18,11 +18,11 @@ requirements:
   run:
     - python>=3.6
     - bokeh=1.4
-    - pyzmq>=17.0.0
-    - pillow>=4.3
-    - colorcet>=1.0.0
-    - h5py>=2.8.0
     - jungfrau_utils=0.6
+    - pyzmq
+    - pillow>=4.3
+    - colorcet
+    - h5py
 
 about:
   home: https://github.com/paulscherrerinstitute/streamvis
