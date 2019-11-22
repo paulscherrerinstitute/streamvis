@@ -63,13 +63,14 @@ class ResolutionRings:
             text_alpha=0,
         )
 
-        self._center_source = ColumnDataSource(dict(x=[], y=[]))
-        cross_glyph = Cross(x='x', y='y', size=15, line_color='red', line_alpha=0)
+        cross_glyph = Cross(
+            x='beam_center_x', y='beam_center_y', size=15, line_color='red', line_alpha=0
+        )
 
         for image_view in image_views:
             image_view.plot.add_glyph(self._source, ellipse_glyph)
             image_view.plot.add_glyph(self._source, text_glyph)
-            image_view.plot.add_glyph(self._center_source, cross_glyph)
+            image_view.plot.add_glyph(self._formatter_source, cross_glyph)
             image_view.plot.tools[-1] = hovertool
 
         # ---- toggle button
@@ -94,47 +95,49 @@ class ResolutionRings:
             metadata (dict): A dictionary with current metadata.
             sv_metadata (MetadataHandler): Report update issues to that metadata handler.
         """
-        detector_distance = metadata.get('detector_distance')
-        beam_energy = metadata.get('beam_energy')
-        beam_center_x = metadata.get('beam_center_x')
-        beam_center_y = metadata.get('beam_center_y')
+        detector_distance = metadata.get('detector_distance', np.nan)
+        beam_energy = metadata.get('beam_energy', np.nan)
+        beam_center_x = metadata.get('beam_center_x', np.nan)
+        beam_center_y = metadata.get('beam_center_y', np.nan)
 
-        if detector_distance and beam_energy and beam_center_x and beam_center_y:
+        if not any(np.isnan([detector_distance, beam_energy, beam_center_x, beam_center_y])):
             array_beam_center_x = beam_center_x * np.ones(len(self.positions))
             array_beam_center_y = beam_center_y * np.ones(len(self.positions))
             # if '6200 / beam_energy > 1', then arcsin returns nan
             theta = np.arcsin(6200 / beam_energy / self.positions)  # 6200 = 1.24 / 2 / 1e-4
-            diams = 2 * detector_distance * np.tan(2 * theta) / 75e-6
+            ring_diams = 2 * detector_distance * np.tan(2 * theta) / 75e-6
             # if '2 * theta > pi / 2 <==> diams < 0', then return nan
-            diams[diams < 0] = np.nan
+            ring_diams[ring_diams < 0] = np.nan
+
+            text_x = array_beam_center_x + ring_diams / 2
+            text_y = array_beam_center_y
             ring_text = [str(s) + ' Å' for s in self.positions]
 
-            self._source.data.update(
-                x=array_beam_center_x,
-                y=array_beam_center_y,
-                w=diams,
-                h=diams,
-                text_x=array_beam_center_x + diams / 2,
-                text_y=array_beam_center_y,
-                text=ring_text,
-            )
-            self._center_source.data.update(x=[beam_center_x], y=[beam_center_y])
-            self._formatter_source.data.update(
-                detector_distance=[detector_distance],
-                beam_energy=[beam_energy],
-                beam_center_x=[beam_center_x],
-                beam_center_y=[beam_center_y],
-            )
-
         else:
-            self._source.data.update(x=[], y=[], w=[], h=[], text_x=[], text_y=[], text=[])
-            self._center_source.data.update(x=[], y=[])
-            self._formatter_source.data.update(
-                detector_distance=[np.nan],
-                beam_energy=[np.nan],
-                beam_center_x=[np.nan],
-                beam_center_y=[np.nan],
-            )
+            array_beam_center_x = []
+            array_beam_center_y = []
+            ring_diams = []
+
+            text_x = []
+            text_y = []
+            ring_text = []
 
             if self.toggle.active:
                 sv_metadata.add_issue("Metadata does not contain all data for resolution rings")
+
+        self._source.data.update(
+            x=array_beam_center_x,
+            y=array_beam_center_y,
+            w=ring_diams,
+            h=ring_diams,
+            text_x=text_x,
+            text_y=text_y,
+            text=ring_text,
+        )
+
+        self._formatter_source.data.update(
+            detector_distance=[detector_distance],
+            beam_energy=[beam_energy],
+            beam_center_x=[beam_center_x],
+            beam_center_y=[beam_center_y],
+        )
