@@ -3,7 +3,7 @@ from functools import partial
 import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import Button, CustomJS, Spacer, Spinner, TextInput, Title, Toggle
+from bokeh.models import Button, CustomJS, Spacer, Title
 
 import streamvis as sv
 
@@ -19,17 +19,6 @@ ZOOM_CANVAS_WIDTH = 600 + 55
 ZOOM_CANVAS_HEIGHT = 600 + 30
 
 APP_FPS = 1
-
-# threshold data parameters
-threshold_flag = False
-threshold_min = 0
-threshold_max = 1000
-
-# aggregate data parameters
-aggregate_flag = False
-aggregated_image = 0
-aggregate_time = 0
-aggregate_counter = 1
 
 
 # Main plot
@@ -80,78 +69,8 @@ open_stats_button.js_on_click(CustomJS(code="window.open('/statistics');"))
 sv_streamctrl = sv.StreamControl()
 
 
-# Intensity threshold toggle button
-def threshold_button_callback(state):
-    global threshold_flag
-    if state:
-        threshold_flag = True
-        threshold_button.button_type = 'primary'
-    else:
-        threshold_flag = False
-        threshold_button.button_type = 'default'
-
-
-threshold_button = Toggle(label="Apply Thresholding", active=threshold_flag)
-if threshold_flag:
-    threshold_button.button_type = 'primary'
-else:
-    threshold_button.button_type = 'default'
-threshold_button.on_click(threshold_button_callback)
-
-
-# Minimal intensity threshold value spinner
-def threshold_min_spinner_callback(_attr, _old_value, new_value):
-    global threshold_min
-    threshold_min = new_value
-
-
-threshold_min_spinner = Spinner(title='Minimal Intensity Threshold:', value=threshold_min, step=0.1)
-threshold_min_spinner.on_change('value', threshold_min_spinner_callback)
-
-
-# Maximal intensity threshold value spinner
-def threshold_max_spinner_callback(_attr, _old_value, new_value):
-    global threshold_max
-    threshold_max = new_value
-
-
-threshold_max_spinner = Spinner(title='Maximal Intensity Threshold:', value=threshold_max, step=0.1)
-threshold_max_spinner.on_change('value', threshold_max_spinner_callback)
-
-
-# Aggregation time toggle button
-def aggregate_button_callback(state):
-    global aggregate_flag
-    if state:
-        aggregate_flag = True
-        aggregate_button.button_type = 'primary'
-    else:
-        aggregate_flag = False
-        aggregate_button.button_type = 'default'
-
-
-aggregate_button = Toggle(label="Apply Aggregation", active=aggregate_flag)
-if aggregate_flag:
-    aggregate_button.button_type = 'primary'
-else:
-    aggregate_button.button_type = 'default'
-aggregate_button.on_click(aggregate_button_callback)
-
-
-# Aggregation time value spinner
-def aggregate_time_spinner_callback(_attr, _old_value, new_value):
-    global aggregate_time
-    aggregate_time = new_value
-
-
-aggregate_time_spinner = Spinner(title='Aggregate Time:', value=aggregate_time, low=0, step=1)
-aggregate_time_spinner.on_change('value', aggregate_time_spinner_callback)
-
-
-# Aggregate time counter value textinput
-aggregate_time_counter_textinput = TextInput(
-    title='Aggregate Counter:', value=str(aggregate_counter), disabled=True
-)
+# Image processor
+sv_image_processor = sv.ImageProcessor()
 
 
 # Metadata datatable
@@ -191,13 +110,13 @@ layout_controls = column(
 )
 
 layout_threshold_aggr = column(
-    threshold_button,
-    threshold_max_spinner,
-    threshold_min_spinner,
+    sv_image_processor.threshold_toggle,
+    sv_image_processor.threshold_max_spinner,
+    sv_image_processor.threshold_min_spinner,
     Spacer(height=30),
-    aggregate_button,
-    aggregate_time_spinner,
-    aggregate_time_counter_textinput,
+    sv_image_processor.aggregate_toggle,
+    sv_image_processor.aggregate_time_spinner,
+    sv_image_processor.aggregate_time_counter_textinput,
 )
 
 layout_metadata = column(
@@ -251,26 +170,9 @@ async def update_client(image, metadata, reset, aggr_image):
 
 
 async def internal_periodic_callback():
-    global aggregate_counter, aggregated_image
-    reset = True
-
     if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
         sv_rt.current_metadata, sv_rt.current_image = sv_streamctrl.get_stream_data(-1)
-
-        sv_rt.current_image = sv_rt.current_image.copy()
-        if threshold_flag:
-            ind = (sv_rt.current_image < threshold_min) | (threshold_max < sv_rt.current_image)
-            sv_rt.current_image[ind] = 0
-
-        if aggregate_flag and (aggregate_time == 0 or aggregate_time > aggregate_counter):
-            aggregated_image += sv_rt.current_image
-            aggregate_counter += 1
-            reset = False
-        else:
-            aggregated_image = sv_rt.current_image
-            aggregate_counter = 1
-
-        aggregate_time_counter_textinput.value = str(aggregate_counter)
+        sv_rt.aggregated_image, sv_rt.reset = sv_image_processor.update(sv_rt.current_image)
 
     if sv_rt.current_image.shape != (1, 1):
         doc.add_next_tick_callback(
@@ -278,8 +180,8 @@ async def internal_periodic_callback():
                 update_client,
                 image=sv_rt.current_image,
                 metadata=sv_rt.current_metadata,
-                reset=reset,
-                aggr_image=aggregated_image,
+                reset=sv_rt.reset,
+                aggr_image=sv_rt.aggregated_image,
             )
         )
 

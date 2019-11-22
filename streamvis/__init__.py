@@ -14,5 +14,6 @@ from .stream_graph import StreamGraph
 from .intensity_roi import IntensityROI
 from .projection import Projection
 from .input_control import StreamControl
+from .image_processor import ImageProcessor
 
 __version__ = "0.7.1"
