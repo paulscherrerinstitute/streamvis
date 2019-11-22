@@ -1,5 +1,20 @@
 import numpy as np
-from bokeh.models import ColumnDataSource, Cross, Ellipse, Text, Toggle
+from bokeh.models import ColumnDataSource, Cross, CustomJSHover, Ellipse, HoverTool, Text, Toggle
+
+js_resolution = """
+    var detector_distance = params.data.detector_distance
+    var beam_energy = params.data.beam_energy
+    var beam_center_x = params.data.beam_center_x
+    var beam_center_y = params.data.beam_center_y
+
+    var x = special_vars.x - beam_center_x
+    var y = special_vars.y - beam_center_y
+
+    var theta = Math.atan(Math.sqrt(x*x + y*y) * 75e-6 / detector_distance) / 2
+    var resolution = 6200 / beam_energy / Math.sin(theta)  // 6200 = 1.24 / 2 / 1e-4
+
+    return resolution.toFixed(2)
+"""
 
 
 class ResolutionRings:
@@ -11,6 +26,26 @@ class ResolutionRings:
             positions (ndarray): Scattering radii in Angstroms.
         """
         self.positions = positions
+
+        # ---- add resolution tooltip to hover tool
+        self._formatter_source = ColumnDataSource(
+            data=dict(
+                detector_distance=[np.nan],
+                beam_energy=[np.nan],
+                beam_center_x=[np.nan],
+                beam_center_y=[np.nan],
+            )
+        )
+
+        resolution_formatter = CustomJSHover(
+            args=dict(params=self._formatter_source), code=js_resolution
+        )
+
+        hovertool = HoverTool(
+            tooltips=[("intensity", "@image"), ("resolution", "@x{resolution} Å")],
+            formatters=dict(x=resolution_formatter),
+            names=['image_glyph'],
+        )
 
         # ---- resolution rings
         self._source = ColumnDataSource(dict(x=[], y=[], w=[], h=[], text_x=[], text_y=[], text=[]))
@@ -35,6 +70,7 @@ class ResolutionRings:
             image_view.plot.add_glyph(self._source, ellipse_glyph)
             image_view.plot.add_glyph(self._source, text_glyph)
             image_view.plot.add_glyph(self._center_source, cross_glyph)
+            image_view.plot.tools[-1] = hovertool
 
         # ---- toggle button
         def toggle_callback(state):
@@ -64,8 +100,8 @@ class ResolutionRings:
         beam_center_y = metadata.get('beam_center_y')
 
         if detector_distance and beam_energy and beam_center_x and beam_center_y:
-            beam_center_x *= np.ones(len(self.positions))
-            beam_center_y *= np.ones(len(self.positions))
+            array_beam_center_x = beam_center_x * np.ones(len(self.positions))
+            array_beam_center_y = beam_center_y * np.ones(len(self.positions))
             # if '6200 / beam_energy > 1', then arcsin returns nan
             theta = np.arcsin(6200 / beam_energy / self.positions)  # 6200 = 1.24 / 2 / 1e-4
             diams = 2 * detector_distance * np.tan(2 * theta) / 75e-6
@@ -74,19 +110,31 @@ class ResolutionRings:
             ring_text = [str(s) + ' Å' for s in self.positions]
 
             self._source.data.update(
-                x=beam_center_x,
-                y=beam_center_y,
+                x=array_beam_center_x,
+                y=array_beam_center_y,
                 w=diams,
                 h=diams,
-                text_x=beam_center_x + diams / 2,
-                text_y=beam_center_y,
+                text_x=array_beam_center_x + diams / 2,
+                text_y=array_beam_center_y,
                 text=ring_text,
             )
-            self._center_source.data.update(x=beam_center_x, y=beam_center_y)
+            self._center_source.data.update(x=[beam_center_x], y=[beam_center_y])
+            self._formatter_source.data.update(
+                detector_distance=[detector_distance],
+                beam_energy=[beam_energy],
+                beam_center_x=[beam_center_x],
+                beam_center_y=[beam_center_y],
+            )
 
         else:
             self._source.data.update(x=[], y=[], w=[], h=[], text_x=[], text_y=[], text=[])
             self._center_source.data.update(x=[], y=[])
+            self._formatter_source.data.update(
+                detector_distance=[np.nan],
+                beam_energy=[np.nan],
+                beam_center_x=[np.nan],
+                beam_center_y=[np.nan],
+            )
 
             if self.toggle.active:
                 sv_metadata.add_issue("Metadata does not contain all data for resolution rings")

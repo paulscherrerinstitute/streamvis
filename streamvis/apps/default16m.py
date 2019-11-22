@@ -12,7 +12,6 @@ from bokeh.models import (
     Circle,
     ColumnDataSource,
     CustomJS,
-    CustomJSHover,
     DataRange1d,
     DatetimeAxis,
     Grid,
@@ -67,42 +66,6 @@ RESOLUTION_RINGS_POS = np.array([2, 2.2, 2.6, 3, 5, 10])
 sv_mainview = sv.ImageView(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
 sv_mainview.toolbar_location = 'below'
 
-# ---- tools
-experiment_params = ColumnDataSource(
-    data=dict(
-        detector_distance=[np.nan],
-        beam_energy=[np.nan],
-        beam_center_x=[np.nan],
-        beam_center_y=[np.nan],
-    )
-)
-
-resolution_formatter = CustomJSHover(
-    args=dict(params=experiment_params),
-    code="""
-        var detector_distance = params.data.detector_distance
-        var beam_energy = params.data.beam_energy
-        var beam_center_x = params.data.beam_center_x
-        var beam_center_y = params.data.beam_center_y
-
-        var x = special_vars.x - beam_center_x
-        var y = special_vars.y - beam_center_y
-
-        var theta = Math.atan(Math.sqrt(x*x + y*y) * 75e-6 / detector_distance) / 2
-        var resolution = 6200 / beam_energy / Math.sin(theta)  // 6200 = 1.24 / 2 / 1e-4
-
-        return resolution.toFixed(2)
-    """,
-)
-
-hovertool = HoverTool(
-    tooltips=[("intensity", "@image"), ("resolution", "@x{resolution} Å")],
-    formatters=dict(x=resolution_formatter),
-    names=['image_glyph'],
-)
-
-# replace the existing HoverTool
-sv_mainview.plot.tools[-1] = hovertool
 
 # ---- peaks circle glyph
 main_image_peaks_source = ColumnDataSource(dict(x=[], y=[]))
@@ -121,10 +84,6 @@ sv_streamgraph.plots[1].title = Title(text="Zoom total intensity")
 # Zoom plot
 sv_zoomview = sv.ImageView(plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH)
 sv_zoomview.toolbar_location = 'below'
-
-# ---- tools
-# replace the existing HoverTool
-sv_zoomview.plot.tools[-1] = hovertool
 
 sv_mainview.add_as_zoom(sv_zoomview, line_color='white')
 
@@ -393,14 +352,6 @@ async def update_client(image, metadata):
             sv_metadata.add_issue('Spots data is inconsistent')
     else:
         main_image_peaks_source.data.update(x=[], y=[])
-
-    # Update hover tool experiment parameters
-    experiment_params.data.update(
-        detector_distance=[metadata.get('detector_distance', np.nan)],
-        beam_energy=[metadata.get('beam_energy', np.nan)],
-        beam_center_x=[metadata.get('beam_center_x', np.nan)],
-        beam_center_y=[metadata.get('beam_center_y', np.nan)],
-    )
 
     # Update total intensities plots
     zoom_y_start = int(np.floor(sv_zoomview.y_start))
