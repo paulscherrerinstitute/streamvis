@@ -394,7 +394,10 @@ async def update_client(image, metadata):
         )
 
     if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
+        image_buffer_slider.disabled = True
         trajectory_circle_source.selected.indices = []
+    else:
+        image_buffer_slider.disabled = False
 
     # Update mask
     sv_mask.update(sv_metadata)
