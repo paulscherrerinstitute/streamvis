@@ -206,25 +206,33 @@ class Receiver:
     def get_image(self, index):
         """Get metadata and image with the index.
         """
-        metadata, image = self.buffer[index]
-        if 'saturated_pixels' not in metadata:
-            is_saturated = image == self.get_saturated_value()
-            if self.jf_adapter.handler and self.jf_adapter.handler.pixel_mask is not None:
-                is_saturated &= np.invert(self.jf_adapter.handler.pixel_mask)
+        metadata, raw_image = self.buffer[index]
+        image = self.jf_adapter.process(raw_image, metadata)
+
+        if 'saturated_pixels' not in metadata and raw_image.dtype == np.uint16:
+            is_saturated = self.jf_adapter.handler.get_saturated_pixels(raw_image)
+
+            if self.jf_adapter.handler.shaped_pixel_mask is not None:
+                is_saturated &= np.invert(self.jf_adapter.handler.shaped_pixel_mask)
+
             metadata['saturated_pixels'] = np.count_nonzero(is_saturated)
-        image = self.jf_adapter.process(image, metadata)
+
         return metadata, image
 
     def get_last_hit(self):
         """Get metadata and last hit image.
         """
-        metadata, image = self.stats.last_hit
-        if 'saturated_pixels' not in metadata:
-            is_saturated = image == self.get_saturated_value()
-            if self.jf_adapter.handler and self.jf_adapter.handler.pixel_mask is not None:
-                is_saturated &= np.invert(self.jf_adapter.handler.pixel_mask)
+        metadata, raw_image = self.stats.last_hit
+        image = self.jf_adapter.process(raw_image, metadata)
+
+        if 'saturated_pixels' not in metadata and raw_image.dtype == np.uint16:
+            is_saturated = self.jf_adapter.handler.get_saturated_pixels(raw_image)
+
+            if self.jf_adapter.handler.shaped_pixel_mask is not None:
+                is_saturated &= np.invert(self.jf_adapter.handler.shaped_pixel_mask)
+
             metadata['saturated_pixels'] = np.count_nonzero(is_saturated)
-        image = self.jf_adapter.process(image, metadata)
+
         return metadata, image
 
     def get_image_gains(self, index):
@@ -234,16 +242,8 @@ class Receiver:
         if image.dtype != np.uint16:
             return metadata, image
 
-        image = self.jf_adapter.get_gains(image)
-
-        handler = self.jf_adapter.handler
-        if handler is not None:
-            image = image[np.newaxis]
-            if handler.is_stripsel():
-                image = handler._apply_geometry_stripsel(image)
-            else:
-                image = handler._apply_geometry(image)
-            image = image[0]
+        if self.jf_adapter.handler:
+            image = self.jf_adapter.handler.get_gains(image)
 
         return metadata, image
 
@@ -254,25 +254,7 @@ class Receiver:
         if image.dtype != np.uint16:
             return metadata, image
 
-        image = self.jf_adapter.get_gains(image)
-
-        handler = self.jf_adapter.handler
-        if handler is not None:
-            image = image[np.newaxis]
-            if handler.is_stripsel():
-                image = handler._apply_geometry_stripsel(image)
-            else:
-                image = handler._apply_geometry(image)
-            image = image[0]
+        if self.jf_adapter.handler:
+            image = self.jf_adapter.handler.get_gains(image)
 
         return metadata, image
-
-    def get_saturated_value(self):
-        """Get a value for saturated pixels.
-        """
-        if self.jf_adapter.handler and self.jf_adapter.handler.highgain:
-            saturated_value = 0b0011111111111111  # 16383
-        else:
-            saturated_value = 0b1100000000000000  # 49152
-
-        return saturated_value
