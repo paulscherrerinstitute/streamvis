@@ -23,7 +23,8 @@ cmap_dict = {
     'cividis': Cividis256,
 }
 
-STEP = 0.1
+# TODO: Can be changed back to 0.1 when https://github.com/bokeh/bokeh/issues/9408 is fixed
+STEP = 1
 
 
 class ColorMapper:
