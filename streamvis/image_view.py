@@ -230,7 +230,7 @@ class ImageView:
                 Defaults to None.
         """
         if pil_image is None:
-            pil_image = PIL_Image.fromarray(image)
+            pil_image = PIL_Image.fromarray(image.astype(np.float32, copy=False))
 
         if (
             self._image_source.data['full_dh'][0] != pil_image.height
