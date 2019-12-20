@@ -1,10 +1,10 @@
-import os
 from functools import partial
 
+import h5py
 import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, row
-from bokeh.models import Button, ColumnDataSource, CustomJS, Dropdown, Slider, TextInput
+from bokeh.models import Button, Slider, TextInput
 
 import streamvis as sv
 
@@ -17,12 +17,6 @@ MAIN_CANVAS_WIDTH = 1000 + 55
 MAIN_CANVAS_HEIGHT = 1000 + 59
 
 APP_FPS = 1
-
-HDF5_FILE_PATH = '/filepath'
-HDF5_FILE_PATH_UPDATE_PERIOD = 10000  # ms
-HDF5_DATASET_PATH = '/entry/data/data'
-hdf5_file_data = lambda pulse: None
-
 
 # Main plot
 sv_mainview = sv.ImageView(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
@@ -41,78 +35,58 @@ sv_mainview.plot.add_layout(sv_colormapper.color_bar, place='below')
 sv_hist = sv.Histogram(nplots=1, plot_height=400, plot_width=700)
 
 
-# HDF5 File panel
-def hdf5_file_path_update():
-    new_menu = []
-    if os.path.isdir(hdf5_file_path.value):
-        with os.scandir(hdf5_file_path.value) as it:
-            for entry in it:
-                if entry.is_file() and entry.name.endswith(('.hdf5', '.h5')):
-                    new_menu.append((entry.name, entry.name))
-    saved_runs_dropdown.menu = sorted(new_menu)
+# File path text input
+file_path = TextInput(title="File Path:", value='/')
 
+# Dataset path text input
+dataset_path = TextInput(title="Dataset Path:", value='/')
 
-doc.add_periodic_callback(hdf5_file_path_update, HDF5_FILE_PATH_UPDATE_PERIOD)
-
-# ---- folder path text input
-def hdf5_file_path_callback(_attr, _old, _new):
-    hdf5_file_path_update()
-
-
-hdf5_file_path = TextInput(title="Folder Path:", value=HDF5_FILE_PATH)
-hdf5_file_path.on_change('value', hdf5_file_path_callback)
-
-# ---- saved runs dropdown menu
-def saved_runs_dropdown_callback(selection):
-    saved_runs_dropdown.label = selection
-
-
-saved_runs_dropdown = Dropdown(label="Saved Runs", menu=[])
-saved_runs_dropdown.on_click(saved_runs_dropdown_callback)
-
-# ---- dataset path text input
-hdf5_dataset_path = TextInput(title="Dataset Path:", value=HDF5_DATASET_PATH)
-
-# ---- load button
-def mx_image(file, dataset, i):
-    # hdf5plugin is required to be loaded prior to h5py without a follow-up use
-    import hdf5plugin  # pylint: disable=W0611
-    import h5py
-
+# Load button
+def _load_image_from_dataset(file, dataset, index):
     with h5py.File(file, 'r') as f:
-        image = f[dataset][i, :, :].astype('float32')
+        image = f[dataset][index].astype('float32')
         metadata = dict(shape=list(image.shape))
+
     return image, metadata
 
 
 def load_file_button_callback():
-    global hdf5_file_data
-    file_name = os.path.join(hdf5_file_path.value, saved_runs_dropdown.label)
-    hdf5_file_data = partial(mx_image, file=file_name, dataset=hdf5_dataset_path.value)
-    sv_rt.current_image, sv_rt.current_metadata = hdf5_file_data(i=hdf5_pulse_slider.value)
-    update_client(sv_rt.current_image, sv_rt.current_metadata)
+    sv_rt.current_image, sv_rt.current_metadata = _load_image_from_dataset(
+        file_path.value, dataset_path.value, image_index_slider.value
+    )
+
+    doc.add_next_tick_callback(
+        partial(update_client, image=sv_rt.current_image, metadata=sv_rt.current_metadata)
+    )
+
+    image_index_slider.disabled = False
 
 
 load_file_button = Button(label="Load", button_type='default')
 load_file_button.on_click(load_file_button_callback)
 
-# ---- pulse number slider
-def hdf5_pulse_slider_callback(_attr, _old, new):
-    global hdf5_file_data
-    sv_rt.current_image, sv_rt.current_metadata = hdf5_file_data(i=new['value'][0])
-    update_client(sv_rt.current_image, sv_rt.current_metadata)
+# Image index slider
+def image_index_slider_callback(_attr, _old, new):
+    sv_rt.current_image, sv_rt.current_metadata = _load_image_from_dataset(
+        file_path.value, dataset_path.value, new
+    )
+
+    doc.add_next_tick_callback(
+        partial(update_client, image=sv_rt.current_image, metadata=sv_rt.current_metadata)
+    )
 
 
-hdf5_pulse_slider_source = ColumnDataSource(dict(value=[]))
-hdf5_pulse_slider_source.on_change('data', hdf5_pulse_slider_callback)
-
-hdf5_pulse_slider = Slider(
-    start=0, end=99, value=0, step=1, title="Pulse Number", callback_policy='mouseup'
+image_index_slider = Slider(
+    start=0,
+    end=99,
+    value=0,
+    step=1,
+    title="Pulse Number",
+    callback_policy='throttle',
+    callback_throttle=500,
+    disabled=True,
 )
-
-hdf5_pulse_slider.callback = CustomJS(
-    args=dict(source=hdf5_pulse_slider_source), code="""source.data = {value: [cb_obj.value]}"""
-)
+image_index_slider.on_change('value', image_index_slider_callback)
 
 
 # Metadata datatable
@@ -128,9 +102,7 @@ colormap_panel = column(
     sv_colormapper.display_min_spinner,
 )
 
-hdf5_panel = column(
-    hdf5_file_path, saved_runs_dropdown, hdf5_dataset_path, load_file_button, hdf5_pulse_slider
-)
+hdf5_panel = column(file_path, dataset_path, load_file_button, image_index_slider)
 
 layout_controls = column(hdf5_panel, colormap_panel)
 
