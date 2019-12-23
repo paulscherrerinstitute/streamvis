@@ -6,7 +6,7 @@ from bokeh.layouts import column
 from bokeh.models import Button, ColumnDataSource, DataTable, NumberFormatter, TableColumn
 
 doc = curdoc()
-receiver = doc.receiver
+stats = doc.stats
 doc.title = f"{doc.title} Statistics"
 
 all_table_columns = {
@@ -32,12 +32,12 @@ all_table_columns = {
 
 table_columns = copy(all_table_columns)
 
-table_source = ColumnDataSource(receiver.stats.data)
+table_source = ColumnDataSource(stats.data)
 table = DataTable(
     source=table_source, columns=list(table_columns.values()), height=50, index_position=None
 )
 
-sum_table_source = ColumnDataSource(receiver.stats.sum_data)
+sum_table_source = ColumnDataSource(stats.sum_data)
 sum_table = DataTable(
     source=sum_table_source, columns=list(table_columns.values()), height=50, index_position=None
 )
@@ -46,7 +46,7 @@ sum_table = DataTable(
 # update statistics callback
 def update_statistics():
     update_columns = False
-    if np.all(np.isnan(receiver.stats.data['sat_pix_nframes'])):
+    if np.all(np.isnan(stats.data['sat_pix_nframes'])):
         if 'sat_pix_nframes' in table_columns:
             del table_columns['sat_pix_nframes']
             update_columns = True
@@ -56,7 +56,7 @@ def update_statistics():
             table_columns['sat_pix_nframes'] = all_table_columns['sat_pix_nframes']
             update_columns = True
 
-    if np.all(np.isnan(receiver.stats.data['laser_on_nframes'])):
+    if np.all(np.isnan(stats.data['laser_on_nframes'])):
         if 'laser_on_nframes' in table_columns:
             del table_columns['laser_on_nframes']
             del table_columns['laser_on_hits']
@@ -80,13 +80,13 @@ def update_statistics():
         table.columns = list(table_columns.values())
         sum_table.columns = list(table_columns.values())
 
-    table_source.data = receiver.stats.data
-    sum_table_source.data = receiver.stats.sum_data
+    table_source.data = stats.data
+    sum_table_source.data = stats.sum_data
 
 
 # reset statistics button
 def reset_stats_button_callback():
-    receiver.stats.reset()
+    stats.reset()
 
 
 reset_stats_button = Button(label="Reset Statistics", button_type='default')

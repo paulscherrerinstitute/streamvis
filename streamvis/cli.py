@@ -114,7 +114,7 @@ def main():
 
     # StreamvisHandler is a custom bokeh application Handler, which sets some of the core
     # properties for new bokeh documents created by all applications.
-    sv_handler = StreamvisHandler(receiver, args)
+    sv_handler = StreamvisHandler(receiver, stats, args)
 
     applications = dict()  # List of bokeh applications
 

@@ -42,6 +42,7 @@ import streamvis as sv
 
 doc = curdoc()
 receiver = doc.receiver
+stats = doc.stats
 
 sv_rt = sv.Runtime()
 
@@ -208,8 +209,8 @@ hitrate_blue_line = hitrate_plot.add_glyph(
 hitrate_plot.add_layout(
     Legend(
         items=[
-            (f"{receiver.stats.hitrate_buffer_fast.maxlen} shots avg", [hitrate_red_line]),
-            (f"{receiver.stats.hitrate_buffer_slow.maxlen} shots avg", [hitrate_blue_line]),
+            (f"{stats.hitrate_buffer_fast.maxlen} shots avg", [hitrate_red_line]),
+            (f"{stats.hitrate_buffer_slow.maxlen} shots avg", [hitrate_blue_line]),
         ],
         location='top_left',
     )
@@ -370,7 +371,7 @@ async def update_client(image, metadata):
     hitrate_line_red_source.stream(
         new_data=dict(
             x=[stream_t],
-            y=[sum(receiver.stats.hitrate_buffer_fast) / len(receiver.stats.hitrate_buffer_fast)],
+            y=[sum(stats.hitrate_buffer_fast) / len(stats.hitrate_buffer_fast)],
         ),
         rollover=HITRATE_ROLLOVER,
     )
@@ -378,14 +379,14 @@ async def update_client(image, metadata):
     hitrate_line_blue_source.stream(
         new_data=dict(
             x=[stream_t],
-            y=[sum(receiver.stats.hitrate_buffer_slow) / len(receiver.stats.hitrate_buffer_slow)],
+            y=[sum(stats.hitrate_buffer_slow) / len(stats.hitrate_buffer_slow)],
         ),
         rollover=HITRATE_ROLLOVER,
     )
 
     # Update scan positions
-    if custom_tabs.tabs[custom_tabs.active].title == "SwissMX" and receiver.stats.peakfinder_buffer:
-        peakfinder_buffer = np.array(receiver.stats.peakfinder_buffer)
+    if custom_tabs.tabs[custom_tabs.active].title == "SwissMX" and stats.peakfinder_buffer:
+        peakfinder_buffer = np.array(stats.peakfinder_buffer)
         trajectory_circle_source.data.update(
             x=peakfinder_buffer[:, 0],
             y=peakfinder_buffer[:, 1],
@@ -411,7 +412,7 @@ async def update_client(image, metadata):
 async def internal_periodic_callback():
     if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
         if show_only_hits_toggle.active:
-            if receiver.stats.last_hit != (None, None):
+            if stats.last_hit != (None, None):
                 if sv_streamctrl.datatype_select.value == "Image":
                     sv_rt.current_metadata, sv_rt.current_image = receiver.get_last_hit()
                 elif sv_streamctrl.datatype_select.value == "Gains":
