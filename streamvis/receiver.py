@@ -27,6 +27,8 @@ class StatisticsHandler:
         self.hitrate_buffer_slow = deque(maxlen=500)
         self._lock = RLock()
 
+        self.jf_adapter = StreamAdapter()
+
         self.data = dict(
             run_names=[],
             nframes=[],
@@ -136,13 +138,40 @@ class StatisticsHandler:
                 if key != 'run_names':
                     val[0] = 0
 
+    def get_last_hit(self):
+        """Get metadata and last hit image.
+        """
+        metadata, raw_image = self.last_hit
+        image = self.jf_adapter.process(raw_image, metadata)
+
+        if 'saturated_pixels' not in metadata and raw_image.dtype == np.uint16:
+            is_saturated = self.jf_adapter.handler.get_saturated_pixels(raw_image)
+
+            if self.jf_adapter.handler.shaped_pixel_mask is not None:
+                is_saturated &= np.invert(self.jf_adapter.handler.shaped_pixel_mask)
+
+            metadata['saturated_pixels'] = np.count_nonzero(is_saturated)
+
+        return metadata, image
+
+    def get_last_hit_gains(self):
+        """Get metadata and gains of last hit image.
+        """
+        metadata, image = self.last_hit
+        if image.dtype != np.uint16:
+            return metadata, image
+
+        if self.jf_adapter.handler:
+            image = self.jf_adapter.handler.get_gains(image)
+
+        return metadata, image
+
 
 class Receiver:
-    def __init__(self, stats, on_receive=None, buffer_size=1):
+    def __init__(self, on_receive=None, buffer_size=1):
         """Initialize a jungfrau receiver.
 
         Args:
-            stats (StatisticsHandler): An instance of jungfrau statistics handler.
             on_receive (function, optional): Execute function with each received metadata and image
                 as input arguments. Defaults to None.
             buffer_size (int, optional): A number of last received zmq messages to keep in memory.
@@ -153,8 +182,6 @@ class Receiver:
         self.on_receive = on_receive
 
         self.jf_adapter = StreamAdapter()
-
-        self.stats = stats
 
     def start(self, connection_mode, address):
         """[summary]
@@ -219,38 +246,10 @@ class Receiver:
 
         return metadata, image
 
-    def get_last_hit(self):
-        """Get metadata and last hit image.
-        """
-        metadata, raw_image = self.stats.last_hit
-        image = self.jf_adapter.process(raw_image, metadata)
-
-        if 'saturated_pixels' not in metadata and raw_image.dtype == np.uint16:
-            is_saturated = self.jf_adapter.handler.get_saturated_pixels(raw_image)
-
-            if self.jf_adapter.handler.shaped_pixel_mask is not None:
-                is_saturated &= np.invert(self.jf_adapter.handler.shaped_pixel_mask)
-
-            metadata['saturated_pixels'] = np.count_nonzero(is_saturated)
-
-        return metadata, image
-
     def get_image_gains(self, index):
         """Get metadata and gains of image with the index.
         """
         metadata, image = self.buffer[index]
-        if image.dtype != np.uint16:
-            return metadata, image
-
-        if self.jf_adapter.handler:
-            image = self.jf_adapter.handler.get_gains(image)
-
-        return metadata, image
-
-    def get_last_hit_gains(self):
-        """Get metadata and gains of last hit image.
-        """
-        metadata, image = self.stats.last_hit
         if image.dtype != np.uint16:
             return metadata, image
 

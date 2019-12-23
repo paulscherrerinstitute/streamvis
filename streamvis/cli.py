@@ -99,13 +99,13 @@ def main():
     app_path = os.path.join(apps_path, args.app + '.py')
     logger.info(app_path)
 
-    # StatisticsHandler is used by Receiver to gather statistical information (mainly from message
-    # metadata) to be displayed in 'statistics' application, all messages are being processed.
+    # StatisticsHandler is used by Receiver to parse metadata information to be displayed in
+    # 'statistics' application, all messages are being processed.
     stats = StatisticsHandler(hit_threshold=args.hit_threshold, buffer_size=args.buffer_size)
 
     # Receiver gets messages via zmq stream, reconstruct images (only those that are being
-    # requested), and manages statistics with StatisticsHandler
-    receiver = Receiver(stats=stats, on_receive=stats.parse, buffer_size=args.buffer_size)
+    # requested), and parses statistics with StatisticsHandler
+    receiver = Receiver(on_receive=stats.parse, buffer_size=args.buffer_size)
 
     # Start receiver in a separate thread
     start_receiver = partial(receiver.start, args.connection_mode, args.address)
