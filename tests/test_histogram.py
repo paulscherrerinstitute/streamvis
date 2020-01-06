@@ -4,7 +4,7 @@ import pytest
 import streamvis as sv
 
 
-@pytest.fixture(name='sv_hist_single_plot', scope='function')
+@pytest.fixture(name="sv_hist_single_plot", scope="function")
 def _sv_hist_single_plot():
     sv_hist = sv.Histogram(nplots=1)
     yield sv_hist
@@ -34,9 +34,9 @@ def test_update_single_value(sv_hist_single_plot, value):
     default_nbins = sv_hist_single_plot.nbins
     sv_hist_single_plot.update(data)
 
-    assert len(sv_hist_single_plot._plot_sources[0].data['left']) == default_nbins
-    assert len(sv_hist_single_plot._plot_sources[0].data['right']) == default_nbins
-    assert len(sv_hist_single_plot._plot_sources[0].data['top']) == default_nbins
+    assert len(sv_hist_single_plot._plot_sources[0].data["left"]) == default_nbins
+    assert len(sv_hist_single_plot._plot_sources[0].data["right"]) == default_nbins
+    assert len(sv_hist_single_plot._plot_sources[0].data["top"]) == default_nbins
 
 
 def test_update_array(sv_hist_single_plot):
@@ -44,9 +44,9 @@ def test_update_array(sv_hist_single_plot):
     default_nbins = sv_hist_single_plot.nbins
     sv_hist_single_plot.update(data)
 
-    assert len(sv_hist_single_plot._plot_sources[0].data['left']) == default_nbins
-    assert len(sv_hist_single_plot._plot_sources[0].data['right']) == default_nbins
-    assert len(sv_hist_single_plot._plot_sources[0].data['top']) == default_nbins
+    assert len(sv_hist_single_plot._plot_sources[0].data["left"]) == default_nbins
+    assert len(sv_hist_single_plot._plot_sources[0].data["right"]) == default_nbins
+    assert len(sv_hist_single_plot._plot_sources[0].data["top"]) == default_nbins
 
 
 @pytest.mark.parametrize("nbins", [1, 300, 1000])
@@ -56,6 +56,6 @@ def test_update_fixed(nbins):
     data = [np.random.randint(-100, 100, 1000)]
     sv_hist.update(data)
 
-    assert len(sv_hist._plot_sources[0].data['left']) == nbins
-    assert len(sv_hist._plot_sources[0].data['right']) == nbins
-    assert len(sv_hist._plot_sources[0].data['top']) == nbins
+    assert len(sv_hist._plot_sources[0].data["left"]) == nbins
+    assert len(sv_hist._plot_sources[0].data["right"]) == nbins
+    assert len(sv_hist._plot_sources[0].data["top"]) == nbins

@@ -10,22 +10,22 @@ import zmq
 N = 6000
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--stream', default='base')
+parser.add_argument("--stream", default="base")
 args = parser.parse_args()
 
-if args.stream == 'base':
+if args.stream == "base":
     im_size_x = 1024
     im_size_y = 512
-elif args.stream == 'alvra':
+elif args.stream == "alvra":
     im_size_x = 9318
     im_size_y = 514
-elif args.stream == 'bernina':
+elif args.stream == "bernina":
     im_size_x = 1030
     im_size_y = 1554
-elif args.stream == 'alvra-16m':
+elif args.stream == "alvra-16m":
     im_size_x = 4982
     im_size_y = 4214
-elif args.stream == 'bernina-16m':
+elif args.stream == "bernina-16m":
     im_size_x = 4150
     im_size_y = 4164
 
@@ -33,17 +33,17 @@ elif args.stream == 'bernina-16m':
 def simul_image_gen(sim_im_size_x=im_size_x, sim_im_size_y=im_size_y, dtype=np.uint16):
     cx = np.array(
         [sim_im_size_x * 3 / 4, sim_im_size_x / 4, sim_im_size_x / 4, sim_im_size_x * 3 / 4],
-        dtype='int',
+        dtype="int",
     )
     cy = np.array(
         [sim_im_size_y * 3 / 4, sim_im_size_y * 3 / 4, sim_im_size_y / 4, sim_im_size_y / 4],
-        dtype='int',
+        dtype="int",
     )
     sx = np.array(
-        [sim_im_size_x / 12, sim_im_size_x / 9, sim_im_size_x / 7, sim_im_size_x / 5], dtype='int'
+        [sim_im_size_x / 12, sim_im_size_x / 9, sim_im_size_x / 7, sim_im_size_x / 5], dtype="int"
     )
     sy = np.array(
-        [sim_im_size_y / 12, sim_im_size_y / 9, sim_im_size_y / 7, sim_im_size_y / 5], dtype='int'
+        [sim_im_size_y / 12, sim_im_size_y / 9, sim_im_size_y / 7, sim_im_size_y / 5], dtype="int"
     )
 
     images = []
@@ -75,9 +75,9 @@ def send_array(socket, array, frame_num, pulseid, flags=0, copy=False, track=Fal
         number_of_spots=n_spots,
         spot_x=list(np.random.rand(n_spots) * 1000),
         spot_y=list(np.random.rand(n_spots) * 1000),
-        pedestal_file='/test_path/pedestal_20181206_0754.JF06T32V01.res.h5',
-        detector_name='JF06T32V01',
-        run_name='run_001',
+        pedestal_file="/test_path/pedestal_20181206_0754.JF06T32V01.res.h5",
+        detector_name="JF06T32V01",
+        run_name="run_001",
         detector_distance=0.015,
         beam_energy=4570.0,
         beam_center_x=2215,
@@ -96,7 +96,7 @@ if __name__ == "__main__":
     pulse_id = 0
     ctx = zmq.Context()
     skt = ctx.socket(zmq.PUB)  # pylint: disable=E1101
-    skt.bind('tcp://127.0.0.1:9001')
+    skt.bind("tcp://127.0.0.1:9001")
     im_gen = simul_image_gen()
 
     for n in range(N):
