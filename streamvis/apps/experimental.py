@@ -28,7 +28,7 @@ sv_colormapper = sv.ColorMapper([sv_mainview])
 # ---- add colorbar to the main plot
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
 sv_colormapper.color_bar.location = (0, -5)
-sv_mainview.plot.add_layout(sv_colormapper.color_bar, place='below')
+sv_mainview.plot.add_layout(sv_colormapper.color_bar, place="below")
 
 
 # Histogram plot
@@ -36,15 +36,15 @@ sv_hist = sv.Histogram(nplots=1, plot_height=400, plot_width=700)
 
 
 # File path text input
-file_path = TextInput(title="File Path:", value='/')
+file_path = TextInput(title="File Path:", value="/")
 
 # Dataset path text input
-dataset_path = TextInput(title="Dataset Path:", value='/')
+dataset_path = TextInput(title="Dataset Path:", value="/")
 
 # Load button
 def _load_image_from_dataset(file, dataset, index):
-    with h5py.File(file, 'r') as f:
-        image = f[dataset][index].astype('float32')
+    with h5py.File(file, "r") as f:
+        image = f[dataset][index].astype("float32")
         metadata = dict(shape=list(image.shape))
 
     return image, metadata
@@ -62,7 +62,7 @@ def load_file_button_callback():
     image_index_slider.disabled = False
 
 
-load_file_button = Button(label="Load", button_type='default')
+load_file_button = Button(label="Load", button_type="default")
 load_file_button.on_click(load_file_button_callback)
 
 # Image index slider
@@ -82,11 +82,11 @@ image_index_slider = Slider(
     value=0,
     step=1,
     title="Pulse Number",
-    callback_policy='throttle',
+    callback_policy="throttle",
     callback_throttle=500,
     disabled=True,
 )
-image_index_slider.on_change('value', image_index_slider_callback)
+image_index_slider.on_change("value", image_index_slider_callback)
 
 
 # Metadata datatable

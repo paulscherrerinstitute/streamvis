@@ -64,14 +64,14 @@ RESOLUTION_RINGS_POS = np.array([2, 2.2, 2.6, 3, 5, 10])
 
 # Main plot
 sv_mainview = sv.ImageView(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
-sv_mainview.toolbar_location = 'below'
+sv_mainview.toolbar_location = "below"
 
 
 # ---- peaks circle glyph
 main_image_peaks_source = ColumnDataSource(dict(x=[], y=[]))
 sv_mainview.plot.add_glyph(
     main_image_peaks_source,
-    Circle(x='x', y='y', size=15, fill_alpha=0, line_width=3, line_color='white'),
+    Circle(x="x", y="y", size=15, fill_alpha=0, line_width=3, line_color="white"),
 )
 
 
@@ -83,14 +83,14 @@ sv_streamgraph.plots[1].title = Title(text="Zoom total intensity")
 
 # Zoom plot
 sv_zoomview = sv.ImageView(plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH)
-sv_zoomview.toolbar_location = 'below'
+sv_zoomview.toolbar_location = "below"
 
-sv_mainview.add_as_zoom(sv_zoomview, line_color='white')
+sv_mainview.add_as_zoom(sv_zoomview, line_color="white")
 
-sv_zoom_proj_v = sv.Projection(sv_zoomview, 'vertical', plot_height=ZOOM_PROJ_X_CANVAS_HEIGHT)
+sv_zoom_proj_v = sv.Projection(sv_zoomview, "vertical", plot_height=ZOOM_PROJ_X_CANVAS_HEIGHT)
 sv_zoom_proj_v.plot.renderers[0].glyph.line_width = 2
 
-sv_zoom_proj_h = sv.Projection(sv_zoomview, 'horizontal', plot_width=ZOOM_PROJ_Y_CANVAS_WIDTH)
+sv_zoom_proj_h = sv.Projection(sv_zoomview, "horizontal", plot_width=ZOOM_PROJ_Y_CANVAS_WIDTH)
 sv_zoom_proj_h.plot.renderers[0].glyph.line_width = 2
 
 
@@ -99,7 +99,7 @@ sv_colormapper = sv.ColorMapper([sv_mainview, sv_zoomview])
 
 # ---- add colorbar to the main plot
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
-sv_mainview.plot.add_layout(sv_colormapper.color_bar, place='above')
+sv_mainview.plot.add_layout(sv_colormapper.color_bar, place="above")
 
 
 # Add resolution rings to both plots
@@ -124,22 +124,22 @@ trajectory_plot = Plot(
     y_range=DataRange1d(),
     plot_height=650,
     plot_width=1380,
-    toolbar_location='left',
+    toolbar_location="left",
 )
 
 # ---- tools
 trajectory_plot.toolbar.logo = None
-taptool = TapTool(names=['trajectory_circle'])
+taptool = TapTool(names=["trajectory_circle"])
 trajectory_ht = HoverTool(
-    tooltips=[("frame", "@frame"), ("number of spots", "@nspots")], names=['trajectory_circle']
+    tooltips=[("frame", "@frame"), ("number of spots", "@nspots")], names=["trajectory_circle"]
 )
 trajectory_plot.add_tools(
     PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool(), taptool, trajectory_ht
 )
 
 # ---- axes
-trajectory_plot.add_layout(LinearAxis(), place='below')
-trajectory_plot.add_layout(LinearAxis(), place='left')
+trajectory_plot.add_layout(LinearAxis(), place="below")
+trajectory_plot.add_layout(LinearAxis(), place="left")
 
 # ---- grid lines
 trajectory_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
@@ -147,37 +147,37 @@ trajectory_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
 # ---- line glyph
 trajectory_line_source = ColumnDataSource(dict(x=[], y=[]))
-trajectory_plot.add_glyph(trajectory_line_source, Line(x='x', y='y'))
+trajectory_plot.add_glyph(trajectory_line_source, Line(x="x", y="y"))
 
 # ---- trajectory circle glyph and selection callback
-circle_mapper = linear_cmap(field_name='nspots', palette=['#ffffff'] + Reds9[::-1], low=0, high=100)
+circle_mapper = linear_cmap(field_name="nspots", palette=["#ffffff"] + Reds9[::-1], low=0, high=100)
 trajectory_circle_source = ColumnDataSource(dict(x=[], y=[], frame=[], nspots=[]))
 trajectory_plot.add_glyph(
     trajectory_circle_source,
-    Circle(x='x', y='y', fill_color=circle_mapper, size=12),
-    selection_glyph=Circle(fill_color=circle_mapper, line_color='blue', line_width=3),
+    Circle(x="x", y="y", fill_color=circle_mapper, size=12),
+    selection_glyph=Circle(fill_color=circle_mapper, line_color="blue", line_width=3),
     nonselection_glyph=Circle(fill_color=circle_mapper),
-    name='trajectory_circle',
+    name="trajectory_circle",
 )
 
 
 def trajectory_circle_source_callback(_attr, _old, new):
     if new:
-        index_from_last = new[0] - len(trajectory_circle_source.data['x'])
+        index_from_last = new[0] - len(trajectory_circle_source.data["x"])
         sv_rt.current_metadata, sv_rt.current_image = sv_streamctrl.get_stream_data(index_from_last)
 
 
-trajectory_circle_source.selected.on_change('indices', trajectory_circle_source_callback)
+trajectory_circle_source.selected.on_change("indices", trajectory_circle_source_callback)
 
 
 # Peakfinder plot
 hitrate_plot = Plot(
-    title=Title(text='Hitrate'),
+    title=Title(text="Hitrate"),
     x_range=DataRange1d(),
     y_range=Range1d(0, 1, bounds=(0, 1)),
     plot_height=250,
     plot_width=1380,
-    toolbar_location='left',
+    toolbar_location="left",
 )
 
 # ---- tools
@@ -185,8 +185,8 @@ hitrate_plot.toolbar.logo = None
 hitrate_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool())
 
 # ---- axes
-hitrate_plot.add_layout(DatetimeAxis(), place='below')
-hitrate_plot.add_layout(LinearAxis(), place='left')
+hitrate_plot.add_layout(DatetimeAxis(), place="below")
+hitrate_plot.add_layout(LinearAxis(), place="left")
 
 # ---- grid lines
 hitrate_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
@@ -195,13 +195,13 @@ hitrate_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 # ---- red line glyph
 hitrate_line_red_source = ColumnDataSource(dict(x=[], y=[]))
 hitrate_red_line = hitrate_plot.add_glyph(
-    hitrate_line_red_source, Line(x='x', y='y', line_color='red', line_width=2)
+    hitrate_line_red_source, Line(x="x", y="y", line_color="red", line_width=2)
 )
 
 # ---- blue line glyph
 hitrate_line_blue_source = ColumnDataSource(dict(x=[], y=[]))
 hitrate_blue_line = hitrate_plot.add_glyph(
-    hitrate_line_blue_source, Line(x='x', y='y', line_color='steelblue', line_width=2)
+    hitrate_line_blue_source, Line(x="x", y="y", line_color="steelblue", line_width=2)
 )
 
 # ---- legend
@@ -211,14 +211,14 @@ hitrate_plot.add_layout(
             (f"{stats.hitrate_buffer_fast.maxlen} shots avg", [hitrate_red_line]),
             (f"{stats.hitrate_buffer_slow.maxlen} shots avg", [hitrate_blue_line]),
         ],
-        location='top_left',
+        location="top_left",
     )
 )
 hitrate_plot.legend.click_policy = "hide"
 
 
 # Open statistics button
-open_stats_button = Button(label='Open Statistics')
+open_stats_button = Button(label="Open Statistics")
 open_stats_button.js_on_click(CustomJS(code="window.open('/statistics');"))
 
 
@@ -234,18 +234,18 @@ image_buffer_slider = Slider(
     value=0,
     step=1,
     title="Buffered Image",
-    callback_policy='throttle',
+    callback_policy="throttle",
     callback_throttle=500,
     disabled=True,
 )
-image_buffer_slider.on_change('value', image_buffer_slider_callback)
+image_buffer_slider.on_change("value", image_buffer_slider_callback)
 
 # ---- stream toggle button
 sv_streamctrl = sv.StreamControl()
 
 
 # Show only hits toggle
-show_only_hits_toggle = Toggle(label="Show Only Hits", button_type='default')
+show_only_hits_toggle = Toggle(label="Show Only Hits", button_type="default")
 
 
 # Metadata datatable
@@ -255,7 +255,7 @@ sv_metadata = sv.MetadataHandler(datatable_height=360, datatable_width=650)
 # Custom tabs
 layout_intensity = column(
     gridplot(
-        sv_streamgraph.plots, ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)
+        sv_streamgraph.plots, ncols=1, toolbar_location="left", toolbar_options=dict(logo=None)
     ),
     row(
         sv_streamgraph.moving_average_spinner,
@@ -342,14 +342,14 @@ async def update_client(image, metadata):
     metadata_toshow = sv_metadata.parse(metadata)
 
     # Update spots locations
-    if 'number_of_spots' in metadata and 'spot_x' in metadata and 'spot_y' in metadata:
-        spot_x = metadata['spot_x']
-        spot_y = metadata['spot_y']
-        if metadata['number_of_spots'] == len(spot_x) == len(spot_y):
+    if "number_of_spots" in metadata and "spot_x" in metadata and "spot_y" in metadata:
+        spot_x = metadata["spot_x"]
+        spot_y = metadata["spot_y"]
+        if metadata["number_of_spots"] == len(spot_x) == len(spot_y):
             main_image_peaks_source.data.update(x=spot_x, y=spot_y)
         else:
             main_image_peaks_source.data.update(x=[], y=[])
-            sv_metadata.add_issue('Spots data is inconsistent')
+            sv_metadata.add_issue("Spots data is inconsistent")
     else:
         main_image_peaks_source.data.update(x=[], y=[])
 
@@ -369,16 +369,14 @@ async def update_client(image, metadata):
     stream_t = datetime.now()
     hitrate_line_red_source.stream(
         new_data=dict(
-            x=[stream_t],
-            y=[sum(stats.hitrate_buffer_fast) / len(stats.hitrate_buffer_fast)],
+            x=[stream_t], y=[sum(stats.hitrate_buffer_fast) / len(stats.hitrate_buffer_fast)]
         ),
         rollover=HITRATE_ROLLOVER,
     )
 
     hitrate_line_blue_source.stream(
         new_data=dict(
-            x=[stream_t],
-            y=[sum(stats.hitrate_buffer_slow) / len(stats.hitrate_buffer_slow)],
+            x=[stream_t], y=[sum(stats.hitrate_buffer_slow) / len(stats.hitrate_buffer_slow)]
         ),
         rollover=HITRATE_ROLLOVER,
     )

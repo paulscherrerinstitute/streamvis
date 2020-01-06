@@ -63,13 +63,13 @@ sv_zoomview1 = sv.ImageView(
     y_end=ZOOM1_TOP,
 )
 
-sv_mainview.add_as_zoom(sv_zoomview1, line_color='red')
+sv_mainview.add_as_zoom(sv_zoomview1, line_color="red")
 
-sv_zoom1_proj_v = sv.Projection(sv_zoomview1, 'vertical', plot_height=ZOOM_AGG_X_PLOT_HEIGHT)
+sv_zoom1_proj_v = sv.Projection(sv_zoomview1, "vertical", plot_height=ZOOM_AGG_X_PLOT_HEIGHT)
 sv_zoom1_proj_v.plot.title = Title(text="Zoom Area 1")
 sv_zoom1_proj_v.plot.renderers[0].glyph.line_width = 2
 
-sv_zoom1_proj_h = sv.Projection(sv_zoomview1, 'horizontal', plot_width=ZOOM_AGG_Y_PLOT_WIDTH)
+sv_zoom1_proj_h = sv.Projection(sv_zoomview1, "horizontal", plot_width=ZOOM_AGG_Y_PLOT_WIDTH)
 
 
 # Zoom plot 2
@@ -84,13 +84,13 @@ sv_zoomview2 = sv.ImageView(
     y_end=ZOOM2_TOP,
 )
 
-sv_mainview.add_as_zoom(sv_zoomview2, line_color='green')
+sv_mainview.add_as_zoom(sv_zoomview2, line_color="green")
 
-sv_zoom2_proj_v = sv.Projection(sv_zoomview2, 'vertical', plot_height=ZOOM_AGG_X_PLOT_HEIGHT)
+sv_zoom2_proj_v = sv.Projection(sv_zoomview2, "vertical", plot_height=ZOOM_AGG_X_PLOT_HEIGHT)
 sv_zoom2_proj_v.plot.title = Title(text="Zoom Area 2")
 sv_zoom2_proj_v.plot.renderers[0].glyph.line_width = 2
 
-sv_zoom2_proj_h = sv.Projection(sv_zoomview2, 'horizontal', plot_width=ZOOM_AGG_Y_PLOT_WIDTH)
+sv_zoom2_proj_h = sv.Projection(sv_zoomview2, "horizontal", plot_width=ZOOM_AGG_Y_PLOT_WIDTH)
 
 
 # Create colormapper
@@ -99,7 +99,7 @@ sv_colormapper = sv.ColorMapper([sv_mainview, sv_zoomview1, sv_zoomview2])
 # ---- add colorbar to the main plot
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
 sv_colormapper.color_bar.location = (0, -5)
-sv_mainview.plot.add_layout(sv_colormapper.color_bar, place='below')
+sv_mainview.plot.add_layout(sv_colormapper.color_bar, place="below")
 
 
 # Add intensity roi
@@ -125,21 +125,21 @@ zoom2_spectrum_x_source = ColumnDataSource(dict(x=[], y=[]))
 zoom2_spectrum_y_source = ColumnDataSource(dict(x=[], y=[]))
 
 sv_zoom1_proj_v.plot.add_glyph(
-    zoom1_spectrum_x_source, Line(x='x', y='y', line_color='maroon', line_width=2)
+    zoom1_spectrum_x_source, Line(x="x", y="y", line_color="maroon", line_width=2)
 )
 sv_zoom1_proj_h.plot.add_glyph(
-    zoom1_spectrum_y_source, Line(x='x', y='y', line_color='maroon', line_width=1)
+    zoom1_spectrum_y_source, Line(x="x", y="y", line_color="maroon", line_width=1)
 )
 sv_zoom2_proj_v.plot.add_glyph(
-    zoom2_spectrum_x_source, Line(x='x', y='y', line_color='maroon', line_width=2)
+    zoom2_spectrum_x_source, Line(x="x", y="y", line_color="maroon", line_width=2)
 )
 sv_zoom2_proj_h.plot.add_glyph(
-    zoom2_spectrum_y_source, Line(x='x', y='y', line_color='maroon', line_width=1)
+    zoom2_spectrum_y_source, Line(x="x", y="y", line_color="maroon", line_width=1)
 )
 
 
 # Save spectrum button
-saved_spectra = {'None': ([], [], [], [], [], [], [], [])}
+saved_spectra = {"None": ([], [], [], [], [], [], [], [])}
 
 
 def save_spectrum_button_callback():
@@ -154,13 +154,13 @@ def save_spectrum_button_callback():
         sv_zoom2_proj_v.y,
     )
 
-    timenow = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    timenow = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     saved_spectra[timenow] = current_spectra
     save_spectrum_select.options = [*save_spectrum_select.options, timenow]
     save_spectrum_select.value = timenow
 
 
-save_spectrum_button = Button(label='Save Spectrum')
+save_spectrum_button = Button(label="Save Spectrum")
 save_spectrum_button.on_click(save_spectrum_button_callback)
 
 
@@ -174,13 +174,13 @@ def save_spectrum_select_callback(_attr, _old, new):
     zoom2_spectrum_x_source.data.update(x=z2_vx, y=z2_vy)
 
 
-save_spectrum_select = Select(title='Saved Spectra:', options=['None'], value='None')
-save_spectrum_select.on_change('value', save_spectrum_select_callback)
+save_spectrum_select = Select(title="Saved Spectra:", options=["None"], value="None")
+save_spectrum_select.on_change("value", save_spectrum_select_callback)
 
 
 # Total sum intensity plots
 sv_streamgraph = sv.StreamGraph(
-    nplots=3, plot_height=200, plot_width=1150, rollover=36000, mode='number'
+    nplots=3, plot_height=200, plot_width=1150, rollover=36000, mode="number"
 )
 sv_streamgraph.plots[0].title = Title(text="Total Intensity")
 sv_streamgraph.plots[1].title = Title(text="Zoom Area 1 Total Intensity")
@@ -188,7 +188,7 @@ sv_streamgraph.plots[2].title = Title(text="Zoom Area 2 Total Intensity")
 
 
 # Open statistics button
-open_stats_button = Button(label='Open Statistics')
+open_stats_button = Button(label="Open Statistics")
 open_stats_button.js_on_click(CustomJS(code="window.open('/statistics');"))
 
 
@@ -246,7 +246,7 @@ layout_hist_controls = row(
 
 layout_utility = column(
     gridplot(
-        sv_streamgraph.plots, ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)
+        sv_streamgraph.plots, ncols=1, toolbar_location="left", toolbar_options=dict(logo=None)
     ),
     row(
         sv_streamgraph.moving_average_spinner,

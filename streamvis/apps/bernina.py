@@ -51,7 +51,7 @@ sv_mainview = sv.ImageView(
     image_width=IMAGE_SIZE_X,
 )
 
-sv_mainview.plot.title = Title(text=' ')
+sv_mainview.plot.title = Title(text=" ")
 
 # ---- add zoom plot 1
 sv_zoomview1 = sv.ImageView(
@@ -65,8 +65,8 @@ sv_zoomview1 = sv.ImageView(
     y_end=ZOOM1_TOP,
 )
 
-sv_zoomview1.plot.title = Title(text='Signal roi', text_color='red')
-sv_mainview.add_as_zoom(sv_zoomview1, line_color='red')
+sv_zoomview1.plot.title = Title(text="Signal roi", text_color="red")
+sv_mainview.add_as_zoom(sv_zoomview1, line_color="red")
 
 # ---- add zoom plot 2
 sv_zoomview2 = sv.ImageView(
@@ -80,8 +80,8 @@ sv_zoomview2 = sv.ImageView(
     y_end=ZOOM2_TOP,
 )
 
-sv_zoomview2.plot.title = Title(text='Background roi', text_color='green')
-sv_mainview.add_as_zoom(sv_zoomview2, line_color='green')
+sv_zoomview2.plot.title = Title(text="Background roi", text_color="green")
+sv_mainview.add_as_zoom(sv_zoomview2, line_color="green")
 
 
 # Total sum intensity plots
@@ -99,7 +99,7 @@ sv_colormapper = sv.ColorMapper([sv_mainview, sv_zoomview1, sv_zoomview2])
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
 sv_colormapper.color_bar.height = 10
 sv_colormapper.color_bar.location = (0, -5)
-sv_mainview.plot.add_layout(sv_colormapper.color_bar, place='below')
+sv_mainview.plot.add_layout(sv_colormapper.color_bar, place="below")
 
 
 # Add resolution rings to both plots
@@ -117,13 +117,13 @@ sv_mask = sv.Mask([sv_mainview, sv_zoomview1, sv_zoomview2])
 # Histogram plots
 sv_hist = sv.Histogram(nplots=3, plot_height=300, plot_width=600)
 sv_hist.plots[0].title = Title(text="Full image")
-sv_hist.plots[1].title = Title(text="Signal roi", text_color='red')
-sv_hist.plots[2].title = Title(text="Background roi", text_color='green')
+sv_hist.plots[1].title = Title(text="Signal roi", text_color="red")
+sv_hist.plots[2].title = Title(text="Background roi", text_color="green")
 sv_hist.auto_toggle.width = 300
 
 
 # Open statistics button
-open_stats_button = Button(label='Open Statistics')
+open_stats_button = Button(label="Open Statistics")
 open_stats_button.js_on_click(CustomJS(code="window.open('/statistics');"))
 
 
@@ -161,7 +161,7 @@ hist_controls = row(
 
 layout_utility = column(
     gridplot(
-        sv_streamgraph.plots, ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)
+        sv_streamgraph.plots, ncols=1, toolbar_location="left", toolbar_options=dict(logo=None)
     ),
     row(
         sv_streamgraph.moving_average_spinner,

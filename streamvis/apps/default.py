@@ -29,8 +29,8 @@ sv_zoomview = sv.ImageView(plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVA
 
 sv_mainview.add_as_zoom(sv_zoomview)
 
-sv_zoom_proj_v = sv.Projection(sv_zoomview, 'vertical')
-sv_zoom_proj_h = sv.Projection(sv_zoomview, 'horizontal')
+sv_zoom_proj_v = sv.Projection(sv_zoomview, "vertical")
+sv_zoom_proj_h = sv.Projection(sv_zoomview, "horizontal")
 
 
 # Create colormapper
@@ -39,7 +39,7 @@ sv_colormapper = sv.ColorMapper([sv_mainview, sv_zoomview])
 # ---- add colorbar to the main plot
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
 sv_colormapper.color_bar.location = (0, -5)
-sv_mainview.plot.add_layout(sv_colormapper.color_bar, place='below')
+sv_mainview.plot.add_layout(sv_colormapper.color_bar, place="below")
 
 
 # Add mask to all plots
@@ -61,7 +61,7 @@ sv_streamgraph.plots[1].title = Title(text="Zoom total intensity")
 
 
 # Open statistics button
-open_stats_button = Button(label='Open Statistics')
+open_stats_button = Button(label="Open Statistics")
 open_stats_button.js_on_click(CustomJS(code="window.open('/statistics');"))
 
 
@@ -92,7 +92,7 @@ layout_zoom = gridplot(
 
 layout_utility = column(
     gridplot(
-        sv_streamgraph.plots, ncols=1, toolbar_location='left', toolbar_options=dict(logo=None)
+        sv_streamgraph.plots, ncols=1, toolbar_location="left", toolbar_options=dict(logo=None)
     ),
     row(
         sv_streamgraph.moving_average_spinner,
