@@ -25,7 +25,7 @@ MAXLEN = 100
 
 
 class StreamGraph:
-    def __init__(self, nplots, plot_height=200, plot_width=1000, rollover=3600, mode='time'):
+    def __init__(self, nplots, plot_height=200, plot_width=1000, rollover=3600, mode="time"):
         """Initialize stream graph plots.
 
         Args:
@@ -64,14 +64,14 @@ class StreamGraph:
 
             # ---- tools
             plot.toolbar.logo = None
-            plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(dimensions='width'), ResetTool())
+            plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(dimensions="width"), ResetTool())
 
             # ---- axes
-            plot.add_layout(LinearAxis(formatter=tick_formatter), place='left')
-            if mode == 'time':
-                plot.add_layout(DatetimeAxis(), place='below')
-            elif mode == 'number':
-                plot.add_layout(LinearAxis(), place='below')
+            plot.add_layout(LinearAxis(formatter=tick_formatter), place="left")
+            if mode == "time":
+                plot.add_layout(DatetimeAxis(), place="below")
+            elif mode == "number":
+                plot.add_layout(LinearAxis(), place="below")
             else:
                 pass
 
@@ -81,8 +81,8 @@ class StreamGraph:
 
             # ---- line glyph
             source = ColumnDataSource(dict(x=[], y=[], x_avg=[], y_avg=[]))
-            line = Line(x='x', y='y')
-            line_avg = Line(x='x_avg', y='y_avg', line_color='red')
+            line = Line(x="x", y="y")
+            line_avg = Line(x="x_avg", y="y_avg", line_color="red")
             line_renderer = plot.add_glyph(source, line)
             line_avg_renderer = plot.add_glyph(source, line_avg)
 
@@ -90,7 +90,7 @@ class StreamGraph:
             plot.add_layout(
                 Legend(
                     items=[("per frame", [line_renderer]), ("moving average", [line_avg_renderer])],
-                    location='top_left',
+                    location="top_left",
                 )
             )
             plot.legend.click_policy = "hide"
@@ -106,29 +106,29 @@ class StreamGraph:
                 self._window = new_value
 
         moving_average_spinner = Spinner(
-            title='Moving Average Window:', value=self._window, low=1, high=MAXLEN
+            title="Moving Average Window:", value=self._window, low=1, high=MAXLEN
         )
-        moving_average_spinner.on_change('value', moving_average_spinner_callback)
+        moving_average_spinner.on_change("value", moving_average_spinner_callback)
         self.moving_average_spinner = moving_average_spinner
 
         # Reset button
         def reset_button_callback():
             # keep the latest point in order to prevent a full axis reset
-            if mode == 'time':
+            if mode == "time":
                 pass  # update with the lastest time
-            elif mode == 'number':
+            elif mode == "number":
                 self._stream_t = 1
 
             for source in self._sources:
-                if source.data['x']:
+                if source.data["x"]:
                     source.data.update(
                         x=[self._stream_t],
-                        y=[source.data['y'][-1]],
+                        y=[source.data["y"][-1]],
                         x_avg=[self._stream_t],
-                        y_avg=[source.data['y_avg'][-1]],
+                        y_avg=[source.data["y_avg"][-1]],
                     )
 
-        reset_button = Button(label="Reset", button_type='default')
+        reset_button = Button(label="Reset", button_type="default")
         reset_button.on_click(reset_button_callback)
         self.reset_button = reset_button
 
@@ -138,9 +138,9 @@ class StreamGraph:
         Args:
             values (ndarray): Source values for stream graph plots.
         """
-        if self.mode == 'time':
+        if self.mode == "time":
             self._stream_t = datetime.now()
-        elif self.mode == 'number':
+        elif self.mode == "number":
             self._stream_t += 1
 
         for value, source, buffer in zip(values, self._sources, self._buffers):

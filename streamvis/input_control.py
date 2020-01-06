@@ -13,7 +13,7 @@ class StreamControl:
         def toggle_callback(_active):
             self._update_toggle_view()
 
-        toggle = Toggle(label='Connect')
+        toggle = Toggle(label="Connect")
         toggle.on_click(toggle_callback)
         self.toggle = toggle
 
@@ -33,7 +33,7 @@ class StreamControl:
     def is_receiving(self):
         """Return the stream receiver state (readonly)
         """
-        return self.receiver.state == 'receiving'
+        return self.receiver.state == "receiving"
 
     def get_stream_data(self, index):
         """Get data from the stream receiver.
@@ -56,14 +56,14 @@ class StreamControl:
         """
         if self.is_activated:
             if self.is_receiving:
-                label = 'Receiving'
-                button_type = 'success'
+                label = "Receiving"
+                button_type = "success"
             else:
-                label = 'Polling'
-                button_type = 'warning'
+                label = "Polling"
+                button_type = "warning"
         else:
-            label = 'Connect'
-            button_type = 'default'
+            label = "Connect"
+            button_type = "default"
 
         self.toggle.label = label
         self.toggle.button_type = button_type

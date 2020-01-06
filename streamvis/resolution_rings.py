@@ -44,27 +44,27 @@ class ResolutionRings:
         hovertool = HoverTool(
             tooltips=[("intensity", "@image"), ("resolution", "@x{resolution} Å")],
             formatters=dict(x=resolution_formatter),
-            names=['image_glyph'],
+            names=["image_glyph"],
         )
 
         # ---- resolution rings
         self._source = ColumnDataSource(dict(x=[], y=[], w=[], h=[], text_x=[], text_y=[], text=[]))
         ellipse_glyph = Ellipse(
-            x='x', y='y', width='w', height='h', fill_alpha=0, line_color='white', line_alpha=0
+            x="x", y="y", width="w", height="h", fill_alpha=0, line_color="white", line_alpha=0
         )
 
         text_glyph = Text(
-            x='text_x',
-            y='text_y',
-            text='text',
-            text_align='center',
-            text_baseline='middle',
-            text_color='white',
+            x="text_x",
+            y="text_y",
+            text="text",
+            text_align="center",
+            text_baseline="middle",
+            text_color="white",
             text_alpha=0,
         )
 
         cross_glyph = Cross(
-            x='beam_center_x', y='beam_center_y', size=15, line_color='red', line_alpha=0
+            x="beam_center_x", y="beam_center_y", size=15, line_color="red", line_alpha=0
         )
 
         for image_view in image_views:
@@ -84,7 +84,7 @@ class ResolutionRings:
                 text_glyph.text_alpha = 0
                 cross_glyph.line_alpha = 0
 
-        toggle = Toggle(label="Resolution Rings", button_type='default')
+        toggle = Toggle(label="Resolution Rings", button_type="default")
         toggle.on_click(toggle_callback)
         self.toggle = toggle
 
@@ -95,10 +95,10 @@ class ResolutionRings:
             metadata (dict): A dictionary with current metadata.
             sv_metadata (MetadataHandler): Report update issues to that metadata handler.
         """
-        detector_distance = metadata.get('detector_distance', np.nan)
-        beam_energy = metadata.get('beam_energy', np.nan)
-        beam_center_x = metadata.get('beam_center_x', np.nan)
-        beam_center_y = metadata.get('beam_center_y', np.nan)
+        detector_distance = metadata.get("detector_distance", np.nan)
+        beam_energy = metadata.get("beam_energy", np.nan)
+        beam_center_x = metadata.get("beam_center_x", np.nan)
+        beam_center_y = metadata.get("beam_center_y", np.nan)
 
         if not any(np.isnan([detector_distance, beam_energy, beam_center_x, beam_center_y])):
             array_beam_center_x = beam_center_x * np.ones(len(self.positions))
@@ -111,7 +111,7 @@ class ResolutionRings:
 
             text_x = array_beam_center_x + ring_diams / 2
             text_y = array_beam_center_y
-            ring_text = [str(s) + ' Å' for s in self.positions]
+            ring_text = [str(s) + " Å" for s in self.positions]
 
         else:
             array_beam_center_x = []

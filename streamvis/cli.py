@@ -13,7 +13,7 @@ from streamvis import __version__
 from streamvis.receiver import Receiver, StatisticsHandler
 from streamvis.handler import StreamvisHandler
 
-logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
+logging.basicConfig(format="%(asctime)s %(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -26,69 +26,69 @@ def main():
     base_path = os.path.dirname(os.path.abspath(__file__))
 
     # Discover streamvis apps
-    apps_path = os.path.join(base_path, 'apps')
+    apps_path = os.path.join(base_path, "apps")
     available_apps = []
     for module_info in pkgutil.iter_modules([apps_path]):
         available_apps.append(module_info.name)
 
     # Prepare argument parser
     parser = argparse.ArgumentParser(
-        prog='streamvis', formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        prog="streamvis", formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
 
-    parser.add_argument('-v', '--version', action='version', version=f"%(prog)s {__version__}")
+    parser.add_argument("-v", "--version", action="version", version=f"%(prog)s {__version__}")
 
-    parser.add_argument('app', type=str, choices=available_apps, help="streamvis application")
+    parser.add_argument("app", type=str, choices=available_apps, help="streamvis application")
 
     parser.add_argument(
-        '--port', type=int, default=5006, help="a port to listen on for HTTP requests"
+        "--port", type=int, default=5006, help="a port to listen on for HTTP requests"
     )
 
     parser.add_argument(
-        '--allow-websocket-origin',
-        metavar='HOST[:PORT]',
+        "--allow-websocket-origin",
+        metavar="HOST[:PORT]",
         type=str,
-        action='append',
+        action="append",
         default=None,
         help="a hostname that can connect to the server websocket",
     )
 
     parser.add_argument(
-        '--page-title', type=str, default="StreamVis", help="browser tab title for the application"
+        "--page-title", type=str, default="StreamVis", help="browser tab title for the application"
     )
 
     parser.add_argument(
-        '--address',
-        metavar='PROTOCOL://HOST:PORT',
+        "--address",
+        metavar="PROTOCOL://HOST:PORT",
         type=str,
-        default='tcp://127.0.0.1:9001',
+        default="tcp://127.0.0.1:9001",
         help="an address string for zmq socket",
     )
 
     parser.add_argument(
-        '--connection-mode',
+        "--connection-mode",
         type=str,
-        choices=['connect', 'bind'],
-        default='connect',
+        choices=["connect", "bind"],
+        default="connect",
         help="whether to bind a socket to an address or connect to a remote socket with an address",
     )
 
     parser.add_argument(
-        '--buffer-size',
+        "--buffer-size",
         type=int,
         default=1,
         help="a number of last received zmq messages to keep in memory",
     )
 
     parser.add_argument(
-        '--hit-threshold',
+        "--hit-threshold",
         type=int,
         default=15,
         help="a number of spots above which a shot is registered in statistics as 'hit'",
     )
 
     parser.add_argument(
-        '--args',
+        "--args",
         nargs=argparse.REMAINDER,
         default=[],
         help="command line arguments for the streamvis application",
@@ -96,7 +96,7 @@ def main():
 
     args = parser.parse_args()
 
-    app_path = os.path.join(apps_path, args.app + '.py')
+    app_path = os.path.join(apps_path, args.app + ".py")
     logger.info(app_path)
 
     # StatisticsHandler is used by Receiver to parse metadata information to be displayed in
@@ -120,11 +120,11 @@ def main():
 
     # Main application
     handler = ScriptHandler(filename=app_path, argv=args.args)
-    applications['/'] = Application(sv_handler, handler)
+    applications["/"] = Application(sv_handler, handler)
 
     # Statistics application
-    statistics_handler = ScriptHandler(filename=os.path.join(base_path, 'statistics.py'))
-    applications['/statistics'] = Application(sv_handler, statistics_handler)
+    statistics_handler = ScriptHandler(filename=os.path.join(base_path, "statistics.py"))
+    applications["/statistics"] = Application(sv_handler, statistics_handler)
 
     server = Server(
         applications, port=args.port, allow_websocket_origin=args.allow_websocket_origin

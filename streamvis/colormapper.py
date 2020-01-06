@@ -16,11 +16,11 @@ from bokeh.models import (
 from bokeh.palettes import Cividis256, Greys256, Plasma256  # pylint: disable=E0611
 
 cmap_dict = {
-    'gray': Greys256,
-    'gray_r': Greys256[::-1],
-    'plasma': Plasma256,
-    'coolwarm': cc.coolwarm,
-    'cividis': Cividis256,
+    "gray": Greys256,
+    "gray_r": Greys256[::-1],
+    "plasma": Plasma256,
+    "coolwarm": cc.coolwarm,
+    "cividis": Cividis256,
 }
 
 # TODO: Can be changed back to 0.1 when https://github.com/bokeh/bokeh/issues/9408 is fixed
@@ -28,7 +28,7 @@ STEP = 1
 
 
 class ColorMapper:
-    def __init__(self, image_views, disp_min=0, disp_max=1000, colormap='plasma'):
+    def __init__(self, image_views, disp_min=0, disp_max=1000, colormap="plasma"):
         """Initialize a colormapper.
 
         Args:
@@ -49,7 +49,7 @@ class ColorMapper:
         color_bar = ColorBar(
             color_mapper=lin_colormapper,
             location=(0, 0),
-            orientation='horizontal',
+            orientation="horizontal",
             height=15,
             width=100,
             padding=0,
@@ -63,7 +63,7 @@ class ColorMapper:
                 log_colormapper.palette = cmap_dict[new]
 
         select = Select(title="Colormap:", value=colormap, options=list(cmap_dict.keys()))
-        select.on_change('value', select_callback)
+        select.on_change("value", select_callback)
         self.select = select
 
         # ---- colormap auto toggle button
@@ -75,7 +75,7 @@ class ColorMapper:
                 display_min_spinner.disabled = False
                 display_max_spinner.disabled = False
 
-        auto_toggle = Toggle(label="Auto", active=False, button_type='default')
+        auto_toggle = Toggle(label="Auto", active=False, button_type="default")
         auto_toggle.on_click(auto_toggle_callback)
         self.auto_toggle = auto_toggle
 
@@ -110,13 +110,13 @@ class ColorMapper:
             log_colormapper.high = new_value
 
         display_max_spinner = Spinner(
-            title='Maximal Display Value:',
+            title="Maximal Display Value:",
             low=disp_min + STEP,
             value=disp_max,
             step=STEP,
             disabled=auto_toggle.active,
         )
-        display_max_spinner.on_change('value', display_max_spinner_callback)
+        display_max_spinner.on_change("value", display_max_spinner_callback)
         self.display_max_spinner = display_max_spinner
 
         # ---- colormap display min value
@@ -129,13 +129,13 @@ class ColorMapper:
             log_colormapper.low = new_value
 
         display_min_spinner = Spinner(
-            title='Minimal Display Value:',
+            title="Minimal Display Value:",
             high=disp_max - STEP,
             value=disp_min,
             step=STEP,
             disabled=auto_toggle.active,
         )
-        display_min_spinner.on_change('value', display_min_spinner_callback)
+        display_min_spinner.on_change("value", display_min_spinner_callback)
         self.display_min_spinner = display_min_spinner
 
     @property

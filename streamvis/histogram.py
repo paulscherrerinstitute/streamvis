@@ -44,7 +44,7 @@ class Histogram:
                 y_range=DataRange1d(),
                 plot_height=plot_height,
                 plot_width=plot_width,
-                toolbar_location='left',
+                toolbar_location="left",
             )
 
             # ---- tools
@@ -57,9 +57,9 @@ class Histogram:
             plot.add_tools(pantool, boxzoomtool, wheelzoomtool, SaveTool(), ResetTool())
 
             # ---- axes
-            plot.add_layout(LinearAxis(axis_label="Intensity"), place='below')
+            plot.add_layout(LinearAxis(axis_label="Intensity"), place="below")
             plot.add_layout(
-                LinearAxis(axis_label="Counts", major_label_orientation='vertical'), place='left'
+                LinearAxis(axis_label="Counts", major_label_orientation="vertical"), place="left"
             )
 
             # ---- grid lines
@@ -97,13 +97,13 @@ class Histogram:
             self._counts = [0 for _ in range(nplots)]
 
         lower_spinner = Spinner(
-            title='Lower Range:',
+            title="Lower Range:",
             high=upper - STEP,
             value=lower,
             step=STEP,
             disabled=auto_toggle.active,
         )
-        lower_spinner.on_change('value', lower_spinner_callback)
+        lower_spinner.on_change("value", lower_spinner_callback)
         self.lower_spinner = lower_spinner
 
         # ---- histogram upper range
@@ -112,21 +112,21 @@ class Histogram:
             self._counts = [0 for _ in range(nplots)]
 
         upper_spinner = Spinner(
-            title='Upper Range:',
+            title="Upper Range:",
             low=lower + STEP,
             value=upper,
             step=STEP,
             disabled=auto_toggle.active,
         )
-        upper_spinner.on_change('value', upper_spinner_callback)
+        upper_spinner.on_change("value", upper_spinner_callback)
         self.upper_spinner = upper_spinner
 
         # ---- histogram number of bins
         def nbins_spinner_callback(_attr, _old_value, _new_value):
             self._counts = [0 for _ in range(nplots)]
 
-        nbins_spinner = Spinner(title='Number of Bins:', low=1, value=nbins)
-        nbins_spinner.on_change('value', nbins_spinner_callback)
+        nbins_spinner = Spinner(title="Number of Bins:", low=1, value=nbins)
+        nbins_spinner.on_change("value", nbins_spinner_callback)
         self.nbins_spinner = nbins_spinner
 
         # ---- histogram log10 of counts toggle button
@@ -134,11 +134,11 @@ class Histogram:
             self._counts = [0 for _ in range(nplots)]
             for plot in self.plots:
                 if state:
-                    plot.yaxis[0].axis_label = 'log⏨(Counts)'
+                    plot.yaxis[0].axis_label = "log⏨(Counts)"
                 else:
-                    plot.yaxis[0].axis_label = 'Counts'
+                    plot.yaxis[0].axis_label = "Counts"
 
-        log10counts_toggle = Toggle(label='log⏨(Counts)', button_type='default')
+        log10counts_toggle = Toggle(label="log⏨(Counts)", button_type="default")
         log10counts_toggle.on_click(log10counts_toggle_callback)
         self.log10counts_toggle = log10counts_toggle
 

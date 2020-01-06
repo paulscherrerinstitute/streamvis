@@ -9,34 +9,34 @@ class ImageProcessor:
 
         # Intensity threshold toggle
         def threshold_toggle_callback(state):
-            self.threshold_toggle.button_type = 'primary' if state else 'default'
+            self.threshold_toggle.button_type = "primary" if state else "default"
 
-        threshold_toggle = Toggle(label="Apply Thresholding", active=False, button_type='default')
+        threshold_toggle = Toggle(label="Apply Thresholding", active=False, button_type="default")
         threshold_toggle.on_click(threshold_toggle_callback)
         self.threshold_toggle = threshold_toggle
 
         # Threshold min/max value spinners
         self.threshold_min_spinner = Spinner(
-            title='Minimal Intensity Threshold:', value=0, step=0.1
+            title="Minimal Intensity Threshold:", value=0, step=0.1
         )
         self.threshold_max_spinner = Spinner(
-            title='Maximal Intensity Threshold:', value=1000, step=0.1
+            title="Maximal Intensity Threshold:", value=1000, step=0.1
         )
 
         # Aggregation time toggle
         def aggregate_toggle_callback(state):
-            self.aggregate_toggle.button_type = 'primary' if state else 'default'
+            self.aggregate_toggle.button_type = "primary" if state else "default"
 
-        aggregate_toggle = Toggle(label="Apply Aggregation", active=False, button_type='default')
+        aggregate_toggle = Toggle(label="Apply Aggregation", active=False, button_type="default")
         aggregate_toggle.on_click(aggregate_toggle_callback)
         self.aggregate_toggle = aggregate_toggle
 
         # Aggregate time spinner
-        self.aggregate_time_spinner = Spinner(title='Aggregate Time:', value=0, low=0, step=1)
+        self.aggregate_time_spinner = Spinner(title="Aggregate Time:", value=0, low=0, step=1)
 
         # Aggregate time counter textinput
         aggregate_time_counter_textinput = TextInput(
-            title='Aggregate Time Counter:', value=str(1), disabled=True
+            title="Aggregate Time Counter:", value=str(1), disabled=True
         )
         self.aggregate_time_counter_textinput = aggregate_time_counter_textinput
 

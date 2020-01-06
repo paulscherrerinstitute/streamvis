@@ -3,7 +3,7 @@ from itertools import compress, repeat
 from bokeh.models import ColumnDataSource, DataTable, Dropdown, TableColumn, Toggle
 
 # metadata entries that are always shown (if present)
-default_entries = ['frame', 'pulse_id', 'is_good_frame', 'saturated_pixels']
+default_entries = ["frame", "pulse_id", "is_good_frame", "saturated_pixels"]
 
 
 class MetadataHandler:
@@ -20,12 +20,12 @@ class MetadataHandler:
         self.check_shape = check_shape
 
         # Metadata datatable
-        datatable_source = ColumnDataSource(dict(metadata=['', '', ''], value=['', '', '']))
+        datatable_source = ColumnDataSource(dict(metadata=["", "", ""], value=["", "", ""]))
         datatable = DataTable(
             source=datatable_source,
             columns=[
-                TableColumn(field='metadata', title="Metadata Name"),
-                TableColumn(field='value', title="Value"),
+                TableColumn(field="metadata", title="Metadata Name"),
+                TableColumn(field="value", title="Value"),
             ],
             width=datatable_width,
             height=datatable_height,
@@ -38,11 +38,11 @@ class MetadataHandler:
 
         # Issues dropdown
         self._issues_menu = []
-        issues_dropdown = Dropdown(label="Metadata Issues", button_type='default', menu=[])
+        issues_dropdown = Dropdown(label="Metadata Issues", button_type="default", menu=[])
         self.issues_dropdown = issues_dropdown
 
         # Show all toggle
-        show_all_toggle = Toggle(label="Show All", button_type='default')
+        show_all_toggle = Toggle(label="Show All", button_type="default")
         self.show_all_toggle = show_all_toggle
 
     def add_issue(self, issue):
@@ -51,7 +51,7 @@ class MetadataHandler:
         Args:
             issue (str): Description text for the issue.
         """
-        self._issues_menu.append((issue, ''))
+        self._issues_menu.append((issue, ""))
 
     def parse(self, metadata):
         """Parse metadata for general issues.
@@ -72,63 +72,63 @@ class MetadataHandler:
 
         # Check metadata for issues
         # full array slice in case of 'module_enabled' is not present
-        module_enabled = metadata.get('module_enabled', repeat(True))
+        module_enabled = metadata.get("module_enabled", repeat(True))
 
-        pulse_id_diff = metadata.get('pulse_id_diff')
+        pulse_id_diff = metadata.get("pulse_id_diff")
         if pulse_id_diff:
             if isinstance(module_enabled, list) and len(module_enabled) != len(pulse_id_diff):
                 self.add_issue("Shapes of 'pulse_id_diff' and 'module_enabled' are not the same")
-                metadata_toshow['module_enabled'] = module_enabled
-                metadata_toshow['pulse_id_diff'] = pulse_id_diff
+                metadata_toshow["module_enabled"] = module_enabled
+                metadata_toshow["pulse_id_diff"] = pulse_id_diff
             else:
                 if any(compress(pulse_id_diff, module_enabled)):
-                    self.add_issue('Not all pulse_id_diff are 0')
-                    metadata_toshow['pulse_id_diff'] = pulse_id_diff
+                    self.add_issue("Not all pulse_id_diff are 0")
+                    metadata_toshow["pulse_id_diff"] = pulse_id_diff
 
-        missing_packets_1 = metadata.get('missing_packets_1')
+        missing_packets_1 = metadata.get("missing_packets_1")
         if missing_packets_1:
             if isinstance(module_enabled, list) and len(module_enabled) != len(missing_packets_1):
                 self.add_issue(
                     "Shapes of 'missing_packets_1' and 'module_enabled' are not the same"
                 )
-                metadata_toshow['module_enabled'] = module_enabled
-                metadata_toshow['missing_packets_1'] = missing_packets_1
+                metadata_toshow["module_enabled"] = module_enabled
+                metadata_toshow["missing_packets_1"] = missing_packets_1
             else:
                 if any(compress(missing_packets_1, module_enabled)):
-                    self.add_issue('Not all missing_packets_1 are 0')
-                    metadata_toshow['missing_packets_1'] = missing_packets_1
+                    self.add_issue("Not all missing_packets_1 are 0")
+                    metadata_toshow["missing_packets_1"] = missing_packets_1
 
-        missing_packets_2 = metadata.get('missing_packets_2')
+        missing_packets_2 = metadata.get("missing_packets_2")
         if missing_packets_2:
             if isinstance(module_enabled, list) and len(module_enabled) != len(missing_packets_2):
                 self.add_issue(
                     "Shapes of 'missing_packets_2' and 'module_enabled' are not the same"
                 )
-                metadata_toshow['module_enabled'] = module_enabled
-                metadata_toshow['missing_packets_2'] = missing_packets_2
+                metadata_toshow["module_enabled"] = module_enabled
+                metadata_toshow["missing_packets_2"] = missing_packets_2
             else:
                 if any(compress(missing_packets_2, module_enabled)):
-                    self.add_issue('Not all missing_packets_2 are 0')
-                    metadata_toshow['missing_packets_2'] = missing_packets_2
+                    self.add_issue("Not all missing_packets_2 are 0")
+                    metadata_toshow["missing_packets_2"] = missing_packets_2
 
-        is_good_frame = metadata.get('is_good_frame', True)
+        is_good_frame = metadata.get("is_good_frame", True)
         if not is_good_frame:
-            self.add_issue('Frame is not good')
-            metadata_toshow['is_good_frame'] = is_good_frame
+            self.add_issue("Frame is not good")
+            metadata_toshow["is_good_frame"] = is_good_frame
 
-        saturated_pixels = metadata.get('saturated_pixels', False)
+        saturated_pixels = metadata.get("saturated_pixels", False)
         if saturated_pixels:
-            self.add_issue('There are saturated pixels')
-            metadata_toshow['saturated_pixels'] = saturated_pixels
+            self.add_issue("There are saturated pixels")
+            metadata_toshow["saturated_pixels"] = saturated_pixels
 
-        shape = metadata.get('shape')
+        shape = metadata.get("shape")
         if self.check_shape and tuple(shape) != tuple(self.check_shape):
             self.add_issue(f"Expected image shape is {self.check_shape}")
-            metadata_toshow['shape'] = shape
+            metadata_toshow["shape"] = shape
 
-        daq_rec = metadata.get('daq_rec')
+        daq_rec = metadata.get("daq_rec")
         if daq_rec and bool(daq_rec & 0b1):
-            metadata_toshow['highgain'] = True
+            metadata_toshow["highgain"] = True
 
         return metadata_toshow
 
@@ -150,12 +150,12 @@ class MetadataHandler:
         if self._issues_menu:
             if (
                 len(self._issues_menu) == 1
-                and ('There are saturated pixels', '') in self._issues_menu
+                and ("There are saturated pixels", "") in self._issues_menu
             ):
-                self.issues_dropdown.button_type = 'warning'
+                self.issues_dropdown.button_type = "warning"
             else:
-                self.issues_dropdown.button_type = 'danger'
+                self.issues_dropdown.button_type = "danger"
         else:
-            self.issues_dropdown.button_type = 'default'
+            self.issues_dropdown.button_type = "default"
 
         self._issues_menu = []

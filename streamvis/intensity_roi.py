@@ -13,22 +13,22 @@ class IntensityROI:
             dict(left=[], right=[], bottom=[], top=[], text_x=[], text_y=[], text=[])
         )
         quad_glyph = Quad(
-            left='left',
-            right='right',
-            bottom='bottom',
-            top='top',
+            left="left",
+            right="right",
+            bottom="bottom",
+            top="top",
             fill_alpha=0,
-            line_color='white',
+            line_color="white",
             line_alpha=0,
         )
 
         text_glyph = Text(
-            x='text_x',
-            y='text_y',
-            text='text',
-            text_align='right',
-            text_baseline='top',
-            text_color='white',
+            x="text_x",
+            y="text_y",
+            text="text",
+            text_align="right",
+            text_baseline="top",
+            text_color="white",
             text_alpha=0,
         )
 
@@ -45,7 +45,7 @@ class IntensityROI:
                 quad_glyph.line_alpha = 0
                 text_glyph.text_alpha = 0
 
-        toggle = Toggle(label="Intensity ROIs", button_type='default')
+        toggle = Toggle(label="Intensity ROIs", button_type="default")
         toggle.on_click(toggle_callback)
         self.toggle = toggle
 
@@ -56,10 +56,10 @@ class IntensityROI:
             metadata (dict): A dictionary with current metadata.
             sv_metadata (MetadataHandler): Report update issues to that metadata handler.
         """
-        roi_x1 = metadata.get('roi_x1')
-        roi_x2 = metadata.get('roi_x2')
-        roi_y1 = metadata.get('roi_y1')
-        roi_y2 = metadata.get('roi_y2')
+        roi_x1 = metadata.get("roi_x1")
+        roi_x2 = metadata.get("roi_x2")
+        roi_y1 = metadata.get("roi_y1")
+        roi_y2 = metadata.get("roi_y2")
 
         if roi_x1 and roi_x2 and roi_y1 and roi_y2:
             if not len(roi_x1) == len(roi_x2) == len(roi_y1) == len(roi_y2):

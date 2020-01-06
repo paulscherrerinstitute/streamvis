@@ -84,13 +84,13 @@ class ImageView:
             y_range=Range1d(y_start, y_end, bounds=(0, image_height)),
             plot_height=plot_height,
             plot_width=plot_width,
-            toolbar_location='left',
+            toolbar_location="left",
         )
 
         # ---- tools
         plot.toolbar.logo = None
 
-        hovertool = HoverTool(tooltips=[("intensity", "@image")], names=['image_glyph'])
+        hovertool = HoverTool(tooltips=[("intensity", "@image")], names=["image_glyph"])
 
         plot.add_tools(
             PanTool(), WheelZoomTool(maintain_focus=False), SaveTool(), ResetTool(), hovertool
@@ -98,8 +98,8 @@ class ImageView:
         plot.toolbar.active_scroll = plot.tools[1]
 
         # ---- axes
-        plot.add_layout(LinearAxis(), place='above')
-        plot.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
+        plot.add_layout(LinearAxis(), place="above")
+        plot.add_layout(LinearAxis(major_label_orientation="vertical"), place="right")
 
         # ---- grid lines
         plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
@@ -108,7 +108,7 @@ class ImageView:
         # ---- rgba image glyph
         self._image_source = ColumnDataSource(
             dict(
-                image=[np.zeros((1, 1), dtype='float32')],
+                image=[np.zeros((1, 1), dtype="float32")],
                 x=[x_start],
                 y=[y_start],
                 dw=[x_end - x_start],
@@ -122,8 +122,8 @@ class ImageView:
             )
         )
 
-        self.image_glyph = Image(image='image', x='x', y='y', dw='dw', dh='dh')
-        image_renderer = plot.add_glyph(self._image_source, self.image_glyph, name='image_glyph')
+        self.image_glyph = Image(image="image", x="x", y="y", dw="dw", dh="dh")
+        image_renderer = plot.add_glyph(self._image_source, self.image_glyph, name="image_glyph")
 
         # This avoids double update of image values on a client, see
         # https://github.com/bokeh/bokeh/issues/7079
@@ -135,12 +135,12 @@ class ImageView:
         plot.add_glyph(
             self._pvalue_source,
             Text(
-                x='x',
-                y='y',
-                text='text',
-                text_align='center',
-                text_baseline='middle',
-                text_color='white',
+                x="x",
+                y="y",
+                text="text",
+                text_align="center",
+                text_baseline="middle",
+                text_color="white",
             ),
         )
 
@@ -155,7 +155,7 @@ class ImageView:
     def displayed_image(self):
         """Return resized image that is currently displayed (readonly).
         """
-        return self._image_source.data['image'][0]
+        return self._image_source.data["image"][0]
 
     # a reason for the additional boundary checks:
     # https://github.com/bokeh/bokeh/issues/8118
@@ -183,7 +183,7 @@ class ImageView:
         """
         return min(self.plot.y_range.end, self.plot.y_range.bounds[1])
 
-    def add_as_zoom(self, image_view, line_color='red'):
+    def add_as_zoom(self, image_view, line_color="red"):
         """Add an ImageView plot as a zoom view.
 
         Args:
@@ -201,10 +201,10 @@ class ImageView:
         )
 
         area_rect = Quad(
-            left='left',
-            right='right',
-            bottom='bottom',
-            top='top',
+            left="left",
+            right="right",
+            bottom="bottom",
+            top="top",
             line_color=line_color,
             line_width=2,
             fill_alpha=0,
@@ -212,11 +212,11 @@ class ImageView:
         self.plot.add_glyph(area_source, area_rect)
 
         image_view.plot.x_range.callback = CustomJS(
-            args=dict(source=area_source), code=js_move_zoom.format(start='left', end='right')
+            args=dict(source=area_source), code=js_move_zoom.format(start="left", end="right")
         )
 
         image_view.plot.y_range.callback = CustomJS(
-            args=dict(source=area_source), code=js_move_zoom.format(start='bottom', end='top')
+            args=dict(source=area_source), code=js_move_zoom.format(start="bottom", end="top")
         )
 
         self.zoom_views.append(image_view)
@@ -233,8 +233,8 @@ class ImageView:
             pil_image = PIL_Image.fromarray(image.astype(np.float32, copy=False))
 
         if (
-            self._image_source.data['full_dh'][0] != pil_image.height
-            or self._image_source.data['full_dw'][0] != pil_image.width
+            self._image_source.data["full_dh"][0] != pil_image.height
+            or self._image_source.data["full_dw"][0] != pil_image.width
         ):
 
             self._image_source.data.update(
@@ -278,7 +278,7 @@ class ImageView:
         canvas_pix_ratio_x = self.plot.inner_width / (pval_x_end - pval_x_start)
         canvas_pix_ratio_y = self.plot.inner_height / (pval_y_end - pval_y_start)
         if canvas_pix_ratio_x > 50 and canvas_pix_ratio_y > 50:
-            textv = image[pval_y_start:pval_y_end, pval_x_start:pval_x_end].astype('int')
+            textv = image[pval_y_start:pval_y_end, pval_x_start:pval_x_end].astype("int")
             xv, yv = np.meshgrid(
                 np.arange(pval_x_start, pval_x_end), np.arange(pval_y_start, pval_y_end)
             )

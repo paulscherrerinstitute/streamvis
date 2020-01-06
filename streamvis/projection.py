@@ -17,13 +17,13 @@ class Projection:
         Raises:
             ValueError: Projection direction can be either 'horizontal' or 'vertical'.
         """
-        if direction not in ('horizontal', 'vertical'):
+        if direction not in ("horizontal", "vertical"):
             raise ValueError("Projection direction can be either 'horizontal' or 'vertical'")
 
         self._image_view = image_view
         self._direction = direction
 
-        if direction == 'vertical':
+        if direction == "vertical":
             if plot_height is None:
                 plot_height = DEFAULT_PLOT_SIZE
 
@@ -39,10 +39,10 @@ class Projection:
             )
 
             # ---- axes
-            plot.add_layout(LinearAxis(major_label_orientation='vertical'), place='right')
-            plot.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='below')
+            plot.add_layout(LinearAxis(major_label_orientation="vertical"), place="right")
+            plot.add_layout(LinearAxis(major_label_text_font_size="0pt"), place="below")
 
-        elif direction == 'horizontal':
+        elif direction == "horizontal":
             if plot_height is None:
                 plot_height = image_view.plot.plot_height
 
@@ -58,8 +58,8 @@ class Projection:
             )
 
             # ---- axes
-            plot.add_layout(LinearAxis(), place='above')
-            plot.add_layout(LinearAxis(major_label_text_font_size='0pt'), place='left')
+            plot.add_layout(LinearAxis(), place="above")
+            plot.add_layout(LinearAxis(major_label_text_font_size="0pt"), place="left")
 
         # ---- grid lines
         plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
@@ -67,7 +67,7 @@ class Projection:
 
         # ---- line glyph
         self._line_source = ColumnDataSource(dict(x=[], y=[]))
-        plot.add_glyph(self._line_source, Line(x='x', y='y', line_color='steelblue'))
+        plot.add_glyph(self._line_source, Line(x="x", y="y", line_color="steelblue"))
 
         self.plot = plot
 
@@ -75,13 +75,13 @@ class Projection:
     def x(self):
         """Current x-axis values (readonly).
         """
-        return self._line_source.data['x']
+        return self._line_source.data["x"]
 
     @property
     def y(self):
         """Current y-axis values (readonly).
         """
-        return self._line_source.data['y']
+        return self._line_source.data["y"]
 
     def update(self, image):
         """Trigger an update for the projection plot.
@@ -96,11 +96,11 @@ class Projection:
 
         image = image[y_start:y_end, x_start:x_end]
 
-        if self._direction == 'vertical':
+        if self._direction == "vertical":
             x_val = np.arange(x_start, x_end) + 0.5  # shift to a pixel center
             y_val = np.mean(image, axis=0)
 
-        elif self._direction == 'horizontal':
+        elif self._direction == "horizontal":
             x_val = np.mean(image, axis=1)
             y_val = np.arange(y_start, y_end) + 0.5  # shift to a pixel center
 
