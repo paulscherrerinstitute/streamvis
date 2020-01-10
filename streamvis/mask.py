@@ -53,7 +53,7 @@ class Mask:
             if self.current_file != handler.pedestal_file:
                 self.current_file = handler.pedestal_file
 
-                mask_data = handler.shaped_pixel_mask
+                mask_data = handler.get_pixel_mask(gap_pixels=True, geometry=True)
 
                 mask = np.zeros((*mask_data.shape, 4), dtype="uint8")
                 mask[:, :, 1] = 255
