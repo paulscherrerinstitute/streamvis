@@ -79,6 +79,7 @@ sv_image_processor = sv.ImageProcessor()
 
 # Metadata datatable
 sv_metadata = sv.MetadataHandler()
+sv_metadata.issues_datatable.height = 100
 
 
 # Final layouts
@@ -125,7 +126,7 @@ layout_threshold_aggr = column(
 )
 
 layout_metadata = column(
-    sv_metadata.datatable, row(sv_metadata.show_all_toggle, sv_metadata.issues_dropdown)
+    sv_metadata.issues_datatable, sv_metadata.datatable, row(sv_metadata.show_all_toggle)
 )
 
 final_layout = column(

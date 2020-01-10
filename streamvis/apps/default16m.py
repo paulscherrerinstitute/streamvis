@@ -253,7 +253,8 @@ show_only_hits_toggle = Toggle(label="Show Only Hits", button_type="default")
 
 
 # Metadata datatable
-sv_metadata = sv.MetadataHandler(datatable_height=360, datatable_width=650)
+sv_metadata = sv.MetadataHandler(datatable_height=260, datatable_width=650)
+sv_metadata.issues_datatable.height = 100
 
 
 # Custom tabs
@@ -286,7 +287,11 @@ debug_tab = Panel(
         row(
             layout_hist,
             Spacer(width=30),
-            column(sv_metadata.datatable, row(Spacer(), sv_metadata.show_all_toggle)),
+            column(
+                sv_metadata.issues_datatable,
+                sv_metadata.datatable,
+                row(sv_metadata.show_all_toggle),
+            ),
         ),
     ),
     title="Debug",
@@ -317,7 +322,6 @@ layout_zoom = column(
 )
 
 layout_controls = column(
-    sv_metadata.issues_dropdown,
     colormap_panel,
     open_stats_button,
     sv_intensity_roi.toggle,

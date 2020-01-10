@@ -137,6 +137,7 @@ sv_streamctrl = sv.StreamControl()
 
 # Metadata datatable
 sv_metadata = sv.MetadataHandler(datatable_height=130, datatable_width=700)
+sv_metadata.issues_datatable.height = 100
 
 
 # Final layouts
@@ -188,17 +189,11 @@ layout_controls = row(
 )
 
 layout_metadata = column(
-    sv_metadata.datatable, row(sv_metadata.show_all_toggle, sv_metadata.issues_dropdown)
+    sv_metadata.issues_datatable, sv_metadata.datatable, row(sv_metadata.show_all_toggle)
 )
 
 final_layout = column(
-    row(
-        layout_main,
-        Spacer(width=15),
-        column(
-            layout_metadata, Spacer(height=30), layout_utility, Spacer(height=30), layout_controls
-        ),
-    ),
+    row(layout_main, Spacer(width=15), column(layout_metadata, layout_utility, layout_controls)),
     column(hist_layout, hist_controls),
 )
 

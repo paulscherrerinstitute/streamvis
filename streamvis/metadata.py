@@ -1,6 +1,6 @@
 from itertools import compress, repeat
 
-from bokeh.models import ColumnDataSource, DataTable, Dropdown, TableColumn, Toggle
+from bokeh.models import ColumnDataSource, DataTable, TableColumn, Toggle, StringFormatter
 
 # metadata entries that are always shown (if present)
 default_entries = ["frame", "pulse_id", "is_good_frame", "saturated_pixels"]
@@ -36,10 +36,25 @@ class MetadataHandler:
         self._datatable_source = datatable_source
         self.datatable = datatable
 
-        # Issues dropdown
+        # Metadata issues datatable
         self._issues_menu = []
-        issues_dropdown = Dropdown(label="Metadata Issues", button_type="default", menu=[])
-        self.issues_dropdown = issues_dropdown
+        issues_datatable_formatter = StringFormatter(font_style="bold", text_color="red")
+        issues_datatable_source = ColumnDataSource(dict(issues=[]))
+        issues_datatable = DataTable(
+            source=issues_datatable_source,
+            columns=[
+                TableColumn(
+                    field="issues", title="Metadata Issues", formatter=issues_datatable_formatter
+                )
+            ],
+            width=datatable_width,
+            height=datatable_height,
+            index_position=None,
+            selectable=False,
+        )
+
+        self._issues_datatable_source = issues_datatable_source
+        self.issues_datatable = issues_datatable
 
         # Show all toggle
         show_all_toggle = Toggle(label="Show All", button_type="default")
@@ -51,7 +66,7 @@ class MetadataHandler:
         Args:
             issue (str): Description text for the issue.
         """
-        self._issues_menu.append((issue, ""))
+        self._issues_menu.append(issue)
 
     def parse(self, metadata):
         """Parse metadata for general issues.
@@ -144,18 +159,5 @@ class MetadataHandler:
             value=list(map(str, metadata_toshow.values())),
         )
 
-        self.issues_dropdown.menu = self._issues_menu
-
-        # A special case of saturated pixels only
-        if self._issues_menu:
-            if (
-                len(self._issues_menu) == 1
-                and ("There are saturated pixels", "") in self._issues_menu
-            ):
-                self.issues_dropdown.button_type = "warning"
-            else:
-                self.issues_dropdown.button_type = "danger"
-        else:
-            self.issues_dropdown.button_type = "default"
-
+        self._issues_datatable_source.data.update(issues=self._issues_menu)
         self._issues_menu = []
