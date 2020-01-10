@@ -158,6 +158,7 @@ class StatisticsHandler:
                 is_saturated &= np.invert(pixel_mask)
 
             metadata["saturated_pixels"] = np.count_nonzero(is_saturated)
+            metadata["saturated_pixels_map"] = is_saturated
 
         return metadata, image
 
@@ -257,6 +258,7 @@ class Receiver:
                 is_saturated &= np.invert(pixel_mask)
 
             metadata["saturated_pixels"] = np.count_nonzero(is_saturated)
+            metadata["saturated_pixels_map"] = is_saturated
 
         return metadata, image
 

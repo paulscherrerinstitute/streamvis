@@ -15,5 +15,6 @@ from .intensity_roi import IntensityROI
 from .projection import Projection
 from .input_control import StreamControl
 from .image_processor import ImageProcessor
+from .saturated_pixels import SaturatedPixels
 
 __version__ = "0.7.2"

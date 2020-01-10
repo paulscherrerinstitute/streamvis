@@ -110,6 +110,10 @@ sv_resolrings = sv.ResolutionRings([sv_mainview, sv_zoomview], RESOLUTION_RINGS_
 sv_intensity_roi = sv.IntensityROI([sv_mainview, sv_zoomview])
 
 
+# Add saturated pixel markers
+sv_saturated_pixels = sv.SaturatedPixels([sv_mainview, sv_zoomview])
+
+
 # Add mask to both plots
 sv_mask = sv.Mask([sv_mainview, sv_zoomview])
 
@@ -317,6 +321,7 @@ layout_controls = column(
     colormap_panel,
     open_stats_button,
     sv_intensity_roi.toggle,
+    sv_saturated_pixels.toggle,
     sv_streamctrl.datatype_select,
     stream_panel,
 )
@@ -402,6 +407,7 @@ async def update_client(image, metadata):
 
     sv_resolrings.update(metadata, sv_metadata)
     sv_intensity_roi.update(metadata, sv_metadata)
+    sv_saturated_pixels.update(metadata)
 
     sv_metadata.update(metadata_toshow)
 
