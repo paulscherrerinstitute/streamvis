@@ -22,7 +22,6 @@ requirements:
     - pyzmq
     - pillow>=4.3
     - colorcet
-    - h5py
 
 about:
   home: https://github.com/paulscherrerinstitute/streamvis
