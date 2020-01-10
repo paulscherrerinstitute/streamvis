@@ -10,8 +10,8 @@ from bokeh.application.handlers import ScriptHandler
 from bokeh.server.server import Server
 
 from streamvis import __version__
-from streamvis.receiver import Receiver, StatisticsHandler
 from streamvis.handler import StreamvisHandler
+from streamvis.receiver import Receiver, StatisticsHandler
 
 logging.basicConfig(format="%(asctime)s %(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)

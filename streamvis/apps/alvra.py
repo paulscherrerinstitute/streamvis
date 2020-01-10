@@ -4,7 +4,7 @@ from functools import partial
 import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import Button, ColumnDataSource, CustomJS, Line, Select, Spacer, Title
+from bokeh.models import Button, ColumnDataSource, Line, Select, Spacer, Title
 
 import streamvis as sv
 
@@ -191,11 +191,6 @@ sv_streamgraph.plots[1].title = Title(text="Zoom Area 1 Total Intensity")
 sv_streamgraph.plots[2].title = Title(text="Zoom Area 2 Total Intensity")
 
 
-# Open statistics button
-open_stats_button = Button(label="Open Statistics")
-open_stats_button.js_on_click(CustomJS(code="window.open('/statistics');"))
-
-
 # Stream toggle button
 sv_streamctrl = sv.StreamControl()
 
@@ -263,7 +258,7 @@ layout_controls = column(
     colormap_panel,
     Spacer(height=30),
     sv_mask.toggle,
-    open_stats_button,
+    doc.stats.open_stats_button,
     sv_intensity_roi.toggle,
     sv_saturated_pixels.toggle,
     sv_streamctrl.datatype_select,

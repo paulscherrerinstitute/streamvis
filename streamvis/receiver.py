@@ -5,7 +5,7 @@ from threading import RLock
 
 import numpy as np
 import zmq
-
+from bokeh.models import Button, CustomJS
 from jungfrau_utils import StreamAdapter
 
 logger = logging.getLogger(__name__)
@@ -48,6 +48,15 @@ class StatisticsHandler:
                 val.append("Summary")
             else:
                 val.append(0)
+
+    @property
+    def open_stats_button(self):
+        """Return a button that opens statistics application.
+        """
+        open_stats_button = Button(label="Open Statistics")
+        open_stats_button.js_on_click(CustomJS(code="window.open('/statistics');"))
+
+        return open_stats_button
 
     def parse(self, metadata, image):
         """Extract statistics from a metadata and an associated image.
