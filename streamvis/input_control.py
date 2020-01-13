@@ -13,7 +13,7 @@ class StreamControl:
         def toggle_callback(_active):
             self._update_toggle_view()
 
-        toggle = Toggle(label="Connect")
+        toggle = Toggle(label="Connect", button_type="primary")
         toggle.on_click(toggle_callback)
         self.toggle = toggle
 
@@ -63,7 +63,7 @@ class StreamControl:
                 button_type = "warning"
         else:
             label = "Connect"
-            button_type = "default"
+            button_type = "primary"
 
         self.toggle.label = label
         self.toggle.button_type = button_type
