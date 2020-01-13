@@ -82,6 +82,7 @@ colormap_panel = column(
     sv_colormapper.select,
     sv_colormapper.scale_radiobuttongroup,
     sv_colormapper.auto_toggle,
+    sv_colormapper.display_high_color,
     sv_colormapper.display_max_spinner,
     sv_colormapper.display_min_spinner,
 )

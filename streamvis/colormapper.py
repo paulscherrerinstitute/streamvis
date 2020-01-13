@@ -3,6 +3,7 @@ import numpy as np
 from bokeh.models import (
     BasicTicker,
     ColorBar,
+    ColorPicker,
     LinearColorMapper,
     LogColorMapper,
     LogTicker,
@@ -61,6 +62,7 @@ class ColorMapper:
             if new in cmap_dict:
                 lin_colormapper.palette = cmap_dict[new]
                 log_colormapper.palette = cmap_dict[new]
+                display_high_color.color = cmap_dict[new][-1]
 
         select = Select(title="Colormap:", value=colormap, options=list(cmap_dict.keys()))
         select.on_change("value", select_callback)
@@ -137,6 +139,15 @@ class ColorMapper:
         )
         display_min_spinner.on_change("value", display_min_spinner_callback)
         self.display_min_spinner = display_min_spinner
+
+        # ---- colormap high color
+        def display_high_color_callback(_attr, _old_value, new_value):
+            lin_colormapper.high_color = new_value
+            log_colormapper.high_color = new_value
+
+        display_high_color = ColorPicker(title="High Value Color:", color=cmap_dict[colormap][-1])
+        display_high_color.on_change("color", display_high_color_callback)
+        self.display_high_color = display_high_color
 
     @property
     def disp_min(self):
