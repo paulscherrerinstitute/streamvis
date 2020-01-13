@@ -47,8 +47,8 @@ sv_rt = sv.Runtime()
 MAIN_CANVAS_WIDTH = 2200 + 55
 MAIN_CANVAS_HEIGHT = 1900 + 64
 
-ZOOM_CANVAS_WIDTH = 850 + 55
-ZOOM_CANVAS_HEIGHT = 760 + 30
+ZOOM_CANVAS_WIDTH = 800 + 55
+ZOOM_CANVAS_HEIGHT = 800 + 30
 ZOOM_PROJ_X_CANVAS_HEIGHT = 150 + 11
 ZOOM_PROJ_Y_CANVAS_WIDTH = 150 + 31
 
@@ -261,32 +261,19 @@ layout_intensity = column(
     ),
 )
 
-sv_hist.log10counts_toggle.width = 120
 layout_hist = column(
     sv_hist.plots[0],
-    row(
-        sv_hist.nbins_spinner,
-        column(
-            Spacer(height=19),
-            row(sv_hist.auto_toggle, Spacer(width=10), sv_hist.log10counts_toggle),
-        ),
-    ),
+    row(sv_hist.log10counts_toggle),
+    row(sv_hist.nbins_spinner, column(Spacer(height=19), sv_hist.auto_toggle)),
     row(sv_hist.lower_spinner, sv_hist.upper_spinner),
 )
 
+layout_metadata = column(
+    sv_metadata.issues_datatable, sv_metadata.datatable, row(sv_metadata.show_all_toggle)
+)
+
 debug_tab = Panel(
-    child=column(
-        layout_intensity,
-        row(
-            layout_hist,
-            Spacer(width=30),
-            column(
-                sv_metadata.issues_datatable,
-                sv_metadata.datatable,
-                row(sv_metadata.show_all_toggle),
-            ),
-        ),
-    ),
+    child=column(layout_intensity, row(layout_hist, Spacer(width=30), layout_metadata)),
     title="Debug",
 )
 
@@ -306,22 +293,22 @@ colormap_panel = column(
     sv_colormapper.display_min_spinner,
 )
 
-stream_panel = column(image_buffer_slider, sv_streamctrl.toggle)
-
-layout_zoom = column(
-    gridplot(
-        [[sv_zoom_proj_v.plot, None], [sv_zoomview.plot, sv_zoom_proj_h.plot]], merge_tools=False
-    ),
-    row(sv_resolrings.toggle, sv_mask.toggle, show_only_hits_toggle),
+layout_zoom = gridplot(
+    [[sv_zoom_proj_v.plot, None], [sv_zoomview.plot, sv_zoom_proj_h.plot]], merge_tools=False
 )
 
 layout_controls = column(
     colormap_panel,
+    Spacer(height=30),
+    sv_mask.toggle,
+    sv_resolrings.toggle,
+    show_only_hits_toggle,
     stats.open_stats_button,
     sv_intensity_roi.toggle,
     sv_saturated_pixels.toggle,
     sv_streamctrl.datatype_select,
-    stream_panel,
+    image_buffer_slider,
+    sv_streamctrl.toggle,
 )
 
 layout_side_panel = column(custom_tabs, row(layout_controls, Spacer(width=30), layout_zoom))
