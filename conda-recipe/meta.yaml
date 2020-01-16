@@ -8,6 +8,7 @@ source:
   path: ..
 
 build:
+  number: 0
   entry_points:
     - streamvis = streamvis.cli:main
 
