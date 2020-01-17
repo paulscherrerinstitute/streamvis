@@ -20,7 +20,6 @@ class Mask:
         self.receiver = doc.receiver
 
         self.current_file = ""
-        self.mask = None
 
         # ---- rgba image glyph
         self._source = ColumnDataSource(dict(image=[placeholder], x=[0], y=[0], dw=[1], dh=[1]))
@@ -49,22 +48,20 @@ class Mask:
             sv_metadata (MetadataHandler): Report update issues to that metadata handler.
         """
         handler = self.receiver.jf_adapter.handler
-        if handler is not None and handler.pedestal_file and handler.pixel_mask is not None:
+        if handler and handler.pedestal_file:
             if self.current_file != handler.pedestal_file:
-                self.current_file = handler.pedestal_file
-
                 mask_data = handler.get_pixel_mask(gap_pixels=True, geometry=True)
 
                 mask = np.zeros((*mask_data.shape, 4), dtype="uint8")
                 mask[:, :, 1] = 255
                 mask[:, :, 3] = 255 * mask_data
 
-                self.mask = mask
+                self.current_file = handler.pedestal_file
                 self._source.data.update(image=[mask], dh=[mask.shape[0]], dw=[mask.shape[1]])
 
         else:
-            self.mask = None
+            self.current_file = ""
             self._source.data.update(image=[placeholder])
 
-        if self.toggle.active and self.mask is None:
+        if self.toggle.active and self.current_file == "":
             sv_metadata.add_issue("No pedestal file has been provided")
