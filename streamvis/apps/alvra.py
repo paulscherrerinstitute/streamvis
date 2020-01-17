@@ -184,7 +184,7 @@ save_spectrum_select.on_change("value", save_spectrum_select_callback)
 
 # Total sum intensity plots
 sv_streamgraph = sv.StreamGraph(
-    nplots=3, plot_height=200, plot_width=1150, rollover=36000, mode="number"
+    nplots=3, plot_height=200, plot_width=1100, rollover=36000, mode="number"
 )
 sv_streamgraph.plots[0].title = Title(text="Total Intensity")
 sv_streamgraph.plots[1].title = Title(text="Zoom Area 1 Total Intensity")
@@ -201,7 +201,7 @@ sv_metadata.issues_datatable.height = 100
 
 
 # Final layouts
-colormap_panel = column(
+layout_colormap = column(
     sv_colormapper.select,
     sv_colormapper.scale_radiobuttongroup,
     sv_colormapper.auto_toggle,
@@ -224,28 +224,25 @@ layout_zoom2 = column(
     sv_hist.plots[1],
 )
 
-layout_thr_agg = row(
+layout_bottom_row_controls = row(
     column(
         sv_image_processor.threshold_toggle,
         sv_image_processor.threshold_max_spinner,
         sv_image_processor.threshold_min_spinner,
     ),
-    Spacer(width=30),
     column(
         sv_image_processor.aggregate_toggle,
         sv_image_processor.aggregate_time_spinner,
         sv_image_processor.aggregate_time_counter_textinput,
     ),
+    Spacer(width=100),
+    column(save_spectrum_button, save_spectrum_select),
+    Spacer(width=100),
+    column(sv_hist.auto_toggle, sv_hist.upper_spinner, sv_hist.lower_spinner),
+    column(Spacer(height=42), sv_hist.nbins_spinner),
 )
 
-layout_spectra = column(save_spectrum_button, save_spectrum_select)
-
-layout_hist_controls = row(
-    column(Spacer(height=20), sv_hist.auto_toggle, sv_hist.upper_spinner, sv_hist.lower_spinner),
-    column(Spacer(height=62), sv_hist.nbins_spinner),
-)
-
-layout_utility = column(
+layout_streamgraphs = column(
     gridplot(
         sv_streamgraph.plots, ncols=1, toolbar_location="left", toolbar_options=dict(logo=None)
     ),
@@ -256,7 +253,7 @@ layout_utility = column(
 )
 
 layout_controls = column(
-    colormap_panel,
+    layout_colormap,
     Spacer(height=30),
     sv_mask.toggle,
     doc.stats.open_stats_button,
@@ -270,25 +267,12 @@ layout_metadata = column(
     sv_metadata.issues_datatable, sv_metadata.datatable, row(sv_metadata.show_all_toggle)
 )
 
-final_layout = column(
-    sv_mainview.plot,
-    row(
-        layout_zoom1,
-        layout_zoom2,
-        column(
-            layout_utility,
-            Spacer(height=10),
-            row(layout_controls, Spacer(width=50), layout_metadata),
-        ),
-    ),
-    row(
-        column(Spacer(height=20), layout_thr_agg),
-        Spacer(width=150),
-        column(Spacer(height=20), layout_spectra),
-        Spacer(width=200),
-        layout_hist_controls,
-    ),
+layout_left = column(row(layout_zoom1, layout_zoom2), layout_bottom_row_controls)
+layout_right = column(
+    layout_streamgraphs, Spacer(height=30), row(layout_controls, Spacer(width=30), layout_metadata)
 )
+
+final_layout = column(sv_mainview.plot, row(layout_left, Spacer(width=30), layout_right))
 
 doc.add_root(row(Spacer(width=20), final_layout))
 
