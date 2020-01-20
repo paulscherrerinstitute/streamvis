@@ -126,6 +126,10 @@ def main():
     statistics_handler = ScriptHandler(filename=os.path.join(base_path, "statistics.py"))
     applications["/statistics"] = Application(sv_handler, statistics_handler)
 
+    # Hitrate application
+    hitrate_handler = ScriptHandler(filename=os.path.join(base_path, "hitrate.py"))
+    applications["/hitrate"] = Application(sv_handler, hitrate_handler)
+
     server = Server(
         applications, port=args.port, allow_websocket_origin=args.allow_websocket_origin
     )

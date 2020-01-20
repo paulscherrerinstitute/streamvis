@@ -1,5 +1,4 @@
 from collections import deque
-from datetime import datetime
 from functools import partial
 
 import numpy as np
@@ -11,16 +10,13 @@ from bokeh.models import (
     Circle,
     ColumnDataSource,
     DataRange1d,
-    DatetimeAxis,
     Grid,
     HoverTool,
-    Legend,
     Line,
     LinearAxis,
     Panel,
     PanTool,
     Plot,
-    Range1d,
     ResetTool,
     SaveTool,
     Slider,
@@ -53,7 +49,6 @@ ZOOM_PROJ_X_CANVAS_HEIGHT = 150 + 11
 ZOOM_PROJ_Y_CANVAS_WIDTH = 150 + 31
 
 APP_FPS = 1
-HITRATE_ROLLOVER = 1200
 image_buffer = deque(maxlen=60)
 
 # Resolution rings positions in angstroms
@@ -124,7 +119,7 @@ sv_hist = sv.Histogram(nplots=1, plot_height=280, plot_width=700)
 trajectory_plot = Plot(
     x_range=DataRange1d(),
     y_range=DataRange1d(),
-    plot_height=650,
+    plot_height=900,
     plot_width=1380,
     toolbar_location="left",
 )
@@ -170,53 +165,6 @@ def trajectory_circle_source_callback(_attr, _old, new):
 
 
 trajectory_circle_source.selected.on_change("indices", trajectory_circle_source_callback)
-
-
-# Peakfinder plot
-hitrate_plot = Plot(
-    title=Title(text="Hitrate"),
-    x_range=DataRange1d(),
-    y_range=Range1d(0, 1, bounds=(0, 1)),
-    plot_height=250,
-    plot_width=1380,
-    toolbar_location="left",
-)
-
-# ---- tools
-hitrate_plot.toolbar.logo = None
-hitrate_plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool())
-
-# ---- axes
-hitrate_plot.add_layout(DatetimeAxis(), place="below")
-hitrate_plot.add_layout(LinearAxis(), place="left")
-
-# ---- grid lines
-hitrate_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-hitrate_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-# ---- red line glyph
-hitrate_line_red_source = ColumnDataSource(dict(x=[], y=[]))
-hitrate_red_line = hitrate_plot.add_glyph(
-    hitrate_line_red_source, Line(x="x", y="y", line_color="red", line_width=2)
-)
-
-# ---- blue line glyph
-hitrate_line_blue_source = ColumnDataSource(dict(x=[], y=[]))
-hitrate_blue_line = hitrate_plot.add_glyph(
-    hitrate_line_blue_source, Line(x="x", y="y", line_color="steelblue", line_width=2)
-)
-
-# ---- legend
-hitrate_plot.add_layout(
-    Legend(
-        items=[
-            (f"{stats.hitrate_buffer_fast.maxlen} shots avg", [hitrate_red_line]),
-            (f"{stats.hitrate_buffer_slow.maxlen} shots avg", [hitrate_blue_line]),
-        ],
-        location="top_left",
-    )
-)
-hitrate_plot.legend.click_policy = "hide"
 
 
 # Stream panel
@@ -277,7 +225,7 @@ debug_tab = Panel(
     title="Debug",
 )
 
-scan_tab = Panel(child=column(trajectory_plot, hitrate_plot), title="SwissMX")
+scan_tab = Panel(child=trajectory_plot, title="SwissMX")
 
 # assemble
 custom_tabs = Tabs(tabs=[debug_tab, scan_tab], height=960, width=1400)
@@ -353,22 +301,6 @@ async def update_client(image, metadata):
             np.sum(image, dtype=np.float),
             np.sum(image[zoom_y_start:zoom_y_end, zoom_x_start:zoom_x_end], dtype=np.float),
         ]
-    )
-
-    # Update peakfinder plot
-    stream_t = datetime.now()
-    hitrate_line_red_source.stream(
-        new_data=dict(
-            x=[stream_t], y=[sum(stats.hitrate_buffer_fast) / len(stats.hitrate_buffer_fast)]
-        ),
-        rollover=HITRATE_ROLLOVER,
-    )
-
-    hitrate_line_blue_source.stream(
-        new_data=dict(
-            x=[stream_t], y=[sum(stats.hitrate_buffer_slow) / len(stats.hitrate_buffer_slow)]
-        ),
-        rollover=HITRATE_ROLLOVER,
     )
 
     # Update scan positions
