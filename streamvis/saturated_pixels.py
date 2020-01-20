@@ -17,7 +17,7 @@ class SaturatedPixels:
         self._source = ColumnDataSource(dict(x=[], y=[]))
 
         marker_glyph = Asterisk(
-            x="x", y="y", size=20, line_color="white", line_width=2, line_alpha=0
+            x="x", y="y", size=20, line_color="white", line_width=2, line_alpha=1
         )
 
         for image_view in image_views:
@@ -30,7 +30,7 @@ class SaturatedPixels:
             else:
                 marker_glyph.line_alpha = 0
 
-        toggle = Toggle(label="Saturated Pixels", button_type="default")
+        toggle = Toggle(label="Saturated Pixels", button_type="default", active=True)
         toggle.on_click(toggle_callback)
         self.toggle = toggle
 
