@@ -4,33 +4,7 @@ from functools import partial
 import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import (
-    BasicTicker,
-    BoxZoomTool,
-    Circle,
-    ColumnDataSource,
-    DataRange1d,
-    Grid,
-    HoverTool,
-    Line,
-    LinearAxis,
-    Panel,
-    PanTool,
-    Plot,
-    ResetTool,
-    SaveTool,
-    Slider,
-    Spacer,
-    Tabs,
-    TapTool,
-    Title,
-    Toggle,
-    WheelZoomTool,
-)
-
-# TODO: remove pylint exception after https://github.com/bokeh/bokeh/issues/9248 is fixed
-from bokeh.palettes import Reds9  # pylint: disable=E0611
-from bokeh.transform import linear_cmap
+from bokeh.models import Circle, ColumnDataSource, Panel, Slider, Spacer, Tabs, Title, Toggle
 
 import streamvis as sv
 
@@ -115,58 +89,6 @@ sv_mask = sv.Mask([sv_mainview, sv_zoomview])
 sv_hist = sv.Histogram(nplots=1, plot_height=280, plot_width=700)
 
 
-# Trajectory plot
-trajectory_plot = Plot(
-    x_range=DataRange1d(),
-    y_range=DataRange1d(),
-    plot_height=900,
-    plot_width=1380,
-    toolbar_location="left",
-)
-
-# ---- tools
-trajectory_plot.toolbar.logo = None
-taptool = TapTool(names=["trajectory_circle"])
-trajectory_ht = HoverTool(
-    tooltips=[("frame", "@frame"), ("number of spots", "@nspots")], names=["trajectory_circle"]
-)
-trajectory_plot.add_tools(
-    PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool(), taptool, trajectory_ht
-)
-
-# ---- axes
-trajectory_plot.add_layout(LinearAxis(), place="below")
-trajectory_plot.add_layout(LinearAxis(), place="left")
-
-# ---- grid lines
-trajectory_plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-trajectory_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-# ---- line glyph
-trajectory_line_source = ColumnDataSource(dict(x=[], y=[]))
-trajectory_plot.add_glyph(trajectory_line_source, Line(x="x", y="y"))
-
-# ---- trajectory circle glyph and selection callback
-circle_mapper = linear_cmap(field_name="nspots", palette=["#ffffff"] + Reds9[::-1], low=0, high=100)
-trajectory_circle_source = ColumnDataSource(dict(x=[], y=[], frame=[], nspots=[]))
-trajectory_plot.add_glyph(
-    trajectory_circle_source,
-    Circle(x="x", y="y", fill_color=circle_mapper, size=12),
-    selection_glyph=Circle(fill_color=circle_mapper, line_color="blue", line_width=3),
-    nonselection_glyph=Circle(fill_color=circle_mapper),
-    name="trajectory_circle",
-)
-
-
-def trajectory_circle_source_callback(_attr, _old, new):
-    if new:
-        index_from_last = new[0] - len(trajectory_circle_source.data["x"])
-        sv_rt.current_metadata, sv_rt.current_image = sv_streamctrl.get_stream_data(index_from_last)
-
-
-trajectory_circle_source.selected.on_change("indices", trajectory_circle_source_callback)
-
-
 # Stream panel
 # ---- image buffer slider
 def image_buffer_slider_callback(_attr, _old, new):
@@ -225,10 +147,8 @@ debug_tab = Panel(
     title="Debug",
 )
 
-scan_tab = Panel(child=trajectory_plot, title="SwissMX")
-
 # assemble
-custom_tabs = Tabs(tabs=[debug_tab, scan_tab], height=960, width=1400)
+custom_tabs = Tabs(tabs=[debug_tab], height=960, width=1400)
 
 
 # Final layouts
@@ -303,22 +223,6 @@ async def update_client(image, metadata):
             np.sum(image[zoom_y_start:zoom_y_end, zoom_x_start:zoom_x_end], dtype=np.float),
         ]
     )
-
-    # Update scan positions
-    if custom_tabs.tabs[custom_tabs.active].title == "SwissMX" and stats.peakfinder_buffer:
-        peakfinder_buffer = np.array(stats.peakfinder_buffer)
-        trajectory_circle_source.data.update(
-            x=peakfinder_buffer[:, 0],
-            y=peakfinder_buffer[:, 1],
-            frame=peakfinder_buffer[:, 2],
-            nspots=peakfinder_buffer[:, 3],
-        )
-
-    if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
-        image_buffer_slider.disabled = True
-        trajectory_circle_source.selected.indices = []
-    else:
-        image_buffer_slider.disabled = False
 
     # Update mask
     sv_mask.update(sv_metadata)
