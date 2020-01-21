@@ -4,7 +4,7 @@ from functools import partial
 import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import Button, ColumnDataSource, Line, Select, Spacer, Title
+from bokeh.models import Button, Circle, ColumnDataSource, Line, Select, Spacer, Title
 
 import streamvis as sv
 
@@ -41,6 +41,9 @@ ZOOM2_BOTTOM = 0
 ZOOM2_RIGHT = ZOOM2_LEFT + ZOOM_WIDTH
 ZOOM2_TOP = ZOOM2_BOTTOM + ZOOM_HEIGHT
 
+# Resolution rings positions in angstroms
+RESOLUTION_RINGS_POS = np.array([2, 2.2, 2.6, 3, 5, 10])
+
 
 # Main plot
 sv_mainview = sv.ImageView(
@@ -48,6 +51,13 @@ sv_mainview = sv.ImageView(
     plot_width=MAIN_CANVAS_WIDTH,
     image_height=IMAGE_SIZE_Y,
     image_width=IMAGE_SIZE_X,
+)
+
+# ---- peaks circle glyph
+main_image_peaks_source = ColumnDataSource(dict(x=[], y=[]))
+sv_mainview.plot.add_glyph(
+    main_image_peaks_source,
+    Circle(x="x", y="y", size=15, fill_alpha=0, line_width=3, line_color="white"),
 )
 
 
@@ -100,6 +110,10 @@ sv_colormapper = sv.ColorMapper([sv_mainview, sv_zoomview1, sv_zoomview2])
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
 sv_colormapper.color_bar.location = (0, -5)
 sv_mainview.plot.add_layout(sv_colormapper.color_bar, place="below")
+
+
+# Add resolution rings to both plots
+sv_resolrings = sv.ResolutionRings([sv_mainview, sv_zoomview1, sv_zoomview2], RESOLUTION_RINGS_POS)
 
 
 # Add intensity roi
@@ -257,6 +271,7 @@ layout_controls = column(
     layout_colormap,
     Spacer(height=30),
     sv_mask.toggle,
+    sv_resolrings.toggle,
     doc.stats.open_stats_button,
     doc.stats.open_hitrate_plot_button,
     sv_intensity_roi.toggle,
@@ -323,9 +338,22 @@ async def update_client(image, metadata, reset, aggr_image):
     # Parse metadata
     metadata_toshow = sv_metadata.parse(metadata)
 
+    # Update spots locations
+    if "number_of_spots" in metadata and "spot_x" in metadata and "spot_y" in metadata:
+        spot_x = metadata["spot_x"]
+        spot_y = metadata["spot_y"]
+        if metadata["number_of_spots"] == len(spot_x) == len(spot_y):
+            main_image_peaks_source.data.update(x=spot_x, y=spot_y)
+        else:
+            main_image_peaks_source.data.update(x=[], y=[])
+            sv_metadata.add_issue("Spots data is inconsistent")
+    else:
+        main_image_peaks_source.data.update(x=[], y=[])
+
     # Update mask
     sv_mask.update(sv_metadata)
 
+    sv_resolrings.update(metadata, sv_metadata)
     sv_intensity_roi.update(metadata, sv_metadata)
     sv_saturated_pixels.update(metadata)
 
