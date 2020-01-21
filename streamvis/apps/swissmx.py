@@ -3,7 +3,7 @@ from functools import partial
 
 import numpy as np
 from bokeh.io import curdoc
-from bokeh.layouts import column, gridplot, row
+from bokeh.layouts import column, row
 from bokeh.models import (
     BasicTicker,
     BoxZoomTool,
@@ -43,11 +43,6 @@ sv_rt = sv.Runtime()
 MAIN_CANVAS_WIDTH = 2200 + 55
 MAIN_CANVAS_HEIGHT = 1900 + 64
 
-ZOOM_CANVAS_WIDTH = 800 + 55
-ZOOM_CANVAS_HEIGHT = 800 + 30
-ZOOM_PROJ_X_CANVAS_HEIGHT = 150 + 11
-ZOOM_PROJ_Y_CANVAS_WIDTH = 150 + 31
-
 APP_FPS = 1
 image_buffer = deque(maxlen=60)
 
@@ -68,27 +63,14 @@ sv_mainview.plot.add_glyph(
 )
 
 
-# Total sum intensity plots
-sv_streamgraph = sv.StreamGraph(nplots=2, plot_height=200, plot_width=1350, rollover=36000)
+# Total sum intensity plot
+sv_streamgraph = sv.StreamGraph(nplots=1, plot_height=200, plot_width=1350, rollover=36000)
 sv_streamgraph.plots[0].title = Title(text="Total intensity")
-sv_streamgraph.plots[1].title = Title(text="Zoom total intensity")
-
-
-# Zoom plot
-sv_zoomview = sv.ImageView(plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH)
-sv_zoomview.toolbar_location = "below"
-
-sv_mainview.add_as_zoom(sv_zoomview, line_color="white")
-
-sv_zoom_proj_v = sv.Projection(sv_zoomview, "vertical", plot_height=ZOOM_PROJ_X_CANVAS_HEIGHT)
-sv_zoom_proj_v.plot.renderers[0].glyph.line_width = 2
-
-sv_zoom_proj_h = sv.Projection(sv_zoomview, "horizontal", plot_width=ZOOM_PROJ_Y_CANVAS_WIDTH)
-sv_zoom_proj_h.plot.renderers[0].glyph.line_width = 2
+sv_streamgraph.plots[0].toolbar_location = "left"
 
 
 # Create colormapper
-sv_colormapper = sv.ColorMapper([sv_mainview, sv_zoomview])
+sv_colormapper = sv.ColorMapper([sv_mainview])
 
 # ---- add colorbar to the main plot
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
@@ -96,19 +78,19 @@ sv_mainview.plot.add_layout(sv_colormapper.color_bar, place="above")
 
 
 # Add resolution rings to both plots
-sv_resolrings = sv.ResolutionRings([sv_mainview, sv_zoomview], RESOLUTION_RINGS_POS)
+sv_resolrings = sv.ResolutionRings([sv_mainview], RESOLUTION_RINGS_POS)
 
 
 # Add intensity roi
-sv_intensity_roi = sv.IntensityROI([sv_mainview, sv_zoomview])
+sv_intensity_roi = sv.IntensityROI([sv_mainview])
 
 
 # Add saturated pixel markers
-sv_saturated_pixels = sv.SaturatedPixels([sv_mainview, sv_zoomview])
+sv_saturated_pixels = sv.SaturatedPixels([sv_mainview])
 
 
 # Add mask to both plots
-sv_mask = sv.Mask([sv_mainview, sv_zoomview])
+sv_mask = sv.Mask([sv_mainview])
 
 
 # Histogram plot
@@ -119,8 +101,8 @@ sv_hist = sv.Histogram(nplots=1, plot_height=280, plot_width=700)
 trajectory_plot = Plot(
     x_range=DataRange1d(),
     y_range=DataRange1d(),
-    plot_height=900,
-    plot_width=1380,
+    plot_height=1000,
+    plot_width=1000,
     toolbar_location="left",
 )
 
@@ -200,9 +182,7 @@ sv_metadata.issues_datatable.height = 100
 
 # Custom tabs
 layout_intensity = column(
-    gridplot(
-        sv_streamgraph.plots, ncols=1, toolbar_location="left", toolbar_options=dict(logo=None)
-    ),
+    sv_streamgraph.plots[0],
     row(
         sv_streamgraph.moving_average_spinner,
         column(Spacer(height=19), sv_streamgraph.reset_button),
@@ -225,10 +205,8 @@ debug_tab = Panel(
     title="Debug",
 )
 
-scan_tab = Panel(child=trajectory_plot, title="SwissMX")
-
 # assemble
-custom_tabs = Tabs(tabs=[debug_tab, scan_tab], height=960, width=1400)
+custom_tabs = Tabs(tabs=[debug_tab], height=960, width=1400)
 
 
 # Final layouts
@@ -240,10 +218,6 @@ colormap_panel = column(
     sv_colormapper.auto_toggle,
     sv_colormapper.display_max_spinner,
     sv_colormapper.display_min_spinner,
-)
-
-layout_zoom = gridplot(
-    [[sv_zoom_proj_v.plot, None], [sv_zoomview.plot, sv_zoom_proj_h.plot]], merge_tools=False
 )
 
 layout_controls = column(
@@ -260,7 +234,7 @@ layout_controls = column(
     sv_streamctrl.toggle,
 )
 
-layout_side_panel = column(custom_tabs, row(layout_controls, Spacer(width=30), layout_zoom))
+layout_side_panel = column(custom_tabs, row(layout_controls, Spacer(width=30), trajectory_plot))
 
 final_layout = row(sv_mainview.plot, Spacer(width=30), layout_side_panel)
 
@@ -270,9 +244,6 @@ doc.add_root(row(Spacer(width=50), final_layout))
 async def update_client(image, metadata):
     sv_colormapper.update(image)
     sv_mainview.update(image)
-
-    sv_zoom_proj_v.update(image)
-    sv_zoom_proj_h.update(image)
 
     if custom_tabs.tabs[custom_tabs.active].title == "Debug":
         sv_hist.update([sv_mainview.displayed_image])
@@ -292,20 +263,11 @@ async def update_client(image, metadata):
     else:
         main_image_peaks_source.data.update(x=[], y=[])
 
-    # Update total intensities plots
-    zoom_y_start = int(np.floor(sv_zoomview.y_start))
-    zoom_x_start = int(np.floor(sv_zoomview.x_start))
-    zoom_y_end = int(np.ceil(sv_zoomview.y_end))
-    zoom_x_end = int(np.ceil(sv_zoomview.x_end))
-    sv_streamgraph.update(
-        [
-            np.sum(image, dtype=np.float),
-            np.sum(image[zoom_y_start:zoom_y_end, zoom_x_start:zoom_x_end], dtype=np.float),
-        ]
-    )
+    # Update total intensity plot
+    sv_streamgraph.update([np.sum(image, dtype=np.float)])
 
     # Update scan positions
-    if custom_tabs.tabs[custom_tabs.active].title == "SwissMX" and stats.peakfinder_buffer:
+    if stats.peakfinder_buffer:
         peakfinder_buffer = np.array(stats.peakfinder_buffer)
         trajectory_circle_source.data.update(
             x=peakfinder_buffer[:, 0],
