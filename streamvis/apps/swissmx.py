@@ -275,7 +275,7 @@ async def update_client(image, metadata):
     sv_zoom_proj_h.update(image)
 
     if custom_tabs.tabs[custom_tabs.active].title == "Debug":
-        sv_hist.update([sv_zoomview.displayed_image])
+        sv_hist.update([sv_mainview.displayed_image])
 
     # Parse metadata
     metadata_toshow = sv_metadata.parse(metadata)
