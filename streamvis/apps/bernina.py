@@ -172,14 +172,14 @@ layout_utility = column(
 )
 
 layout_controls = row(
-    colormap_panel,
+    column(colormap_panel, sv_mask.toggle),
     column(
         Spacer(height=19),
         sv_resolrings.toggle,
         sv_intensity_roi.toggle,
         sv_saturated_pixels.toggle,
-        sv_mask.toggle,
         doc.stats.open_stats_button,
+        doc.stats.open_hitrate_plot_button,
         sv_streamctrl.datatype_select,
         sv_streamctrl.toggle,
     ),

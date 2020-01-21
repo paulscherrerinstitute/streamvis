@@ -58,6 +58,15 @@ class StatisticsHandler:
 
         return open_stats_button
 
+    @property
+    def open_hitrate_plot_button(self):
+        """Return a button that opens hitrate plot.
+        """
+        open_hitrate_plot_button = Button(label="Open Hitrate Plot")
+        open_hitrate_plot_button.js_on_click(CustomJS(code="window.open('/hitrate');"))
+
+        return open_hitrate_plot_button
+
     def parse(self, metadata, image):
         """Extract statistics from a metadata and an associated image.
 
