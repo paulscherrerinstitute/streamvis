@@ -232,11 +232,12 @@ custom_tabs = Tabs(tabs=[debug_tab, scan_tab], height=960, width=1400)
 
 
 # Final layouts
+sv_colormapper.select.width = 170
+sv_colormapper.display_high_color.width = 120
 colormap_panel = column(
-    sv_colormapper.select,
+    row(sv_colormapper.select, sv_colormapper.display_high_color),
     sv_colormapper.scale_radiobuttongroup,
     sv_colormapper.auto_toggle,
-    sv_colormapper.display_high_color,
     sv_colormapper.display_max_spinner,
     sv_colormapper.display_min_spinner,
 )
