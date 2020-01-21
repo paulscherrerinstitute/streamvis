@@ -4,7 +4,7 @@ from functools import partial
 import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import Button, Circle, ColumnDataSource, Line, Select, Spacer, Title
+from bokeh.models import Button, ColumnDataSource, Line, Select, Spacer, Title
 
 import streamvis as sv
 
@@ -51,13 +51,6 @@ sv_mainview = sv.ImageView(
     plot_width=MAIN_CANVAS_WIDTH,
     image_height=IMAGE_SIZE_Y,
     image_width=IMAGE_SIZE_X,
-)
-
-# ---- peaks circle glyph
-main_image_peaks_source = ColumnDataSource(dict(x=[], y=[]))
-sv_mainview.plot.add_glyph(
-    main_image_peaks_source,
-    Circle(x="x", y="y", size=15, fill_alpha=0, line_width=3, line_color="white"),
 )
 
 
@@ -122,6 +115,10 @@ sv_intensity_roi = sv.IntensityROI([sv_mainview, sv_zoomview1, sv_zoomview2])
 
 # Add saturated pixel markers
 sv_saturated_pixels = sv.SaturatedPixels([sv_mainview, sv_zoomview1, sv_zoomview2])
+
+
+# Add spots markers
+sv_spots = sv.Spots([sv_mainview])
 
 
 # Add mask to all plots
@@ -338,21 +335,10 @@ async def update_client(image, metadata, reset, aggr_image):
     # Parse metadata
     metadata_toshow = sv_metadata.parse(metadata)
 
-    # Update spots locations
-    if "number_of_spots" in metadata and "spot_x" in metadata and "spot_y" in metadata:
-        spot_x = metadata["spot_x"]
-        spot_y = metadata["spot_y"]
-        if metadata["number_of_spots"] == len(spot_x) == len(spot_y):
-            main_image_peaks_source.data.update(x=spot_x, y=spot_y)
-        else:
-            main_image_peaks_source.data.update(x=[], y=[])
-            sv_metadata.add_issue("Spots data is inconsistent")
-    else:
-        main_image_peaks_source.data.update(x=[], y=[])
-
     # Update mask
     sv_mask.update(sv_metadata)
 
+    sv_spots.update(metadata, sv_metadata)
     sv_resolrings.update(metadata, sv_metadata)
     sv_intensity_roi.update(metadata, sv_metadata)
     sv_saturated_pixels.update(metadata)

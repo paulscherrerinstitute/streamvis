@@ -52,14 +52,6 @@ sv_mainview = sv.ImageView(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVA
 sv_mainview.toolbar_location = "below"
 
 
-# ---- peaks circle glyph
-main_image_peaks_source = ColumnDataSource(dict(x=[], y=[]))
-sv_mainview.plot.add_glyph(
-    main_image_peaks_source,
-    Circle(x="x", y="y", size=15, fill_alpha=0, line_width=3, line_color="white"),
-)
-
-
 # Total sum intensity plot
 sv_streamgraph = sv.StreamGraph(nplots=1, plot_height=200, plot_width=1350, rollover=36000)
 sv_streamgraph.plots[0].title = Title(text="Total intensity")
@@ -84,6 +76,10 @@ sv_intensity_roi = sv.IntensityROI([sv_mainview])
 
 # Add saturated pixel markers
 sv_saturated_pixels = sv.SaturatedPixels([sv_mainview])
+
+
+# Add spots markers
+sv_spots = sv.Spots([sv_mainview])
 
 
 # Add mask to both plots
@@ -239,18 +235,6 @@ async def update_client(image, metadata):
     # Parse metadata
     metadata_toshow = sv_metadata.parse(metadata)
 
-    # Update spots locations
-    if "number_of_spots" in metadata and "spot_x" in metadata and "spot_y" in metadata:
-        spot_x = metadata["spot_x"]
-        spot_y = metadata["spot_y"]
-        if metadata["number_of_spots"] == len(spot_x) == len(spot_y):
-            main_image_peaks_source.data.update(x=spot_x, y=spot_y)
-        else:
-            main_image_peaks_source.data.update(x=[], y=[])
-            sv_metadata.add_issue("Spots data is inconsistent")
-    else:
-        main_image_peaks_source.data.update(x=[], y=[])
-
     # Update total intensity plot
     sv_streamgraph.update([np.sum(image, dtype=np.float)])
 
@@ -273,6 +257,7 @@ async def update_client(image, metadata):
     # Update mask
     sv_mask.update(sv_metadata)
 
+    sv_spots.update(metadata, sv_metadata)
     sv_resolrings.update(metadata, sv_metadata)
     sv_intensity_roi.update(metadata, sv_metadata)
     sv_saturated_pixels.update(metadata)

@@ -4,7 +4,7 @@ from functools import partial
 import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import Circle, ColumnDataSource, Slider, Spacer, Title, Toggle
+from bokeh.models import Slider, Spacer, Title, Toggle
 
 import streamvis as sv
 
@@ -32,14 +32,6 @@ RESOLUTION_RINGS_POS = np.array([2, 2.2, 2.6, 3, 5, 10])
 # Main plot
 sv_mainview = sv.ImageView(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
 sv_mainview.toolbar_location = "below"
-
-
-# ---- peaks circle glyph
-main_image_peaks_source = ColumnDataSource(dict(x=[], y=[]))
-sv_mainview.plot.add_glyph(
-    main_image_peaks_source,
-    Circle(x="x", y="y", size=15, fill_alpha=0, line_width=3, line_color="white"),
-)
 
 
 # Total sum intensity plots
@@ -79,6 +71,10 @@ sv_intensity_roi = sv.IntensityROI([sv_mainview, sv_zoomview])
 
 # Add saturated pixel markers
 sv_saturated_pixels = sv.SaturatedPixels([sv_mainview, sv_zoomview])
+
+
+# Add spots markers
+sv_spots = sv.Spots([sv_mainview])
 
 
 # Add mask to both plots
@@ -196,18 +192,6 @@ async def update_client(image, metadata):
     # Parse metadata
     metadata_toshow = sv_metadata.parse(metadata)
 
-    # Update spots locations
-    if "number_of_spots" in metadata and "spot_x" in metadata and "spot_y" in metadata:
-        spot_x = metadata["spot_x"]
-        spot_y = metadata["spot_y"]
-        if metadata["number_of_spots"] == len(spot_x) == len(spot_y):
-            main_image_peaks_source.data.update(x=spot_x, y=spot_y)
-        else:
-            main_image_peaks_source.data.update(x=[], y=[])
-            sv_metadata.add_issue("Spots data is inconsistent")
-    else:
-        main_image_peaks_source.data.update(x=[], y=[])
-
     # Update total intensities plots
     zoom_y_start = int(np.floor(sv_zoomview.y_start))
     zoom_x_start = int(np.floor(sv_zoomview.x_start))
@@ -223,6 +207,7 @@ async def update_client(image, metadata):
     # Update mask
     sv_mask.update(sv_metadata)
 
+    sv_spots.update(metadata, sv_metadata)
     sv_resolrings.update(metadata, sv_metadata)
     sv_intensity_roi.update(metadata, sv_metadata)
     sv_saturated_pixels.update(metadata)
