@@ -14,14 +14,12 @@ from bokeh.models import (
     HoverTool,
     Line,
     LinearAxis,
-    Panel,
     PanTool,
     Plot,
     ResetTool,
     SaveTool,
     Slider,
     Spacer,
-    Tabs,
     TapTool,
     Title,
     Toggle,
@@ -180,7 +178,7 @@ sv_metadata = sv.MetadataHandler(datatable_height=260, datatable_width=650)
 sv_metadata.issues_datatable.height = 100
 
 
-# Custom tabs
+# Final layouts
 layout_intensity = column(
     sv_streamgraph.plots[0],
     row(
@@ -200,16 +198,10 @@ layout_metadata = column(
     sv_metadata.issues_datatable, sv_metadata.datatable, row(sv_metadata.show_all_toggle)
 )
 
-debug_tab = Panel(
-    child=column(layout_intensity, row(layout_hist, Spacer(width=30), layout_metadata)),
-    title="Debug",
+layout_debug = column(
+    layout_intensity, Spacer(height=30), row(layout_hist, Spacer(width=30), layout_metadata)
 )
 
-# assemble
-custom_tabs = Tabs(tabs=[debug_tab], height=960, width=1400)
-
-
-# Final layouts
 sv_colormapper.select.width = 170
 sv_colormapper.display_high_color.width = 120
 colormap_panel = column(
@@ -234,7 +226,9 @@ layout_controls = column(
     sv_streamctrl.toggle,
 )
 
-layout_side_panel = column(custom_tabs, row(layout_controls, Spacer(width=30), trajectory_plot))
+layout_side_panel = column(
+    layout_debug, Spacer(height=30), row(layout_controls, Spacer(width=30), trajectory_plot)
+)
 
 final_layout = row(sv_mainview.plot, Spacer(width=30), layout_side_panel)
 
@@ -245,8 +239,7 @@ async def update_client(image, metadata):
     sv_colormapper.update(image)
     sv_mainview.update(image)
 
-    if custom_tabs.tabs[custom_tabs.active].title == "Debug":
-        sv_hist.update([sv_mainview.displayed_image])
+    sv_hist.update([sv_mainview.displayed_image])
 
     # Parse metadata
     metadata_toshow = sv_metadata.parse(metadata)
