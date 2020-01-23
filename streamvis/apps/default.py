@@ -61,6 +61,10 @@ sv_intensity_roi = sv.IntensityROI([sv_mainview, sv_zoomview])
 sv_saturated_pixels = sv.SaturatedPixels([sv_mainview, sv_zoomview])
 
 
+# Add spots markers
+sv_spots = sv.Spots([sv_mainview])
+
+
 # Histogram plot
 sv_hist = sv.Histogram(nplots=1, plot_height=400, plot_width=700)
 
@@ -176,6 +180,7 @@ async def update_client(image, metadata, reset, aggr_image):
     # Update mask
     sv_mask.update(sv_metadata)
 
+    sv_spots.update(metadata, sv_metadata)
     sv_resolrings.update(metadata, sv_metadata)
     sv_intensity_roi.update(metadata, sv_metadata)
     sv_saturated_pixels.update(metadata)

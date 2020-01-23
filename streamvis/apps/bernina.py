@@ -114,6 +114,10 @@ sv_intensity_roi = sv.IntensityROI([sv_mainview, sv_zoomview1, sv_zoomview2])
 sv_saturated_pixels = sv.SaturatedPixels([sv_mainview, sv_zoomview1, sv_zoomview2])
 
 
+# Add spots markers
+sv_spots = sv.Spots([sv_mainview])
+
+
 # Add mask to all plots
 sv_mask = sv.Mask([sv_mainview, sv_zoomview1, sv_zoomview2])
 
@@ -254,6 +258,7 @@ async def update_client(image, metadata):
     # Update mask
     sv_mask.update(sv_metadata)
 
+    sv_spots.update(metadata, sv_metadata)
     sv_resolrings.update(metadata, sv_metadata)
     sv_intensity_roi.update(metadata, sv_metadata)
     sv_saturated_pixels.update(metadata)
