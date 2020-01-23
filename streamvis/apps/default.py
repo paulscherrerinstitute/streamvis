@@ -20,6 +20,9 @@ ZOOM_CANVAS_HEIGHT = 600 + 30
 
 APP_FPS = 1
 
+# Resolution rings positions in angstroms
+RESOLUTION_RINGS_POS = np.array([2, 2.2, 2.6, 3, 5, 10])
+
 
 # Main plot
 sv_mainview = sv.ImageView(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
@@ -40,6 +43,10 @@ sv_colormapper = sv.ColorMapper([sv_mainview, sv_zoomview])
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
 sv_colormapper.color_bar.location = (0, -5)
 sv_mainview.plot.add_layout(sv_colormapper.color_bar, place="below")
+
+
+# Add resolution rings to both plots
+sv_resolrings = sv.ResolutionRings([sv_mainview, sv_zoomview], RESOLUTION_RINGS_POS)
 
 
 # Add mask to all plots
@@ -105,6 +112,7 @@ layout_utility = column(
 layout_controls = column(
     colormap_panel,
     sv_mask.toggle,
+    sv_resolrings.toggle,
     doc.stats.open_stats_button,
     doc.stats.open_hitrate_plot_button,
     sv_intensity_roi.toggle,
@@ -168,6 +176,7 @@ async def update_client(image, metadata, reset, aggr_image):
     # Update mask
     sv_mask.update(sv_metadata)
 
+    sv_resolrings.update(metadata, sv_metadata)
     sv_intensity_roi.update(metadata, sv_metadata)
     sv_saturated_pixels.update(metadata)
 
