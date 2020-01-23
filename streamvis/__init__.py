@@ -18,4 +18,4 @@ from .image_processor import ImageProcessor
 from .saturated_pixels import SaturatedPixels
 from .spots import Spots
 
-__version__ = "0.7.4"
+__version__ = "0.8.0"
