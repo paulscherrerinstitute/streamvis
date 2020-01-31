@@ -168,6 +168,9 @@ class Histogram:
             accumulate (bool, optional): Add together bin values of the previous and current data.
                 Defaults to False.
         """
+        # do not display zeros on histograms
+        input_data = [im[im != 0] for im in input_data]
+
         if self.auto_toggle.active and not accumulate:  # automatic
             lower = math.floor(min([np.amin(im) for im in input_data]))
             upper = math.ceil(max([np.amax(im) for im in input_data]))
@@ -179,9 +182,7 @@ class Histogram:
 
         for ind, plot_source in enumerate(self._plot_sources):
             data_i = input_data[ind]
-            counts, edges = np.histogram(
-                data_i[data_i != 0], bins=self.nbins, range=(self.lower, self.upper)
-            )
+            counts, edges = np.histogram(data_i, bins=self.nbins, range=(self.lower, self.upper))
 
             if self.log10counts_toggle.active:
                 counts = np.log10(counts, where=counts > 0)
