@@ -19,4 +19,4 @@ from .saturated_pixels import SaturatedPixels
 from .spots import Spots
 from .progress_bar import ProgressBar
 
-__version__ = "0.8.0"
+__version__ = "0.8.1"
