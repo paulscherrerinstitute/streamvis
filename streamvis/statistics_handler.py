@@ -17,6 +17,8 @@ class StatisticsHandler:
         """
         self.hit_threshold = hit_threshold
         self.current_run_name = None
+        self.expected_nframes = None
+        self.received_nframes = None
         self.last_hit = (None, None)
         self.peakfinder_buffer = deque(maxlen=buffer_size)
         self.hitrate_buffer_fast = deque(maxlen=50)
@@ -126,6 +128,10 @@ class StatisticsHandler:
                     self.data["laser_off_nframes"][-1] = np.nan
                     self.data["laser_off_hits"][-1] = np.nan
                     self.data["laser_off_hits_ratio"][-1] = np.nan
+
+        self.expected_nframes = metadata.get("number_frames_expected")
+        if self.data["nframes"]:
+            self.received_nframes = self.data["nframes"][-1]
 
         if is_hit:
             self.last_hit = (metadata, image)

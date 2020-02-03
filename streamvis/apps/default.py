@@ -88,6 +88,10 @@ sv_metadata = sv.MetadataHandler()
 sv_metadata.issues_datatable.height = 100
 
 
+# Progress bar
+sv_progress_bar = sv.ProgressBar()
+
+
 # Final layouts
 sv_colormapper.select.width = 170
 sv_colormapper.display_high_color.width = 120
@@ -122,6 +126,7 @@ layout_controls = column(
     sv_intensity_roi.toggle,
     sv_saturated_pixels.toggle,
     sv_streamctrl.datatype_select,
+    sv_progress_bar.widget,
     sv_streamctrl.toggle,
 )
 
@@ -184,6 +189,7 @@ async def update_client(image, metadata, reset, aggr_image):
     sv_resolrings.update(metadata, sv_metadata)
     sv_intensity_roi.update(metadata, sv_metadata)
     sv_saturated_pixels.update(metadata)
+    sv_progress_bar.update(doc.stats.received_nframes, doc.stats.expected_nframes)
 
     sv_metadata.update(metadata_toshow)
 
