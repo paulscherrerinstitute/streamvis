@@ -1,5 +1,4 @@
 from collections import deque
-from functools import partial
 
 import numpy as np
 from bokeh.io import curdoc
@@ -231,7 +230,9 @@ final_layout = row(sv_mainview.plot, Spacer(width=30), layout_side_panel)
 doc.add_root(row(Spacer(width=50), final_layout))
 
 
-async def update_client(image, metadata):
+async def update_client():
+    image, metadata = sv_rt.current_image, sv_rt.current_metadata
+
     sv_colormapper.update(image)
     sv_mainview.update(image)
 
@@ -291,9 +292,7 @@ async def internal_periodic_callback():
             image_buffer_slider.value = len(image_buffer) - 1
 
     if sv_rt.current_image.shape != (1, 1):
-        doc.add_next_tick_callback(
-            partial(update_client, image=sv_rt.current_image, metadata=sv_rt.current_metadata)
-        )
+        doc.add_next_tick_callback(update_client)
 
 
 doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)

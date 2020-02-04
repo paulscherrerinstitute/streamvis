@@ -1,5 +1,3 @@
-from functools import partial
-
 import h5py
 import numpy as np
 from bokeh.io import curdoc
@@ -55,10 +53,7 @@ def load_file_button_callback():
         file_path.value, dataset_path.value, image_index_slider.value
     )
 
-    doc.add_next_tick_callback(
-        partial(update_client, image=sv_rt.current_image, metadata=sv_rt.current_metadata)
-    )
-
+    doc.add_next_tick_callback(update_client)
     image_index_slider.disabled = False
 
 
@@ -71,9 +66,7 @@ def image_index_slider_callback(_attr, _old, new):
         file_path.value, dataset_path.value, new
     )
 
-    doc.add_next_tick_callback(
-        partial(update_client, image=sv_rt.current_image, metadata=sv_rt.current_metadata)
-    )
+    doc.add_next_tick_callback(update_client)
 
 
 image_index_slider = Slider(
@@ -115,7 +108,9 @@ final_layout = row(
 doc.add_root(final_layout)
 
 
-async def update_client(image, metadata):
+async def update_client():
+    image, metadata = sv_rt.current_image, sv_rt.current_metadata
+
     sv_colormapper.update(image)
     sv_mainview.update(image)
 
@@ -134,9 +129,7 @@ async def update_client(image, metadata):
 
 async def internal_periodic_callback():
     if sv_rt.current_image.shape != (1, 1):
-        doc.add_next_tick_callback(
-            partial(update_client, image=sv_rt.current_image, metadata=sv_rt.current_metadata)
-        )
+        doc.add_next_tick_callback(update_client)
 
 
 doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)

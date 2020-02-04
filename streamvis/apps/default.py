@@ -1,5 +1,3 @@
-from functools import partial
-
 import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
@@ -152,7 +150,10 @@ final_layout = column(
 doc.add_root(final_layout)
 
 
-async def update_client(image, metadata, reset, aggr_image):
+async def update_client():
+    image, metadata = sv_rt.current_image, sv_rt.current_metadata
+    reset, aggr_image = sv_rt.reset, sv_rt.aggregated_image
+
     sv_colormapper.update(aggr_image)
     sv_mainview.update(aggr_image)
 
@@ -200,15 +201,7 @@ async def internal_periodic_callback():
         sv_rt.aggregated_image, sv_rt.reset = sv_image_processor.update(sv_rt.current_image)
 
     if sv_rt.current_image.shape != (1, 1):
-        doc.add_next_tick_callback(
-            partial(
-                update_client,
-                image=sv_rt.current_image,
-                metadata=sv_rt.current_metadata,
-                reset=sv_rt.reset,
-                aggr_image=sv_rt.aggregated_image,
-            )
-        )
+        doc.add_next_tick_callback(update_client)
 
 
 doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)
