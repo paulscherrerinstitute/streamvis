@@ -308,36 +308,35 @@ async def update_client():
     sv_zoom2_proj_v.update(aggr_image)
     sv_zoom2_proj_h.update(aggr_image)
 
-    y_start1 = int(np.floor(sv_zoomview1.y_start))
-    y_end1 = int(np.ceil(sv_zoomview1.y_end))
-    x_start1 = int(np.floor(sv_zoomview1.x_start))
-    x_end1 = int(np.ceil(sv_zoomview1.x_end))
-
-    im_block1 = aggr_image[y_start1:y_end1, x_start1:x_end1]
-
-    total_sum_zoom1 = np.sum(im_block1)
-
-    y_start2 = int(np.floor(sv_zoomview2.y_start))
-    y_end2 = int(np.ceil(sv_zoomview2.y_end))
-    x_start2 = int(np.floor(sv_zoomview2.x_start))
-    x_end2 = int(np.ceil(sv_zoomview2.x_end))
-
-    im_block2 = aggr_image[y_start2:y_end2, x_start2:x_end2]
-
-    total_sum_zoom2 = np.sum(im_block2)
-
     if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
+        y_start1 = int(np.floor(sv_zoomview1.y_start))
+        y_end1 = int(np.ceil(sv_zoomview1.y_end))
+        x_start1 = int(np.floor(sv_zoomview1.x_start))
+        x_end1 = int(np.ceil(sv_zoomview1.x_end))
+
+        im_block1 = aggr_image[y_start1:y_end1, x_start1:x_end1]
+        total_sum_zoom1 = np.sum(im_block1)
+
+        y_start2 = int(np.floor(sv_zoomview2.y_start))
+        y_end2 = int(np.ceil(sv_zoomview2.y_end))
+        x_start2 = int(np.floor(sv_zoomview2.x_start))
+        x_end2 = int(np.ceil(sv_zoomview2.x_end))
+
+        im_block2 = aggr_image[y_start2:y_end2, x_start2:x_end2]
+        total_sum_zoom2 = np.sum(im_block2)
+
+        # Update total intensities plots
+        sv_streamgraph.update(
+            [np.sum(aggr_image, dtype=np.float), total_sum_zoom1, total_sum_zoom2]
+        )
+
+        # Update histograms
         if reset:
             sv_hist.update([im_block1, im_block2])
         else:
             im_block1 = thr_image[y_start1:y_end1, x_start1:x_end1]
             im_block2 = thr_image[y_start2:y_end2, x_start2:x_end2]
             sv_hist.update([im_block1, im_block2], accumulate=True)
-
-        # Update total intensities plots
-        sv_streamgraph.update(
-            [np.sum(aggr_image, dtype=np.float), total_sum_zoom1, total_sum_zoom2]
-        )
 
     # Parse metadata
     metadata_toshow = sv_metadata.parse(metadata)
