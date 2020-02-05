@@ -83,25 +83,25 @@ class ImageProcessor:
             image (ndarray): Input image to be processed.
 
         Returns:
-            (ndarray, bool): Resulting aggregated image and reset flag.
+            (ndarray, ndarray, bool): Resulting thresholding image, aggregated image and reset flag.
         """
-        image = image.copy()
+        thr_image = image.copy()
         if self.threshold_flag:
-            ind = (image < self.threshold_min) | (self.threshold_max < image)
-            image[ind] = 0
+            ind = (thr_image < self.threshold_min) | (self.threshold_max < thr_image)
+            thr_image[ind] = 0
 
         aggregate_counter = self.aggregate_counter
         if self.aggregate_flag and (
             self.aggregate_time == 0 or self.aggregate_time > aggregate_counter
         ):
-            self.aggregated_image += image
+            self.aggregated_image += thr_image
             aggregate_counter += 1
             reset = False
         else:
-            self.aggregated_image = image
+            self.aggregated_image = thr_image
             aggregate_counter = 1
             reset = True
 
         self.aggregate_time_counter_textinput.value = str(aggregate_counter)
 
-        return self.aggregated_image, reset
+        return thr_image, self.aggregated_image, reset

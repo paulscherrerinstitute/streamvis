@@ -151,8 +151,8 @@ doc.add_root(final_layout)
 
 
 async def update_client():
-    image, metadata = sv_rt.current_image, sv_rt.current_metadata
-    reset, aggr_image = sv_rt.reset, sv_rt.aggregated_image
+    _, metadata = sv_rt.current_image, sv_rt.current_metadata
+    thr_image, reset, aggr_image = sv_rt.thresholded_image, sv_rt.reset, sv_rt.aggregated_image
 
     sv_colormapper.update(aggr_image)
     sv_mainview.update(aggr_image)
@@ -174,7 +174,7 @@ async def update_client():
         if reset:
             sv_hist.update([aggr_image])
         else:
-            im_block = image[y_start:y_end, x_start:x_end]
+            im_block = thr_image[y_start:y_end, x_start:x_end]
             sv_hist.update([im_block], accumulate=True)
 
     # Update total intensities plots
@@ -198,7 +198,9 @@ async def update_client():
 async def internal_periodic_callback():
     if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
         sv_rt.current_metadata, sv_rt.current_image = sv_streamctrl.get_stream_data(-1)
-        sv_rt.aggregated_image, sv_rt.reset = sv_image_processor.update(sv_rt.current_image)
+        sv_rt.thresholded_image, sv_rt.aggregated_image, sv_rt.reset = sv_image_processor.update(
+            sv_rt.current_image
+        )
 
     if sv_rt.current_image.shape != (1, 1):
         doc.add_next_tick_callback(update_client)
