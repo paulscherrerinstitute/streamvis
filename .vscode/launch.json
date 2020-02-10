@@ -9,12 +9,12 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "base",
+            "name": "default",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/streamvis/cli.py",
             "args": [
-                "base"
+                "default"
             ],
             "console": "internalConsole",
             "env": {},
@@ -42,12 +42,23 @@
             "env": {},
         },
         {
-            "name": "base16m",
+            "name": "default16m",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/streamvis/cli.py",
             "args": [
-                "base16m"
+                "default16m"
+            ],
+            "console": "internalConsole",
+            "env": {},
+        },
+        {
+            "name": "swissmx",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/streamvis/cli.py",
+            "args": [
+                "swissmx"
             ],
             "console": "internalConsole",
             "env": {},
