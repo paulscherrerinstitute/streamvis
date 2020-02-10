@@ -10,7 +10,7 @@ from bokeh.application.handlers import ScriptHandler
 from bokeh.server.server import Server
 
 from streamvis import __version__
-from streamvis.handler import StreamvisHandler
+from streamvis.handler import StreamvisHandler, StreamvisLimitSessionsHandler
 from streamvis.receiver import Receiver
 from streamvis.statistics_handler import StatisticsHandler
 
@@ -89,6 +89,13 @@ def main():
     )
 
     parser.add_argument(
+        "--max-client-connections",
+        type=int,
+        default=2,
+        help="a maximum number of concurrent client connections",
+    )
+
+    parser.add_argument(
         "--args",
         nargs=argparse.REMAINDER,
         default=[],
@@ -116,12 +123,13 @@ def main():
     # StreamvisHandler is a custom bokeh application Handler, which sets some of the core
     # properties for new bokeh documents created by all applications.
     sv_handler = StreamvisHandler(receiver, stats, args)
+    sv_sessions_limit_handler = StreamvisLimitSessionsHandler(args.max_client_connections)
 
     applications = dict()  # List of bokeh applications
 
     # Main application
     handler = ScriptHandler(filename=app_path, argv=args.args)
-    applications["/"] = Application(sv_handler, handler)
+    applications["/"] = Application(sv_handler, handler, sv_sessions_limit_handler)
 
     # Statistics application
     statistics_handler = ScriptHandler(filename=os.path.join(base_path, "statistics.py"))
@@ -132,7 +140,11 @@ def main():
     applications["/hitrate"] = Application(sv_handler, hitrate_handler)
 
     server = Server(
-        applications, port=args.port, allow_websocket_origin=args.allow_websocket_origin
+        applications,
+        port=args.port,
+        allow_websocket_origin=args.allow_websocket_origin,
+        unused_session_lifetime_milliseconds=1,
+        check_unused_sessions_milliseconds=3000,
     )
 
     server.start()
