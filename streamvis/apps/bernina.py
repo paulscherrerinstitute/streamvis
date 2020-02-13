@@ -156,15 +156,16 @@ layout_main = gridplot(
     [[sv_mainview.plot, column(sv_zoomview1.plot, sv_zoomview2.plot)]], merge_tools=False
 )
 
-hist_layout = gridplot([[sv_hist.plots[0], sv_hist.plots[1], sv_hist.plots[2]]], merge_tools=False)
-
-hist_controls = row(
-    Spacer(width=20),
-    column(Spacer(height=19), sv_hist.auto_toggle),
-    sv_hist.lower_spinner,
-    sv_hist.upper_spinner,
-    sv_hist.nbins_spinner,
-    column(Spacer(height=19), sv_hist.log10counts_toggle),
+layout_hist = column(
+    gridplot([[sv_hist.plots[0], sv_hist.plots[1], sv_hist.plots[2]]], merge_tools=False),
+    row(
+        Spacer(width=20),
+        column(Spacer(height=19), sv_hist.auto_toggle),
+        sv_hist.lower_spinner,
+        sv_hist.upper_spinner,
+        sv_hist.nbins_spinner,
+        column(Spacer(height=19), sv_hist.log10counts_toggle),
+    ),
 )
 
 layout_utility = column(
@@ -198,7 +199,7 @@ layout_metadata = column(
 
 final_layout = column(
     row(layout_main, Spacer(width=15), column(layout_metadata, layout_utility, layout_controls)),
-    column(hist_layout, hist_controls),
+    layout_hist,
 )
 
 doc.add_root(final_layout)
