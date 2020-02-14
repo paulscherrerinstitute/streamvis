@@ -213,6 +213,7 @@ layout_controls = column(
     show_only_hits_toggle,
     stats.open_stats_tab_button,
     stats.open_hitrate_plot_button,
+    doc.stats.open_roi_intensities_plot_button,
     sv_intensity_roi.toggle,
     sv_saturated_pixels.toggle,
     sv_streamctrl.datatype_select,

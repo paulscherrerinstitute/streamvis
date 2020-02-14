@@ -23,6 +23,8 @@ class StatisticsHandler:
         self.peakfinder_buffer = deque(maxlen=buffer_size)
         self.hitrate_buffer_fast = deque(maxlen=50)
         self.hitrate_buffer_slow = deque(maxlen=500)
+        # TODO: fix maximum number of deques in the buffer
+        self.roi_intensities_buffers = [deque(maxlen=50) for _ in range(9)]
         self._lock = RLock()
 
         self.jf_adapter = StreamAdapter()
@@ -64,6 +66,17 @@ class StatisticsHandler:
         open_hitrate_plot_button.js_on_click(CustomJS(code="window.open('/hitrate');"))
 
         return open_hitrate_plot_button
+
+    @property
+    def open_roi_intensities_plot_button(self):
+        """Return a button that opens ROI intensities application.
+        """
+        open_roi_intensities_plot_button = Button(label="Open ROI Intensities Plot")
+        open_roi_intensities_plot_button.js_on_click(
+            CustomJS(code="window.open('/roi_intensities');")
+        )
+
+        return open_roi_intensities_plot_button
 
     def parse(self, metadata, image):
         """Extract statistics from a metadata and an associated image.
@@ -140,6 +153,17 @@ class StatisticsHandler:
         else:
             self.hitrate_buffer_fast.append(0)
             self.hitrate_buffer_slow.append(0)
+
+        roi_intensities = metadata.get("roi_intensities_normalised")
+        if roi_intensities is not None:
+            for buf_ind, buffer in enumerate(self.roi_intensities_buffers):
+                if buf_ind < len(roi_intensities):
+                    buffer.append(roi_intensities[buf_ind])
+                else:
+                    buffer.clear()
+        else:
+            for buffer in self.roi_intensities_buffers:
+                buffer.clear()
 
     def _increment(self, key):
         self.data[key][-1] += 1

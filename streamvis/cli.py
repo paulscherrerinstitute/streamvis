@@ -139,6 +139,10 @@ def main():
     hitrate_handler = ScriptHandler(filename=os.path.join(base_path, "hitrate.py"))
     applications["/hitrate"] = Application(sv_handler, hitrate_handler)
 
+    # ROI intensities application
+    roi_intensities_handler = ScriptHandler(filename=os.path.join(base_path, "roi_intensities.py"))
+    applications["/roi_intensities"] = Application(sv_handler, roi_intensities_handler)
+
     server = Server(
         applications,
         port=args.port,

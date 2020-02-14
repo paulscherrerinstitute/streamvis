@@ -255,6 +255,12 @@ layout_bottom_row_controls = row(
     Spacer(width=100),
     column(sv_hist.auto_toggle, sv_hist.upper_spinner, sv_hist.lower_spinner),
     column(Spacer(height=42), sv_hist.nbins_spinner),
+    Spacer(width=100),
+    column(
+        doc.stats.open_stats_tab_button,
+        doc.stats.open_hitrate_plot_button,
+        doc.stats.open_roi_intensities_plot_button,
+    ),
 )
 
 layout_streamgraphs = column(
@@ -272,8 +278,6 @@ layout_controls = column(
     Spacer(height=30),
     sv_mask.toggle,
     sv_resolrings.toggle,
-    doc.stats.open_stats_tab_button,
-    doc.stats.open_hitrate_plot_button,
     sv_intensity_roi.toggle,
     sv_saturated_pixels.toggle,
     sv_streamctrl.datatype_select,
