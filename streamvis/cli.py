@@ -131,17 +131,12 @@ def main():
     handler = ScriptHandler(filename=app_path, argv=args.args)
     applications["/"] = Application(sv_handler, handler, sv_sessions_limit_handler)
 
-    # Statistics application
-    statistics_handler = ScriptHandler(filename=os.path.join(base_path, "statistics.py"))
-    applications["/statistics"] = Application(sv_handler, statistics_handler)
-
-    # Hitrate application
-    hitrate_handler = ScriptHandler(filename=os.path.join(base_path, "hitrate.py"))
-    applications["/hitrate"] = Application(sv_handler, hitrate_handler)
-
-    # ROI intensities application
-    roi_intensities_handler = ScriptHandler(filename=os.path.join(base_path, "roi_intensities.py"))
-    applications["/roi_intensities"] = Application(sv_handler, roi_intensities_handler)
+    # Add all common applications
+    common_apps_path = os.path.join(base_path, "common_apps")
+    for module_info in pkgutil.iter_modules([common_apps_path]):
+        app_name = module_info.name
+        app_handler = ScriptHandler(filename=os.path.join(common_apps_path, app_name + ".py"))
+        applications[f"/{app_name}"] = Application(sv_handler, app_handler)
 
     server = Server(
         applications,
