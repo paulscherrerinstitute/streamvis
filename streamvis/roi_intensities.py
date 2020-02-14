@@ -6,6 +6,7 @@ from bokeh.layouts import column
 from bokeh.models import (
     BasicTicker,
     BoxZoomTool,
+    Button,
     ColumnDataSource,
     DataRange1d,
     DatetimeAxis,
@@ -66,6 +67,16 @@ for ind in range(len(stats.roi_intensities_buffers)):
     sources.append(line_source)
     lines.append(line)
 
+# Reset button
+def reset_button_callback():
+    for source in sources:
+        if source.data["x"]:
+            source.data.update(dict(x=[source.data["x"][-1]], y=[source.data["y"][-1]]))
+
+
+reset_button = Button(label="Reset", button_type="default")
+reset_button.on_click(reset_button_callback)
+
 
 # Update ROI intensities plot
 def update():
@@ -85,5 +96,7 @@ def update():
             plot.legend.items.append(LegendItem(label=f"ROI_{i}", renderers=[lines[i]]))
 
 
-doc.add_root(column(plot, sizing_mode="stretch_both"))
+doc.add_root(
+    column(column(plot, sizing_mode="stretch_both"), reset_button, sizing_mode="stretch_width")
+)
 doc.add_periodic_callback(update, 1000)

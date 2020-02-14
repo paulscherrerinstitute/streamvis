@@ -5,6 +5,7 @@ from bokeh.layouts import column
 from bokeh.models import (
     BasicTicker,
     BoxZoomTool,
+    Button,
     ColumnDataSource,
     DataRange1d,
     DatetimeAxis,
@@ -70,6 +71,21 @@ plot.add_layout(
 plot.legend.click_policy = "hide"
 
 
+# Reset button
+def reset_button_callback():
+    data = line_red_source.data
+    if data["x"]:
+        line_red_source.data.update(dict(x=[data["x"][-1]], y=[data["y"][-1]]))
+
+    data = line_blue_source.data
+    if data["x"]:
+        line_blue_source.data.update(dict(x=[data["x"][-1]], y=[data["y"][-1]]))
+
+
+reset_button = Button(label="Reset", button_type="default")
+reset_button.on_click(reset_button_callback)
+
+
 # Update hitrate plot
 def update():
     if not (stats.hitrate_buffer_fast and stats.hitrate_buffer_slow):
@@ -93,5 +109,7 @@ def update():
     )
 
 
-doc.add_root(column(plot, sizing_mode="stretch_both"))
+doc.add_root(
+    column(column(plot, sizing_mode="stretch_both"), reset_button, sizing_mode="stretch_width")
+)
 doc.add_periodic_callback(update, 1000)
