@@ -272,7 +272,7 @@ layout_controls = column(
     Spacer(height=30),
     sv_mask.toggle,
     sv_resolrings.toggle,
-    doc.stats.open_stats_button,
+    doc.stats.open_stats_tab_button,
     doc.stats.open_hitrate_plot_button,
     sv_intensity_roi.toggle,
     sv_saturated_pixels.toggle,

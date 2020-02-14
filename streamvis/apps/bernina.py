@@ -185,7 +185,7 @@ layout_controls = row(
         sv_resolrings.toggle,
         sv_intensity_roi.toggle,
         sv_saturated_pixels.toggle,
-        doc.stats.open_stats_button,
+        doc.stats.open_stats_tab_button,
         doc.stats.open_hitrate_plot_button,
         sv_streamctrl.datatype_select,
         sv_progress_bar.widget,

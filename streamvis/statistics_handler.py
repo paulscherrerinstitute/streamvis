@@ -48,13 +48,13 @@ class StatisticsHandler:
                 val.append(0)
 
     @property
-    def open_stats_button(self):
+    def open_stats_tab_button(self):
         """Return a button that opens statistics application.
         """
-        open_stats_button = Button(label="Open Statistics")
-        open_stats_button.js_on_click(CustomJS(code="window.open('/statistics');"))
+        open_stats_tab_button = Button(label="Open Statistics Tab")
+        open_stats_tab_button.js_on_click(CustomJS(code="window.open('/statistics');"))
 
-        return open_stats_button
+        return open_stats_tab_button
 
     @property
     def open_hitrate_plot_button(self):
