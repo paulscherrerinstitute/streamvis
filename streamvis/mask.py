@@ -20,6 +20,7 @@ class Mask:
         self.receiver = doc.receiver
 
         self.current_file = ""
+        self.current_module_map = None
 
         # ---- rgba image glyph
         self._source = ColumnDataSource(dict(image=[placeholder], x=[0], y=[0], dw=[1], dh=[1]))
@@ -49,18 +50,23 @@ class Mask:
         """
         handler = self.receiver.jf_adapter.handler
         if handler and handler.pedestal_file:
-            if self.current_file != handler.pedestal_file:
+            if self.current_file != handler.pedestal_file or np.any(
+                self.current_module_map != handler.module_map
+            ):
                 mask_data = handler.get_pixel_mask(gap_pixels=True, geometry=True)
+                dh, dw = mask_data.shape
 
-                mask = np.zeros((*mask_data.shape, 4), dtype="uint8")
+                mask = np.zeros((dh, dw, 4), dtype="uint8")
                 mask[:, :, 1] = 255
                 mask[:, :, 3] = 255 * mask_data
 
                 self.current_file = handler.pedestal_file
-                self._source.data.update(image=[mask], dh=[mask.shape[0]], dw=[mask.shape[1]])
+                self.current_module_map = handler.module_map
+                self._source.data.update(image=[mask], dh=[dh], dw=[dw])
 
         else:
             self.current_file = ""
+            self.current_module_map = None
             self._source.data.update(image=[placeholder])
 
         if self.toggle.active and self.current_file == "":
