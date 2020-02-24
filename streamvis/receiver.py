@@ -82,16 +82,12 @@ class Receiver:
             and "saturated_pixels" not in metadata
             and raw_image.dtype == np.uint16
         ):
-            is_saturated = self.jf_adapter.handler.get_saturated_pixels(
-                raw_image, gap_pixels=True, geometry=True
+            saturated_pixels_coord = self.jf_adapter.handler.get_saturated_pixels(
+                raw_image, mask=True, gap_pixels=True, geometry=True
             )
 
-            pixel_mask = self.jf_adapter.handler.get_pixel_mask(gap_pixels=True, geometry=True)
-            if pixel_mask is not None:
-                is_saturated &= np.invert(pixel_mask)
-
-            metadata["saturated_pixels"] = np.count_nonzero(is_saturated)
-            metadata["saturated_pixels_coord"] = np.nonzero(is_saturated)
+            metadata["saturated_pixels_coord"] = saturated_pixels_coord
+            metadata["saturated_pixels"] = len(saturated_pixels_coord[0])
 
         return metadata, image
 
@@ -103,6 +99,8 @@ class Receiver:
             return metadata, image
 
         if self.jf_adapter.handler:
-            image = self.jf_adapter.handler.get_gains(image, gap_pixels=True, geometry=True)
+            image = self.jf_adapter.handler.get_gains(
+                image, mask=False, gap_pixels=True, geometry=True
+            )
 
         return metadata, image
