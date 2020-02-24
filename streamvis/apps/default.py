@@ -178,6 +178,10 @@ async def update_client():
     im_block = aggr_image[y_start:y_end, x_start:x_end]
     total_sum_zoom = np.sum(im_block)
 
+    # Deactivate auto histogram range if aggregation is on
+    if sv_image_processor.aggregate_toggle.active:
+        sv_hist.auto_toggle.active = False
+
     # Update histogram
     if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
         if reset:

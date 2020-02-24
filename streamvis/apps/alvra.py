@@ -312,6 +312,10 @@ async def update_client():
     sv_zoom2_proj_v.update(aggr_image)
     sv_zoom2_proj_h.update(aggr_image)
 
+    # Deactivate auto histogram range if aggregation is on
+    if sv_image_processor.aggregate_toggle.active:
+        sv_hist.auto_toggle.active = False
+
     if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
         y_start1 = int(np.floor(sv_zoomview1.y_start))
         y_end1 = int(np.ceil(sv_zoomview1.y_end))
