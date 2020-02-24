@@ -143,9 +143,17 @@ layout_metadata = column(
     sv_metadata.issues_datatable, sv_metadata.datatable, row(sv_metadata.show_all_toggle)
 )
 
+layout_hist = column(
+    sv_hist.plots[0],
+    row(
+        column(sv_hist.auto_toggle, sv_hist.upper_spinner, sv_hist.lower_spinner),
+        column(Spacer(height=42), sv_hist.nbins_spinner),
+    ),
+)
+
 final_layout = column(
     row(sv_mainview.plot, layout_controls, column(layout_metadata, layout_utility)),
-    row(layout_zoom, layout_threshold_aggr, sv_hist.plots[0]),
+    row(layout_zoom, layout_threshold_aggr, layout_hist),
 )
 
 doc.add_root(final_layout)
