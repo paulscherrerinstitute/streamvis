@@ -1,4 +1,3 @@
-import numpy as np
 from bokeh.io import curdoc
 from bokeh.models import Asterisk, ColumnDataSource, Toggle
 
@@ -44,15 +43,10 @@ class SaturatedPixels:
             # skip a computationally expensive update if the toggle is not active
             return
 
-        saturated_pixels_map = metadata.get("saturated_pixels_map")
-        if saturated_pixels_map is not None:
-            handler = self.receiver.jf_adapter.handler
-            if handler is not None:
-                saturated_pixels_map = handler.process(saturated_pixels_map, conversion=False)
-
-            y, x = np.nonzero(saturated_pixels_map)
-            y, x = y + 0.5, x + 0.5
-            self._source.data.update(x=x, y=y)
+        saturated_pixels_coord = metadata.get("saturated_pixels_coord")
+        if saturated_pixels_coord is not None:
+            y, x = saturated_pixels_coord
+            self._source.data.update(x=x + 0.5, y=y + 0.5)
 
         else:
             self._source.data.update(x=[], y=[])
