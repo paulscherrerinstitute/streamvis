@@ -172,8 +172,8 @@ class Histogram:
         input_data = [im[im != 0] for im in input_data]
 
         if self.auto_toggle.active and not accumulate:  # automatic
-            lower = math.floor(min([np.amin(im) for im in input_data]))
-            upper = math.ceil(max([np.amax(im) for im in input_data]))
+            lower = math.floor(min([np.amin(im) if im.size else 0 for im in input_data]))
+            upper = math.ceil(max([np.amax(im) if im.size else 0 for im in input_data]))
             if lower == upper:
                 upper += 1
 
