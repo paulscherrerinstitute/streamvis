@@ -211,13 +211,17 @@ class ImageView:
         )
         self.plot.add_glyph(area_source, area_rect)
 
-        image_view.plot.x_range.callback = CustomJS(
+        x_range_cb = CustomJS(
             args=dict(source=area_source), code=js_move_zoom.format(start="left", end="right")
         )
-
-        image_view.plot.y_range.callback = CustomJS(
+        y_range_cb = CustomJS(
             args=dict(source=area_source), code=js_move_zoom.format(start="bottom", end="top")
         )
+
+        image_view.plot.x_range.js_on_change("start", x_range_cb)
+        image_view.plot.x_range.js_on_change("end", x_range_cb)
+        image_view.plot.y_range.js_on_change("start", y_range_cb)
+        image_view.plot.y_range.js_on_change("end", y_range_cb)
 
         self.zoom_views.append(image_view)
 
