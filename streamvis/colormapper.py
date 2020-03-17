@@ -13,8 +13,7 @@ from bokeh.models import (
     Toggle,
 )
 
-# TODO: remove pylint exception after https://github.com/bokeh/bokeh/issues/9248 is fixed
-from bokeh.palettes import Cividis256, Greys256, Plasma256  # pylint: disable=E0611
+from bokeh.palettes import Cividis256, Greys256, Plasma256
 
 cmap_dict = {
     "gray": Greys256,

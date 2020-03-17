@@ -23,8 +23,7 @@ from bokeh.models import (
     WheelZoomTool,
 )
 
-# TODO: remove pylint exception after https://github.com/bokeh/bokeh/issues/9248 is fixed
-from bokeh.palettes import Set1  # pylint: disable=E0611
+from bokeh.palettes import Set1
 
 cm = Set1[9]
 

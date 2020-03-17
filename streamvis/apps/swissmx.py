@@ -24,8 +24,7 @@ from bokeh.models import (
     WheelZoomTool,
 )
 
-# TODO: remove pylint exception after https://github.com/bokeh/bokeh/issues/9248 is fixed
-from bokeh.palettes import Reds9  # pylint: disable=E0611
+from bokeh.palettes import Reds9
 from bokeh.transform import linear_cmap
 
 import streamvis as sv
@@ -126,7 +125,7 @@ def trajectory_circle_source_callback(_attr, _old, new):
 trajectory_circle_source = ColumnDataSource(dict(x=[], y=[], frame=[], nspots=[]))
 trajectory_circle_source.selected.on_change("indices", trajectory_circle_source_callback)
 
-circle_mapper = linear_cmap(field_name="nspots", palette=["#ffffff"] + Reds9[::-1], low=0, high=100)
+circle_mapper = linear_cmap(field_name="nspots", palette=("#ffffff", *Reds9[::-1]), low=0, high=100)
 trajectory_plot.add_glyph(
     trajectory_circle_source,
     Circle(x="x", y="y", fill_color=circle_mapper, size=12),
