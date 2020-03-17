@@ -93,14 +93,12 @@ def image_buffer_slider_callback(_attr, _old, new):
 image_buffer_slider = Slider(
     start=0,
     end=59,
-    value=0,
+    value_throttled=0,
     step=1,
     title="Buffered Image",
-    callback_policy="throttle",
-    callback_throttle=500,
     disabled=True,
 )
-image_buffer_slider.on_change("value", image_buffer_slider_callback)
+image_buffer_slider.on_change("value_throttled", image_buffer_slider_callback)
 
 # ---- stream toggle button
 sv_streamctrl = sv.StreamControl()

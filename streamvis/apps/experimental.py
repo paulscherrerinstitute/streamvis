@@ -72,14 +72,12 @@ def image_index_slider_callback(_attr, _old, new):
 image_index_slider = Slider(
     start=0,
     end=99,
-    value=0,
+    value_throttled=0,
     step=1,
     title="Pulse Number",
-    callback_policy="throttle",
-    callback_throttle=500,
     disabled=True,
 )
-image_index_slider.on_change("value", image_index_slider_callback)
+image_index_slider.on_change("value_throttled", image_index_slider_callback)
 
 
 # Metadata datatable
