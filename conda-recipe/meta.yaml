@@ -24,6 +24,12 @@ requirements:
     - pillow>=4.3
     - colorcet
 
+test:
+  source_files:
+      - streamvis/tests
+  requires:
+      - pytest
+
 about:
   home: https://github.com/paulscherrerinstitute/streamvis
   summary: {{ data['description'] }}
