@@ -127,6 +127,7 @@ layout_controls = column(
     sv_streamctrl.datatype_select,
     sv_progress_bar.widget,
     sv_streamctrl.toggle,
+    sv_streamctrl.rotate_image,
 )
 
 layout_threshold_aggr = column(

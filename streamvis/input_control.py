@@ -1,3 +1,4 @@
+import numpy as np
 from bokeh.io import curdoc
 from bokeh.models import Select, Toggle
 
@@ -20,6 +21,13 @@ class StreamControl:
         # data type select
         datatype_select = Select(title="Data type:", value="Image", options=["Image", "Gains"])
         self.datatype_select = datatype_select
+
+        # rotate image select
+        rotate_values = ["0", "90", "180", "270"]
+        rotate_image = Select(
+            title="Rotate image clockwise (deg):", value=rotate_values[0], options=rotate_values
+        )
+        self.rotate_image = rotate_image
 
         doc.add_periodic_callback(self._update_toggle_view, 1000)
 
@@ -48,6 +56,10 @@ class StreamControl:
             metadata, image = self.receiver.get_image(index)
         elif self.datatype_select.value == "Gains":
             metadata, image = self.receiver.get_image_gains(index)
+
+        n_rot = int(self.rotate_image.value) // 90
+        if n_rot:
+            image = np.rot90(image, k=n_rot)
 
         return metadata, image
 
