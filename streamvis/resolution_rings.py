@@ -43,7 +43,7 @@ class ResolutionRings:
 
         hovertool = HoverTool(
             tooltips=[("intensity", "@image"), ("resolution", "@x{resolution} Å")],
-            formatters=dict(x=resolution_formatter),
+            formatters={"@x": resolution_formatter},
             names=["image_glyph"],
         )
 
