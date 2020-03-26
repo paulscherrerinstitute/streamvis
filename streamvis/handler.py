@@ -72,6 +72,6 @@ class StreamvisLimitSessionsHandler(Handler):
 
         return doc
 
-    def on_session_destroyed(self, session_context):
+    async def on_session_destroyed(self, session_context):
         if hasattr(session_context._document, "receiver"):
             self.n_sessions -= 1
