@@ -147,7 +147,9 @@ class StatisticsHandler:
             self.received_nframes = self.data["nframes"][-1]
 
         if is_hit:
-            self.last_hit = (metadata, image)
+            # add to buffer only if the recieved image is not dummy
+            if image.shape != (2, 2):
+                self.last_hit = (metadata, image)
             self.hitrate_buffer_fast.append(1)
             self.hitrate_buffer_slow.append(1)
         else:

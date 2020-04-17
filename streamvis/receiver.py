@@ -65,7 +65,10 @@ class Receiver:
                 if self.on_receive is not None:
                     self.on_receive(metadata, image)
 
-                self.buffer.append((metadata, image))
+                # add to buffer only if the recieved image is not dummy
+                if image.shape != (2, 2):
+                    self.buffer.append((metadata, image))
+
                 self.state = "receiving"
 
             else:
