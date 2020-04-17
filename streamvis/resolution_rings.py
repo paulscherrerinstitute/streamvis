@@ -84,7 +84,7 @@ class ResolutionRings:
                 text_glyph.text_alpha = 0
                 cross_glyph.line_alpha = 0
 
-        toggle = Toggle(label="Resolution Rings", button_type="default")
+        toggle = Toggle(label="Show Resolution Rings", button_type="default")
         toggle.on_click(toggle_callback)
         self.toggle = toggle
 

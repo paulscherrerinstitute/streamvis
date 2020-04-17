@@ -45,7 +45,7 @@ class IntensityROI:
                 quad_glyph.line_alpha = 0
                 text_glyph.text_alpha = 0
 
-        toggle = Toggle(label="Intensity ROIs", button_type="default")
+        toggle = Toggle(label="Show Intensity ROIs", button_type="default")
         toggle.on_click(toggle_callback)
         self.toggle = toggle
 
