@@ -34,12 +34,20 @@ table_columns = copy(all_table_columns)
 
 table_source = ColumnDataSource(stats.data)
 table = DataTable(
-    source=table_source, columns=list(table_columns.values()), height=50, index_position=None
+    source=table_source,
+    columns=list(table_columns.values()),
+    height=50,
+    index_position=None,
+    sortable=False,
 )
 
 sum_table_source = ColumnDataSource(stats.sum_data)
 sum_table = DataTable(
-    source=sum_table_source, columns=list(table_columns.values()), height=50, index_position=None
+    source=sum_table_source,
+    columns=list(table_columns.values()),
+    height=50,
+    index_position=None,
+    sortable=False,
 )
 
 
