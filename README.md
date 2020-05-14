@@ -9,7 +9,7 @@ An example of user application:
 ![streamvis_1](https://user-images.githubusercontent.com/13196195/50630977-0275a280-0f43-11e9-8734-17257dd1fb1d.gif)
 
 ## Build
-The build is triggered upon pushing a tag into a `master` branch and involves running the [Travis CI](https://travis-ci.com/ivan-usov/streamvis) script, which builds a package and uploads it to `paulscherrerinstitute` anaconda channel.
+The build is triggered upon pushing a tag into a `master` branch and involves running the [Travis CI](https://travis-ci.com/ivan-usov/streamvis) script, which builds a package and uploads it to `paulscherrerinstitute` anaconda channel. A tagged release commit can be created with `make_release.py` script.
 
 To build a local conda package without uploading it to the anaconda channel:
 ```bash
