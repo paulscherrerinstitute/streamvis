@@ -1,3 +1,4 @@
+import numpy as np
 from bokeh.io import curdoc
 from bokeh.models import Asterisk, ColumnDataSource, Toggle
 
@@ -46,6 +47,10 @@ class SaturatedPixels:
         saturated_pixels_coord = metadata.get("saturated_pixels_coord")
         if saturated_pixels_coord is not None:
             y, x = saturated_pixels_coord
+            # convert coordinates to numpy arrays, because if these values were received as a part
+            # of a zmq message, they will be lists (ndarray is not JSON serializable)
+            y = np.array(y, copy=False)
+            x = np.array(x, copy=False)
             self._source.data.update(x=x + 0.5, y=y + 0.5)
 
         else:
