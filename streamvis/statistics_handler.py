@@ -228,8 +228,8 @@ class Hitrate:
         self._step_size = step_size
         self._max_num_steps = max_span // step_size
 
-        self._start_bin_id = 0
-        self._stop_bin_id = 0
+        self._start_bin_id = -1
+        self._stop_bin_id = -1
 
         self._hits = Counter()
         self._empty = Counter()
@@ -244,14 +244,14 @@ class Hitrate:
     def update(self, pulse_id, is_hit):
         bin_id = pulse_id // self._step_size
 
-        if not self._start_bin_id:
+        if self._start_bin_id == -1:
             self._start_bin_id = bin_id
 
         if bin_id < self._start_bin_id:
             # the data is too old
             return
 
-        min_bin_id = bin_id - self._max_num_steps
+        min_bin_id = max(bin_id - self._max_num_steps, 0)
         if self._start_bin_id < min_bin_id:
             # update start_bin_id and drop old data from the counters
             for _bin_id in range(self._start_bin_id, min_bin_id):
@@ -260,8 +260,8 @@ class Hitrate:
 
             self._start_bin_id = min_bin_id
 
-        if self._stop_bin_id < bin_id:
-            self._stop_bin_id = bin_id
+        if self._stop_bin_id < bin_id + 1:
+            self._stop_bin_id = bin_id + 1
 
         # update the counter
         counter = self._hits if is_hit else self._empty
@@ -269,7 +269,7 @@ class Hitrate:
 
     @property
     def values(self):
-        x = np.arange(self._start_bin_id, self._stop_bin_id + 1)
+        x = np.arange(self._start_bin_id, self._stop_bin_id)
         y = np.zeros_like(x, dtype=np.float)
 
         for i, _bin_id in enumerate(x):
