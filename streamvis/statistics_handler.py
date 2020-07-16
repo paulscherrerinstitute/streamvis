@@ -1,5 +1,5 @@
 import copy
-from collections import deque
+from collections import deque, Counter
 from threading import RLock
 
 import numpy as np
@@ -222,3 +222,61 @@ class StatisticsHandler:
             )
 
         return metadata, image
+
+
+class Hitrate:
+    def __init__(self, step_size=100, max_span=120_000):
+        self._step_size = step_size
+        self._max_num_steps = max_span // step_size
+
+        self._start_bin_id = 0
+        self._stop_bin_id = 0
+
+        self._hits = Counter()
+        self._empty = Counter()
+
+    def __bool__(self):
+        return bool(self._hits or self._empty)
+
+    @property
+    def step_size(self):
+        return self._step_size
+
+    def update(self, pulse_id, is_hit):
+        bin_id = pulse_id // self._step_size
+
+        if not self._start_bin_id:
+            self._start_bin_id = bin_id
+
+        if bin_id < self._start_bin_id:
+            # the data is too old
+            return
+
+        min_bin_id = bin_id - self._max_num_steps
+        if self._start_bin_id < min_bin_id:
+            # update start_bin_id and drop old data from the counters
+            for _bin_id in range(self._start_bin_id, min_bin_id):
+                del self._hits[_bin_id]
+                del self._empty[_bin_id]
+
+            self._start_bin_id = min_bin_id
+
+        if self._stop_bin_id < bin_id:
+            self._stop_bin_id = bin_id
+
+        # update the counter
+        counter = self._hits if is_hit else self._empty
+        counter.update([bin_id])
+
+    @property
+    def values(self):
+        x = np.arange(self._start_bin_id, self._stop_bin_id + 1)
+        y = np.zeros_like(x, dtype=np.float)
+
+        for i, _bin_id in enumerate(x):
+            hits = self._hits[_bin_id]
+            total = hits + self._empty[_bin_id]
+            if total:
+                y[i] = hits / total
+
+        return x * self._step_size, y
