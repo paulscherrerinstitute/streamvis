@@ -16,7 +16,6 @@ class StatisticsHandler:
             buffer_size (int, optional): A peakfinder buffer size. Defaults to 1.
         """
         self.hit_threshold = hit_threshold
-        self.current_run_name = None
         self.expected_nframes = None
         self.received_nframes = None
         self.last_hit = (None, None)
@@ -91,9 +90,16 @@ class StatisticsHandler:
         run_name = metadata.get("run_name")
         if run_name:
             with self._lock:
-                if run_name != self.current_run_name:
+                try:
+                    # since messages can have mixed run order, search for the current run_name in
+                    # the last 5 runs (5 should be large enough for all data analysis to finish)
+                    run_ind = self.data["run_names"].index(run_name, -5)
+                except ValueError:
+                    # this is a new run
+                    run_ind = -1
+
+                if run_ind == -1:
                     self.peakfinder_buffer.clear()
-                    self.current_run_name = run_name
                     for key, val in self.data.items():
                         if key == "run_names":
                             val.append(run_name)
@@ -108,43 +114,44 @@ class StatisticsHandler:
                         np.array([swissmx_x, swissmx_y, frame, number_of_spots])
                     )
 
-                self._increment("nframes")
+                self._increment("nframes", run_ind)
 
                 if "is_good_frame" in metadata and not metadata["is_good_frame"]:
-                    self._increment("bad_frames")
+                    self._increment("bad_frames", run_ind)
 
                 if "saturated_pixels" in metadata:
                     if metadata["saturated_pixels"] != 0:
-                        self._increment("sat_pix_nframes")
+                        self._increment("sat_pix_nframes", run_ind)
                 else:
-                    self.data["sat_pix_nframes"][-1] = np.nan
+                    self.data["sat_pix_nframes"][run_ind] = np.nan
 
                 laser_on = metadata.get("laser_on")
                 if laser_on is not None:
                     switch = "laser_on" if laser_on else "laser_off"
 
-                    self._increment(f"{switch}_nframes")
+                    self._increment(f"{switch}_nframes", run_ind)
 
                     if is_hit:
-                        self._increment(f"{switch}_hits")
+                        self._increment(f"{switch}_hits", run_ind)
 
-                    self.data[f"{switch}_hits_ratio"][-1] = (
-                        self.data[f"{switch}_hits"][-1] / self.data[f"{switch}_nframes"][-1]
+                    self.data[f"{switch}_hits_ratio"][run_ind] = (
+                        self.data[f"{switch}_hits"][run_ind]
+                        / self.data[f"{switch}_nframes"][run_ind]
                     )
                     self.sum_data[f"{switch}_hits_ratio"][-1] = (
                         self.sum_data[f"{switch}_hits"][-1] / self.sum_data[f"{switch}_nframes"][-1]
                     )
                 else:
-                    self.data["laser_on_nframes"][-1] = np.nan
-                    self.data["laser_on_hits"][-1] = np.nan
-                    self.data["laser_on_hits_ratio"][-1] = np.nan
-                    self.data["laser_off_nframes"][-1] = np.nan
-                    self.data["laser_off_hits"][-1] = np.nan
-                    self.data["laser_off_hits_ratio"][-1] = np.nan
+                    self.data["laser_on_nframes"][run_ind] = np.nan
+                    self.data["laser_on_hits"][run_ind] = np.nan
+                    self.data["laser_on_hits_ratio"][run_ind] = np.nan
+                    self.data["laser_off_nframes"][run_ind] = np.nan
+                    self.data["laser_off_hits"][run_ind] = np.nan
+                    self.data["laser_off_hits_ratio"][run_ind] = np.nan
 
         self.expected_nframes = metadata.get("number_frames_expected")
         if self.data["nframes"]:
-            self.received_nframes = self.data["nframes"][-1]
+            self.received_nframes = self.data["nframes"][run_ind]
 
         if is_hit:
             # add to buffer only if the recieved image is not dummy
@@ -167,16 +174,14 @@ class StatisticsHandler:
             for buffer in self.roi_intensities_buffers:
                 buffer.clear()
 
-    def _increment(self, key):
-        self.data[key][-1] += 1
+    def _increment(self, key, ind):
+        self.data[key][ind] += 1
         self.sum_data[key][-1] += 1
 
     def reset(self):
         """Reset statistics entries.
         """
         with self._lock:
-            self.current_run_name = None
-
             for val in self.data.values():
                 val.clear()
 
