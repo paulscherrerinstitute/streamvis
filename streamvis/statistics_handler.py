@@ -20,8 +20,8 @@ class StatisticsHandler:
         self.received_nframes = None
         self.last_hit = (None, None)
         self.peakfinder_buffer = deque(maxlen=buffer_size)
-        self.hitrate_buffer_fast = deque(maxlen=50)
-        self.hitrate_buffer_slow = deque(maxlen=500)
+        self.hitrate_fast = Hitrate(step_size=100)
+        self.hitrate_slow = Hitrate(step_size=1000)
         # TODO: fix maximum number of deques in the buffer
         self.roi_intensities_buffers = [deque(maxlen=50) for _ in range(9)]
         self._lock = RLock()
@@ -153,15 +153,14 @@ class StatisticsHandler:
         if self.data["nframes"]:
             self.received_nframes = self.data["nframes"][run_ind]
 
-        if is_hit:
+        if image.shape != (2, 2) and is_hit:
             # add to buffer only if the recieved image is not dummy
-            if image.shape != (2, 2):
-                self.last_hit = (metadata, image)
-            self.hitrate_buffer_fast.append(1)
-            self.hitrate_buffer_slow.append(1)
-        else:
-            self.hitrate_buffer_fast.append(0)
-            self.hitrate_buffer_slow.append(0)
+            self.last_hit = (metadata, image)
+
+        pulse_id = metadata.get("pulse_id")
+        if pulse_id:
+            self.hitrate_fast.update(pulse_id, is_hit)
+            self.hitrate_slow.update(pulse_id, is_hit)
 
         roi_intensities = metadata.get("roi_intensities_normalised")
         if roi_intensities is not None:

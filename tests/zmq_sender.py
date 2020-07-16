@@ -58,7 +58,7 @@ def simul_image_gen(sim_im_size_x=im_size_x, sim_im_size_y=im_size_y, dtype=np.u
     return cycle(images)
 
 
-def send_array(socket, array, frame_num, pulseid, flags=0, copy=False, track=False):
+def send_array(socket, array, frame_num, pulse_id, flags=0, copy=False, track=False):
     """send a numpy array with metadata"""
     n_spots = int(np.random.uniform(0, 20))
     md = dict(
@@ -66,7 +66,7 @@ def send_array(socket, array, frame_num, pulseid, flags=0, copy=False, track=Fal
         type=str(array.dtype),
         shape=array.shape,
         frame=frame_num,
-        pulseid=pulseid,
+        pulse_id=pulse_id,
         pulse_id_diff=[0, 0, 0],
         missing_packets_1=[0, 0, 0],
         missing_packets_2=[0, 1, 0],
@@ -93,15 +93,15 @@ def send_array(socket, array, frame_num, pulseid, flags=0, copy=False, track=Fal
 
 
 if __name__ == "__main__":
-    pulse_id = 0
+    pulseid = 0
     ctx = zmq.Context()
     skt = ctx.socket(zmq.PUB)  # pylint: disable=E1101
     skt.bind("tcp://127.0.0.1:9001")
     im_gen = simul_image_gen()
 
     for n in range(N):
-        send_array(skt, next(im_gen), n, pulse_id)
-        pulse_id += 100 + round(random.uniform(-15, 15))
+        send_array(skt, next(im_gen), n, pulseid)
+        pulseid += 100 + round(random.uniform(-15, 15))
         sleep(1)
 
     skt.close()
