@@ -2,6 +2,7 @@ from bokeh.io import curdoc
 from bokeh.layouts import column
 from bokeh.models import (
     BasicTicker,
+    BasicTickFormatter,
     BoxZoomTool,
     Button,
     ColumnDataSource,
@@ -25,7 +26,7 @@ doc.title = f"{doc.title} Hitrate"
 
 # Hitrate plot
 plot = Plot(
-    title=Title(text="Hitrate"),
+    title=Title(text="Hitrate Plot"),
     x_range=DataRange1d(),
     y_range=Range1d(0, 1, bounds=(0, 1)),
     toolbar_location="left",
@@ -33,11 +34,20 @@ plot = Plot(
 
 # ---- tools
 plot.toolbar.logo = None
-plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool())
+plot.add_tools(
+    PanTool(),
+    BoxZoomTool(),
+    WheelZoomTool(dimensions="width", maintain_focus=False),
+    SaveTool(),
+    ResetTool(),
+)
 
 # ---- axes
-plot.add_layout(LinearAxis(), place="below")
-plot.add_layout(LinearAxis(), place="left")
+plot.add_layout(
+    LinearAxis(axis_label="pulse_id", formatter=BasicTickFormatter(use_scientific=False)),
+    place="below",
+)
+plot.add_layout(LinearAxis(axis_label="Hitrate"), place="left")
 
 # ---- grid lines
 plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
