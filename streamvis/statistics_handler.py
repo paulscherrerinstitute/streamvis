@@ -85,7 +85,9 @@ class StatisticsHandler:
             image (ndarray): An associated image.
         """
         number_of_spots = metadata.get("number_of_spots")
-        is_hit = number_of_spots and number_of_spots > self.hit_threshold
+        sfx_hit = metadata.get("sfx_hit")
+        if sfx_hit is None:
+            sfx_hit = number_of_spots and number_of_spots > self.hit_threshold
 
         run_name = metadata.get("run_name")
         if run_name:
@@ -131,7 +133,7 @@ class StatisticsHandler:
 
                     self._increment(f"{switch}_nframes", run_ind)
 
-                    if is_hit:
+                    if sfx_hit:
                         self._increment(f"{switch}_hits", run_ind)
 
                     self.data[f"{switch}_hits_ratio"][run_ind] = (
@@ -153,14 +155,14 @@ class StatisticsHandler:
         if self.data["nframes"]:
             self.received_nframes = self.data["nframes"][run_ind]
 
-        if image.shape != (2, 2) and is_hit:
+        if image.shape != (2, 2) and sfx_hit:
             # add to buffer only if the recieved image is not dummy
             self.last_hit = (metadata, image)
 
         pulse_id = metadata.get("pulse_id")
         if pulse_id:
-            self.hitrate_fast.update(pulse_id, is_hit)
-            self.hitrate_slow.update(pulse_id, is_hit)
+            self.hitrate_fast.update(pulse_id, sfx_hit)
+            self.hitrate_slow.update(pulse_id, sfx_hit)
 
         roi_intensities = metadata.get("roi_intensities_normalised")
         if roi_intensities is not None:
