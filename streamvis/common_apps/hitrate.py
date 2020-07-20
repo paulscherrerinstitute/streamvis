@@ -12,7 +12,6 @@ from bokeh.models import (
     LinearAxis,
     PanTool,
     Plot,
-    Range1d,
     ResetTool,
     SaveTool,
     Step,
@@ -28,18 +27,14 @@ doc.title = f"{doc.title} Hitrate"
 plot = Plot(
     title=Title(text="Hitrate Plot"),
     x_range=DataRange1d(),
-    y_range=Range1d(0, 1, bounds=(0, 1)),
+    y_range=DataRange1d(),
     toolbar_location="left",
 )
 
 # ---- tools
 plot.toolbar.logo = None
 plot.add_tools(
-    PanTool(),
-    BoxZoomTool(),
-    WheelZoomTool(dimensions="width", maintain_focus=False),
-    SaveTool(),
-    ResetTool(),
+    PanTool(), BoxZoomTool(), WheelZoomTool(maintain_focus=False), SaveTool(), ResetTool(),
 )
 
 # ---- axes
