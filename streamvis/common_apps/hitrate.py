@@ -95,9 +95,11 @@ def update():
         return
 
     x_fast, y_fast = stats.hitrate_fast.values
+    y_fast[-1] = y_fast[-2]
     step_fast_source.data.update(dict(x=x_fast, y=y_fast))
 
     x_slow, y_slow = stats.hitrate_slow.values
+    y_slow[-1] = y_slow[-2]
     step_slow_source.data.update(dict(x=x_slow, y=y_slow))
 
 
