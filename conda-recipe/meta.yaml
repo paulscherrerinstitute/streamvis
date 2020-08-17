@@ -19,7 +19,7 @@ requirements:
   run:
     - python
     - bokeh=2.0
-    - jungfrau_utils=0.11
+    - jungfrau_utils=1
     - pyzmq
     - pillow>=4.3
     - colorcet
