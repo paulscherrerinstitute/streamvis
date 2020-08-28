@@ -10,7 +10,7 @@ stats = doc.stats
 doc.title = f"{doc.title} Statistics"
 
 all_table_columns = {
-    "run_names": TableColumn(field="run_names", title="Run Name"),
+    "pulse_id_bins": TableColumn(field="pulse_id_bins", title="PulseID Bin"),
     "nframes": TableColumn(field="nframes", title="Total Frames"),
     "bad_frames": TableColumn(field="bad_frames", title="Bad Frames"),
     "sat_pix_nframes": TableColumn(field="sat_pix_nframes", title="Sat pix frames"),

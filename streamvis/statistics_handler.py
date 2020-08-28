@@ -6,6 +6,8 @@ import numpy as np
 from bokeh.models import Button, CustomJS
 from jungfrau_utils import StreamAdapter
 
+PULSE_ID_STEP = 10000
+
 
 class StatisticsHandler:
     def __init__(self, hit_threshold, buffer_size=1):
@@ -27,7 +29,7 @@ class StatisticsHandler:
         self.jf_adapter = StreamAdapter()
 
         self.data = dict(
-            run_names=[],
+            pulse_id_bins=[],
             nframes=[],
             bad_frames=[],
             sat_pix_nframes=[],
@@ -41,7 +43,7 @@ class StatisticsHandler:
 
         self.sum_data = copy.deepcopy(self.data)
         for key, val in self.sum_data.items():
-            if key == "run_names":
+            if key == "pulse_id_bins":
                 val.append("Summary")
             else:
                 val.append(0)
@@ -87,76 +89,9 @@ class StatisticsHandler:
         if sfx_hit is None:
             sfx_hit = number_of_spots and number_of_spots > self.hit_threshold
 
-        run_name = metadata.get("run_name")
-        if run_name:
-            with self._lock:
-                try:
-                    # since messages can have mixed run order, search for the current run_name in
-                    # the last 5 runs (5 should be large enough for all data analysis to finish)
-                    run_ind = self.data["run_names"].index(run_name, -5)
-                except ValueError:
-                    # this is a new run
-                    run_ind = -1
-
-                if run_ind == -1:
-                    self.peakfinder_buffer.clear()
-                    for key, val in self.data.items():
-                        if key == "run_names":
-                            val.append(run_name)
-                        else:
-                            val.append(0)
-
-                swissmx_x = metadata.get("swissmx_x")
-                swissmx_y = metadata.get("swissmx_y")
-                frame = metadata.get("frame")
-                if swissmx_x and swissmx_y and frame and number_of_spots:
-                    self.peakfinder_buffer.append(
-                        np.array([swissmx_x, swissmx_y, frame, number_of_spots])
-                    )
-
-                self._increment("nframes", run_ind)
-
-                if "is_good_frame" in metadata and not metadata["is_good_frame"]:
-                    self._increment("bad_frames", run_ind)
-
-                if "saturated_pixels" in metadata:
-                    if metadata["saturated_pixels"] != 0:
-                        self._increment("sat_pix_nframes", run_ind)
-                else:
-                    self.data["sat_pix_nframes"][run_ind] = np.nan
-
-                laser_on = metadata.get("laser_on")
-                if laser_on is not None:
-                    switch = "laser_on" if laser_on else "laser_off"
-
-                    self._increment(f"{switch}_nframes", run_ind)
-
-                    if sfx_hit:
-                        self._increment(f"{switch}_hits", run_ind)
-
-                    self.data[f"{switch}_hits_ratio"][run_ind] = (
-                        self.data[f"{switch}_hits"][run_ind]
-                        / self.data[f"{switch}_nframes"][run_ind]
-                    )
-                    self.sum_data[f"{switch}_hits_ratio"][-1] = (
-                        self.sum_data[f"{switch}_hits"][-1] / self.sum_data[f"{switch}_nframes"][-1]
-                    )
-                else:
-                    self.data["laser_on_nframes"][run_ind] = np.nan
-                    self.data["laser_on_hits"][run_ind] = np.nan
-                    self.data["laser_on_hits_ratio"][run_ind] = np.nan
-                    self.data["laser_off_nframes"][run_ind] = np.nan
-                    self.data["laser_off_hits"][run_ind] = np.nan
-                    self.data["laser_off_hits_ratio"][run_ind] = np.nan
-
         if image.shape != (2, 2) and sfx_hit:
             # add to buffer only if the recieved image is not dummy
             self.last_hit = (metadata, image)
-
-        pulse_id = metadata.get("pulse_id")
-        if pulse_id:
-            self.hitrate_fast.update(pulse_id, sfx_hit)
-            self.hitrate_slow.update(pulse_id, sfx_hit)
 
         roi_intensities = metadata.get("roi_intensities_normalised")
         if roi_intensities is not None:
@@ -168,6 +103,74 @@ class StatisticsHandler:
         else:
             for buffer in self.roi_intensities_buffers:
                 buffer.clear()
+
+        pulse_id = metadata.get("pulse_id")
+        if pulse_id is None:
+            # no further statistics is possible to collect
+            return
+
+        self.hitrate_fast.update(pulse_id, sfx_hit)
+        self.hitrate_slow.update(pulse_id, sfx_hit)
+
+        pulse_id_bin = pulse_id // PULSE_ID_STEP * PULSE_ID_STEP
+        with self._lock:
+            try:
+                # since messages can have mixed pulse_id order, search for the current pulse_id_bin
+                # in the last 5 entries (5 should be large enough for all data analysis to finish)
+                bin_ind = self.data["pulse_id_bins"].index(pulse_id_bin, -5)
+            except ValueError:
+                # this is a new bin
+                bin_ind = -1
+
+            if bin_ind == -1:
+                self.peakfinder_buffer.clear()
+                for key, val in self.data.items():
+                    if key == "pulse_id_bins":
+                        val.append(pulse_id_bin)
+                    else:
+                        val.append(0)
+
+            swissmx_x = metadata.get("swissmx_x")
+            swissmx_y = metadata.get("swissmx_y")
+            frame = metadata.get("frame")
+            if swissmx_x and swissmx_y and frame and number_of_spots:
+                self.peakfinder_buffer.append(
+                    np.array([swissmx_x, swissmx_y, frame, number_of_spots])
+                )
+
+            self._increment("nframes", bin_ind)
+
+            if "is_good_frame" in metadata and not metadata["is_good_frame"]:
+                self._increment("bad_frames", bin_ind)
+
+            if "saturated_pixels" in metadata:
+                if metadata["saturated_pixels"] != 0:
+                    self._increment("sat_pix_nframes", bin_ind)
+            else:
+                self.data["sat_pix_nframes"][bin_ind] = np.nan
+
+            laser_on = metadata.get("laser_on")
+            if laser_on is not None:
+                switch = "laser_on" if laser_on else "laser_off"
+
+                self._increment(f"{switch}_nframes", bin_ind)
+
+                if sfx_hit:
+                    self._increment(f"{switch}_hits", bin_ind)
+
+                self.data[f"{switch}_hits_ratio"][bin_ind] = (
+                    self.data[f"{switch}_hits"][bin_ind] / self.data[f"{switch}_nframes"][bin_ind]
+                )
+                self.sum_data[f"{switch}_hits_ratio"][-1] = (
+                    self.sum_data[f"{switch}_hits"][-1] / self.sum_data[f"{switch}_nframes"][-1]
+                )
+            else:
+                self.data["laser_on_nframes"][bin_ind] = np.nan
+                self.data["laser_on_hits"][bin_ind] = np.nan
+                self.data["laser_on_hits_ratio"][bin_ind] = np.nan
+                self.data["laser_off_nframes"][bin_ind] = np.nan
+                self.data["laser_off_hits"][bin_ind] = np.nan
+                self.data["laser_off_hits_ratio"][bin_ind] = np.nan
 
     def _increment(self, key, ind):
         self.data[key][ind] += 1
@@ -181,7 +184,7 @@ class StatisticsHandler:
                 val.clear()
 
             for key, val in self.sum_data.items():
-                if key != "run_names":
+                if key != "pulse_id_bins":
                     val[0] = 0
 
     def get_last_hit(self):
