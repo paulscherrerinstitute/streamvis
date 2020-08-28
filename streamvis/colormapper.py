@@ -48,11 +48,11 @@ class ColorMapper:
 
         color_bar = ColorBar(
             color_mapper=lin_colormapper,
-            location=(0, 0),
+            location=(0, -5),
             orientation="horizontal",
             height=15,
             width=100,
-            padding=0,
+            padding=5,
         )
         self.color_bar = color_bar
 

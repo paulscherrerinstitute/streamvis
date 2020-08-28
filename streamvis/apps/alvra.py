@@ -100,7 +100,6 @@ sv_colormapper = sv.ColorMapper([sv_mainview, sv_zoomview1, sv_zoomview2])
 
 # ---- add colorbar to the main plot
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
-sv_colormapper.color_bar.location = (0, -5)
 sv_mainview.plot.add_layout(sv_colormapper.color_bar, place="below")
 
 
