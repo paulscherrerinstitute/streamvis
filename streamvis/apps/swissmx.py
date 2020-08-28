@@ -164,10 +164,6 @@ sv_metadata = sv.MetadataHandler(datatable_height=260, datatable_width=650)
 sv_metadata.issues_datatable.height = 100
 
 
-# Progress bar
-sv_progress_bar = sv.ProgressBar()
-
-
 # Final layouts
 layout_intensity = column(
     sv_streamgraph.plots[0],
@@ -215,7 +211,6 @@ layout_controls = column(
     sv_saturated_pixels.toggle,
     sv_streamctrl.datatype_select,
     image_buffer_slider,
-    sv_progress_bar.widget,
     sv_streamctrl.toggle,
 )
 
@@ -265,7 +260,6 @@ async def update_client():
     sv_resolrings.update(metadata, sv_metadata)
     sv_intensity_roi.update(metadata, sv_metadata)
     sv_saturated_pixels.update(metadata)
-    sv_progress_bar.update(doc.stats.received_nframes, doc.stats.expected_nframes)
 
     sv_metadata.update(metadata_toshow)
 

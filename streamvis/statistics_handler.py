@@ -16,8 +16,6 @@ class StatisticsHandler:
             buffer_size (int, optional): A peakfinder buffer size. Defaults to 1.
         """
         self.hit_threshold = hit_threshold
-        self.expected_nframes = None
-        self.received_nframes = None
         self.last_hit = (None, None)
         self.peakfinder_buffer = deque(maxlen=buffer_size)
         self.hitrate_fast = Hitrate(step_size=100)
@@ -150,10 +148,6 @@ class StatisticsHandler:
                     self.data["laser_off_nframes"][run_ind] = np.nan
                     self.data["laser_off_hits"][run_ind] = np.nan
                     self.data["laser_off_hits_ratio"][run_ind] = np.nan
-
-        self.expected_nframes = metadata.get("number_frames_expected")
-        if self.data["nframes"]:
-            self.received_nframes = self.data["nframes"][run_ind]
 
         if image.shape != (2, 2) and sfx_hit:
             # add to buffer only if the recieved image is not dummy
