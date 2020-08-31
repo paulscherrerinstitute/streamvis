@@ -4,7 +4,7 @@ import numpy as np
 from bokeh.io import curdoc
 from bokeh.models import ColumnDataSource, ImageRGBA, Toggle
 
-placeholder = np.ones((1, 1, 4), dtype="uint8")
+placeholder = np.zeros((1, 1), dtype=np.uint32)
 
 logger = logging.getLogger(__name__)
 
@@ -56,9 +56,10 @@ class Mask:
                 mask_data = handler.get_pixel_mask(gap_pixels=True, geometry=True)
                 dh, dw = mask_data.shape
 
-                mask = np.zeros((dh, dw, 4), dtype="uint8")
-                mask[:, :, 1] = 255
-                mask[:, :, 3] = 255 * mask_data
+                mask = np.zeros((dh, dw), dtype=np.uint32)
+                mask_view = mask.view(dtype=np.uint8).reshape((dh, dw, 4))
+                mask_view[:, :, 1] = 255
+                mask_view[:, :, 3] = 255 * mask_data
 
                 self.current_file = handler.pedestal_file
                 self.current_module_map = handler.module_map
