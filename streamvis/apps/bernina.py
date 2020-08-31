@@ -149,7 +149,7 @@ colormap_panel = column(
 
 layout_main = column(
     gridplot([[sv_mainview.plot, column(sv_zoomview1.plot, sv_zoomview2.plot)]], merge_tools=False),
-    row(Spacer(width=20),
+    row(
         doc.stats.open_stats_tab_button,
         doc.stats.open_hitrate_plot_button,
         doc.stats.open_roi_intensities_plot_button,
@@ -159,7 +159,6 @@ layout_main = column(
 layout_hist = column(
     gridplot([[sv_hist.plots[0], sv_hist.plots[1], sv_hist.plots[2]]], merge_tools=False),
     row(
-        Spacer(width=20),
         column(Spacer(height=19), sv_hist.auto_toggle),
         sv_hist.lower_spinner,
         sv_hist.upper_spinner,
@@ -179,14 +178,14 @@ layout_utility = column(
 )
 
 layout_controls = row(
-    column(colormap_panel, sv_mask.toggle),
+    colormap_panel,
     column(
-        Spacer(height=19),
+        sv_streamctrl.datatype_select,
+        sv_streamctrl.toggle,
+        sv_mask.toggle,
         sv_resolrings.toggle,
         sv_intensity_roi.toggle,
         sv_saturated_pixels.toggle,
-        sv_streamctrl.datatype_select,
-        sv_streamctrl.toggle,
     ),
 )
 
