@@ -237,13 +237,15 @@ layout_zoom2 = column(
 layout_bottom_row_controls = row(
     column(
         sv_image_processor.threshold_toggle,
-        sv_image_processor.threshold_max_spinner,
-        sv_image_processor.threshold_min_spinner,
+        row(sv_image_processor.threshold_min_spinner, sv_image_processor.threshold_max_spinner),
     ),
+    Spacer(width=100),
     column(
         sv_image_processor.aggregate_toggle,
-        sv_image_processor.aggregate_time_spinner,
-        sv_image_processor.aggregate_time_counter_textinput,
+        row(
+            sv_image_processor.aggregate_time_spinner,
+            sv_image_processor.aggregate_time_counter_textinput,
+        ),
     ),
     Spacer(width=100),
     column(save_spectrum_button, save_spectrum_select),

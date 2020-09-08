@@ -128,12 +128,13 @@ layout_controls = column(
 
 layout_threshold_aggr = column(
     sv_image_processor.threshold_toggle,
-    sv_image_processor.threshold_max_spinner,
-    sv_image_processor.threshold_min_spinner,
+    row(sv_image_processor.threshold_min_spinner, sv_image_processor.threshold_max_spinner),
     Spacer(height=30),
     sv_image_processor.aggregate_toggle,
-    sv_image_processor.aggregate_time_spinner,
-    sv_image_processor.aggregate_time_counter_textinput,
+    row(
+        sv_image_processor.aggregate_time_spinner,
+        sv_image_processor.aggregate_time_counter_textinput,
+    ),
 )
 
 layout_metadata = column(

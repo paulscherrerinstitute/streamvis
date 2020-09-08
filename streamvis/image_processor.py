@@ -17,10 +17,10 @@ class ImageProcessor:
 
         # Threshold min/max value spinners
         self.threshold_min_spinner = Spinner(
-            title="Minimal Intensity Threshold:", value=0, step=0.1
+            title="Min Intensity:", value=0, step=0.1, default_size=145
         )
         self.threshold_max_spinner = Spinner(
-            title="Maximal Intensity Threshold:", value=1000, step=0.1
+            title="Max Intensity:", value=1000, step=0.1, default_size=145
         )
 
         # Aggregation time toggle
@@ -32,11 +32,13 @@ class ImageProcessor:
         self.aggregate_toggle = aggregate_toggle
 
         # Aggregate time spinner
-        self.aggregate_time_spinner = Spinner(title="Aggregate Time:", value=0, low=0, step=1)
+        self.aggregate_time_spinner = Spinner(
+            title="Aggregate Time:", value=0, low=0, step=1, default_size=145
+        )
 
         # Aggregate time counter textinput
         aggregate_time_counter_textinput = TextInput(
-            title="Aggregate Time Counter:", value=str(1), disabled=True
+            title="Time Counter:", value=str(1), disabled=True, default_size=145
         )
         self.aggregate_time_counter_textinput = aggregate_time_counter_textinput
 
