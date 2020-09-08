@@ -249,8 +249,8 @@ layout_bottom_row_controls = row(
     Spacer(width=100),
     column(save_spectrum_button, save_spectrum_select),
     Spacer(width=100),
-    column(sv_hist.auto_toggle, sv_hist.upper_spinner, sv_hist.lower_spinner),
-    column(Spacer(height=42), sv_hist.nbins_spinner),
+    column(row(sv_hist.lower_spinner, sv_hist.upper_spinner), sv_hist.auto_toggle),
+    column(sv_hist.nbins_spinner),
     Spacer(width=100),
     column(
         doc.stats.open_stats_tab_button,

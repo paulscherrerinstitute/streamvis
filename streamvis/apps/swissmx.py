@@ -175,9 +175,10 @@ layout_intensity = column(
 
 layout_hist = column(
     sv_hist.plots[0],
-    row(sv_hist.log10counts_toggle),
-    row(sv_hist.nbins_spinner, column(Spacer(height=19), sv_hist.auto_toggle)),
-    row(sv_hist.lower_spinner, sv_hist.upper_spinner),
+    row(
+        column(row(sv_hist.lower_spinner, sv_hist.upper_spinner), sv_hist.auto_toggle),
+        column(sv_hist.nbins_spinner, sv_hist.log10counts_toggle),
+    ),
 )
 
 layout_metadata = column(

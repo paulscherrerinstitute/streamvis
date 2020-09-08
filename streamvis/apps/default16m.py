@@ -91,12 +91,7 @@ def image_buffer_slider_callback(_attr, _old, new):
 
 
 image_buffer_slider = Slider(
-    start=0,
-    end=59,
-    value_throttled=0,
-    step=1,
-    title="Buffered Image",
-    disabled=True,
+    start=0, end=59, value_throttled=0, step=1, title="Buffered Image", disabled=True,
 )
 image_buffer_slider.on_change("value_throttled", image_buffer_slider_callback)
 
@@ -126,9 +121,10 @@ layout_intensity = column(
 
 layout_hist = column(
     sv_hist.plots[0],
-    row(sv_hist.log10counts_toggle),
-    row(sv_hist.nbins_spinner, column(Spacer(height=19), sv_hist.auto_toggle)),
-    row(sv_hist.lower_spinner, sv_hist.upper_spinner),
+    row(
+        column(row(sv_hist.lower_spinner, sv_hist.upper_spinner), sv_hist.auto_toggle),
+        column(sv_hist.nbins_spinner, sv_hist.log10counts_toggle),
+    ),
 )
 
 layout_metadata = column(

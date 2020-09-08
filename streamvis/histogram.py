@@ -87,7 +87,7 @@ class Histogram:
                 lower_spinner.disabled = False
                 upper_spinner.disabled = False
 
-        auto_toggle = Toggle(label="Auto Range", active=True)
+        auto_toggle = Toggle(label="Auto Histogram Range", active=True)
         auto_toggle.on_click(auto_toggle_callback)
         self.auto_toggle = auto_toggle
 
@@ -102,6 +102,7 @@ class Histogram:
             value=lower,
             step=STEP,
             disabled=auto_toggle.active,
+            default_size=145,
         )
         lower_spinner.on_change("value", lower_spinner_callback)
         self.lower_spinner = lower_spinner
@@ -117,6 +118,7 @@ class Histogram:
             value=upper,
             step=STEP,
             disabled=auto_toggle.active,
+            default_size=145,
         )
         upper_spinner.on_change("value", upper_spinner_callback)
         self.upper_spinner = upper_spinner
@@ -125,7 +127,7 @@ class Histogram:
         def nbins_spinner_callback(_attr, _old_value, _new_value):
             self._counts = [0 for _ in range(nplots)]
 
-        nbins_spinner = Spinner(title="Number of Bins:", low=1, value=nbins)
+        nbins_spinner = Spinner(title="Number of Bins:", low=1, value=nbins, default_size=145)
         nbins_spinner.on_change("value", nbins_spinner_callback)
         self.nbins_spinner = nbins_spinner
 
@@ -138,7 +140,7 @@ class Histogram:
                 else:
                     plot.yaxis[0].axis_label = "Counts"
 
-        log10counts_toggle = Toggle(label="log⏨(Counts)", button_type="default")
+        log10counts_toggle = Toggle(label="log⏨(Counts)", button_type="default", default_size=145)
         log10counts_toggle.on_click(log10counts_toggle_callback)
         self.log10counts_toggle = log10counts_toggle
 

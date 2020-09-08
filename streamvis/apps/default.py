@@ -143,8 +143,8 @@ layout_metadata = column(
 layout_hist = column(
     sv_hist.plots[0],
     row(
-        column(sv_hist.auto_toggle, sv_hist.upper_spinner, sv_hist.lower_spinner),
-        column(Spacer(height=42), sv_hist.nbins_spinner),
+        column(row(sv_hist.lower_spinner, sv_hist.upper_spinner), sv_hist.auto_toggle),
+        column(sv_hist.nbins_spinner),
     ),
 )
 
