@@ -144,9 +144,8 @@ sv_colormapper.display_high_color.width = 120
 colormap_panel = column(
     row(sv_colormapper.select, sv_colormapper.display_high_color),
     sv_colormapper.scale_radiobuttongroup,
+    row(sv_colormapper.display_min_spinner, sv_colormapper.display_max_spinner),
     sv_colormapper.auto_toggle,
-    sv_colormapper.display_max_spinner,
-    sv_colormapper.display_min_spinner,
 )
 
 layout_zoom = gridplot(

@@ -76,7 +76,7 @@ class ColorMapper:
                 display_min_spinner.disabled = False
                 display_max_spinner.disabled = False
 
-        auto_toggle = Toggle(label="Auto", active=False, button_type="default")
+        auto_toggle = Toggle(label="Auto Colormap Range", active=False, button_type="default")
         auto_toggle.on_click(auto_toggle_callback)
         self.auto_toggle = auto_toggle
 
@@ -111,11 +111,12 @@ class ColorMapper:
             log_colormapper.high = new_value
 
         display_max_spinner = Spinner(
-            title="Maximal Display Value:",
+            title="Max Display Value:",
             low=disp_min + STEP,
             value=disp_max,
             step=STEP,
             disabled=auto_toggle.active,
+            default_size=145,
         )
         display_max_spinner.on_change("value", display_max_spinner_callback)
         self.display_max_spinner = display_max_spinner
@@ -130,11 +131,12 @@ class ColorMapper:
             log_colormapper.low = new_value
 
         display_min_spinner = Spinner(
-            title="Minimal Display Value:",
+            title="Min Display Value:",
             high=disp_max - STEP,
             value=disp_min,
             step=STEP,
             disabled=auto_toggle.active,
+            default_size=145,
         )
         display_min_spinner.on_change("value", display_min_spinner_callback)
         self.display_min_spinner = display_min_spinner

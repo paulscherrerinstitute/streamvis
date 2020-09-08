@@ -69,12 +69,7 @@ def image_index_slider_callback(_attr, _old, new):
 
 
 image_index_slider = Slider(
-    start=0,
-    end=99,
-    value_throttled=0,
-    step=1,
-    title="Pulse Number",
-    disabled=True,
+    start=0, end=99, value_throttled=0, step=1, title="Pulse Number", disabled=True,
 )
 image_index_slider.on_change("value_throttled", image_index_slider_callback)
 
@@ -89,9 +84,8 @@ sv_colormapper.display_high_color.width = 120
 colormap_panel = column(
     row(sv_colormapper.select, sv_colormapper.display_high_color),
     sv_colormapper.scale_radiobuttongroup,
+    row(sv_colormapper.display_min_spinner, sv_colormapper.display_max_spinner),
     sv_colormapper.auto_toggle,
-    sv_colormapper.display_max_spinner,
-    sv_colormapper.display_min_spinner,
 )
 
 hdf5_panel = column(file_path, dataset_path, load_file_button, image_index_slider)
