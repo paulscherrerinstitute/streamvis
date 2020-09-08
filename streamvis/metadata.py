@@ -57,7 +57,7 @@ class MetadataHandler:
         self.issues_datatable = issues_datatable
 
         # Show all toggle
-        show_all_toggle = Toggle(label="Show All", button_type="default")
+        show_all_toggle = Toggle(label="Show All Metadata", button_type="default", default_size=145)
         self.show_all_toggle = show_all_toggle
 
     def add_issue(self, issue):
