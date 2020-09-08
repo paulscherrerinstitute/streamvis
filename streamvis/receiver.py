@@ -74,11 +74,13 @@ class Receiver:
             else:
                 self.state = "polling"
 
-    def get_image(self, index):
+    def get_image(self, index, mask=True, gap_pixels=True, geometry=True):
         """Get metadata and image with the index.
         """
         metadata, raw_image = self.buffer[index]
-        image = self.jf_adapter.process(raw_image, metadata)
+        image = self.jf_adapter.process(
+            raw_image, metadata, mask=mask, gap_pixels=gap_pixels, geometry=geometry
+        )
 
         if (
             self.jf_adapter.handler
@@ -86,7 +88,7 @@ class Receiver:
             and raw_image.dtype == np.uint16
         ):
             saturated_pixels_coord = self.jf_adapter.handler.get_saturated_pixels(
-                raw_image, mask=True, gap_pixels=True, geometry=True
+                raw_image, mask=mask, gap_pixels=gap_pixels, geometry=geometry
             )
 
             metadata["saturated_pixels_coord"] = saturated_pixels_coord
@@ -94,7 +96,7 @@ class Receiver:
 
         return metadata, image
 
-    def get_image_gains(self, index):
+    def get_image_gains(self, index, mask=True, gap_pixels=True, geometry=True):
         """Get metadata and gains of image with the index.
         """
         metadata, image = self.buffer[index]
@@ -103,7 +105,7 @@ class Receiver:
 
         if self.jf_adapter.handler:
             image = self.jf_adapter.handler.get_gains(
-                image, mask=False, gap_pixels=True, geometry=True
+                image, mask=mask, gap_pixels=gap_pixels, geometry=geometry
             )
 
         return metadata, image
@@ -128,7 +130,7 @@ class StreamAdapter:
         if self.handler is not None:
             self.handler.mask_double_pixels = value
 
-    def process(self, image, metadata):
+    def process(self, image, metadata, mask=True, gap_pixels=True, geometry=True):
         """Perform jungfrau detector data processing on an image received via stream.
 
         Args:
@@ -166,9 +168,11 @@ class StreamAdapter:
         conversion = self.handler.can_convert()
 
         # skip masking step if pixel_mask is None
-        mask = self.handler.pixel_mask is not None
+        mask = mask and self.handler.pixel_mask is not None
 
-        return self.handler.process(image, conversion=conversion, mask=mask)
+        return self.handler.process(
+            image, conversion=conversion, mask=mask, gap_pixels=gap_pixels, geometry=geometry
+        )
 
     def _update_handler(self, md_dict):
         # gain file

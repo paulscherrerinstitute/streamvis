@@ -276,6 +276,7 @@ layout_controls = column(
     sv_intensity_roi.toggle,
     sv_saturated_pixels.toggle,
     sv_streamctrl.datatype_select,
+    sv_streamctrl.conv_opts_cbbg,
     sv_streamctrl.toggle,
 )
 

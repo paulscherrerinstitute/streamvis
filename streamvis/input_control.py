@@ -1,6 +1,6 @@
 import numpy as np
 from bokeh.io import curdoc
-from bokeh.models import Select, Toggle
+from bokeh.models import CheckboxButtonGroup, Select, Toggle
 
 
 class StreamControl:
@@ -21,6 +21,12 @@ class StreamControl:
         # data type select
         datatype_select = Select(title="Data type:", value="Image", options=["Image", "Gains"])
         self.datatype_select = datatype_select
+
+        # conversion options
+        conv_opts_cbbg = CheckboxButtonGroup(
+            labels=["Mask", "Gap pixels", "Geometry"], active=[0, 1, 2]
+        )
+        self.conv_opts_cbbg = conv_opts_cbbg
 
         # rotate image select
         rotate_values = ["0", "90", "180", "270"]
@@ -52,10 +58,19 @@ class StreamControl:
         Returns:
             (dict, ndarray): metadata and image at index
         """
+        active_opts = list(self.conv_opts_cbbg.active)
+        mask = 0 in active_opts
+        gap_pixels = 1 in active_opts
+        geometry = 2 in active_opts
+
         if self.datatype_select.value == "Image":
-            metadata, image = self.receiver.get_image(index)
+            metadata, image = self.receiver.get_image(
+                index, mask=mask, gap_pixels=gap_pixels, geometry=geometry
+            )
         elif self.datatype_select.value == "Gains":
-            metadata, image = self.receiver.get_image_gains(index)
+            metadata, image = self.receiver.get_image_gains(
+                index, mask=mask, gap_pixels=gap_pixels, geometry=geometry
+            )
 
         n_rot = int(self.rotate_image.value) // 90
         if n_rot:

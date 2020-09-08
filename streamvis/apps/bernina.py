@@ -181,6 +181,7 @@ layout_controls = row(
     colormap_panel,
     column(
         sv_streamctrl.datatype_select,
+        sv_streamctrl.conv_opts_cbbg,
         sv_streamctrl.toggle,
         sv_mask.toggle,
         sv_resolrings.toggle,
