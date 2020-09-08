@@ -106,7 +106,7 @@ class StreamGraph:
                 self._window = new_value
 
         moving_average_spinner = Spinner(
-            title="Moving Average Window:", value=self._window, low=1, high=MAXLEN
+            title="Moving Average Window:", value=self._window, low=1, high=MAXLEN, default_size=145
         )
         moving_average_spinner.on_change("value", moving_average_spinner_callback)
         self.moving_average_spinner = moving_average_spinner
@@ -128,7 +128,7 @@ class StreamGraph:
                         y_avg=[source.data["y_avg"][-1]],
                     )
 
-        reset_button = Button(label="Reset", button_type="default")
+        reset_button = Button(label="Reset", button_type="default", default_size=145)
         reset_button.on_click(reset_button_callback)
         self.reset_button = reset_button
 
