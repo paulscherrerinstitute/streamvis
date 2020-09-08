@@ -3,7 +3,7 @@ from datetime import datetime
 import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import Button, ColumnDataSource, Line, Select, Spacer, Title
+from bokeh.models import Button, ColumnDataSource, Div, Line, Select, Spacer, Title
 
 import streamvis as sv
 
@@ -269,13 +269,14 @@ layout_streamgraphs = column(
     ),
 )
 
+show_overlays_div = Div(text="Show Overlays:")
 layout_controls = column(
     layout_colormap,
     Spacer(height=30),
-    sv_mask.toggle,
-    sv_resolrings.toggle,
-    sv_intensity_roi.toggle,
-    sv_saturated_pixels.toggle,
+    show_overlays_div,
+    row(sv_mask.toggle, sv_resolrings.toggle),
+    row(sv_intensity_roi.toggle, sv_saturated_pixels.toggle),
+    Spacer(height=30),
     sv_streamctrl.datatype_select,
     sv_streamctrl.conv_opts_cbbg,
     sv_streamctrl.toggle,

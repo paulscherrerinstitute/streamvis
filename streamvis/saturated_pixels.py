@@ -30,7 +30,9 @@ class SaturatedPixels:
             else:
                 marker_glyph.line_alpha = 0
 
-        toggle = Toggle(label="Show Saturated Pixels", button_type="default", active=True)
+        toggle = Toggle(
+            label="Saturated Pixels", button_type="default", active=True, default_size=145
+        )
         toggle.on_click(toggle_callback)
         self.toggle = toggle
 

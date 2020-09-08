@@ -3,7 +3,7 @@ from collections import deque
 import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import Slider, Spacer, Title, Toggle
+from bokeh.models import Div, Slider, Spacer, Title, Toggle
 
 import streamvis as sv
 
@@ -148,14 +148,15 @@ layout_zoom = gridplot(
     [[sv_zoom_proj_v.plot, None], [sv_zoomview.plot, sv_zoom_proj_h.plot]], merge_tools=False
 )
 
+show_overlays_div = Div(text="Show Overlays:")
 layout_controls = column(
     colormap_panel,
     Spacer(height=30),
-    sv_mask.toggle,
-    sv_resolrings.toggle,
+    show_overlays_div,
+    row(sv_mask.toggle, sv_resolrings.toggle),
+    row(sv_intensity_roi.toggle, sv_saturated_pixels.toggle),
+    Spacer(height=30),
     show_only_hits_toggle,
-    sv_intensity_roi.toggle,
-    sv_saturated_pixels.toggle,
     sv_streamctrl.datatype_select,
     image_buffer_slider,
     sv_streamctrl.toggle,

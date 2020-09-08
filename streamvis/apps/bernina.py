@@ -1,7 +1,7 @@
 import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import Spacer, Title
+from bokeh.models import Div, Spacer, Title
 
 import streamvis as sv
 
@@ -176,16 +176,18 @@ layout_utility = column(
     ),
 )
 
+show_overlays_div = Div(text="Show Overlays:")
 layout_controls = row(
     colormap_panel,
+    Spacer(width=20),
     column(
+        show_overlays_div,
+        row(sv_mask.toggle, sv_resolrings.toggle),
+        row(sv_intensity_roi.toggle, sv_saturated_pixels.toggle),
+        Spacer(height=10),
         sv_streamctrl.datatype_select,
         sv_streamctrl.conv_opts_cbbg,
         sv_streamctrl.toggle,
-        sv_mask.toggle,
-        sv_resolrings.toggle,
-        sv_intensity_roi.toggle,
-        sv_saturated_pixels.toggle,
     ),
 )
 
@@ -194,7 +196,13 @@ layout_metadata = column(
 )
 
 final_layout = column(
-    row(layout_main, Spacer(width=15), column(layout_metadata, layout_utility, layout_controls)),
+    row(
+        layout_main,
+        Spacer(width=15),
+        column(
+            layout_metadata, Spacer(height=10), layout_utility, Spacer(height=10), layout_controls
+        ),
+    ),
     layout_hist,
 )
 

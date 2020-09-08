@@ -9,6 +9,7 @@ from bokeh.models import (
     Circle,
     ColumnDataSource,
     DataRange1d,
+    Div,
     Grid,
     HoverTool,
     LinearAxis,
@@ -23,7 +24,6 @@ from bokeh.models import (
     Toggle,
     WheelZoomTool,
 )
-
 from bokeh.palettes import Reds9
 from bokeh.transform import linear_cmap
 
@@ -193,14 +193,15 @@ colormap_panel = column(
     sv_colormapper.auto_toggle,
 )
 
+show_overlays_div = Div(text="Show Overlays:")
 layout_controls = column(
     colormap_panel,
     Spacer(height=30),
-    sv_mask.toggle,
-    sv_resolrings.toggle,
+    show_overlays_div,
+    row(sv_mask.toggle, sv_resolrings.toggle),
+    row(sv_intensity_roi.toggle, sv_saturated_pixels.toggle),
+    Spacer(height=30),
     show_only_hits_toggle,
-    sv_intensity_roi.toggle,
-    sv_saturated_pixels.toggle,
     sv_streamctrl.datatype_select,
     image_buffer_slider,
     sv_streamctrl.toggle,
