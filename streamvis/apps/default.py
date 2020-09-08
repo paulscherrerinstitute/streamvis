@@ -114,15 +114,16 @@ layout_controls = column(
     colormap_panel,
     sv_mask.toggle,
     sv_resolrings.toggle,
-    doc.stats.open_stats_tab_button,
-    doc.stats.open_hitrate_plot_button,
-    doc.stats.open_roi_intensities_plot_button,
     sv_intensity_roi.toggle,
     sv_saturated_pixels.toggle,
     sv_streamctrl.datatype_select,
     sv_streamctrl.rotate_image,
     sv_streamctrl.conv_opts_cbbg,
     sv_streamctrl.toggle,
+    Spacer(height=30),
+    doc.stats.open_stats_tab_button,
+    doc.stats.open_hitrate_plot_button,
+    doc.stats.open_roi_intensities_plot_button,
 )
 
 layout_threshold_aggr = column(

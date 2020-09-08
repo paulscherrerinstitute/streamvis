@@ -57,7 +57,7 @@ sv_colormapper = sv.ColorMapper([sv_mainview, sv_zoomview])
 
 # ---- add colorbar to the main plot
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
-sv_mainview.plot.add_layout(sv_colormapper.color_bar, place="above")
+sv_mainview.plot.add_layout(sv_colormapper.color_bar, place="below")
 
 
 # Add resolution rings to both plots
@@ -159,14 +159,15 @@ layout_controls = column(
     sv_mask.toggle,
     sv_resolrings.toggle,
     show_only_hits_toggle,
-    stats.open_stats_tab_button,
-    stats.open_hitrate_plot_button,
-    doc.stats.open_roi_intensities_plot_button,
     sv_intensity_roi.toggle,
     sv_saturated_pixels.toggle,
     sv_streamctrl.datatype_select,
     image_buffer_slider,
     sv_streamctrl.toggle,
+    Spacer(height=30),
+    stats.open_stats_tab_button,
+    stats.open_hitrate_plot_button,
+    stats.open_roi_intensities_plot_button,
 )
 
 layout_side_panel = column(
