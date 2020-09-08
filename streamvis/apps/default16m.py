@@ -34,7 +34,7 @@ sv_mainview.toolbar_location = "below"
 
 
 # Total sum intensity plots
-sv_streamgraph = sv.StreamGraph(nplots=2, plot_height=200, plot_width=1350, rollover=36000)
+sv_streamgraph = sv.StreamGraph(nplots=2, plot_height=210, plot_width=1350, rollover=36000)
 sv_streamgraph.plots[0].title = Title(text="Total intensity")
 sv_streamgraph.plots[1].title = Title(text="Zoom total intensity")
 
@@ -81,7 +81,7 @@ sv_mask = sv.Mask([sv_mainview, sv_zoomview])
 
 
 # Histogram plot
-sv_hist = sv.Histogram(nplots=1, plot_height=280, plot_width=700)
+sv_hist = sv.Histogram(nplots=1, plot_height=290, plot_width=700)
 
 
 # Stream panel
@@ -104,7 +104,7 @@ show_only_hits_toggle = Toggle(label="Show Only Hits", button_type="default")
 
 
 # Metadata datatable
-sv_metadata = sv.MetadataHandler(datatable_height=260, datatable_width=650)
+sv_metadata = sv.MetadataHandler(datatable_height=230, datatable_width=650)
 sv_metadata.issues_datatable.height = 100
 
 

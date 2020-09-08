@@ -51,7 +51,7 @@ sv_mainview.toolbar_location = "below"
 
 
 # Total sum intensity plot
-sv_streamgraph = sv.StreamGraph(nplots=1, plot_height=200, plot_width=1350, rollover=36000)
+sv_streamgraph = sv.StreamGraph(nplots=1, plot_height=210, plot_width=1350, rollover=36000)
 sv_streamgraph.plots[0].title = Title(text="Total intensity")
 sv_streamgraph.plots[0].toolbar_location = "left"
 
@@ -85,15 +85,15 @@ sv_mask = sv.Mask([sv_mainview])
 
 
 # Histogram plot
-sv_hist = sv.Histogram(nplots=1, plot_height=280, plot_width=700)
+sv_hist = sv.Histogram(nplots=1, plot_height=290, plot_width=700)
 
 
 # Trajectory plot
 trajectory_plot = Plot(
     x_range=DataRange1d(),
     y_range=DataRange1d(),
-    plot_height=1000,
-    plot_width=1000,
+    plot_height=1050,
+    plot_width=1050,
     toolbar_location="left",
 )
 
@@ -142,12 +142,7 @@ def image_buffer_slider_callback(_attr, _old, new):
 
 
 image_buffer_slider = Slider(
-    start=0,
-    end=59,
-    value_throttled=0,
-    step=1,
-    title="Buffered Image",
-    disabled=True,
+    start=0, end=59, value_throttled=0, step=1, title="Buffered Image", disabled=True,
 )
 image_buffer_slider.on_change("value_throttled", image_buffer_slider_callback)
 
@@ -160,7 +155,7 @@ show_only_hits_toggle = Toggle(label="Show Only Hits", button_type="default")
 
 
 # Metadata datatable
-sv_metadata = sv.MetadataHandler(datatable_height=260, datatable_width=650)
+sv_metadata = sv.MetadataHandler(datatable_height=230, datatable_width=650)
 sv_metadata.issues_datatable.height = 100
 
 
