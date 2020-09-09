@@ -1,3 +1,4 @@
+import numpy as np
 from bokeh.models import Spinner, TextInput, Toggle
 
 
@@ -5,7 +6,7 @@ class ImageProcessor:
     def __init__(self):
         """Initialize an image processor.
         """
-        self.aggregated_image = 0
+        self.aggregated_image = np.zeros((1, 1), dtype=np.float32)
 
         # Intensity threshold toggle
         def threshold_toggle_callback(state):
@@ -78,6 +79,10 @@ class ImageProcessor:
         """
         return int(self.aggregate_time_counter_textinput.value)
 
+    @aggregate_counter.setter
+    def aggregate_counter(self, value):
+        self.aggregate_time_counter_textinput.value = str(value)
+
     def update(self, image):
         """Trigger an update for the image processor.
 
@@ -92,18 +97,17 @@ class ImageProcessor:
             ind = (thr_image < self.threshold_min) | (self.threshold_max < thr_image)
             thr_image[ind] = 0
 
-        aggregate_counter = self.aggregate_counter
-        if self.aggregate_flag and (
-            self.aggregate_time == 0 or self.aggregate_time > aggregate_counter
+        if (
+            self.aggregate_flag
+            and (self.aggregate_time == 0 or self.aggregate_time > self.aggregate_counter)
+            and self.aggregated_image.shape == image.shape
         ):
             self.aggregated_image += thr_image
-            aggregate_counter += 1
+            self.aggregate_counter += 1
             reset = False
         else:
             self.aggregated_image = thr_image
-            aggregate_counter = 1
+            self.aggregate_counter = 1
             reset = True
-
-        self.aggregate_time_counter_textinput.value = str(aggregate_counter)
 
         return thr_image, self.aggregated_image, reset
