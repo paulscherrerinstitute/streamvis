@@ -135,22 +135,19 @@ layout_debug = column(
     layout_intensity, Spacer(height=30), row(layout_hist, Spacer(width=30), layout_metadata)
 )
 
-sv_colormapper.select.width = 170
-sv_colormapper.display_high_color.width = 120
-colormap_panel = column(
-    row(sv_colormapper.select, sv_colormapper.display_high_color),
-    sv_colormapper.scale_radiobuttongroup,
-    row(sv_colormapper.display_min_spinner, sv_colormapper.display_max_spinner),
-    sv_colormapper.auto_toggle,
-)
-
 layout_zoom = gridplot(
     [[sv_zoom_proj_v.plot, None], [sv_zoomview.plot, sv_zoom_proj_h.plot]], merge_tools=False
 )
 
+sv_colormapper.select.width = 170
+sv_colormapper.display_high_color.width = 120
 show_overlays_div = Div(text="Show Overlays:")
+
 layout_controls = column(
-    colormap_panel,
+    row(sv_colormapper.select, sv_colormapper.display_high_color),
+    sv_colormapper.scale_radiobuttongroup,
+    row(sv_colormapper.display_min_spinner, sv_colormapper.display_max_spinner),
+    sv_colormapper.auto_toggle,
     Spacer(height=30),
     show_overlays_div,
     row(sv_mask.toggle, sv_resolrings.toggle),

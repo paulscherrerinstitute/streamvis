@@ -81,16 +81,17 @@ sv_metadata = sv.MetadataHandler(datatable_height=300, datatable_width=400)
 # Final layouts
 sv_colormapper.select.width = 170
 sv_colormapper.display_high_color.width = 120
-colormap_panel = column(
+
+layout_controls = column(
+    file_path,
+    dataset_path,
+    load_file_button,
+    image_index_slider,
     row(sv_colormapper.select, sv_colormapper.display_high_color),
     sv_colormapper.scale_radiobuttongroup,
     row(sv_colormapper.display_min_spinner, sv_colormapper.display_max_spinner),
     sv_colormapper.auto_toggle,
 )
-
-hdf5_panel = column(file_path, dataset_path, load_file_button, image_index_slider)
-
-layout_controls = column(hdf5_panel, colormap_panel)
 
 final_layout = row(
     layout_controls, sv_mainview.plot, column(sv_hist.plots[0], sv_metadata.datatable)

@@ -124,7 +124,6 @@ sv_hist = sv.Histogram(nplots=3, plot_height=300, plot_width=600)
 sv_hist.plots[0].title = Title(text="Full image")
 sv_hist.plots[1].title = Title(text="Signal roi", text_color="red")
 sv_hist.plots[2].title = Title(text="Background roi", text_color="green")
-sv_hist.auto_toggle.width = 300
 
 
 # Stream toggle button
@@ -137,15 +136,6 @@ sv_metadata.issues_datatable.height = 100
 
 
 # Final layouts
-sv_colormapper.select.width = 170
-sv_colormapper.display_high_color.width = 120
-colormap_panel = column(
-    row(sv_colormapper.select, sv_colormapper.display_high_color),
-    sv_colormapper.scale_radiobuttongroup,
-    row(sv_colormapper.display_min_spinner, sv_colormapper.display_max_spinner),
-    sv_colormapper.auto_toggle,
-)
-
 layout_main = column(
     gridplot([[sv_mainview.plot, column(sv_zoomview1.plot, sv_zoomview2.plot)]], merge_tools=False),
     row(
@@ -176,10 +166,18 @@ layout_utility = column(
     ),
 )
 
+sv_colormapper.select.width = 170
+sv_colormapper.display_high_color.width = 120
 show_overlays_div = Div(text="Show Overlays:")
+
 layout_controls = row(
-    colormap_panel,
-    Spacer(width=20),
+    column(
+        row(sv_colormapper.select, sv_colormapper.display_high_color),
+        sv_colormapper.scale_radiobuttongroup,
+        row(sv_colormapper.display_min_spinner, sv_colormapper.display_max_spinner),
+        sv_colormapper.auto_toggle,
+    ),
+    Spacer(width=30),
     column(
         show_overlays_div,
         row(sv_mask.toggle, sv_resolrings.toggle),

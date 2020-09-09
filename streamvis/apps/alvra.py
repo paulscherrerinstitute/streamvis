@@ -210,15 +210,6 @@ sv_metadata.issues_datatable.height = 100
 
 
 # Final layouts
-sv_colormapper.select.width = 170
-sv_colormapper.display_high_color.width = 120
-layout_colormap = column(
-    row(sv_colormapper.select, sv_colormapper.display_high_color),
-    sv_colormapper.scale_radiobuttongroup,
-    row(sv_colormapper.display_min_spinner, sv_colormapper.display_max_spinner),
-    sv_colormapper.auto_toggle,
-)
-
 layout_zoom1 = column(
     gridplot(
         [[sv_zoom1_proj_v.plot, None], [sv_zoomview1.plot, sv_zoom1_proj_h.plot]], merge_tools=False
@@ -269,9 +260,15 @@ layout_streamgraphs = column(
     ),
 )
 
+sv_colormapper.select.width = 170
+sv_colormapper.display_high_color.width = 120
 show_overlays_div = Div(text="Show Overlays:")
+
 layout_controls = column(
-    layout_colormap,
+    row(sv_colormapper.select, sv_colormapper.display_high_color),
+    sv_colormapper.scale_radiobuttongroup,
+    row(sv_colormapper.display_min_spinner, sv_colormapper.display_max_spinner),
+    sv_colormapper.auto_toggle,
     Spacer(height=30),
     show_overlays_div,
     row(sv_mask.toggle, sv_resolrings.toggle),
