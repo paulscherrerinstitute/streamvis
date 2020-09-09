@@ -116,9 +116,7 @@ layout_controls = column(
     sv_streamctrl.rotate_image,
     sv_streamctrl.conv_opts_cbbg,
     sv_streamctrl.toggle,
-    doc.stats.open_stats_tab_button,
-    doc.stats.open_hitrate_plot_button,
-    doc.stats.open_roi_intensities_plot_button,
+    doc.stats.auxiliary_apps_dropdown,
 )
 
 layout_threshold_aggr = column(

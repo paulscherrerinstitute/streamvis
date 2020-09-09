@@ -138,11 +138,7 @@ sv_metadata.issues_datatable.height = 100
 # Final layouts
 layout_main = column(
     gridplot([[sv_mainview.plot, column(sv_zoomview1.plot, sv_zoomview2.plot)]], merge_tools=False),
-    row(
-        doc.stats.open_stats_tab_button,
-        doc.stats.open_hitrate_plot_button,
-        doc.stats.open_roi_intensities_plot_button,
-    ),
+    doc.stats.auxiliary_apps_dropdown,
 )
 
 layout_hist = column(

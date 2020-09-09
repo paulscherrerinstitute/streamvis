@@ -243,11 +243,7 @@ layout_bottom_row_controls = row(
     column(row(sv_hist.lower_spinner, sv_hist.upper_spinner), sv_hist.auto_toggle),
     column(sv_hist.nbins_spinner),
     Spacer(width=100),
-    column(
-        doc.stats.open_stats_tab_button,
-        doc.stats.open_hitrate_plot_button,
-        doc.stats.open_roi_intensities_plot_button,
-    ),
+    doc.stats.auxiliary_apps_dropdown,
 )
 
 layout_streamgraphs = column(

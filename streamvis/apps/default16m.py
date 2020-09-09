@@ -158,9 +158,7 @@ layout_controls = column(
     image_buffer_slider,
     sv_streamctrl.toggle,
     Spacer(height=30),
-    stats.open_stats_tab_button,
-    stats.open_hitrate_plot_button,
-    stats.open_roi_intensities_plot_button,
+    stats.auxiliary_apps_dropdown,
 )
 
 layout_side_panel = column(

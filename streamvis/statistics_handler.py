@@ -1,9 +1,9 @@
 import copy
-from collections import deque, Counter
+from collections import Counter, deque
 from threading import RLock
 
 import numpy as np
-from bokeh.models import Button, CustomJS
+from bokeh.models import CustomJS, Dropdown
 from jungfrau_utils import StreamAdapter
 
 PULSE_ID_STEP = 10000
@@ -49,33 +49,28 @@ class StatisticsHandler:
                 val.append(0)
 
     @property
-    def open_stats_tab_button(self):
+    def auxiliary_apps_dropdown(self):
         """Return a button that opens statistics application.
         """
-        open_stats_tab_button = Button(label="Open Statistics Tab")
-        open_stats_tab_button.js_on_click(CustomJS(code="window.open('/statistics');"))
-
-        return open_stats_tab_button
-
-    @property
-    def open_hitrate_plot_button(self):
-        """Return a button that opens hitrate plot.
+        js_code = """
+        switch (this.item) {
+            case "Statistics":
+                window.open('/statistics');
+                break;
+            case "Hitrate":
+                window.open('/hitrate');
+                break;
+            case "ROI Intensities":
+                window.open('/roi_intensities');
+                break;
+        }
         """
-        open_hitrate_plot_button = Button(label="Open Hitrate Tab")
-        open_hitrate_plot_button.js_on_click(CustomJS(code="window.open('/hitrate');"))
-
-        return open_hitrate_plot_button
-
-    @property
-    def open_roi_intensities_plot_button(self):
-        """Return a button that opens ROI intensities application.
-        """
-        open_roi_intensities_plot_button = Button(label="Open ROI Intensities Tab")
-        open_roi_intensities_plot_button.js_on_click(
-            CustomJS(code="window.open('/roi_intensities');")
+        auxiliary_apps_dropdown = Dropdown(
+            label="Open Auxiliary Application", menu=["Statistics", "Hitrate", "ROI Intensities"]
         )
+        auxiliary_apps_dropdown.js_on_click(CustomJS(code=js_code))
 
-        return open_roi_intensities_plot_button
+        return auxiliary_apps_dropdown
 
     def parse(self, metadata, image):
         """Extract statistics from a metadata and an associated image.
