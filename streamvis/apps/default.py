@@ -194,7 +194,11 @@ async def update_client():
     metadata_toshow = sv_metadata.parse(metadata)
 
     # Update mask
-    sv_mask.update(sv_metadata)
+    active_opts = list(sv_streamctrl.conv_opts_cbbg.active)
+    gap_pixels = 1 in active_opts
+    geometry = 2 in active_opts
+    rotate = int(sv_streamctrl.rotate_image.value) // 90
+    sv_mask.update(gap_pixels, geometry, rotate, sv_metadata)
 
     sv_spots.update(metadata, sv_metadata)
     sv_resolrings.update(metadata, sv_metadata)

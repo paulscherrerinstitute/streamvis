@@ -19,8 +19,11 @@ class Mask:
         doc = curdoc()
         self.receiver = doc.receiver
 
-        self.current_file = ""
-        self.current_module_map = None
+        self._file = ""
+        self._module_map = None
+        self._gap_pixels = None
+        self._geometry = None
+        self._rotate = 0
 
         # ---- rgba image glyph
         self._source = ColumnDataSource(dict(image=[placeholder], x=[0], y=[0], dw=[1], dh=[1]))
@@ -42,18 +45,28 @@ class Mask:
         toggle.on_click(toggle_callback)
         self.toggle = toggle
 
-    def update(self, sv_metadata):
+    def update(self, gap_pixels, geometry, rotate, sv_metadata):
         """Trigger an update for the mask overlay.
 
         Args:
+            gap_pixels (bool): Add gap pixels between detector chips to the mask.
+            geometry (bool): Apply detector geometry corrections to the mask.
+            rotate (int): Number of times mask is rotated by 90 degrees.
             sv_metadata (MetadataHandler): Report update issues to that metadata handler.
         """
         handler = self.receiver.jf_adapter.handler
         if handler and handler.pedestal_file:
-            if self.current_file != handler.pedestal_file or np.any(
-                self.current_module_map != handler.module_map
+            if (
+                self._file != handler.pedestal_file
+                or np.any(self._module_map != handler.module_map)
+                or self._gap_pixels != gap_pixels
+                or self._geometry != geometry
+                or self._rotate != rotate
             ):
-                mask_data = handler.get_pixel_mask(gap_pixels=True, geometry=True)
+                mask_data = handler.get_pixel_mask(gap_pixels=gap_pixels, geometry=geometry)
+                if rotate:
+                    mask_data = np.rot90(mask_data, k=rotate)
+
                 dh, dw = mask_data.shape
 
                 mask = np.zeros((dh, dw), dtype=np.uint32)
@@ -61,14 +74,20 @@ class Mask:
                 mask_view[:, :, 1] = 255
                 mask_view[:, :, 3] = 255 * mask_data
 
-                self.current_file = handler.pedestal_file
-                self.current_module_map = handler.module_map
+                self._file = handler.pedestal_file
+                self._module_map = handler.module_map
+                self._gap_pixels = gap_pixels
+                self._geometry = geometry
+                self._rotate = rotate
                 self._source.data.update(image=[mask], dh=[dh], dw=[dw])
 
         else:
-            self.current_file = ""
-            self.current_module_map = None
+            self._file = ""
+            self._module_map = None
+            self._gap_pixels = None
+            self._geometry = None
+            self._rotate = 0
             self._source.data.update(image=[placeholder])
 
-        if self.toggle.active and self.current_file == "":
+        if self.toggle.active and self._file == "":
             sv_metadata.add_issue("No pedestal file has been provided")
