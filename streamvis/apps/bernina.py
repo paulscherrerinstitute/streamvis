@@ -136,9 +136,8 @@ sv_metadata.issues_datatable.height = 100
 
 
 # Final layouts
-layout_main = column(
-    gridplot([[sv_mainview.plot, column(sv_zoomview1.plot, sv_zoomview2.plot)]], merge_tools=False),
-    doc.stats.auxiliary_apps_dropdown,
+layout_main = gridplot(
+    [[sv_mainview.plot, column(sv_zoomview1.plot, sv_zoomview2.plot)]], merge_tools=False
 )
 
 layout_hist = column(
@@ -168,6 +167,8 @@ show_overlays_div = Div(text="Show Overlays:")
 
 layout_controls = row(
     column(
+        doc.stats.auxiliary_apps_dropdown,
+        Spacer(height=10),
         row(sv_colormapper.select, sv_colormapper.display_high_color),
         sv_colormapper.scale_radiobuttongroup,
         row(sv_colormapper.display_min_spinner, sv_colormapper.display_max_spinner),
@@ -178,7 +179,6 @@ layout_controls = row(
         show_overlays_div,
         row(sv_mask.toggle, sv_resolrings.toggle),
         row(sv_intensity_roi.toggle, sv_saturated_pixels.toggle),
-        Spacer(height=10),
         sv_streamctrl.datatype_select,
         sv_streamctrl.conv_opts_cbbg,
         sv_streamctrl.toggle,

@@ -205,7 +205,7 @@ sv_streamctrl = sv.StreamControl()
 
 
 # Metadata datatable
-sv_metadata = sv.MetadataHandler(datatable_height=420, datatable_width=800)
+sv_metadata = sv.MetadataHandler(datatable_height=430, datatable_width=800)
 sv_metadata.issues_datatable.height = 100
 
 
@@ -226,24 +226,22 @@ layout_zoom2 = column(
 
 layout_bottom_row_controls = row(
     column(
-        sv_image_processor.threshold_toggle,
         row(sv_image_processor.threshold_min_spinner, sv_image_processor.threshold_max_spinner),
+        sv_image_processor.threshold_toggle,
     ),
     Spacer(width=100),
     column(
-        sv_image_processor.aggregate_toggle,
         row(
             sv_image_processor.aggregate_time_spinner,
             sv_image_processor.aggregate_time_counter_textinput,
         ),
+        sv_image_processor.aggregate_toggle,
     ),
     Spacer(width=100),
-    column(save_spectrum_button, save_spectrum_select),
+    column(save_spectrum_select, save_spectrum_button),
     Spacer(width=100),
     column(row(sv_hist.lower_spinner, sv_hist.upper_spinner), sv_hist.auto_toggle),
     column(sv_hist.nbins_spinner),
-    Spacer(width=100),
-    doc.stats.auxiliary_apps_dropdown,
 )
 
 layout_streamgraphs = column(
@@ -261,6 +259,8 @@ sv_colormapper.display_high_color.width = 120
 show_overlays_div = Div(text="Show Overlays:")
 
 layout_controls = column(
+    doc.stats.auxiliary_apps_dropdown,
+    Spacer(height=30),
     row(sv_colormapper.select, sv_colormapper.display_high_color),
     sv_colormapper.scale_radiobuttongroup,
     row(sv_colormapper.display_min_spinner, sv_colormapper.display_max_spinner),

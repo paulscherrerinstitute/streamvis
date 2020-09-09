@@ -144,6 +144,8 @@ sv_colormapper.display_high_color.width = 120
 show_overlays_div = Div(text="Show Overlays:")
 
 layout_controls = column(
+    stats.auxiliary_apps_dropdown,
+    Spacer(height=30),
     row(sv_colormapper.select, sv_colormapper.display_high_color),
     sv_colormapper.scale_radiobuttongroup,
     row(sv_colormapper.display_min_spinner, sv_colormapper.display_max_spinner),
@@ -157,8 +159,6 @@ layout_controls = column(
     sv_streamctrl.datatype_select,
     image_buffer_slider,
     sv_streamctrl.toggle,
-    Spacer(height=30),
-    stats.auxiliary_apps_dropdown,
 )
 
 layout_side_panel = column(

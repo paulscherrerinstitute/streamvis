@@ -105,28 +105,30 @@ sv_colormapper.display_high_color.width = 120
 show_overlays_div = Div(text="Show Overlays:")
 
 layout_controls = column(
-    row(sv_colormapper.select, sv_colormapper.display_high_color),
-    sv_colormapper.scale_radiobuttongroup,
-    row(sv_colormapper.display_min_spinner, sv_colormapper.display_max_spinner),
-    sv_colormapper.auto_toggle,
-    show_overlays_div,
-    row(sv_mask.toggle, sv_resolrings.toggle),
-    row(sv_intensity_roi.toggle, sv_saturated_pixels.toggle),
-    sv_streamctrl.datatype_select,
-    sv_streamctrl.rotate_image,
-    sv_streamctrl.conv_opts_cbbg,
-    sv_streamctrl.toggle,
-    doc.stats.auxiliary_apps_dropdown,
-)
-
-layout_threshold_aggr = column(
-    sv_image_processor.threshold_toggle,
     row(sv_image_processor.threshold_min_spinner, sv_image_processor.threshold_max_spinner),
-    sv_image_processor.aggregate_toggle,
+    sv_image_processor.threshold_toggle,
+    Spacer(height=10),
     row(
         sv_image_processor.aggregate_time_spinner,
         sv_image_processor.aggregate_time_counter_textinput,
     ),
+    sv_image_processor.aggregate_toggle,
+    Spacer(height=10),
+    doc.stats.auxiliary_apps_dropdown,
+    Spacer(height=10),
+    row(sv_colormapper.select, sv_colormapper.display_high_color),
+    sv_colormapper.scale_radiobuttongroup,
+    row(sv_colormapper.display_min_spinner, sv_colormapper.display_max_spinner),
+    sv_colormapper.auto_toggle,
+    Spacer(height=10),
+    show_overlays_div,
+    row(sv_mask.toggle, sv_resolrings.toggle),
+    row(sv_intensity_roi.toggle, sv_saturated_pixels.toggle),
+    Spacer(height=10),
+    sv_streamctrl.datatype_select,
+    sv_streamctrl.rotate_image,
+    sv_streamctrl.conv_opts_cbbg,
+    sv_streamctrl.toggle,
 )
 
 layout_metadata = column(
@@ -144,13 +146,7 @@ layout_hist = column(
 )
 
 final_layout = column(
-    row(
-        sv_mainview.plot,
-        Spacer(width=30),
-        column(layout_threshold_aggr, layout_controls),
-        Spacer(width=30),
-        layout_zoom,
-    ),
+    row(sv_mainview.plot, Spacer(width=30), layout_controls, Spacer(width=30), layout_zoom),
     row(layout_metadata, layout_utility, layout_hist),
 )
 
