@@ -119,7 +119,6 @@ layout_controls = column(
     sv_streamctrl.rotate_image,
     sv_streamctrl.conv_opts_cbbg,
     sv_streamctrl.toggle,
-    Spacer(height=30),
     doc.stats.open_stats_tab_button,
     doc.stats.open_hitrate_plot_button,
     doc.stats.open_roi_intensities_plot_button,
@@ -128,7 +127,6 @@ layout_controls = column(
 layout_threshold_aggr = column(
     sv_image_processor.threshold_toggle,
     row(sv_image_processor.threshold_min_spinner, sv_image_processor.threshold_max_spinner),
-    Spacer(height=30),
     sv_image_processor.aggregate_toggle,
     row(
         sv_image_processor.aggregate_time_spinner,
@@ -143,14 +141,22 @@ layout_metadata = column(
 layout_hist = column(
     sv_hist.plots[0],
     row(
-        column(row(sv_hist.lower_spinner, sv_hist.upper_spinner), sv_hist.auto_toggle),
-        column(sv_hist.nbins_spinner),
+        column(Spacer(height=19), sv_hist.auto_toggle),
+        sv_hist.lower_spinner,
+        sv_hist.upper_spinner,
+        sv_hist.nbins_spinner,
     ),
 )
 
 final_layout = column(
-    row(sv_mainview.plot, layout_controls, column(layout_metadata, layout_utility)),
-    row(layout_zoom, layout_threshold_aggr, layout_hist),
+    row(
+        sv_mainview.plot,
+        Spacer(width=30),
+        column(layout_threshold_aggr, layout_controls),
+        Spacer(width=30),
+        layout_zoom,
+    ),
+    row(layout_metadata, layout_utility, layout_hist),
 )
 
 doc.add_root(final_layout)
