@@ -176,7 +176,8 @@ class ColorMapper:
                 self.scale_radiobuttongroup.active = 0
 
             # force update independently on current display values
-            self.display_max_spinner.value = np.inf
+            self.display_min_spinner.high = None
+            self.display_max_spinner.low = None
 
             self.display_min_spinner.value = image_min
             self.display_max_spinner.value = image_max
