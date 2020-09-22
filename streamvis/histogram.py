@@ -57,10 +57,8 @@ class Histogram:
             plot.add_tools(pantool, boxzoomtool, wheelzoomtool, SaveTool(), ResetTool())
 
             # ---- axes
-            plot.add_layout(LinearAxis(axis_label="Intensity"), place="below")
-            plot.add_layout(
-                LinearAxis(axis_label="Counts", major_label_orientation="vertical"), place="left"
-            )
+            plot.add_layout(LinearAxis(), place="below")
+            plot.add_layout(LinearAxis(major_label_orientation="vertical"), place="left")
 
             # ---- grid lines
             plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))

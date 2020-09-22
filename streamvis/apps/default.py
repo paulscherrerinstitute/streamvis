@@ -63,7 +63,9 @@ sv_spots = sv.Spots([sv_mainview])
 
 
 # Histogram plot
-sv_hist = sv.Histogram(nplots=1, plot_height=400, plot_width=700)
+sv_hist = sv.Histogram(nplots=2, plot_height=200, plot_width=700)
+sv_hist.plots[0].title = Title(text="Full image")
+sv_hist.plots[1].title = Title(text="Roi")
 
 
 # Total sum intensity plots
@@ -136,7 +138,7 @@ layout_metadata = column(
 )
 
 layout_hist = column(
-    sv_hist.plots[0],
+    gridplot(sv_hist.plots, ncols=1, toolbar_location="left", toolbar_options=dict(logo=None)),
     row(
         column(Spacer(height=19), sv_hist.auto_toggle),
         sv_hist.lower_spinner,
@@ -179,10 +181,10 @@ async def update_client():
     # Update histogram
     if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
         if reset:
-            sv_hist.update([aggr_image])
+            sv_hist.update([thr_image, im_block])
         else:
             im_block = thr_image[y_start:y_end, x_start:x_end]
-            sv_hist.update([im_block], accumulate=True)
+            sv_hist.update([thr_image, im_block], accumulate=True)
 
     # Update total intensities plots
     sv_streamgraph.update([np.sum(aggr_image, dtype=np.float), total_sum_zoom])
