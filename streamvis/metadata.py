@@ -1,9 +1,10 @@
+from datetime import datetime
 from itertools import compress, repeat
 
-from bokeh.models import ColumnDataSource, DataTable, TableColumn, Toggle, StringFormatter
+from bokeh.models import ColumnDataSource, DataTable, StringFormatter, TableColumn, Toggle
 
 # metadata entries that are always shown (if present)
-default_entries = ["frame", "pulse_id", "is_good_frame", "saturated_pixels"]
+default_entries = ["frame", "pulse_id", "is_good_frame", "saturated_pixels", "time_poll"]
 
 
 class MetadataHandler:
@@ -144,6 +145,8 @@ class MetadataHandler:
         daq_rec = metadata.get("daq_rec")
         if daq_rec and bool(daq_rec & 0b1):
             metadata_toshow["highgain"] = True
+
+        metadata["time_comm"] = datetime.now() - metadata["time_poll"]
 
         return metadata_toshow
 

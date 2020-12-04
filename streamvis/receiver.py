@@ -1,5 +1,6 @@
 import logging
 from collections import deque
+from datetime import datetime
 
 import numpy as np
 import zmq
@@ -51,8 +52,11 @@ class Receiver:
         while True:
             events = dict(poller.poll(1000))
             if zmq_socket in events:
+                time_poll = datetime.now()
                 metadata = zmq_socket.recv_json(flags=0)
                 image = zmq_socket.recv(flags=0, copy=False, track=False)
+                metadata["time_poll"] = time_poll
+                metadata["time_recv"] = datetime.now() - time_poll
 
                 dtype = metadata.get("type")
                 shape = metadata.get("shape")
