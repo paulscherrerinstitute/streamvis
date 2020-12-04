@@ -14,14 +14,14 @@ build:
 
 requirements:
   build:
-    - python
+    - python {{ python }}
     - setuptools
   run:
-    - python
-    - bokeh=2.2
-    - jungfrau_utils=1
+    - python {{ python }}
+    - bokeh =2.2
+    - jungfrau_utils =1
     - pyzmq
-    - pillow>=4.3
+    - pillow >=4.3
     - colorcet
 
 test:
