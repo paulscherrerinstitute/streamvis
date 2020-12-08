@@ -69,14 +69,14 @@ class Receiver:
 
             image = np.frombuffer(image.buffer, dtype=dtype).reshape(shape)
 
-            if self.on_receive is not None:
-                self.on_receive(metadata, image)
-
             # add to buffer only if the recieved image is not dummy
             if image.shape != (2, 2):
                 self.buffer.append((metadata, image))
 
             self.state = "receiving"
+
+            if self.on_receive is not None:
+                self.on_receive(metadata, image)
 
     def get_image(self, index, mask=True, gap_pixels=True, geometry=True):
         """Get metadata and image with the index.
