@@ -51,32 +51,32 @@ class Receiver:
 
         while True:
             events = dict(poller.poll(1000))
-            if zmq_socket in events:
-                time_poll = datetime.now()
-                metadata = zmq_socket.recv_json(flags=0)
-                image = zmq_socket.recv(flags=0, copy=False, track=False)
-                metadata["time_poll"] = time_poll
-                metadata["time_recv"] = datetime.now() - time_poll
-
-                dtype = metadata.get("type")
-                shape = metadata.get("shape")
-                if dtype is None or shape is None:
-                    logger.error("Cannot find 'type' and/or 'shape' in received metadata")
-                    continue
-
-                image = np.frombuffer(image.buffer, dtype=dtype).reshape(shape)
-
-                if self.on_receive is not None:
-                    self.on_receive(metadata, image)
-
-                # add to buffer only if the recieved image is not dummy
-                if image.shape != (2, 2):
-                    self.buffer.append((metadata, image))
-
-                self.state = "receiving"
-
-            else:
+            if zmq_socket not in events:
                 self.state = "polling"
+                continue
+
+            time_poll = datetime.now()
+            metadata = zmq_socket.recv_json(flags=0)
+            image = zmq_socket.recv(flags=0, copy=False, track=False)
+            metadata["time_poll"] = time_poll
+            metadata["time_recv"] = datetime.now() - time_poll
+
+            dtype = metadata.get("type")
+            shape = metadata.get("shape")
+            if dtype is None or shape is None:
+                logger.error("Cannot find 'type' and/or 'shape' in received metadata")
+                continue
+
+            image = np.frombuffer(image.buffer, dtype=dtype).reshape(shape)
+
+            if self.on_receive is not None:
+                self.on_receive(metadata, image)
+
+            # add to buffer only if the recieved image is not dummy
+            if image.shape != (2, 2):
+                self.buffer.append((metadata, image))
+
+            self.state = "receiving"
 
     def get_image(self, index, mask=True, gap_pixels=True, geometry=True):
         """Get metadata and image with the index.
