@@ -18,7 +18,7 @@ requirements:
     - setuptools
   run:
     - python {{ python }}
-    - bokeh =2.2
+    - bokeh =2.0
     - jungfrau_utils =1
     - pyzmq
     - pillow >=4.3
