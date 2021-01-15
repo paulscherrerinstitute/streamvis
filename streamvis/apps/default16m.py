@@ -218,6 +218,11 @@ async def internal_periodic_callback():
         ]
     )
 
+    if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
+        image_buffer_slider.disabled = True
+    else:
+        image_buffer_slider.disabled = False
+
     # Update mask
     active_opts = list(sv_streamctrl.conv_opts_cbbg.active)
     gap_pixels = 1 in active_opts
