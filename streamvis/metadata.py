@@ -146,7 +146,9 @@ class MetadataHandler:
         if daq_rec and bool(daq_rec & 0b1):
             metadata_toshow["highgain"] = True
 
-        metadata["time_comm"] = datetime.now() - metadata["time_poll"]
+        time_poll = metadata.get("time_poll")
+        if time_poll is not None:
+            metadata["time_comm"] = datetime.now() - time_poll
 
         return metadata_toshow
 
