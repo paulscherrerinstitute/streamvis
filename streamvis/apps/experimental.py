@@ -120,8 +120,11 @@ async def update_client():
 
 
 async def internal_periodic_callback():
-    if sv_rt.current_image.shape != (1, 1):
-        doc.add_next_tick_callback(update_client)
+    if sv_rt.current_image.shape == (1, 1):
+        # skip client update if the current image is dummy
+        return
+
+    doc.add_next_tick_callback(update_client)
 
 
 doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)

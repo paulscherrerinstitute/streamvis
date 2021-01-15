@@ -155,7 +155,17 @@ final_layout = column(
 doc.add_root(final_layout)
 
 
-async def update_client():
+async def internal_periodic_callback():
+    if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
+        sv_rt.current_metadata, sv_rt.current_image = sv_streamctrl.get_stream_data(-1)
+        sv_rt.thresholded_image, sv_rt.aggregated_image, sv_rt.reset = sv_image_processor.update(
+            sv_rt.current_image
+        )
+
+    if sv_rt.current_image.shape == (1, 1):
+        # skip client update if the current image is dummy
+        return
+
     _, metadata = sv_rt.current_image, sv_rt.current_metadata
     thr_image, reset, aggr_image = sv_rt.thresholded_image, sv_rt.reset, sv_rt.aggregated_image
 
@@ -205,17 +215,6 @@ async def update_client():
     sv_saturated_pixels.update(metadata)
 
     sv_metadata.update(metadata_toshow)
-
-
-async def internal_periodic_callback():
-    if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
-        sv_rt.current_metadata, sv_rt.current_image = sv_streamctrl.get_stream_data(-1)
-        sv_rt.thresholded_image, sv_rt.aggregated_image, sv_rt.reset = sv_image_processor.update(
-            sv_rt.current_image
-        )
-
-    if sv_rt.current_image.shape != (1, 1):
-        doc.add_next_tick_callback(update_client)
 
 
 doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)

@@ -203,7 +203,14 @@ final_layout = column(
 doc.add_root(final_layout)
 
 
-async def update_client():
+async def internal_periodic_callback():
+    if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
+        sv_rt.current_metadata, sv_rt.current_image = sv_streamctrl.get_stream_data(-1)
+
+    if sv_rt.current_image.shape == (1, 1):
+        # skip client update if the current image is dummy
+        return
+
     image, metadata = sv_rt.current_image, sv_rt.current_metadata
 
     sv_colormapper.update(image)
@@ -272,14 +279,6 @@ async def update_client():
     sv_saturated_pixels.update(metadata)
 
     sv_metadata.update(metadata_toshow)
-
-
-async def internal_periodic_callback():
-    if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
-        sv_rt.current_metadata, sv_rt.current_image = sv_streamctrl.get_stream_data(-1)
-
-    if sv_rt.current_image.shape != (1, 1):
-        doc.add_next_tick_callback(update_client)
 
 
 doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)

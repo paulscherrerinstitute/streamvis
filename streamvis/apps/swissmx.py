@@ -215,7 +215,29 @@ final_layout = row(sv_mainview.plot, Spacer(width=30), layout_side_panel)
 doc.add_root(row(Spacer(width=50), final_layout))
 
 
-async def update_client():
+async def internal_periodic_callback():
+    if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
+        if show_only_hits_toggle.active:
+            if stats.last_hit != (None, None):
+                if sv_streamctrl.datatype_select.value == "Image":
+                    sv_rt.current_metadata, sv_rt.current_image = stats.get_last_hit()
+                elif sv_streamctrl.datatype_select.value == "Gains":
+                    sv_rt.current_metadata, sv_rt.current_image = stats.get_last_hit_gains()
+        else:
+            sv_rt.current_metadata, sv_rt.current_image = sv_streamctrl.get_stream_data(-1)
+
+        if not image_buffer or image_buffer[-1][0] is not sv_rt.current_metadata:
+            image_buffer.append((sv_rt.current_metadata, sv_rt.current_image))
+
+        # Set slider to the right-most position
+        if len(image_buffer) > 1:
+            image_buffer_slider.end = len(image_buffer) - 1
+            image_buffer_slider.value = len(image_buffer) - 1
+
+    if sv_rt.current_image.shape == (1, 1):
+        # skip client update if the current image is dummy
+        return
+
     image, metadata = sv_rt.current_image, sv_rt.current_metadata
 
     sv_colormapper.update(image)
@@ -258,29 +280,6 @@ async def update_client():
     sv_saturated_pixels.update(metadata)
 
     sv_metadata.update(metadata_toshow)
-
-
-async def internal_periodic_callback():
-    if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
-        if show_only_hits_toggle.active:
-            if stats.last_hit != (None, None):
-                if sv_streamctrl.datatype_select.value == "Image":
-                    sv_rt.current_metadata, sv_rt.current_image = stats.get_last_hit()
-                elif sv_streamctrl.datatype_select.value == "Gains":
-                    sv_rt.current_metadata, sv_rt.current_image = stats.get_last_hit_gains()
-        else:
-            sv_rt.current_metadata, sv_rt.current_image = sv_streamctrl.get_stream_data(-1)
-
-        if not image_buffer or image_buffer[-1][0] is not sv_rt.current_metadata:
-            image_buffer.append((sv_rt.current_metadata, sv_rt.current_image))
-
-        # Set slider to the right-most position
-        if len(image_buffer) > 1:
-            image_buffer_slider.end = len(image_buffer) - 1
-            image_buffer_slider.value = len(image_buffer) - 1
-
-    if sv_rt.current_image.shape != (1, 1):
-        doc.add_next_tick_callback(update_client)
 
 
 doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)
