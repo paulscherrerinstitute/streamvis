@@ -6,7 +6,7 @@ from bokeh.models import (
     CustomJS,
     Grid,
     HoverTool,
-    Image,
+    ImageRGBA,
     LinearAxis,
     PanTool,
     Plot,
@@ -122,7 +122,7 @@ class ImageView:
             )
         )
 
-        self.image_glyph = Image(image="image", x="x", y="y", dw="dw", dh="dh")
+        self.image_glyph = ImageRGBA(image="image", x="x", y="y", dw="dw", dh="dh")
         image_renderer = plot.add_glyph(self._image_source, self.image_glyph, name="image_glyph")
 
         # This avoids double update of image values on a client, see
@@ -266,7 +266,7 @@ class ImageView:
         )
 
         self._image_source.data.update(
-            image=[resized_image],
+            image=[self.convert(resized_image)],
             x=[self.x_start],
             y=[self.y_start],
             dw=[self.x_end - self.x_start],

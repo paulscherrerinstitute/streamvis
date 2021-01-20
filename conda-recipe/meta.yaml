@@ -21,6 +21,7 @@ requirements:
     - bokeh =2.0
     - jungfrau_utils =1
     - pyzmq
+    - matplotlib >=2.2.2
     - pillow >=4.3
     - colorcet
 

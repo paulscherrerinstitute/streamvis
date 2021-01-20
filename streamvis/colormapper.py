@@ -12,8 +12,9 @@ from bokeh.models import (
     Spinner,
     Toggle,
 )
-
 from bokeh.palettes import Cividis256, Greys256, Plasma256
+from matplotlib.cm import ScalarMappable
+from matplotlib.colors import LogNorm, Normalize
 
 cmap_dict = {
     "gray": Greys256,
@@ -44,7 +45,7 @@ class ColorMapper:
         log_colormapper = LogColorMapper(palette=cmap_dict[colormap], low=disp_min, high=disp_max)
 
         for image_view in image_views:
-            image_view.image_glyph.color_mapper = lin_colormapper
+            image_view.convert = self.convert
 
         color_bar = ColorBar(
             color_mapper=lin_colormapper,
@@ -56,8 +57,14 @@ class ColorMapper:
         )
         self.color_bar = color_bar
 
+        color_lin_norm = Normalize(vmin=disp_min, vmax=disp_max)
+        color_log_norm = LogNorm(vmin=disp_min, vmax=disp_max)
+
+        self._image_color_mapper = ScalarMappable(norm=color_lin_norm, cmap=colormap)
+
         # ---- colormap selector
         def select_callback(_attr, _old, new):
+            self._image_color_mapper.set_cmap(new)
             if new in cmap_dict:
                 lin_colormapper.palette = cmap_dict[new]
                 log_colormapper.palette = cmap_dict[new]
@@ -83,17 +90,15 @@ class ColorMapper:
         # ---- colormap scale radiobutton group
         def scale_radiobuttongroup_callback(selection):
             if selection == 0:  # Linear
-                for image_view in image_views:
-                    image_view.image_glyph.color_mapper = lin_colormapper
                 color_bar.color_mapper = lin_colormapper
                 color_bar.ticker = BasicTicker()
+                self._image_color_mapper.norm = color_lin_norm
 
             else:  # Logarithmic
                 if self.disp_min > 0:
-                    for image_view in image_views:
-                        image_view.image_glyph.color_mapper = log_colormapper
                     color_bar.color_mapper = log_colormapper
                     color_bar.ticker = LogTicker()
+                    self._image_color_mapper.norm = color_log_norm
                 else:
                     scale_radiobuttongroup.active = 0
 
@@ -107,6 +112,8 @@ class ColorMapper:
             if new_value <= 0:
                 scale_radiobuttongroup.active = 0
 
+            color_lin_norm.vmax = new_value
+            color_log_norm.vmax = new_value
             lin_colormapper.high = new_value
             log_colormapper.high = new_value
 
@@ -127,6 +134,8 @@ class ColorMapper:
             if new_value <= 0:
                 scale_radiobuttongroup.active = 0
 
+            color_lin_norm.vmin = new_value
+            color_log_norm.vmin = new_value
             lin_colormapper.low = new_value
             log_colormapper.low = new_value
 
@@ -143,8 +152,7 @@ class ColorMapper:
 
         # ---- colormap high color
         def display_high_color_callback(_attr, _old_value, new_value):
-            lin_colormapper.high_color = new_value
-            log_colormapper.high_color = new_value
+            self._image_color_mapper.cmap.set_over(new_value)
 
         display_high_color = ColorPicker(title="High Value Color:", color=cmap_dict[colormap][-1])
         display_high_color.on_change("color", display_high_color_callback)
@@ -181,3 +189,6 @@ class ColorMapper:
 
             self.display_min_spinner.value = image_min
             self.display_max_spinner.value = image_max
+
+    def convert(self, image):
+        return self._image_color_mapper.to_rgba(image, bytes=True)

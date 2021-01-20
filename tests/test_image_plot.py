@@ -21,7 +21,7 @@ def test_plot_class(im_plot_with_cm):
 
 
 def test_glyph_class(im_plot_with_cm):
-    assert isinstance(im_plot_with_cm.plot.renderers[0].glyph, bokeh.models.Image)
+    assert isinstance(im_plot_with_cm.plot.renderers[0].glyph, bokeh.models.ImageRGBA)
 
 
 # TODO: the following code should be tested with a client
