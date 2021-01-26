@@ -203,6 +203,7 @@ layout_controls = column(
     show_only_hits_toggle,
     sv_streamctrl.datatype_select,
     image_buffer_slider,
+    sv_streamctrl.conv_opts_cbbg,
     sv_streamctrl.toggle,
 )
 
