@@ -119,7 +119,7 @@ trajectory_plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 def trajectory_circle_source_callback(_attr, _old, new):
     if new:
         index_from_last = new[0] - len(trajectory_circle_source.data["x"])
-        sv_rt.current_metadata, sv_rt.current_image = sv_streamctrl.get_stream_data(index_from_last)
+        sv_rt.metadata, sv_rt.image = sv_streamctrl.get_stream_data(index_from_last)
 
 
 trajectory_circle_source = ColumnDataSource(dict(x=[], y=[], frame=[], nspots=[]))
@@ -138,7 +138,7 @@ trajectory_plot.add_glyph(
 # Stream panel
 # ---- image buffer slider
 def image_buffer_slider_callback(_attr, _old, new):
-    sv_rt.current_metadata, sv_rt.current_image = image_buffer[new]
+    sv_rt.metadata, sv_rt.image = image_buffer[new]
 
 
 image_buffer_slider = Slider(
@@ -220,25 +220,25 @@ async def internal_periodic_callback():
         if show_only_hits_toggle.active:
             if stats.last_hit != (None, None):
                 if sv_streamctrl.datatype_select.value == "Image":
-                    sv_rt.current_metadata, sv_rt.current_image = stats.get_last_hit()
+                    sv_rt.metadata, sv_rt.image = stats.get_last_hit()
                 elif sv_streamctrl.datatype_select.value == "Gains":
-                    sv_rt.current_metadata, sv_rt.current_image = stats.get_last_hit_gains()
+                    sv_rt.metadata, sv_rt.image = stats.get_last_hit_gains()
         else:
-            sv_rt.current_metadata, sv_rt.current_image = sv_streamctrl.get_stream_data(-1)
+            sv_rt.metadata, sv_rt.image = sv_streamctrl.get_stream_data(-1)
 
-        if not image_buffer or image_buffer[-1][0] is not sv_rt.current_metadata:
-            image_buffer.append((sv_rt.current_metadata, sv_rt.current_image))
+        if not image_buffer or image_buffer[-1][0] is not sv_rt.metadata:
+            image_buffer.append((sv_rt.metadata, sv_rt.image))
 
         # Set slider to the right-most position
         if len(image_buffer) > 1:
             image_buffer_slider.end = len(image_buffer) - 1
             image_buffer_slider.value = len(image_buffer) - 1
 
-    if sv_rt.current_image.shape == (1, 1):
+    if sv_rt.image.shape == (1, 1):
         # skip client update if the current image is dummy
         return
 
-    image, metadata = sv_rt.current_image, sv_rt.current_metadata
+    image, metadata = sv_rt.image, sv_rt.metadata
 
     sv_colormapper.update(image)
     sv_mainview.update(image)

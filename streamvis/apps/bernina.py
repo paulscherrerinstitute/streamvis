@@ -205,13 +205,13 @@ doc.add_root(final_layout)
 
 async def internal_periodic_callback():
     if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
-        sv_rt.current_metadata, sv_rt.current_image = sv_streamctrl.get_stream_data(-1)
+        sv_rt.metadata, sv_rt.image = sv_streamctrl.get_stream_data(-1)
 
-    if sv_rt.current_image.shape == (1, 1):
+    if sv_rt.image.shape == (1, 1):
         # skip client update if the current image is dummy
         return
 
-    image, metadata = sv_rt.current_image, sv_rt.current_metadata
+    image, metadata = sv_rt.image, sv_rt.metadata
 
     sv_colormapper.update(image)
     sv_mainview.update(image)

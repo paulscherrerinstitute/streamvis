@@ -6,8 +6,8 @@ class Runtime:
     """
 
     def __init__(self):
-        self.current_metadata = dict(shape=[1, 1])
-        self.current_image = np.zeros((1, 1), dtype="float32")
+        self.metadata = dict(shape=[1, 1])
+        self.image = np.zeros((1, 1), dtype="float32")
         self.thresholded_image = np.zeros((1, 1), dtype="float32")
         self.aggregated_image = np.zeros((1, 1), dtype="float32")
         self.reset = True

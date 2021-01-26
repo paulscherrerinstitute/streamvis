@@ -291,16 +291,16 @@ doc.add_root(row(Spacer(width=20), final_layout))
 
 async def internal_periodic_callback():
     if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
-        sv_rt.current_metadata, sv_rt.current_image = sv_streamctrl.get_stream_data(-1)
+        sv_rt.metadata, sv_rt.image = sv_streamctrl.get_stream_data(-1)
         sv_rt.thresholded_image, sv_rt.aggregated_image, sv_rt.reset = sv_image_processor.update(
-            sv_rt.current_image
+            sv_rt.image
         )
 
-    if sv_rt.current_image.shape == (1, 1):
+    if sv_rt.image.shape == (1, 1):
         # skip client update if the current image is dummy
         return
 
-    _, metadata = sv_rt.current_image, sv_rt.current_metadata
+    _, metadata = sv_rt.image, sv_rt.metadata
     thr_image, reset, aggr_image = sv_rt.thresholded_image, sv_rt.reset, sv_rt.aggregated_image
 
     sv_colormapper.update(aggr_image)
