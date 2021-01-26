@@ -281,14 +281,15 @@ class ImageView:
 
         canvas_pix_ratio_x = self.plot.inner_width / (pval_x_end - pval_x_start)
         canvas_pix_ratio_y = self.plot.inner_height / (pval_y_end - pval_y_start)
-        if canvas_pix_ratio_x > 50 and canvas_pix_ratio_y > 50:
-            textv = image[pval_y_start:pval_y_end, pval_x_start:pval_x_end].astype("int")
+        if canvas_pix_ratio_x > 70 and canvas_pix_ratio_y > 50:
+            textv = [
+                f"{val:.1f}"
+                for val in image[pval_y_start:pval_y_end, pval_x_start:pval_x_end].flatten()
+            ]
             xv, yv = np.meshgrid(
                 np.arange(pval_x_start, pval_x_end), np.arange(pval_y_start, pval_y_end)
             )
-            self._pvalue_source.data.update(
-                x=xv.flatten() + 0.5, y=yv.flatten() + 0.5, text=textv.flatten()
-            )
+            self._pvalue_source.data.update(x=xv.flatten() + 0.5, y=yv.flatten() + 0.5, text=textv)
         else:
             self._pvalue_source.data.update(x=[], y=[], text=[])
 
