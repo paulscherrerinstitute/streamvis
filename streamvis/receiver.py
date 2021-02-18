@@ -121,6 +121,13 @@ class StreamAdapter:
         self.handler = None
         self._mask_double_pixels = None
 
+        # Buffer image mask data
+        self._inv_mask = None
+        self._pedestal_file = ""
+        self._mask_gap_pixels = None
+        self._mask_geometry = None
+        self._module_map = None
+
     @property
     def mask_double_pixels(self):
         """Current flag for masking double pixels.
@@ -159,11 +166,17 @@ class StreamAdapter:
         else:
             self.handler = None
 
-        # return a copy of input image if
-        # 1) its data type differs from 'uint16' (probably, it is already been processed)
-        # 2) jf data handler failed to be created for that detector_name
-        if image.dtype != np.uint16 or self.handler is None:
+        # return a copy of input image if jf data handler creation failed for that detector_name
+        if self.handler is None:
             return np.copy(image)
+
+        # still try to apply mask if data type differs from 'uint16' (probably, it is already been
+        # processed)
+        if image.dtype != np.uint16:
+            image = image.astype(np.float32, copy=True)
+            if mask:
+                image = self._apply_mask(image, gap_pixels, geometry)
+            return image
 
         # parse metadata
         self._update_handler(metadata)
@@ -171,12 +184,14 @@ class StreamAdapter:
         # skip conversion step if jungfrau data handler cannot do it, thus avoiding Exception raise
         conversion = self.handler.can_convert()
 
-        # skip masking step if pixel_mask is None
-        mask = mask and self.handler.pixel_mask is not None
-
-        return self.handler.process(
-            image, conversion=conversion, mask=mask, gap_pixels=gap_pixels, geometry=geometry
+        proc_image = self.handler.process(
+            image, conversion=conversion, mask=False, gap_pixels=gap_pixels, geometry=geometry
         )
+
+        if mask:
+            proc_image = self._apply_mask(proc_image, gap_pixels, geometry)
+
+        return proc_image
 
     def _update_handler(self, md_dict):
         # gain file
@@ -202,3 +217,37 @@ class StreamAdapter:
         # highgain
         daq_rec = md_dict.get("daq_rec")
         self.handler.highgain = False if (daq_rec is None) else bool(daq_rec & 0b1)
+
+    def _apply_mask(self, image, gap_pixels, geometry):
+        # assign masked values to np.nan
+        if self.handler.pixel_mask is not None:
+            # check if mask needs to be refreshed
+            if (
+                self._pedestal_file != self.handler.pedestal_file
+                or np.any(self._module_map != self.handler.module_map)
+                or self._gap_pixels != gap_pixels
+                or self._geometry != geometry
+            ):
+                self._inv_mask = np.invert(self.handler.get_pixel_mask(gap_pixels, geometry))
+                self._pedestal_file = self.handler.pedestal_file
+                self._module_map = self.handler.module_map
+                self._gap_pixels = gap_pixels
+                self._geometry = geometry
+
+            # cast to np.float32 in case there was no conversion, but mask should still be applied
+            if image.dtype != np.float32:
+                image = image.astype(np.float32)
+
+            try:
+                image[self._inv_mask] = np.nan
+            except Exception:
+                logging.exception("Error applying mask")
+
+        else:
+            self._inv_mask = None
+            self._pedestal_file = ""
+            self._module_map = None
+            self._gap_pixels = None
+            self._geometry = None
+
+        return image

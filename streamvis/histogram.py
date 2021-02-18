@@ -168,9 +168,6 @@ class Histogram:
             accumulate (bool, optional): Add together bin values of the previous and current data.
                 Defaults to False.
         """
-        # do not display zeros on histograms
-        input_data = [im[im != 0] for im in input_data]
-
         if self.auto_toggle.active and not accumulate:  # automatic
             lower = math.floor(min([np.nanmin(im) if im.size else 0 for im in input_data]))
             upper = math.ceil(max([np.nanmax(im) if im.size else 0 for im in input_data]))
