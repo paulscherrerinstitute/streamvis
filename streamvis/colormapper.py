@@ -150,6 +150,15 @@ class ColorMapper:
         display_high_color.on_change("color", display_high_color_callback)
         self.display_high_color = display_high_color
 
+        # ---- colormap mask color
+        def mask_color_callback(_attr, _old_value, new_value):
+            lin_colormapper.nan_color = new_value
+            log_colormapper.nan_color = new_value
+
+        mask_color = ColorPicker(title="Mask Color:", color="gray")
+        mask_color.on_change("color", mask_color_callback)
+        self.mask_color = mask_color
+
     @property
     def disp_min(self):
         """Minimal display value (readonly)

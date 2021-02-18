@@ -77,8 +77,9 @@ sv_metadata = sv.MetadataHandler(datatable_height=300, datatable_width=400)
 
 
 # Final layouts
-sv_colormapper.select.width = 170
-sv_colormapper.display_high_color.width = 120
+sv_colormapper.select.width = 110
+sv_colormapper.display_high_color.width = 90
+sv_colormapper.mask_color.width = 90
 
 layout_controls = column(
     file_path,
