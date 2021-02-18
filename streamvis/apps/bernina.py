@@ -158,7 +158,7 @@ layout_utility = column(
 )
 
 sv_colormapper.select.width = 110
-sv_colormapper.display_high_color.width = 90
+sv_colormapper.high_color.width = 90
 sv_colormapper.mask_color.width = 90
 show_overlays_div = Div(text="Show Overlays:")
 
@@ -166,7 +166,7 @@ layout_controls = row(
     column(
         doc.stats.auxiliary_apps_dropdown,
         Spacer(height=10),
-        row(sv_colormapper.select, sv_colormapper.display_high_color, sv_colormapper.mask_color),
+        row(sv_colormapper.select, sv_colormapper.high_color, sv_colormapper.mask_color),
         sv_colormapper.scale_radiobuttongroup,
         row(sv_colormapper.display_min_spinner, sv_colormapper.display_max_spinner),
         sv_colormapper.auto_toggle,

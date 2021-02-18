@@ -56,18 +56,18 @@ class ColorMapper:
         )
         self.color_bar = color_bar
 
-        # ---- colormap selector
+        # ---- selector
         def select_callback(_attr, _old, new):
             if new in cmap_dict:
                 lin_colormapper.palette = cmap_dict[new]
                 log_colormapper.palette = cmap_dict[new]
-                display_high_color.color = cmap_dict[new][-1]
+                high_color.color = cmap_dict[new][-1]
 
         select = Select(title="Colormap:", value=colormap, options=list(cmap_dict.keys()))
         select.on_change("value", select_callback)
         self.select = select
 
-        # ---- colormap auto toggle button
+        # ---- auto toggle button
         def auto_toggle_callback(state):
             if state:
                 display_min_spinner.disabled = True
@@ -80,7 +80,7 @@ class ColorMapper:
         auto_toggle.on_click(auto_toggle_callback)
         self.auto_toggle = auto_toggle
 
-        # ---- colormap scale radiobutton group
+        # ---- scale radiobutton group
         def scale_radiobuttongroup_callback(selection):
             if selection == 0:  # Linear
                 for image_view in image_views:
@@ -101,7 +101,7 @@ class ColorMapper:
         scale_radiobuttongroup.on_click(scale_radiobuttongroup_callback)
         self.scale_radiobuttongroup = scale_radiobuttongroup
 
-        # ---- colormap display max value
+        # ---- display max value
         def display_max_spinner_callback(_attr, _old_value, new_value):
             self.display_min_spinner.high = new_value - STEP
             if new_value <= 0:
@@ -121,7 +121,7 @@ class ColorMapper:
         display_max_spinner.on_change("value", display_max_spinner_callback)
         self.display_max_spinner = display_max_spinner
 
-        # ---- colormap display min value
+        # ---- display min value
         def display_min_spinner_callback(_attr, _old_value, new_value):
             self.display_max_spinner.low = new_value + STEP
             if new_value <= 0:
@@ -141,16 +141,16 @@ class ColorMapper:
         display_min_spinner.on_change("value", display_min_spinner_callback)
         self.display_min_spinner = display_min_spinner
 
-        # ---- colormap high color
-        def display_high_color_callback(_attr, _old_value, new_value):
+        # ---- high color
+        def high_color_callback(_attr, _old_value, new_value):
             lin_colormapper.high_color = new_value
             log_colormapper.high_color = new_value
 
-        display_high_color = ColorPicker(title="High Value Color:", color=cmap_dict[colormap][-1])
-        display_high_color.on_change("color", display_high_color_callback)
-        self.display_high_color = display_high_color
+        high_color = ColorPicker(title="High Color:", color=cmap_dict[colormap][-1])
+        high_color.on_change("color", high_color_callback)
+        self.high_color = high_color
 
-        # ---- colormap mask color
+        # ---- mask color
         def mask_color_callback(_attr, _old_value, new_value):
             lin_colormapper.nan_color = new_value
             log_colormapper.nan_color = new_value
