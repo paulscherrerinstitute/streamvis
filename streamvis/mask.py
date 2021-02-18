@@ -72,7 +72,7 @@ class Mask:
                 mask = np.zeros((dh, dw), dtype=np.uint32)
                 mask_view = mask.view(dtype=np.uint8).reshape((dh, dw, 4))
                 mask_view[:, :, 1] = 255
-                mask_view[:, :, 3] = 255 * mask_data
+                mask_view[:, :, 3] = 255 * np.invert(mask_data)
 
                 self._file = handler.pedestal_file
                 self._module_map = handler.module_map
