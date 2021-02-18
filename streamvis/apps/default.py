@@ -46,10 +46,6 @@ sv_mainview.plot.add_layout(sv_colormapper.color_bar, place="below")
 sv_resolrings = sv.ResolutionRings([sv_mainview, sv_zoomview], RESOLUTION_RINGS_POS)
 
 
-# Add mask to all plots
-sv_mask = sv.Mask([sv_mainview, sv_zoomview])
-
-
 # Add intensity roi
 sv_intensity_roi = sv.IntensityROI([sv_mainview, sv_zoomview])
 
@@ -124,7 +120,7 @@ layout_controls = column(
     sv_colormapper.auto_toggle,
     Spacer(height=10),
     show_overlays_div,
-    row(sv_mask.toggle, sv_resolrings.toggle),
+    row(sv_resolrings.toggle),
     row(sv_intensity_roi.toggle, sv_saturated_pixels.toggle),
     Spacer(height=10),
     sv_streamctrl.datatype_select,
@@ -201,13 +197,6 @@ async def internal_periodic_callback():
 
     # Parse and update metadata
     metadata_toshow = sv_metadata.parse(metadata)
-
-    # Update mask
-    active_opts = list(sv_streamctrl.conv_opts_cbbg.active)
-    gap_pixels = 1 in active_opts
-    geometry = 2 in active_opts
-    rotate = int(sv_streamctrl.rotate_image.value) // 90
-    sv_mask.update(gap_pixels, geometry, rotate, sv_metadata)
 
     sv_spots.update(metadata, sv_metadata)
     sv_resolrings.update(metadata, sv_metadata)

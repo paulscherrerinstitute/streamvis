@@ -119,10 +119,6 @@ sv_saturated_pixels = sv.SaturatedPixels([sv_mainview, sv_zoomview1, sv_zoomview
 sv_spots = sv.Spots([sv_mainview])
 
 
-# Add mask to all plots
-sv_mask = sv.Mask([sv_mainview, sv_zoomview1, sv_zoomview2])
-
-
 # Histogram zoom plots
 sv_hist = sv.Histogram(nplots=2, plot_height=280, plot_width=sv_zoomview1.plot.plot_width)
 
@@ -267,7 +263,7 @@ layout_controls = column(
     sv_colormapper.auto_toggle,
     Spacer(height=30),
     show_overlays_div,
-    row(sv_mask.toggle, sv_resolrings.toggle),
+    row(sv_resolrings.toggle),
     row(sv_intensity_roi.toggle, sv_saturated_pixels.toggle),
     Spacer(height=30),
     sv_streamctrl.datatype_select,
@@ -348,13 +344,6 @@ async def internal_periodic_callback():
 
     # Parse metadata
     metadata_toshow = sv_metadata.parse(metadata)
-
-    # Update mask
-    active_opts = list(sv_streamctrl.conv_opts_cbbg.active)
-    gap_pixels = 1 in active_opts
-    geometry = 2 in active_opts
-    rotate = int(sv_streamctrl.rotate_image.value) // 90
-    sv_mask.update(gap_pixels, geometry, rotate, sv_metadata)
 
     sv_spots.update(metadata, sv_metadata)
     sv_resolrings.update(metadata, sv_metadata)
