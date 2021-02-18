@@ -250,7 +250,7 @@ async def internal_periodic_callback():
     metadata_toshow = sv_metadata.parse(metadata)
 
     # Update total intensity plot
-    sv_streamgraph.update([np.sum(image, dtype=np.float)])
+    sv_streamgraph.update([np.nansum(image, dtype=np.float)])
 
     # Update scan positions
     if stats.peakfinder_buffer:

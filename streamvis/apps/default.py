@@ -182,7 +182,7 @@ async def internal_periodic_callback():
     x_end = int(np.ceil(sv_zoomview.x_end))
 
     im_block = aggr_image[y_start:y_end, x_start:x_end]
-    total_sum_zoom = np.sum(im_block)
+    total_sum_zoom = np.nansum(im_block)
 
     # Deactivate auto histogram range if aggregation is on
     if sv_image_processor.aggregate_toggle.active:
@@ -197,7 +197,7 @@ async def internal_periodic_callback():
             sv_hist.update([thr_image, im_block], accumulate=True)
 
     # Update total intensities plots
-    sv_streamgraph.update([np.sum(aggr_image, dtype=np.float), total_sum_zoom])
+    sv_streamgraph.update([np.nansum(aggr_image, dtype=np.float), total_sum_zoom])
 
     # Parse and update metadata
     metadata_toshow = sv_metadata.parse(metadata)

@@ -214,8 +214,8 @@ async def internal_periodic_callback():
     zoom_x_end = int(np.ceil(sv_zoomview.x_end))
     sv_streamgraph.update(
         [
-            np.sum(image, dtype=np.float),
-            np.sum(image[zoom_y_start:zoom_y_end, zoom_x_start:zoom_x_end], dtype=np.float),
+            np.nansum(image, dtype=np.float),
+            np.nansum(image[zoom_y_start:zoom_y_end, zoom_x_start:zoom_x_end], dtype=np.float),
         ]
     )
 

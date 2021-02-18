@@ -169,8 +169,8 @@ class ColorMapper:
             image (ndarray): A source image for colormapper.
         """
         if self.auto_toggle.active:
-            image_min = int(np.min(image))
-            image_max = int(np.max(image))
+            image_min = int(np.nanmin(image))
+            image_max = int(np.nanmax(image))
 
             if image_min <= 0:  # switch to linear colormap
                 self.scale_radiobuttongroup.active = 0

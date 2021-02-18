@@ -323,7 +323,7 @@ async def internal_periodic_callback():
         x_end1 = int(np.ceil(sv_zoomview1.x_end))
 
         im_block1 = aggr_image[y_start1:y_end1, x_start1:x_end1]
-        total_sum_zoom1 = np.sum(im_block1)
+        total_sum_zoom1 = np.nansum(im_block1)
 
         y_start2 = int(np.floor(sv_zoomview2.y_start))
         y_end2 = int(np.ceil(sv_zoomview2.y_end))
@@ -331,11 +331,11 @@ async def internal_periodic_callback():
         x_end2 = int(np.ceil(sv_zoomview2.x_end))
 
         im_block2 = aggr_image[y_start2:y_end2, x_start2:x_end2]
-        total_sum_zoom2 = np.sum(im_block2)
+        total_sum_zoom2 = np.nansum(im_block2)
 
         # Update total intensities plots
         sv_streamgraph.update(
-            [np.sum(aggr_image, dtype=np.float), total_sum_zoom1, total_sum_zoom2]
+            [np.nansum(aggr_image, dtype=np.float), total_sum_zoom1, total_sum_zoom2]
         )
 
         # Update histograms
