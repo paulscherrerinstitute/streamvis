@@ -1,5 +1,4 @@
-import math
-
+import bottleneck as bn
 import numpy as np
 from bokeh.models import (
     BasicTicker,
@@ -169,24 +168,32 @@ class Histogram:
                 Defaults to False.
         """
         if self.auto_toggle.active and not accumulate:  # automatic
-            lower = math.floor(min([np.nanmin(im) if im.size else 0 for im in input_data]))
-            upper = math.ceil(max([np.nanmax(im) if im.size else 0 for im in input_data]))
-            if lower == upper:
-                upper += 1
+            # find the lowest and the highest value in input data
+            lower = 0
+            upper = 1
 
-            self.lower_spinner.value = lower
-            self.upper_spinner.value = upper
+            for data in input_data:
+                min_val = bn.nanmin(data)
+                min_val = 0 if np.isnan(min_val) else min_val
+                lower = min(lower, min_val)
 
-        for ind, plot_source in enumerate(self._plot_sources):
-            data_i = input_data[ind]
-            counts, edges = np.histogram(data_i, bins=self.nbins, range=(self.lower, self.upper))
+                max_val = bn.nanmax(data)
+                max_val = 1 if np.isnan(max_val) else max_val
+                upper = max(upper, max_val)
+
+            self.lower_spinner.value = int(np.floor(lower))
+            self.upper_spinner.value = int(np.ceil(upper))
+
+        # get histogram counts and update plots
+        for data, counts, plot_source in zip(input_data, self._counts, self._plot_sources):
+            next_counts, edges = np.histogram(data, bins=self.nbins, range=(self.lower, self.upper))
 
             if self.log10counts_toggle.active:
-                counts = np.log10(counts, where=counts > 0)
+                next_counts = np.log10(next_counts, where=next_counts > 0)
 
             if accumulate:
-                self._counts[ind] += counts
+                counts += next_counts
             else:
-                self._counts[ind] = counts
+                counts = next_counts
 
-            plot_source.data.update(left=edges[:-1], right=edges[1:], top=self._counts[ind])
+            plot_source.data.update(left=edges[:-1], right=edges[1:], top=counts)
