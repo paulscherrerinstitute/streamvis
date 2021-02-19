@@ -25,8 +25,6 @@ ZOOM_CANVAS_HEIGHT = 388 + 62
 
 DEBUG_INTENSITY_WIDTH = 700
 
-APP_FPS = 1
-
 ZOOM_WIDTH = 500
 ZOOM_HEIGHT = 500
 
@@ -271,4 +269,4 @@ async def internal_periodic_callback():
     sv_metadata.update(metadata_toshow)
 
 
-doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)
+doc.add_periodic_callback(internal_periodic_callback, 1000 / doc.client_fps)

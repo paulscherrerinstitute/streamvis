@@ -19,6 +19,7 @@ class StreamvisHandler(Handler):
         self.receiver = receiver
         self.stats = stats
         self.title = args.page_title
+        self.client_fps = args.client_fps
 
     def modify_document(self, doc):
         """Modify an application document with streamvis specific features.
@@ -32,6 +33,7 @@ class StreamvisHandler(Handler):
         doc.receiver = self.receiver
         doc.stats = self.stats
         doc.title = self.title
+        doc.client_fps = self.client_fps
 
         return doc
 

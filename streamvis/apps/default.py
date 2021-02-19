@@ -16,8 +16,6 @@ MAIN_CANVAS_HEIGHT = 800 + 60
 ZOOM_CANVAS_WIDTH = 600 + 55
 ZOOM_CANVAS_HEIGHT = 600 + 30
 
-APP_FPS = 1
-
 # Resolution rings positions in angstroms
 RESOLUTION_RINGS_POS = np.array([2, 2.2, 2.6, 3, 5, 10])
 
@@ -207,4 +205,4 @@ async def internal_periodic_callback():
     sv_metadata.update(metadata_toshow)
 
 
-doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)
+doc.add_periodic_callback(internal_periodic_callback, 1000 / doc.client_fps)

@@ -21,7 +21,6 @@ ZOOM_CANVAS_HEIGHT = 800 + 30
 ZOOM_PROJ_X_CANVAS_HEIGHT = 150 + 11
 ZOOM_PROJ_Y_CANVAS_WIDTH = 150 + 31
 
-APP_FPS = 1
 image_buffer = deque(maxlen=60)
 
 # Resolution rings positions in angstroms
@@ -229,4 +228,4 @@ async def internal_periodic_callback():
     sv_metadata.update(metadata_toshow)
 
 
-doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)
+doc.add_periodic_callback(internal_periodic_callback, 1000 / doc.client_fps)

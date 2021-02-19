@@ -38,7 +38,6 @@ sv_rt = sv.Runtime()
 MAIN_CANVAS_WIDTH = 2200 + 55
 MAIN_CANVAS_HEIGHT = 1900 + 64
 
-APP_FPS = 1
 image_buffer = deque(maxlen=60)
 
 # Resolution rings positions in angstroms
@@ -273,4 +272,4 @@ async def internal_periodic_callback():
     sv_metadata.update(metadata_toshow)
 
 
-doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)
+doc.add_periodic_callback(internal_periodic_callback, 1000 / doc.client_fps)

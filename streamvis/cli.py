@@ -96,6 +96,13 @@ def main():
     )
 
     parser.add_argument(
+        "--client-fps",
+        type=float,
+        default=1,
+        help="client update rate in frames per second",
+    )
+
+    parser.add_argument(
         "--args",
         nargs=argparse.REMAINDER,
         default=[],

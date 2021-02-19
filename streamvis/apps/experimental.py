@@ -14,8 +14,6 @@ sv_rt = sv.Runtime()
 MAIN_CANVAS_WIDTH = 1000 + 55
 MAIN_CANVAS_HEIGHT = 1000 + 59
 
-APP_FPS = 1
-
 # Main plot
 sv_mainview = sv.ImageView(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
 
@@ -126,4 +124,4 @@ async def internal_periodic_callback():
     doc.add_next_tick_callback(update_client)
 
 
-doc.add_periodic_callback(internal_periodic_callback, 1000 / APP_FPS)
+doc.add_periodic_callback(internal_periodic_callback, 1000 / doc.client_fps)
