@@ -23,6 +23,7 @@ requirements:
     - pyzmq
     - pillow >=4.3
     - colorcet
+    - bottleneck
 
 test:
   source_files:

@@ -1,5 +1,6 @@
 from collections import deque
 
+import bottleneck as bn
 import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
@@ -209,10 +210,7 @@ async def internal_periodic_callback():
     zoom_y_end = int(np.ceil(sv_zoomview.y_end))
     zoom_x_end = int(np.ceil(sv_zoomview.x_end))
     sv_streamgraph.update(
-        [
-            np.nansum(image, dtype=np.float),
-            np.nansum(image[zoom_y_start:zoom_y_end, zoom_x_start:zoom_x_end], dtype=np.float),
-        ]
+        [bn.nansum(image), bn.nansum(image[zoom_y_start:zoom_y_end, zoom_x_start:zoom_x_end]),]
     )
 
     if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:

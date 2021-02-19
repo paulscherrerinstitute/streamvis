@@ -1,5 +1,6 @@
 from collections import deque
 
+import bottleneck as bn
 import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, row
@@ -246,7 +247,7 @@ async def internal_periodic_callback():
     metadata_toshow = sv_metadata.parse(metadata)
 
     # Update total intensity plot
-    sv_streamgraph.update([np.nansum(image, dtype=np.float)])
+    sv_streamgraph.update([bn.nansum(image)])
 
     # Update scan positions
     if stats.peakfinder_buffer:

@@ -1,3 +1,4 @@
+import bottleneck as bn
 import numpy as np
 from bokeh.models import BasicTicker, ColumnDataSource, DataRange1d, Grid, Line, LinearAxis, Plot
 
@@ -98,10 +99,10 @@ class Projection:
 
         if self._direction == "vertical":
             x_val = np.arange(x_start, x_end) + 0.5  # shift to a pixel center
-            y_val = np.nanmean(image, axis=0)
+            y_val = bn.nanmean(image, axis=0)
 
         elif self._direction == "horizontal":
-            x_val = np.nanmean(image, axis=1)
+            x_val = bn.nanmean(image, axis=1)
             y_val = np.arange(y_start, y_end) + 0.5  # shift to a pixel center
 
         self._line_source.data.update(x=x_val, y=y_val)

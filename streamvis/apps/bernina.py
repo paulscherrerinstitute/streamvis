@@ -1,3 +1,4 @@
+import bottleneck as bn
 import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
@@ -218,7 +219,7 @@ async def internal_periodic_callback():
     sig_x_end = int(np.ceil(sv_zoomview1.x_end))
 
     im_block1 = image[sig_y_start:sig_y_end, sig_x_start:sig_x_end]
-    sig_sum = np.nansum(im_block1, dtype=np.float)
+    sig_sum = bn.nansum(im_block1)
     sig_area = (sig_y_end - sig_y_start) * (sig_x_end - sig_x_start)
 
     # Background roi and intensity
@@ -228,7 +229,7 @@ async def internal_periodic_callback():
     bkg_x_end = int(np.ceil(sv_zoomview2.x_end))
 
     im_block2 = image[bkg_y_start:bkg_y_end, bkg_x_start:bkg_x_end]
-    bkg_sum = np.nansum(im_block2, dtype=np.float)
+    bkg_sum = bn.nansum(im_block2)
     bkg_area = (bkg_y_end - bkg_y_start) * (bkg_x_end - bkg_x_start)
 
     # Update histogram
@@ -241,9 +242,7 @@ async def internal_periodic_callback():
     overlap_x_end = min(sig_x_end, bkg_x_end)
     if (overlap_y_end - overlap_y_start > 0) and (overlap_x_end - overlap_x_start > 0):
         # else no overlap
-        bkg_sum -= np.nansum(
-            image[overlap_y_start:overlap_y_end, overlap_x_start:overlap_x_end], dtype=np.float
-        )
+        bkg_sum -= bn.nansum(image[overlap_y_start:overlap_y_end, overlap_x_start:overlap_x_end])
         bkg_area -= (overlap_y_end - overlap_y_start) * (overlap_x_end - overlap_x_start)
 
     if bkg_area == 0:
@@ -256,7 +255,7 @@ async def internal_periodic_callback():
     sig_sum -= bkg_int * sig_area
 
     # Update total intensities plots
-    sv_streamgraph.update([np.nansum(image, dtype=np.float), sig_sum])
+    sv_streamgraph.update([bn.nansum(image), sig_sum])
 
     # Parse metadata
     metadata_toshow = sv_metadata.parse(metadata)
