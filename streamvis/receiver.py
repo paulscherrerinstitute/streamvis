@@ -5,6 +5,7 @@ from datetime import datetime
 import numpy as np
 import zmq
 from jungfrau_utils import JFDataHandler
+from numba import njit
 
 logger = logging.getLogger(__name__)
 
@@ -238,10 +239,10 @@ class StreamAdapter:
             if image.dtype != np.float32:
                 image = image.astype(np.float32)
 
-            try:
-                image[self._inv_mask] = np.nan
-            except Exception:
-                logging.exception("Error applying mask")
+            if image.shape == self._inv_mask.shape:
+                _apply_mask_core(image, self._inv_mask)
+            else:
+                raise ValueError("Image and mask shapes are not the same")
 
         else:
             self._inv_mask = None
@@ -251,3 +252,12 @@ class StreamAdapter:
             self._geometry = None
 
         return image
+
+
+@njit
+def _apply_mask_core(image, mask):
+    sy, sx = image.shape
+    for i in range(sx):
+        for j in range(sy):
+            if mask[j, i]:
+                image[j, i] = np.nan
