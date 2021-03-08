@@ -200,6 +200,8 @@ class StatisticsHandler:
             metadata["saturated_pixels_coord"] = saturated_pixels_coord
             metadata["saturated_pixels"] = len(saturated_pixels_coord[0])
 
+        image = np.ascontiguousarray(image, dtype=np.float32)
+
         return metadata, image
 
     def get_last_hit_gains(self):
@@ -213,6 +215,8 @@ class StatisticsHandler:
             image = self.jf_adapter.handler.get_gains(
                 image, mask=False, gap_pixels=True, geometry=True
             )
+
+        image = np.ascontiguousarray(image, dtype=np.float32)
 
         return metadata, image
 

@@ -234,7 +234,7 @@ class ImageView:
                 Defaults to None.
         """
         if pil_image is None:
-            # this is the slowest part, see https://github.com/python-pillow/Pillow/issues/3336
+            # this makes an extra copy, see https://github.com/python-pillow/Pillow/issues/3336
             pil_image = PIL_Image.fromarray(image.astype(np.float32, copy=False))
 
         if (

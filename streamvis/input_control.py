@@ -76,6 +76,8 @@ class StreamControl:
         if n_rot:
             image = np.rot90(image, k=n_rot)
 
+        image = np.ascontiguousarray(image, dtype=np.float32)
+
         return metadata, image
 
     def _update_toggle_view(self):
