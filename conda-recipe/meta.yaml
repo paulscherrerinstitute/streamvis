@@ -19,7 +19,7 @@ requirements:
   run:
     - python {{ python }}
     - numba
-    - bokeh =2.0
+    - bokeh =2.1
     - jungfrau_utils =2
     - pyzmq
     - pillow >=4.3
