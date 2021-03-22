@@ -92,17 +92,16 @@ class Projection:
         """
         im_y_len, im_x_len = image.shape
 
-        x_start = np.floor(self._image_view.x_start)
-        x_end = np.ceil(self._image_view.x_end)
-        y_start = np.floor(self._image_view.y_start)
-        y_end = np.ceil(self._image_view.y_end)
-
         if self._direction == "vertical":
-            x_val = np.linspace(x_start + 0.5, x_end - 0.5, im_x_len)
+            x_val = np.linspace(
+                self._image_view.x_start + 0.5, self._image_view.x_end - 0.5, im_x_len
+            )
             y_val = bn.nanmean(image, axis=0)
 
         elif self._direction == "horizontal":
             x_val = bn.nanmean(image, axis=1)
-            y_val = np.linspace(y_start + 0.5, y_end - 0.5, im_y_len)
+            y_val = np.linspace(
+                self._image_view.y_start + 0.5, self._image_view.y_end - 0.5, im_y_len
+            )
 
         self._line_source.data.update(x=x_val, y=y_val)

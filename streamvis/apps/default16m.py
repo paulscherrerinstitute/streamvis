@@ -205,12 +205,15 @@ async def internal_periodic_callback():
     metadata_toshow = sv_metadata.parse(metadata)
 
     # Update total intensities plots
-    zoom_y_start = int(np.floor(sv_zoomview.y_start))
-    zoom_x_start = int(np.floor(sv_zoomview.x_start))
-    zoom_y_end = int(np.ceil(sv_zoomview.y_end))
-    zoom_x_end = int(np.ceil(sv_zoomview.x_end))
     sv_streamgraph.update(
-        [bn.nansum(image), bn.nansum(image[zoom_y_start:zoom_y_end, zoom_x_start:zoom_x_end]),]
+        [
+            bn.nansum(image),
+            bn.nansum(
+                image[
+                    sv_zoomview.y_start : sv_zoomview.y_end, sv_zoomview.x_start : sv_zoomview.x_end
+                ]
+            ),
+        ]
     )
 
     if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:

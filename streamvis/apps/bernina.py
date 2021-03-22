@@ -213,33 +213,31 @@ async def internal_periodic_callback():
     sv_mainview.update(image)
 
     # Signal roi and intensity
-    sig_y_start = int(np.floor(sv_zoomview1.y_start))
-    sig_y_end = int(np.ceil(sv_zoomview1.y_end))
-    sig_x_start = int(np.floor(sv_zoomview1.x_start))
-    sig_x_end = int(np.ceil(sv_zoomview1.x_end))
-
-    im_block1 = image[sig_y_start:sig_y_end, sig_x_start:sig_x_end]
+    im_block1 = image[
+        sv_zoomview1.y_start : sv_zoomview1.y_end, sv_zoomview1.x_start : sv_zoomview1.x_end
+    ]
     sig_sum = bn.nansum(im_block1)
-    sig_area = (sig_y_end - sig_y_start) * (sig_x_end - sig_x_start)
+    sig_area = (sv_zoomview1.y_end - sv_zoomview1.y_start) * (
+        sv_zoomview1.x_end - sv_zoomview1.x_start
+    )
 
     # Background roi and intensity
-    bkg_y_start = int(np.floor(sv_zoomview2.y_start))
-    bkg_y_end = int(np.ceil(sv_zoomview2.y_end))
-    bkg_x_start = int(np.floor(sv_zoomview2.x_start))
-    bkg_x_end = int(np.ceil(sv_zoomview2.x_end))
-
-    im_block2 = image[bkg_y_start:bkg_y_end, bkg_x_start:bkg_x_end]
+    im_block2 = image[
+        sv_zoomview2.y_start : sv_zoomview2.y_end, sv_zoomview2.x_start : sv_zoomview2.x_end
+    ]
     bkg_sum = bn.nansum(im_block2)
-    bkg_area = (bkg_y_end - bkg_y_start) * (bkg_x_end - bkg_x_start)
+    bkg_area = (sv_zoomview2.y_end - sv_zoomview2.y_start) * (
+        sv_zoomview2.x_end - sv_zoomview2.x_start
+    )
 
     # Update histogram
     sv_hist.update([image, im_block1, im_block2])
 
     # correct the backgroud roi sum by subtracting overlap area sum
-    overlap_y_start = max(sig_y_start, bkg_y_start)
-    overlap_y_end = min(sig_y_end, bkg_y_end)
-    overlap_x_start = max(sig_x_start, bkg_x_start)
-    overlap_x_end = min(sig_x_end, bkg_x_end)
+    overlap_y_start = max(sv_zoomview1.y_start, sv_zoomview2.y_start)
+    overlap_y_end = min(sv_zoomview1.y_end, sv_zoomview2.y_end)
+    overlap_x_start = max(sv_zoomview1.x_start, sv_zoomview2.x_start)
+    overlap_x_end = min(sv_zoomview1.x_end, sv_zoomview2.x_end)
     if (overlap_y_end - overlap_y_start > 0) and (overlap_x_end - overlap_x_start > 0):
         # else no overlap
         bkg_sum -= bn.nansum(image[overlap_y_start:overlap_y_end, overlap_x_start:overlap_x_end])

@@ -104,12 +104,7 @@ async def update_client():
     sv_mainview.update(image)
 
     # Statistics
-    y_start = int(np.floor(sv_mainview.y_start))
-    y_end = int(np.ceil(sv_mainview.y_end))
-    x_start = int(np.floor(sv_mainview.x_start))
-    x_end = int(np.ceil(sv_mainview.x_end))
-
-    im_block = image[y_start:y_end, x_start:x_end]
+    im_block = image[sv_mainview.y_start:sv_mainview.y_end, sv_mainview.x_start:sv_mainview.x_end]
     sv_hist.update([im_block])
 
     # Update metadata

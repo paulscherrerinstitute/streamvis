@@ -161,27 +161,27 @@ class ImageView:
     # https://github.com/bokeh/bokeh/issues/8118
     @property
     def x_start(self):
-        """Current x-axis start value (readonly).
+        """Current x-axis image start value (readonly).
         """
-        return max(self.plot.x_range.start, self.plot.x_range.bounds[0])
+        return int(np.floor(max(self.plot.x_range.start, self.plot.x_range.bounds[0])))
 
     @property
     def x_end(self):
-        """Current x-axis end value (readonly).
+        """Current x-axis image end value (readonly).
         """
-        return min(self.plot.x_range.end, self.plot.x_range.bounds[1])
+        return int(np.ceil(min(self.plot.x_range.end, self.plot.x_range.bounds[1])))
 
     @property
     def y_start(self):
-        """Current y-axis start value (readonly).
+        """Current y-axis image start value (readonly).
         """
-        return max(self.plot.y_range.start, self.plot.y_range.bounds[0])
+        return int(np.floor(max(self.plot.y_range.start, self.plot.y_range.bounds[0])))
 
     @property
     def y_end(self):
-        """Current y-axis end value (readonly).
+        """Current y-axis image end value (readonly).
         """
-        return min(self.plot.y_range.end, self.plot.y_range.bounds[1])
+        return int(np.ceil(min(self.plot.y_range.end, self.plot.y_range.bounds[1])))
 
     def add_as_zoom(self, image_view, line_color="red"):
         """Add an ImageView plot as a zoom view.
@@ -258,11 +258,6 @@ class ImageView:
             self.plot.y_range.bounds = (0, pil_image.height)
             self.plot.x_range.bounds = (0, pil_image.width)
 
-        pval_y_start = int(np.floor(self.y_start))
-        pval_x_start = int(np.floor(self.x_start))
-        pval_y_end = int(np.ceil(self.y_end))
-        pval_x_end = int(np.ceil(self.x_end))
-
         if (
             self.plot.inner_width < self.x_end - self.x_start
             or self.plot.inner_height < self.y_end - self.y_start
@@ -275,31 +270,27 @@ class ImageView:
                 )
             )
 
-            x = self.x_start
-            y = self.y_start
-            dw = self.x_end - self.x_start
-            dh = self.y_end - self.y_start
-
         else:
-            resized_image = image[pval_y_start:pval_y_end, pval_x_start:pval_x_end]
+            resized_image = image[self.y_start : self.y_end, self.x_start : self.x_end]
 
-            x = pval_x_start
-            y = pval_y_start
-            dw = pval_x_end - pval_x_start
-            dh = pval_y_end - pval_y_start
-
-        self._image_source.data.update(image=[resized_image], x=[x], y=[y], dw=[dw], dh=[dh])
+        self._image_source.data.update(
+            image=[resized_image],
+            x=[self.x_start],
+            y=[self.y_start],
+            dw=[self.x_end - self.x_start],
+            dh=[self.y_end - self.y_start],
+        )
 
         # Draw numbers
-        canvas_pix_ratio_x = self.plot.inner_width / (pval_x_end - pval_x_start)
-        canvas_pix_ratio_y = self.plot.inner_height / (pval_y_end - pval_y_start)
+        canvas_pix_ratio_x = self.plot.inner_width / (self.x_end - self.x_start)
+        canvas_pix_ratio_y = self.plot.inner_height / (self.y_end - self.y_start)
         if canvas_pix_ratio_x > 70 and canvas_pix_ratio_y > 50:
             textv = [
                 f"{val:.1f}"
-                for val in image[pval_y_start:pval_y_end, pval_x_start:pval_x_end].flatten()
+                for val in image[self.y_start : self.y_end, self.x_start : self.x_end].flatten()
             ]
             xv, yv = np.meshgrid(
-                np.arange(pval_x_start, pval_x_end), np.arange(pval_y_start, pval_y_end)
+                np.arange(self.x_start, self.x_end), np.arange(self.y_start, self.y_end)
             )
             self._pvalue_source.data.update(x=xv.flatten() + 0.5, y=yv.flatten() + 0.5, text=textv)
         else:

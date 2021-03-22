@@ -172,12 +172,9 @@ async def internal_periodic_callback():
     sv_zoom_proj_h.update(sv_zoomview.displayed_image)
 
     # Statistics
-    y_start = int(np.floor(sv_zoomview.y_start))
-    y_end = int(np.ceil(sv_zoomview.y_end))
-    x_start = int(np.floor(sv_zoomview.x_start))
-    x_end = int(np.ceil(sv_zoomview.x_end))
-
-    im_block = aggr_image[y_start:y_end, x_start:x_end]
+    im_block = aggr_image[
+        sv_zoomview.y_start : sv_zoomview.y_end, sv_zoomview.x_start : sv_zoomview.x_end
+    ]
     total_sum_zoom = bn.nansum(im_block)
 
     # Deactivate auto histogram range if aggregation is on
@@ -189,7 +186,9 @@ async def internal_periodic_callback():
         if reset:
             sv_hist.update([thr_image, im_block])
         else:
-            im_block = thr_image[y_start:y_end, x_start:x_end]
+            im_block = thr_image[
+                sv_zoomview.y_start : sv_zoomview.y_end, sv_zoomview.x_start : sv_zoomview.x_end
+            ]
             sv_hist.update([thr_image, im_block], accumulate=True)
 
     # Update total intensities plots
