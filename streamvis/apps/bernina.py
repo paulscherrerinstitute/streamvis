@@ -41,17 +41,17 @@ ZOOM2_TOP = ZOOM2_BOTTOM + ZOOM_HEIGHT
 
 
 # Main plot
-sv_mainview = sv.ImageView(
+sv_main = sv.ImageView(
     plot_height=MAIN_CANVAS_HEIGHT,
     plot_width=MAIN_CANVAS_WIDTH,
     image_height=IMAGE_SIZE_Y,
     image_width=IMAGE_SIZE_X,
 )
 
-sv_mainview.plot.title = Title(text=" ")
+sv_main.plot.title = Title(text=" ")
 
 # ---- add zoom plot 1
-sv_zoomview1 = sv.ImageView(
+sv_zoom1 = sv.ImageView(
     plot_height=ZOOM_CANVAS_HEIGHT,
     plot_width=ZOOM_CANVAS_WIDTH,
     image_height=IMAGE_SIZE_Y,
@@ -62,11 +62,11 @@ sv_zoomview1 = sv.ImageView(
     y_end=ZOOM1_TOP,
 )
 
-sv_zoomview1.plot.title = Title(text="Signal roi", text_color="red")
-sv_mainview.add_as_zoom(sv_zoomview1, line_color="red")
+sv_zoom1.plot.title = Title(text="Signal roi", text_color="red")
+sv_main.add_as_zoom(sv_zoom1, line_color="red")
 
 # ---- add zoom plot 2
-sv_zoomview2 = sv.ImageView(
+sv_zoom2 = sv.ImageView(
     plot_height=ZOOM_CANVAS_HEIGHT,
     plot_width=ZOOM_CANVAS_WIDTH,
     image_height=IMAGE_SIZE_Y,
@@ -77,8 +77,8 @@ sv_zoomview2 = sv.ImageView(
     y_end=ZOOM2_TOP,
 )
 
-sv_zoomview2.plot.title = Title(text="Background roi", text_color="green")
-sv_mainview.add_as_zoom(sv_zoomview2, line_color="green")
+sv_zoom2.plot.title = Title(text="Background roi", text_color="green")
+sv_main.add_as_zoom(sv_zoom2, line_color="green")
 
 
 # Total sum intensity plots
@@ -90,28 +90,28 @@ sv_streamgraph.plots[1].title = Title(text="Normalized signal−background Inten
 
 
 # Create colormapper
-sv_colormapper = sv.ColorMapper([sv_mainview, sv_zoomview1, sv_zoomview2])
+sv_colormapper = sv.ColorMapper([sv_main, sv_zoom1, sv_zoom2])
 
 # ---- add colorbar to the main plot
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
 sv_colormapper.color_bar.height = 10
-sv_mainview.plot.add_layout(sv_colormapper.color_bar, place="below")
+sv_main.plot.add_layout(sv_colormapper.color_bar, place="below")
 
 
 # Add resolution rings to both plots
-sv_resolrings = sv.ResolutionRings([sv_mainview, sv_zoomview1, sv_zoomview2], RESOLUTION_RINGS_POS)
+sv_resolrings = sv.ResolutionRings([sv_main, sv_zoom1, sv_zoom2], RESOLUTION_RINGS_POS)
 
 
 # Add intensity roi
-sv_intensity_roi = sv.IntensityROI([sv_mainview, sv_zoomview1, sv_zoomview2])
+sv_intensity_roi = sv.IntensityROI([sv_main, sv_zoom1, sv_zoom2])
 
 
 # Add saturated pixel markers
-sv_saturated_pixels = sv.SaturatedPixels([sv_mainview, sv_zoomview1, sv_zoomview2])
+sv_saturated_pixels = sv.SaturatedPixels([sv_main, sv_zoom1, sv_zoom2])
 
 
 # Add spots markers
-sv_spots = sv.Spots([sv_mainview])
+sv_spots = sv.Spots([sv_main])
 
 
 # Histogram plots
@@ -131,9 +131,7 @@ sv_metadata.issues_datatable.height = 100
 
 
 # Final layouts
-layout_main = gridplot(
-    [[sv_mainview.plot, column(sv_zoomview1.plot, sv_zoomview2.plot)]], merge_tools=False
-)
+layout_main = gridplot([[sv_main.plot, column(sv_zoom1.plot, sv_zoom2.plot)]], merge_tools=False)
 
 layout_hist = column(
     gridplot([[sv_hist.plots[0], sv_hist.plots[1], sv_hist.plots[2]]], merge_tools=False),
@@ -210,34 +208,26 @@ async def internal_periodic_callback():
     image, metadata = sv_rt.image, sv_rt.metadata
 
     sv_colormapper.update(image)
-    sv_mainview.update(image)
+    sv_main.update(image)
 
     # Signal roi and intensity
-    im_block1 = image[
-        sv_zoomview1.y_start : sv_zoomview1.y_end, sv_zoomview1.x_start : sv_zoomview1.x_end
-    ]
+    im_block1 = image[sv_zoom1.y_start : sv_zoom1.y_end, sv_zoom1.x_start : sv_zoom1.x_end]
     sig_sum = bn.nansum(im_block1)
-    sig_area = (sv_zoomview1.y_end - sv_zoomview1.y_start) * (
-        sv_zoomview1.x_end - sv_zoomview1.x_start
-    )
+    sig_area = (sv_zoom1.y_end - sv_zoom1.y_start) * (sv_zoom1.x_end - sv_zoom1.x_start)
 
     # Background roi and intensity
-    im_block2 = image[
-        sv_zoomview2.y_start : sv_zoomview2.y_end, sv_zoomview2.x_start : sv_zoomview2.x_end
-    ]
+    im_block2 = image[sv_zoom2.y_start : sv_zoom2.y_end, sv_zoom2.x_start : sv_zoom2.x_end]
     bkg_sum = bn.nansum(im_block2)
-    bkg_area = (sv_zoomview2.y_end - sv_zoomview2.y_start) * (
-        sv_zoomview2.x_end - sv_zoomview2.x_start
-    )
+    bkg_area = (sv_zoom2.y_end - sv_zoom2.y_start) * (sv_zoom2.x_end - sv_zoom2.x_start)
 
     # Update histogram
     sv_hist.update([image, im_block1, im_block2])
 
     # correct the backgroud roi sum by subtracting overlap area sum
-    overlap_y_start = max(sv_zoomview1.y_start, sv_zoomview2.y_start)
-    overlap_y_end = min(sv_zoomview1.y_end, sv_zoomview2.y_end)
-    overlap_x_start = max(sv_zoomview1.x_start, sv_zoomview2.x_start)
-    overlap_x_end = min(sv_zoomview1.x_end, sv_zoomview2.x_end)
+    overlap_y_start = max(sv_zoom1.y_start, sv_zoom2.y_start)
+    overlap_y_end = min(sv_zoom1.y_end, sv_zoom2.y_end)
+    overlap_x_start = max(sv_zoom1.x_start, sv_zoom2.x_start)
+    overlap_x_end = min(sv_zoom1.x_end, sv_zoom2.x_end)
     if (overlap_y_end - overlap_y_start > 0) and (overlap_x_end - overlap_x_start > 0):
         # else no overlap
         bkg_sum -= bn.nansum(image[overlap_y_start:overlap_y_end, overlap_x_start:overlap_x_end])

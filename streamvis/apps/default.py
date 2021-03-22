@@ -22,39 +22,39 @@ RESOLUTION_RINGS_POS = np.array([2, 2.2, 2.6, 3, 5, 10])
 
 
 # Main plot
-sv_mainview = sv.ImageView(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
+sv_main = sv.ImageView(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
 
 # ---- add zoom plot
-sv_zoomview = sv.ImageView(plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH)
+sv_zoom = sv.ImageView(plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH)
 
-sv_mainview.add_as_zoom(sv_zoomview)
+sv_main.add_as_zoom(sv_zoom)
 
-sv_zoom_proj_v = sv.Projection(sv_zoomview, "vertical")
-sv_zoom_proj_h = sv.Projection(sv_zoomview, "horizontal")
+sv_zoom_proj_v = sv.Projection(sv_zoom, "vertical")
+sv_zoom_proj_h = sv.Projection(sv_zoom, "horizontal")
 
 
 # Create colormapper
-sv_colormapper = sv.ColorMapper([sv_mainview, sv_zoomview])
+sv_colormapper = sv.ColorMapper([sv_main, sv_zoom])
 
 # ---- add colorbar to the main plot
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
-sv_mainview.plot.add_layout(sv_colormapper.color_bar, place="below")
+sv_main.plot.add_layout(sv_colormapper.color_bar, place="below")
 
 
 # Add resolution rings to both plots
-sv_resolrings = sv.ResolutionRings([sv_mainview, sv_zoomview], RESOLUTION_RINGS_POS)
+sv_resolrings = sv.ResolutionRings([sv_main, sv_zoom], RESOLUTION_RINGS_POS)
 
 
 # Add intensity roi
-sv_intensity_roi = sv.IntensityROI([sv_mainview, sv_zoomview])
+sv_intensity_roi = sv.IntensityROI([sv_main, sv_zoom])
 
 
 # Add saturated pixel markers
-sv_saturated_pixels = sv.SaturatedPixels([sv_mainview, sv_zoomview])
+sv_saturated_pixels = sv.SaturatedPixels([sv_main, sv_zoom])
 
 
 # Add spots markers
-sv_spots = sv.Spots([sv_mainview])
+sv_spots = sv.Spots([sv_main])
 
 
 # Histogram plot
@@ -84,7 +84,7 @@ sv_metadata.issues_datatable.height = 100
 
 # Final layouts
 layout_zoom = gridplot(
-    [[sv_zoom_proj_v.plot, None], [sv_zoomview.plot, sv_zoom_proj_h.plot]], merge_tools=False
+    [[sv_zoom_proj_v.plot, None], [sv_zoom.plot, sv_zoom_proj_h.plot]], merge_tools=False
 )
 
 layout_utility = column(
@@ -144,7 +144,7 @@ layout_hist = column(
 )
 
 final_layout = column(
-    row(sv_mainview.plot, Spacer(width=30), layout_controls, Spacer(width=30), layout_zoom),
+    row(sv_main.plot, Spacer(width=30), layout_controls, Spacer(width=30), layout_zoom),
     row(layout_metadata, layout_utility, layout_hist),
 )
 
@@ -166,15 +166,13 @@ async def internal_periodic_callback():
     thr_image, reset, aggr_image = sv_rt.thresholded_image, sv_rt.reset, sv_rt.aggregated_image
 
     sv_colormapper.update(aggr_image)
-    sv_mainview.update(aggr_image)
+    sv_main.update(aggr_image)
 
-    sv_zoom_proj_v.update(sv_zoomview.displayed_image)
-    sv_zoom_proj_h.update(sv_zoomview.displayed_image)
+    sv_zoom_proj_v.update(sv_zoom.displayed_image)
+    sv_zoom_proj_h.update(sv_zoom.displayed_image)
 
     # Statistics
-    im_block = aggr_image[
-        sv_zoomview.y_start : sv_zoomview.y_end, sv_zoomview.x_start : sv_zoomview.x_end
-    ]
+    im_block = aggr_image[sv_zoom.y_start : sv_zoom.y_end, sv_zoom.x_start : sv_zoom.x_end]
     total_sum_zoom = bn.nansum(im_block)
 
     # Deactivate auto histogram range if aggregation is on
@@ -186,9 +184,7 @@ async def internal_periodic_callback():
         if reset:
             sv_hist.update([thr_image, im_block])
         else:
-            im_block = thr_image[
-                sv_zoomview.y_start : sv_zoomview.y_end, sv_zoomview.x_start : sv_zoomview.x_end
-            ]
+            im_block = thr_image[sv_zoom.y_start : sv_zoom.y_end, sv_zoom.x_start : sv_zoom.x_end]
             sv_hist.update([thr_image, im_block], accumulate=True)
 
     # Update total intensities plots

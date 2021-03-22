@@ -29,8 +29,8 @@ RESOLUTION_RINGS_POS = np.array([2, 2.2, 2.6, 3, 5, 10])
 
 
 # Main plot
-sv_mainview = sv.ImageView(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
-sv_mainview.toolbar_location = "below"
+sv_main = sv.ImageView(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
+sv_main.toolbar_location = "below"
 
 
 # Total sum intensity plots
@@ -40,40 +40,40 @@ sv_streamgraph.plots[1].title = Title(text="Zoom total intensity")
 
 
 # Zoom plot
-sv_zoomview = sv.ImageView(plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH)
-sv_zoomview.toolbar_location = "below"
+sv_zoom = sv.ImageView(plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH)
+sv_zoom.toolbar_location = "below"
 
-sv_mainview.add_as_zoom(sv_zoomview, line_color="white")
+sv_main.add_as_zoom(sv_zoom, line_color="white")
 
-sv_zoom_proj_v = sv.Projection(sv_zoomview, "vertical", plot_height=ZOOM_PROJ_X_CANVAS_HEIGHT)
+sv_zoom_proj_v = sv.Projection(sv_zoom, "vertical", plot_height=ZOOM_PROJ_X_CANVAS_HEIGHT)
 sv_zoom_proj_v.plot.renderers[0].glyph.line_width = 2
 
-sv_zoom_proj_h = sv.Projection(sv_zoomview, "horizontal", plot_width=ZOOM_PROJ_Y_CANVAS_WIDTH)
+sv_zoom_proj_h = sv.Projection(sv_zoom, "horizontal", plot_width=ZOOM_PROJ_Y_CANVAS_WIDTH)
 sv_zoom_proj_h.plot.renderers[0].glyph.line_width = 2
 
 
 # Create colormapper
-sv_colormapper = sv.ColorMapper([sv_mainview, sv_zoomview])
+sv_colormapper = sv.ColorMapper([sv_main, sv_zoom])
 
 # ---- add colorbar to the main plot
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
-sv_mainview.plot.add_layout(sv_colormapper.color_bar, place="below")
+sv_main.plot.add_layout(sv_colormapper.color_bar, place="below")
 
 
 # Add resolution rings to both plots
-sv_resolrings = sv.ResolutionRings([sv_mainview, sv_zoomview], RESOLUTION_RINGS_POS)
+sv_resolrings = sv.ResolutionRings([sv_main, sv_zoom], RESOLUTION_RINGS_POS)
 
 
 # Add intensity roi
-sv_intensity_roi = sv.IntensityROI([sv_mainview, sv_zoomview])
+sv_intensity_roi = sv.IntensityROI([sv_main, sv_zoom])
 
 
 # Add saturated pixel markers
-sv_saturated_pixels = sv.SaturatedPixels([sv_mainview, sv_zoomview])
+sv_saturated_pixels = sv.SaturatedPixels([sv_main, sv_zoom])
 
 
 # Add spots markers
-sv_spots = sv.Spots([sv_mainview])
+sv_spots = sv.Spots([sv_main])
 
 
 # Histogram plot
@@ -132,7 +132,7 @@ layout_debug = column(
 )
 
 layout_zoom = gridplot(
-    [[sv_zoom_proj_v.plot, None], [sv_zoomview.plot, sv_zoom_proj_h.plot]], merge_tools=False
+    [[sv_zoom_proj_v.plot, None], [sv_zoom.plot, sv_zoom_proj_h.plot]], merge_tools=False
 )
 
 sv_colormapper.select.width = 110
@@ -163,7 +163,7 @@ layout_side_panel = column(
     layout_debug, Spacer(height=30), row(layout_controls, Spacer(width=30), layout_zoom)
 )
 
-final_layout = row(sv_mainview.plot, Spacer(width=30), layout_side_panel)
+final_layout = row(sv_main.plot, Spacer(width=30), layout_side_panel)
 
 doc.add_root(row(Spacer(width=50), final_layout))
 
@@ -194,12 +194,12 @@ async def internal_periodic_callback():
     image, metadata = sv_rt.image, sv_rt.metadata
 
     sv_colormapper.update(image)
-    sv_mainview.update(image)
+    sv_main.update(image)
 
-    sv_zoom_proj_v.update(sv_zoomview.displayed_image)
-    sv_zoom_proj_h.update(sv_zoomview.displayed_image)
+    sv_zoom_proj_v.update(sv_zoom.displayed_image)
+    sv_zoom_proj_h.update(sv_zoom.displayed_image)
 
-    sv_hist.update([sv_zoomview.displayed_image])
+    sv_hist.update([sv_zoom.displayed_image])
 
     # Parse metadata
     metadata_toshow = sv_metadata.parse(metadata)
@@ -208,11 +208,7 @@ async def internal_periodic_callback():
     sv_streamgraph.update(
         [
             bn.nansum(image),
-            bn.nansum(
-                image[
-                    sv_zoomview.y_start : sv_zoomview.y_end, sv_zoomview.x_start : sv_zoomview.x_end
-                ]
-            ),
+            bn.nansum(image[sv_zoom.y_start : sv_zoom.y_end, sv_zoom.x_start : sv_zoom.x_end]),
         ]
     )
 

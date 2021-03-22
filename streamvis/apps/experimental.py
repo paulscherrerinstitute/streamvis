@@ -15,15 +15,15 @@ MAIN_CANVAS_WIDTH = 1000 + 55
 MAIN_CANVAS_HEIGHT = 1000 + 59
 
 # Main plot
-sv_mainview = sv.ImageView(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
+sv_main = sv.ImageView(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
 
 
 # Create colormapper
-sv_colormapper = sv.ColorMapper([sv_mainview])
+sv_colormapper = sv.ColorMapper([sv_main])
 
 # ---- add colorbar to the main plot
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
-sv_mainview.plot.add_layout(sv_colormapper.color_bar, place="below")
+sv_main.plot.add_layout(sv_colormapper.color_bar, place="below")
 
 
 # Histogram plot
@@ -90,9 +90,7 @@ layout_controls = column(
     sv_colormapper.auto_toggle,
 )
 
-final_layout = row(
-    layout_controls, sv_mainview.plot, column(sv_hist.plots[0], sv_metadata.datatable)
-)
+final_layout = row(layout_controls, sv_main.plot, column(sv_hist.plots[0], sv_metadata.datatable))
 
 doc.add_root(final_layout)
 
@@ -101,10 +99,10 @@ async def update_client():
     image, metadata = sv_rt.image, sv_rt.metadata
 
     sv_colormapper.update(image)
-    sv_mainview.update(image)
+    sv_main.update(image)
 
     # Statistics
-    im_block = image[sv_mainview.y_start:sv_mainview.y_end, sv_mainview.x_start:sv_mainview.x_end]
+    im_block = image[sv_main.y_start : sv_main.y_end, sv_main.x_start : sv_main.x_end]
     sv_hist.update([im_block])
 
     # Update metadata

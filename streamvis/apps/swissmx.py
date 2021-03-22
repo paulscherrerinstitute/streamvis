@@ -46,8 +46,8 @@ RESOLUTION_RINGS_POS = np.array([2, 2.2, 2.6, 3, 5, 10])
 
 
 # Main plot
-sv_mainview = sv.ImageView(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
-sv_mainview.toolbar_location = "below"
+sv_main = sv.ImageView(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
+sv_main.toolbar_location = "below"
 
 
 # Total sum intensity plot
@@ -57,27 +57,27 @@ sv_streamgraph.plots[0].toolbar_location = "left"
 
 
 # Create colormapper
-sv_colormapper = sv.ColorMapper([sv_mainview])
+sv_colormapper = sv.ColorMapper([sv_main])
 
 # ---- add colorbar to the main plot
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
-sv_mainview.plot.add_layout(sv_colormapper.color_bar, place="below")
+sv_main.plot.add_layout(sv_colormapper.color_bar, place="below")
 
 
 # Add resolution rings to both plots
-sv_resolrings = sv.ResolutionRings([sv_mainview], RESOLUTION_RINGS_POS)
+sv_resolrings = sv.ResolutionRings([sv_main], RESOLUTION_RINGS_POS)
 
 
 # Add intensity roi
-sv_intensity_roi = sv.IntensityROI([sv_mainview])
+sv_intensity_roi = sv.IntensityROI([sv_main])
 
 
 # Add saturated pixel markers
-sv_saturated_pixels = sv.SaturatedPixels([sv_mainview])
+sv_saturated_pixels = sv.SaturatedPixels([sv_main])
 
 
 # Add spots markers
-sv_spots = sv.Spots([sv_mainview])
+sv_spots = sv.Spots([sv_main])
 
 
 # Histogram plot
@@ -208,7 +208,7 @@ layout_side_panel = column(
     layout_debug, Spacer(height=30), row(layout_controls, Spacer(width=30), trajectory_plot)
 )
 
-final_layout = row(sv_mainview.plot, Spacer(width=30), layout_side_panel)
+final_layout = row(sv_main.plot, Spacer(width=30), layout_side_panel)
 
 doc.add_root(row(Spacer(width=50), final_layout))
 
@@ -239,9 +239,9 @@ async def internal_periodic_callback():
     image, metadata = sv_rt.image, sv_rt.metadata
 
     sv_colormapper.update(image)
-    sv_mainview.update(image)
+    sv_main.update(image)
 
-    sv_hist.update([sv_mainview.displayed_image])
+    sv_hist.update([sv_main.displayed_image])
 
     # Parse metadata
     metadata_toshow = sv_metadata.parse(metadata)

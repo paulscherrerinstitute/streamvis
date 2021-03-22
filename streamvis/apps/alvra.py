@@ -44,7 +44,7 @@ RESOLUTION_RINGS_POS = np.array([2, 2.2, 2.6, 3, 5, 10])
 
 
 # Main plot
-sv_mainview = sv.ImageView(
+sv_main = sv.ImageView(
     plot_height=MAIN_CANVAS_HEIGHT,
     plot_width=MAIN_CANVAS_WIDTH,
     image_height=IMAGE_SIZE_Y,
@@ -53,7 +53,7 @@ sv_mainview = sv.ImageView(
 
 
 # Zoom plot 1
-sv_zoomview1 = sv.ImageView(
+sv_zoom1 = sv.ImageView(
     plot_height=ZOOM_CANVAS_HEIGHT,
     plot_width=ZOOM_CANVAS_WIDTH,
     image_height=IMAGE_SIZE_Y,
@@ -64,17 +64,17 @@ sv_zoomview1 = sv.ImageView(
     y_end=ZOOM1_TOP,
 )
 
-sv_mainview.add_as_zoom(sv_zoomview1, line_color="red")
+sv_main.add_as_zoom(sv_zoom1, line_color="red")
 
-sv_zoom1_proj_v = sv.Projection(sv_zoomview1, "vertical", plot_height=ZOOM_AGG_X_PLOT_HEIGHT)
+sv_zoom1_proj_v = sv.Projection(sv_zoom1, "vertical", plot_height=ZOOM_AGG_X_PLOT_HEIGHT)
 sv_zoom1_proj_v.plot.title = Title(text="Zoom Area 1")
 sv_zoom1_proj_v.plot.renderers[0].glyph.line_width = 2
 
-sv_zoom1_proj_h = sv.Projection(sv_zoomview1, "horizontal", plot_width=ZOOM_AGG_Y_PLOT_WIDTH)
+sv_zoom1_proj_h = sv.Projection(sv_zoom1, "horizontal", plot_width=ZOOM_AGG_Y_PLOT_WIDTH)
 
 
 # Zoom plot 2
-sv_zoomview2 = sv.ImageView(
+sv_zoom2 = sv.ImageView(
     plot_height=ZOOM_CANVAS_HEIGHT,
     plot_width=ZOOM_CANVAS_WIDTH,
     image_height=IMAGE_SIZE_Y,
@@ -85,41 +85,41 @@ sv_zoomview2 = sv.ImageView(
     y_end=ZOOM2_TOP,
 )
 
-sv_mainview.add_as_zoom(sv_zoomview2, line_color="green")
+sv_main.add_as_zoom(sv_zoom2, line_color="green")
 
-sv_zoom2_proj_v = sv.Projection(sv_zoomview2, "vertical", plot_height=ZOOM_AGG_X_PLOT_HEIGHT)
+sv_zoom2_proj_v = sv.Projection(sv_zoom2, "vertical", plot_height=ZOOM_AGG_X_PLOT_HEIGHT)
 sv_zoom2_proj_v.plot.title = Title(text="Zoom Area 2")
 sv_zoom2_proj_v.plot.renderers[0].glyph.line_width = 2
 
-sv_zoom2_proj_h = sv.Projection(sv_zoomview2, "horizontal", plot_width=ZOOM_AGG_Y_PLOT_WIDTH)
+sv_zoom2_proj_h = sv.Projection(sv_zoom2, "horizontal", plot_width=ZOOM_AGG_Y_PLOT_WIDTH)
 
 
 # Create colormapper
-sv_colormapper = sv.ColorMapper([sv_mainview, sv_zoomview1, sv_zoomview2])
+sv_colormapper = sv.ColorMapper([sv_main, sv_zoom1, sv_zoom2])
 
 # ---- add colorbar to the main plot
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
-sv_mainview.plot.add_layout(sv_colormapper.color_bar, place="below")
+sv_main.plot.add_layout(sv_colormapper.color_bar, place="below")
 
 
 # Add resolution rings to both plots
-sv_resolrings = sv.ResolutionRings([sv_mainview, sv_zoomview1, sv_zoomview2], RESOLUTION_RINGS_POS)
+sv_resolrings = sv.ResolutionRings([sv_main, sv_zoom1, sv_zoom2], RESOLUTION_RINGS_POS)
 
 
 # Add intensity roi
-sv_intensity_roi = sv.IntensityROI([sv_mainview, sv_zoomview1, sv_zoomview2])
+sv_intensity_roi = sv.IntensityROI([sv_main, sv_zoom1, sv_zoom2])
 
 
 # Add saturated pixel markers
-sv_saturated_pixels = sv.SaturatedPixels([sv_mainview, sv_zoomview1, sv_zoomview2])
+sv_saturated_pixels = sv.SaturatedPixels([sv_main, sv_zoom1, sv_zoom2])
 
 
 # Add spots markers
-sv_spots = sv.Spots([sv_mainview])
+sv_spots = sv.Spots([sv_main])
 
 
 # Histogram zoom plots
-sv_hist = sv.Histogram(nplots=2, plot_height=280, plot_width=sv_zoomview1.plot.plot_width)
+sv_hist = sv.Histogram(nplots=2, plot_height=280, plot_width=sv_zoom1.plot.plot_width)
 
 
 # Image processor
@@ -207,14 +207,14 @@ sv_metadata.issues_datatable.height = 100
 # Final layouts
 layout_zoom1 = column(
     gridplot(
-        [[sv_zoom1_proj_v.plot, None], [sv_zoomview1.plot, sv_zoom1_proj_h.plot]], merge_tools=False
+        [[sv_zoom1_proj_v.plot, None], [sv_zoom1.plot, sv_zoom1_proj_h.plot]], merge_tools=False
     ),
     sv_hist.plots[0],
 )
 
 layout_zoom2 = column(
     gridplot(
-        [[sv_zoom2_proj_v.plot, None], [sv_zoomview2.plot, sv_zoom2_proj_h.plot]], merge_tools=False
+        [[sv_zoom2_proj_v.plot, None], [sv_zoom2.plot, sv_zoom2_proj_h.plot]], merge_tools=False
     ),
     sv_hist.plots[1],
 )
@@ -280,7 +280,7 @@ layout_right = column(
     layout_streamgraphs, Spacer(height=30), row(layout_controls, Spacer(width=30), layout_metadata)
 )
 
-final_layout = column(sv_mainview.plot, row(layout_left, Spacer(width=30), layout_right))
+final_layout = column(sv_main.plot, row(layout_left, Spacer(width=30), layout_right))
 
 doc.add_root(row(Spacer(width=20), final_layout))
 
@@ -300,27 +300,23 @@ async def internal_periodic_callback():
     thr_image, reset, aggr_image = sv_rt.thresholded_image, sv_rt.reset, sv_rt.aggregated_image
 
     sv_colormapper.update(aggr_image)
-    sv_mainview.update(aggr_image)
+    sv_main.update(aggr_image)
 
-    sv_zoom1_proj_v.update(sv_zoomview1.displayed_image)
-    sv_zoom1_proj_h.update(sv_zoomview1.displayed_image)
+    sv_zoom1_proj_v.update(sv_zoom1.displayed_image)
+    sv_zoom1_proj_h.update(sv_zoom1.displayed_image)
 
-    sv_zoom2_proj_v.update(sv_zoomview2.displayed_image)
-    sv_zoom2_proj_h.update(sv_zoomview2.displayed_image)
+    sv_zoom2_proj_v.update(sv_zoom2.displayed_image)
+    sv_zoom2_proj_h.update(sv_zoom2.displayed_image)
 
     # Deactivate auto histogram range if aggregation is on
     if sv_image_processor.aggregate_toggle.active:
         sv_hist.auto_toggle.active = False
 
     if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
-        im_block1 = aggr_image[
-            sv_zoomview1.y_start : sv_zoomview1.y_end, sv_zoomview1.x_start : sv_zoomview1.x_end
-        ]
+        im_block1 = aggr_image[sv_zoom1.y_start : sv_zoom1.y_end, sv_zoom1.x_start : sv_zoom1.x_end]
         total_sum_zoom1 = bn.nansum(im_block1)
 
-        im_block2 = aggr_image[
-            sv_zoomview2.y_start : sv_zoomview2.y_end, sv_zoomview2.x_start : sv_zoomview2.x_end
-        ]
+        im_block2 = aggr_image[sv_zoom2.y_start : sv_zoom2.y_end, sv_zoom2.x_start : sv_zoom2.x_end]
         total_sum_zoom2 = bn.nansum(im_block2)
 
         # Update total intensities plots
@@ -331,10 +327,10 @@ async def internal_periodic_callback():
             sv_hist.update([im_block1, im_block2])
         else:
             im_block1 = thr_image[
-                sv_zoomview1.y_start : sv_zoomview1.y_end, sv_zoomview1.x_start : sv_zoomview1.x_end
+                sv_zoom1.y_start : sv_zoom1.y_end, sv_zoom1.x_start : sv_zoom1.x_end
             ]
             im_block2 = thr_image[
-                sv_zoomview2.y_start : sv_zoomview2.y_end, sv_zoomview2.x_start : sv_zoomview2.x_end
+                sv_zoom2.y_start : sv_zoom2.y_end, sv_zoom2.x_start : sv_zoom2.x_end
             ]
             sv_hist.update([im_block1, im_block2], accumulate=True)
 
