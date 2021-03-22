@@ -258,28 +258,39 @@ class ImageView:
             self.plot.y_range.bounds = (0, pil_image.height)
             self.plot.x_range.bounds = (0, pil_image.width)
 
-        resized_image = np.asarray(
-            pil_image.resize(
-                size=(self.plot.inner_width, self.plot.inner_height),
-                box=(self.x_start, self.y_start, self.x_end, self.y_end),
-                resample=PIL_Image.NEAREST,
-            )
-        )
-
-        self._image_source.data.update(
-            image=[resized_image],
-            x=[self.x_start],
-            y=[self.y_start],
-            dw=[self.x_end - self.x_start],
-            dh=[self.y_end - self.y_start],
-        )
-
-        # Draw numbers
         pval_y_start = int(np.floor(self.y_start))
         pval_x_start = int(np.floor(self.x_start))
         pval_y_end = int(np.ceil(self.y_end))
         pval_x_end = int(np.ceil(self.x_end))
 
+        if (
+            self.plot.inner_width < self.x_end - self.x_start
+            or self.plot.inner_height < self.y_end - self.y_start
+        ):
+            resized_image = np.asarray(
+                pil_image.resize(
+                    size=(self.plot.inner_width, self.plot.inner_height),
+                    box=(self.x_start, self.y_start, self.x_end, self.y_end),
+                    resample=PIL_Image.NEAREST,
+                )
+            )
+
+            x = self.x_start
+            y = self.y_start
+            dw = self.x_end - self.x_start
+            dh = self.y_end - self.y_start
+
+        else:
+            resized_image = image[pval_y_start:pval_y_end, pval_x_start:pval_x_end]
+
+            x = pval_x_start
+            y = pval_y_start
+            dw = pval_x_end - pval_x_start
+            dh = pval_y_end - pval_y_start
+
+        self._image_source.data.update(image=[resized_image], x=[x], y=[y], dw=[dw], dh=[dh])
+
+        # Draw numbers
         canvas_pix_ratio_x = self.plot.inner_width / (pval_x_end - pval_x_start)
         canvas_pix_ratio_y = self.plot.inner_height / (pval_y_end - pval_y_start)
         if canvas_pix_ratio_x > 70 and canvas_pix_ratio_y > 50:
