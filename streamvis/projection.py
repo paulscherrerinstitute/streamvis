@@ -90,19 +90,14 @@ class Projection:
         Args:
             image (ndarray): A source image for projection.
         """
-        y_start = int(np.floor(self._image_view.y_start))
-        y_end = int(np.ceil(self._image_view.y_end))
-        x_start = int(np.floor(self._image_view.x_start))
-        x_end = int(np.ceil(self._image_view.x_end))
-
-        image = image[y_start:y_end, x_start:x_end]
+        im_y_len, im_x_len = image.shape
 
         if self._direction == "vertical":
-            x_val = np.arange(x_start, x_end) + 0.5  # shift to a pixel center
+            x_val = np.linspace(self._image_view.x_start, self._image_view.x_end, im_x_len)
             y_val = bn.nanmean(image, axis=0)
 
         elif self._direction == "horizontal":
             x_val = bn.nanmean(image, axis=1)
-            y_val = np.arange(y_start, y_end) + 0.5  # shift to a pixel center
+            y_val = np.linspace(self._image_view.y_start, self._image_view.y_end, im_y_len)
 
         self._line_source.data.update(x=x_val, y=y_val)

@@ -302,11 +302,11 @@ async def internal_periodic_callback():
     sv_colormapper.update(aggr_image)
     sv_mainview.update(aggr_image)
 
-    sv_zoom1_proj_v.update(aggr_image)
-    sv_zoom1_proj_h.update(aggr_image)
+    sv_zoom1_proj_v.update(sv_zoomview1.displayed_image)
+    sv_zoom1_proj_h.update(sv_zoomview1.displayed_image)
 
-    sv_zoom2_proj_v.update(aggr_image)
-    sv_zoom2_proj_h.update(aggr_image)
+    sv_zoom2_proj_v.update(sv_zoomview2.displayed_image)
+    sv_zoom2_proj_h.update(sv_zoomview2.displayed_image)
 
     # Deactivate auto histogram range if aggregation is on
     if sv_image_processor.aggregate_toggle.active:

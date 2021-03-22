@@ -168,8 +168,8 @@ async def internal_periodic_callback():
     sv_colormapper.update(aggr_image)
     sv_mainview.update(aggr_image)
 
-    sv_zoom_proj_v.update(aggr_image)
-    sv_zoom_proj_h.update(aggr_image)
+    sv_zoom_proj_v.update(sv_zoomview.displayed_image)
+    sv_zoom_proj_h.update(sv_zoomview.displayed_image)
 
     # Statistics
     y_start = int(np.floor(sv_zoomview.y_start))

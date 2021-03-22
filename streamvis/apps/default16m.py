@@ -196,8 +196,8 @@ async def internal_periodic_callback():
     sv_colormapper.update(image)
     sv_mainview.update(image)
 
-    sv_zoom_proj_v.update(image)
-    sv_zoom_proj_h.update(image)
+    sv_zoom_proj_v.update(sv_zoomview.displayed_image)
+    sv_zoom_proj_h.update(sv_zoomview.displayed_image)
 
     sv_hist.update([sv_zoomview.displayed_image])
 
