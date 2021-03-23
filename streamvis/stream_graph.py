@@ -41,7 +41,7 @@ class StreamGraph:
         self.mode = mode
         self._stream_t = 0
         self._buffers = []
-        self._window = 1
+        self._window = 30
 
         # Custom tick formatter for displaying large numbers
         tick_formatter = BasicTickFormatter(precision=1)
@@ -81,7 +81,7 @@ class StreamGraph:
 
             # ---- line glyph
             source = ColumnDataSource(dict(x=[], y=[], x_avg=[], y_avg=[]))
-            line = Line(x="x", y="y")
+            line = Line(x="x", y="y", line_color="gray")
             line_avg = Line(x="x_avg", y="y_avg", line_color="red")
             line_renderer = plot.add_glyph(source, line)
             line_avg_renderer = plot.add_glyph(source, line_avg)
