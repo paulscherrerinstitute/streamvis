@@ -187,9 +187,7 @@ save_spectrum_select.on_change("value", save_spectrum_select_callback)
 
 
 # Total sum intensity plots
-sv_streamgraph = sv.StreamGraph(
-    nplots=3, plot_height=200, plot_width=1100, rollover=36000, mode="number"
-)
+sv_streamgraph = sv.StreamGraph(nplots=3, plot_height=200, plot_width=1100, rollover=36000)
 sv_streamgraph.plots[0].title = Title(text="Total Intensity")
 sv_streamgraph.plots[1].title = Title(text="Zoom Area 1 Total Intensity")
 sv_streamgraph.plots[2].title = Title(text="Zoom Area 2 Total Intensity")
@@ -312,16 +310,16 @@ async def internal_periodic_callback():
     if sv_image_processor.aggregate_toggle.active:
         sv_hist.auto_toggle.active = False
 
+    im_block1 = aggr_image[sv_zoom1.y_start : sv_zoom1.y_end, sv_zoom1.x_start : sv_zoom1.x_end]
+    total_sum_zoom1 = bn.nansum(im_block1)
+
+    im_block2 = aggr_image[sv_zoom2.y_start : sv_zoom2.y_end, sv_zoom2.x_start : sv_zoom2.x_end]
+    total_sum_zoom2 = bn.nansum(im_block2)
+
+    # Update total intensities plots
+    sv_streamgraph.update([bn.nansum(aggr_image), total_sum_zoom1, total_sum_zoom2])
+
     if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
-        im_block1 = aggr_image[sv_zoom1.y_start : sv_zoom1.y_end, sv_zoom1.x_start : sv_zoom1.x_end]
-        total_sum_zoom1 = bn.nansum(im_block1)
-
-        im_block2 = aggr_image[sv_zoom2.y_start : sv_zoom2.y_end, sv_zoom2.x_start : sv_zoom2.x_end]
-        total_sum_zoom2 = bn.nansum(im_block2)
-
-        # Update total intensities plots
-        sv_streamgraph.update([bn.nansum(aggr_image), total_sum_zoom1, total_sum_zoom2])
-
         # Update histograms
         if reset:
             sv_hist.update([im_block1, im_block2])
