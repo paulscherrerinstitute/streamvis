@@ -25,7 +25,7 @@ MAXLEN = 100
 
 
 class StreamGraph:
-    def __init__(self, nplots, plot_height=200, plot_width=1000, rollover=3600, mode="time"):
+    def __init__(self, nplots, plot_height=200, plot_width=1000, rollover=10800, mode="time"):
         """Initialize stream graph plots.
 
         Args:
@@ -33,7 +33,7 @@ class StreamGraph:
             plot_height (int, optional): Height of plot area in screen pixels. Defaults to 200.
             plot_width (int, optional): Width of plot area in screen pixels. Defaults to 1000.
             rollover (int, optional): A maximum number of points, above which data from the start
-                begins to be discarded. If None, then graph will grow unbounded. Defaults to 3600.
+                begins to be discarded. If None, then graph will grow unbounded. Defaults to 10800.
             mode (str, optional): stream update mode, 'time' - uses the local wall time,
                 'number' - uses a image number counter. Defaults to 'time'.
         """

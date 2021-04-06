@@ -187,7 +187,7 @@ save_spectrum_select.on_change("value", save_spectrum_select_callback)
 
 
 # Total sum intensity plots
-sv_streamgraph = sv.StreamGraph(nplots=3, plot_height=200, plot_width=1100, rollover=36000)
+sv_streamgraph = sv.StreamGraph(nplots=3, plot_height=200, plot_width=1100)
 sv_streamgraph.plots[0].title = Title(text="Total Intensity")
 sv_streamgraph.plots[1].title = Title(text="Zoom Area 1 Total Intensity")
 sv_streamgraph.plots[2].title = Title(text="Zoom Area 2 Total Intensity")

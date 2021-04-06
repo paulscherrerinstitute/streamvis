@@ -34,7 +34,7 @@ sv_main.toolbar_location = "below"
 
 
 # Total sum intensity plots
-sv_streamgraph = sv.StreamGraph(nplots=2, plot_height=210, plot_width=1350, rollover=36000)
+sv_streamgraph = sv.StreamGraph(nplots=2, plot_height=210, plot_width=1350)
 sv_streamgraph.plots[0].title = Title(text="Total intensity")
 sv_streamgraph.plots[1].title = Title(text="Zoom total intensity")
 

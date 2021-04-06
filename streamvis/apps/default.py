@@ -64,7 +64,7 @@ sv_hist.plots[1].title = Title(text="Roi")
 
 
 # Total sum intensity plots
-sv_streamgraph = sv.StreamGraph(nplots=2, plot_height=200, plot_width=700, rollover=36000)
+sv_streamgraph = sv.StreamGraph(nplots=2, plot_height=200, plot_width=700)
 sv_streamgraph.plots[0].title = Title(text="Total intensity")
 sv_streamgraph.plots[1].title = Title(text="Zoom total intensity")
 

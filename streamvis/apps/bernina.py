@@ -82,9 +82,7 @@ sv_main.add_as_zoom(sv_zoom2, line_color="green")
 
 
 # Total sum intensity plots
-sv_streamgraph = sv.StreamGraph(
-    nplots=2, plot_height=160, plot_width=DEBUG_INTENSITY_WIDTH, rollover=36000
-)
+sv_streamgraph = sv.StreamGraph(nplots=2, plot_height=160, plot_width=DEBUG_INTENSITY_WIDTH)
 sv_streamgraph.plots[0].title = Title(text="Total intensity")
 sv_streamgraph.plots[1].title = Title(text="Normalized signal−background Intensity")
 
