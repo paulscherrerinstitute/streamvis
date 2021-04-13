@@ -19,7 +19,9 @@ class StreamControl:
         self.toggle = toggle
 
         # data type select
-        datatype_select = Select(title="Data type:", value="Image", options=["Image", "Gains"])
+        datatype_select = Select(
+            title="Data type:", value="Image", options=["Image", "Gains"], default_size=145
+        )
         self.datatype_select = datatype_select
 
         # conversion options
@@ -31,7 +33,10 @@ class StreamControl:
         # rotate image select
         rotate_values = ["0", "90", "180", "270"]
         rotate_image = Select(
-            title="Rotate image clockwise (deg):", value=rotate_values[0], options=rotate_values
+            title="Rotate image (deg):",
+            value=rotate_values[0],
+            options=rotate_values,
+            default_size=145,
         )
         self.rotate_image = rotate_image
 
