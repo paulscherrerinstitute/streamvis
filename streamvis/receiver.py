@@ -26,17 +26,18 @@ class Receiver:
 
         self.jf_adapter = StreamAdapter()
 
-    def start(self, connection_mode, address):
-        """[summary]
+    def start(self, io_threads, connection_mode, address):
+        """Start the receiver loop.
 
         Args:
+            io_threads (int): The size of the zmq thread pool to handle I/O operations.
             connection_mode (str): Use either 'connect' or 'bind' zmq_socket methods.
             address (str): The address string, e.g. 'tcp://127.0.0.1:9001'.
 
         Raises:
             RuntimeError: Unknown connection mode.
         """
-        zmq_context = zmq.Context(io_threads=2)
+        zmq_context = zmq.Context(io_threads=io_threads)
         zmq_socket = zmq_context.socket(zmq.SUB)  # pylint: disable=E1101
         zmq_socket.setsockopt_string(zmq.SUBSCRIBE, "")  # pylint: disable=E1101
 

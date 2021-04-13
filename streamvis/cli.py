@@ -75,6 +75,13 @@ def main():
     )
 
     parser.add_argument(
+        "--io-threads",
+        type=int,
+        default=1,
+        help="the size of the zmq thread pool to handle I/O operations",
+    )
+
+    parser.add_argument(
         "--buffer-size",
         type=int,
         default=1,
@@ -123,7 +130,7 @@ def main():
     receiver = Receiver(on_receive=stats.parse, buffer_size=args.buffer_size)
 
     # Start receiver in a separate thread
-    start_receiver = partial(receiver.start, args.connection_mode, args.address)
+    start_receiver = partial(receiver.start, args.io_threads, args.connection_mode, args.address)
     t = Thread(target=start_receiver, daemon=True)
     t.start()
 
