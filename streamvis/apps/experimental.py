@@ -14,29 +14,21 @@ sv_rt = sv.Runtime()
 MAIN_CANVAS_WIDTH = 1000 + 55
 MAIN_CANVAS_HEIGHT = 1000 + 59
 
-# Main plot
+
+# Create streamvis components
 sv_main = sv.ImageView(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
 
-
-# Create colormapper
 sv_colormapper = sv.ColorMapper([sv_main])
-
-# ---- add colorbar to the main plot
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
 sv_main.plot.add_layout(sv_colormapper.color_bar, place="below")
 
-
-# Histogram plot
 sv_hist = sv.Histogram(nplots=1, plot_height=400, plot_width=700)
 
-
-# File path text input
 file_path = TextInput(title="File Path:", value="/")
 
-# Dataset path text input
 dataset_path = TextInput(title="Dataset Path:", value="/")
 
-# Load button
+
 def _load_image_from_dataset(file, dataset, index):
     with h5py.File(file, "r") as f:
         image = f[dataset][index].astype("float32")
@@ -57,7 +49,7 @@ def load_file_button_callback():
 load_file_button = Button(label="Load", button_type="default")
 load_file_button.on_click(load_file_button_callback)
 
-# Image index slider
+
 def image_index_slider_callback(_attr, _old, new):
     sv_rt.image, sv_rt.metadata = _load_image_from_dataset(file_path.value, dataset_path.value, new)
 
@@ -69,8 +61,6 @@ image_index_slider = Slider(
 )
 image_index_slider.on_change("value_throttled", image_index_slider_callback)
 
-
-# Metadata datatable
 sv_metadata = sv.MetadataHandler(datatable_height=300, datatable_width=400)
 
 

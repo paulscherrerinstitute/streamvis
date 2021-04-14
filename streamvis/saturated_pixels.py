@@ -1,5 +1,4 @@
 import numpy as np
-from bokeh.io import curdoc
 from bokeh.models import Asterisk, ColumnDataSource, Toggle
 
 
@@ -10,9 +9,6 @@ class SaturatedPixels:
         Args:
             image_views (ImageView): Associated streamvis image view instances.
         """
-
-        self.receiver = curdoc().receiver
-
         # ---- saturated pixel markers
         self._source = ColumnDataSource(dict(x=[], y=[]))
 

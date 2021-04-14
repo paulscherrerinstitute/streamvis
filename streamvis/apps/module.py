@@ -16,6 +16,7 @@ MAIN_CANVAS_HEIGHT = 514 + 67
 ZOOM_CANVAS_WIDTH = 514 + 53
 ZOOM_CANVAS_HEIGHT = 514 + 28
 
+
 # Create streamvis components
 sv_main = sv.ImageView(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
 sv_zoom = sv.ImageView(plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH)
@@ -43,7 +44,7 @@ sv_metadata = sv.MetadataHandler()
 sv_metadata.issues_datatable.height = 100
 
 
-# Layouts
+# Final layouts
 layout_utility = column(
     gridplot(
         sv_streamgraph.plots, ncols=1, toolbar_location="left", toolbar_options=dict(logo=None)

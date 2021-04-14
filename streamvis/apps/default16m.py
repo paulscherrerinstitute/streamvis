@@ -28,21 +28,9 @@ image_buffer = deque(maxlen=60)
 RESOLUTION_RINGS_POS = np.array([2, 2.2, 2.6, 3, 5, 10])
 
 
-# Main plot
+# Create streamvis components
 sv_main = sv.ImageView(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
-sv_main.toolbar_location = "below"
-
-
-# Total sum intensity plots
-sv_streamgraph = sv.StreamGraph(nplots=2, plot_height=210, plot_width=1350)
-sv_streamgraph.plots[0].title = Title(text="Total intensity")
-sv_streamgraph.plots[1].title = Title(text="Zoom total intensity")
-
-
-# Zoom plot
 sv_zoom = sv.ImageView(plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH)
-sv_zoom.toolbar_location = "below"
-
 sv_main.add_as_zoom(sv_zoom, line_color="white")
 
 sv_zoom_proj_v = sv.Projection(sv_zoom, "vertical", plot_height=ZOOM_PROJ_X_CANVAS_HEIGHT)
@@ -51,37 +39,25 @@ sv_zoom_proj_v.plot.renderers[0].glyph.line_width = 2
 sv_zoom_proj_h = sv.Projection(sv_zoom, "horizontal", plot_width=ZOOM_PROJ_Y_CANVAS_WIDTH)
 sv_zoom_proj_h.plot.renderers[0].glyph.line_width = 2
 
-
-# Create colormapper
 sv_colormapper = sv.ColorMapper([sv_main, sv_zoom])
-
-# ---- add colorbar to the main plot
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
 sv_main.plot.add_layout(sv_colormapper.color_bar, place="below")
 
+sv_streamgraph = sv.StreamGraph(nplots=2, plot_height=210, plot_width=1350)
+sv_streamgraph.plots[0].title = Title(text="Total intensity")
+sv_streamgraph.plots[1].title = Title(text="Zoom total intensity")
 
-# Add resolution rings to both plots
 sv_resolrings = sv.ResolutionRings([sv_main, sv_zoom], RESOLUTION_RINGS_POS)
 
-
-# Add intensity roi
 sv_intensity_roi = sv.IntensityROI([sv_main, sv_zoom])
 
-
-# Add saturated pixel markers
 sv_saturated_pixels = sv.SaturatedPixels([sv_main, sv_zoom])
 
-
-# Add spots markers
 sv_spots = sv.Spots([sv_main])
 
-
-# Histogram plot
 sv_hist = sv.Histogram(nplots=1, plot_height=290, plot_width=700)
 
 
-# Stream panel
-# ---- image buffer slider
 def image_buffer_slider_callback(_attr, _old, new):
     sv_rt.metadata, sv_rt.image = image_buffer[new]
 
@@ -91,15 +67,10 @@ image_buffer_slider = Slider(
 )
 image_buffer_slider.on_change("value_throttled", image_buffer_slider_callback)
 
-# ---- stream toggle button
 sv_streamctrl = sv.StreamControl()
 
-
-# Show only hits toggle
 show_only_hits_toggle = Toggle(label="Show Only Hits", button_type="default")
 
-
-# Metadata datatable
 sv_metadata = sv.MetadataHandler(datatable_height=230, datatable_width=650)
 sv_metadata.issues_datatable.height = 100
 

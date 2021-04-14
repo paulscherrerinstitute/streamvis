@@ -40,17 +40,15 @@ ZOOM2_RIGHT = ZOOM2_LEFT + ZOOM_WIDTH
 ZOOM2_TOP = ZOOM2_BOTTOM + ZOOM_HEIGHT
 
 
-# Main plot
+# Create streamvis components
 sv_main = sv.ImageView(
     plot_height=MAIN_CANVAS_HEIGHT,
     plot_width=MAIN_CANVAS_WIDTH,
     image_height=IMAGE_SIZE_Y,
     image_width=IMAGE_SIZE_X,
 )
-
 sv_main.plot.title = Title(text=" ")
 
-# ---- add zoom plot 1
 sv_zoom1 = sv.ImageView(
     plot_height=ZOOM_CANVAS_HEIGHT,
     plot_width=ZOOM_CANVAS_WIDTH,
@@ -61,11 +59,9 @@ sv_zoom1 = sv.ImageView(
     y_start=ZOOM1_BOTTOM,
     y_end=ZOOM1_TOP,
 )
-
 sv_zoom1.plot.title = Title(text="Signal roi", text_color="red")
 sv_main.add_as_zoom(sv_zoom1, line_color="red")
 
-# ---- add zoom plot 2
 sv_zoom2 = sv.ImageView(
     plot_height=ZOOM_CANVAS_HEIGHT,
     plot_width=ZOOM_CANVAS_WIDTH,
@@ -76,54 +72,33 @@ sv_zoom2 = sv.ImageView(
     y_start=ZOOM2_BOTTOM,
     y_end=ZOOM2_TOP,
 )
-
 sv_zoom2.plot.title = Title(text="Background roi", text_color="green")
 sv_main.add_as_zoom(sv_zoom2, line_color="green")
 
-
-# Total sum intensity plots
 sv_streamgraph = sv.StreamGraph(nplots=2, plot_height=160, plot_width=DEBUG_INTENSITY_WIDTH)
 sv_streamgraph.plots[0].title = Title(text="Total intensity")
 sv_streamgraph.plots[1].title = Title(text="Normalized signal−background Intensity")
 
-
-# Create colormapper
 sv_colormapper = sv.ColorMapper([sv_main, sv_zoom1, sv_zoom2])
-
-# ---- add colorbar to the main plot
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
 sv_colormapper.color_bar.height = 10
 sv_main.plot.add_layout(sv_colormapper.color_bar, place="below")
 
-
-# Add resolution rings to both plots
 sv_resolrings = sv.ResolutionRings([sv_main, sv_zoom1, sv_zoom2], RESOLUTION_RINGS_POS)
 
-
-# Add intensity roi
 sv_intensity_roi = sv.IntensityROI([sv_main, sv_zoom1, sv_zoom2])
 
-
-# Add saturated pixel markers
 sv_saturated_pixels = sv.SaturatedPixels([sv_main, sv_zoom1, sv_zoom2])
 
-
-# Add spots markers
 sv_spots = sv.Spots([sv_main])
 
-
-# Histogram plots
 sv_hist = sv.Histogram(nplots=3, plot_height=300, plot_width=600)
 sv_hist.plots[0].title = Title(text="Full image")
 sv_hist.plots[1].title = Title(text="Signal roi", text_color="red")
 sv_hist.plots[2].title = Title(text="Background roi", text_color="green")
 
-
-# Stream toggle button
 sv_streamctrl = sv.StreamControl()
 
-
-# Metadata datatable
 sv_metadata = sv.MetadataHandler(datatable_height=130, datatable_width=700)
 sv_metadata.issues_datatable.height = 100
 

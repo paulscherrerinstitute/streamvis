@@ -21,63 +21,38 @@ ZOOM_CANVAS_HEIGHT = 600 + 30
 RESOLUTION_RINGS_POS = np.array([2, 2.2, 2.6, 3, 5, 10])
 
 
-# Main plot
+# Create streamvis components
 sv_main = sv.ImageView(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
-
-# ---- add zoom plot
 sv_zoom = sv.ImageView(plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH)
-
 sv_main.add_as_zoom(sv_zoom)
 
 sv_zoom_proj_v = sv.Projection(sv_zoom, "vertical")
 sv_zoom_proj_h = sv.Projection(sv_zoom, "horizontal")
 
-
-# Create colormapper
 sv_colormapper = sv.ColorMapper([sv_main, sv_zoom])
-
-# ---- add colorbar to the main plot
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
 sv_main.plot.add_layout(sv_colormapper.color_bar, place="below")
 
-
-# Add resolution rings to both plots
 sv_resolrings = sv.ResolutionRings([sv_main, sv_zoom], RESOLUTION_RINGS_POS)
 
-
-# Add intensity roi
 sv_intensity_roi = sv.IntensityROI([sv_main, sv_zoom])
 
-
-# Add saturated pixel markers
 sv_saturated_pixels = sv.SaturatedPixels([sv_main, sv_zoom])
 
-
-# Add spots markers
 sv_spots = sv.Spots([sv_main])
 
-
-# Histogram plot
 sv_hist = sv.Histogram(nplots=2, plot_height=200, plot_width=700)
 sv_hist.plots[0].title = Title(text="Full image")
 sv_hist.plots[1].title = Title(text="Roi")
 
-
-# Total sum intensity plots
 sv_streamgraph = sv.StreamGraph(nplots=2, plot_height=200, plot_width=700)
 sv_streamgraph.plots[0].title = Title(text="Total intensity")
 sv_streamgraph.plots[1].title = Title(text="Zoom total intensity")
 
-
-# Stream toggle button
 sv_streamctrl = sv.StreamControl()
 
-
-# Image processor
 sv_image_processor = sv.ImageProcessor()
 
-
-# Metadata datatable
 sv_metadata = sv.MetadataHandler()
 sv_metadata.issues_datatable.height = 100
 

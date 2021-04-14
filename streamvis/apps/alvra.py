@@ -42,8 +42,7 @@ ZOOM2_TOP = ZOOM2_BOTTOM + ZOOM_HEIGHT
 # Resolution rings positions in angstroms
 RESOLUTION_RINGS_POS = np.array([2, 2.2, 2.6, 3, 5, 10])
 
-
-# Main plot
+# Create streamvis components
 sv_main = sv.ImageView(
     plot_height=MAIN_CANVAS_HEIGHT,
     plot_width=MAIN_CANVAS_WIDTH,
@@ -51,8 +50,6 @@ sv_main = sv.ImageView(
     image_width=IMAGE_SIZE_X,
 )
 
-
-# Zoom plot 1
 sv_zoom1 = sv.ImageView(
     plot_height=ZOOM_CANVAS_HEIGHT,
     plot_width=ZOOM_CANVAS_WIDTH,
@@ -72,8 +69,6 @@ sv_zoom1_proj_v.plot.renderers[0].glyph.line_width = 2
 
 sv_zoom1_proj_h = sv.Projection(sv_zoom1, "horizontal", plot_width=ZOOM_AGG_Y_PLOT_WIDTH)
 
-
-# Zoom plot 2
 sv_zoom2 = sv.ImageView(
     plot_height=ZOOM_CANVAS_HEIGHT,
     plot_width=ZOOM_CANVAS_WIDTH,
@@ -93,40 +88,22 @@ sv_zoom2_proj_v.plot.renderers[0].glyph.line_width = 2
 
 sv_zoom2_proj_h = sv.Projection(sv_zoom2, "horizontal", plot_width=ZOOM_AGG_Y_PLOT_WIDTH)
 
-
-# Create colormapper
 sv_colormapper = sv.ColorMapper([sv_main, sv_zoom1, sv_zoom2])
-
-# ---- add colorbar to the main plot
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
 sv_main.plot.add_layout(sv_colormapper.color_bar, place="below")
 
-
-# Add resolution rings to both plots
 sv_resolrings = sv.ResolutionRings([sv_main, sv_zoom1, sv_zoom2], RESOLUTION_RINGS_POS)
 
-
-# Add intensity roi
 sv_intensity_roi = sv.IntensityROI([sv_main, sv_zoom1, sv_zoom2])
 
-
-# Add saturated pixel markers
 sv_saturated_pixels = sv.SaturatedPixels([sv_main, sv_zoom1, sv_zoom2])
 
-
-# Add spots markers
 sv_spots = sv.Spots([sv_main])
 
-
-# Histogram zoom plots
 sv_hist = sv.Histogram(nplots=2, plot_height=280, plot_width=sv_zoom1.plot.plot_width)
 
-
-# Image processor
 sv_image_processor = sv.ImageProcessor()
 
-
-# Saved spectrum lines
 zoom1_spectrum_x_source = ColumnDataSource(dict(x=[], y=[]))
 zoom1_spectrum_y_source = ColumnDataSource(dict(x=[], y=[]))
 zoom2_spectrum_x_source = ColumnDataSource(dict(x=[], y=[]))
@@ -145,8 +122,6 @@ sv_zoom2_proj_h.plot.add_glyph(
     zoom2_spectrum_y_source, Line(x="x", y="y", line_color="maroon", line_width=1)
 )
 
-
-# Save spectrum button
 saved_spectra = {"None": ([], [], [], [], [], [], [], [])}
 
 
@@ -172,7 +147,6 @@ save_spectrum_button = Button(label="Save Spectrum")
 save_spectrum_button.on_click(save_spectrum_button_callback)
 
 
-# Saved spectrum select
 def save_spectrum_select_callback(_attr, _old, new):
     (z1_hx, z1_hy, z1_vx, z1_vy, z2_hx, z2_hy, z2_vx, z2_vy) = saved_spectra[new]
 
@@ -185,19 +159,13 @@ def save_spectrum_select_callback(_attr, _old, new):
 save_spectrum_select = Select(title="Saved Spectra:", options=["None"], value="None")
 save_spectrum_select.on_change("value", save_spectrum_select_callback)
 
-
-# Total sum intensity plots
 sv_streamgraph = sv.StreamGraph(nplots=3, plot_height=200, plot_width=1100)
 sv_streamgraph.plots[0].title = Title(text="Total Intensity")
 sv_streamgraph.plots[1].title = Title(text="Zoom Area 1 Total Intensity")
 sv_streamgraph.plots[2].title = Title(text="Zoom Area 2 Total Intensity")
 
-
-# Stream toggle button
 sv_streamctrl = sv.StreamControl()
 
-
-# Metadata datatable
 sv_metadata = sv.MetadataHandler(datatable_height=430, datatable_width=800)
 sv_metadata.issues_datatable.height = 100
 
