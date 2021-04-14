@@ -54,9 +54,6 @@ layout_utility = column(
     ),
 )
 
-sv_colormapper.select.width = 110
-sv_colormapper.high_color.width = 90
-sv_colormapper.mask_color.width = 90
 show_overlays_div = Div(text="Show Overlays:")
 
 layout_controls = column(

@@ -63,7 +63,9 @@ class ColorMapper:
                 log_colormapper.palette = cmap_dict[new]
                 high_color.color = cmap_dict[new][-1]
 
-        select = Select(title="Colormap:", value=colormap, options=list(cmap_dict.keys()))
+        select = Select(
+            title="Colormap:", value=colormap, options=list(cmap_dict.keys()), default_size=100
+        )
         select.on_change("value", select_callback)
         self.select = select
 
@@ -146,7 +148,9 @@ class ColorMapper:
             lin_colormapper.high_color = new_value
             log_colormapper.high_color = new_value
 
-        high_color = ColorPicker(title="High Color:", color=cmap_dict[colormap][-1])
+        high_color = ColorPicker(
+            title="High Color:", color=cmap_dict[colormap][-1], default_size=90
+        )
         high_color.on_change("color", high_color_callback)
         self.high_color = high_color
 
@@ -155,7 +159,7 @@ class ColorMapper:
             lin_colormapper.nan_color = new_value
             log_colormapper.nan_color = new_value
 
-        mask_color = ColorPicker(title="Mask Color:", color="gray")
+        mask_color = ColorPicker(title="Mask Color:", color="gray", default_size=90)
         mask_color.on_change("color", mask_color_callback)
         self.mask_color = mask_color
 
