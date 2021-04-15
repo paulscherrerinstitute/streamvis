@@ -1,3 +1,4 @@
+import bottleneck as bn
 import numpy as np
 from bokeh.models import (
     BasicTicker,
@@ -6,6 +7,7 @@ from bokeh.models import (
     Grid,
     HoverTool,
     Image,
+    Line,
     LinearAxis,
     PanTool,
     Plot,
@@ -14,6 +16,7 @@ from bokeh.models import (
     ResetTool,
     SaveTool,
     Text,
+    Toggle,
     WheelZoomTool,
 )
 from PIL import Image as PIL_Image
@@ -75,6 +78,7 @@ class ImageView:
             plot_width=plot_width,
             toolbar_location="left",
         )
+        self.plot = plot
 
         # ---- tools
         plot.toolbar.logo = None
@@ -127,7 +131,15 @@ class ImageView:
             ),
         )
 
-        self.plot = plot
+        # ---- horizontal and vertical projection line glyphs
+        self._hproj_source = ColumnDataSource(dict(x=[], y=[]))
+        plot.add_glyph(self._hproj_source, Line(x="x", y="y", line_color="red"))
+
+        self._vproj_source = ColumnDataSource(dict(x=[], y=[]))
+        plot.add_glyph(self._vproj_source, Line(x="x", y="y", line_color="red"))
+
+        proj_toggle = Toggle(label="Inner Projections", button_type="default", default_size=145)
+        self.proj_toggle = proj_toggle
 
     @property
     def displayed_image(self):
@@ -269,5 +281,38 @@ class ImageView:
         else:
             self._pvalue_source.data.update(x=[], y=[], text=[])
 
+        # Draw projections
+        if self.proj_toggle.active:
+            im_y_len, im_x_len = resized_image.shape
+
+            h_x = np.linspace(self.x_start + 0.5, self.x_end - 0.5, im_x_len)
+            v_x = np.linspace(self.y_start + 0.5, self.y_end - 0.5, im_y_len)
+
+            h_y = bn.nanmean(resized_image, axis=0)
+            v_y = bn.nanmean(resized_image, axis=1)
+
+            h_y = _normalize(h_y, self.plot.y_range.start, self.plot.y_range.end)
+            v_y = _normalize(v_y, self.plot.x_range.start, self.plot.x_range.end)
+
+            self._hproj_source.data.update(x=h_x, y=h_y)
+            self._vproj_source.data.update(x=v_y, y=v_x)
+        else:
+            self._hproj_source.data.update(x=[], y=[])
+            self._vproj_source.data.update(x=[], y=[])
+
+        # Process all accociated zoom views
         for zoom_view in self.zoom_views:
             zoom_view.update(image, pil_image)
+
+
+def _normalize(vec, start, end):
+    vec -= bn.nanmin(vec)
+
+    v_max = bn.nanmax(vec)
+    if v_max != 0:
+        vec /= v_max
+
+    vec *= (end - start) * 0.2
+    vec += start + (end - start) * 0.05
+
+    return vec
