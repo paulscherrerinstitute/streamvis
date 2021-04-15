@@ -18,8 +18,22 @@ ZOOM_CANVAS_HEIGHT = 514 + 28
 
 
 # Create streamvis components
-sv_main = sv.ImageView(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
-sv_zoom = sv.ImageView(plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH)
+sv_main = sv.ImageView(
+    plot_height=MAIN_CANVAS_HEIGHT,
+    plot_width=MAIN_CANVAS_WIDTH,
+    image_height=514,
+    image_width=1030,
+)
+
+sv_zoom = sv.ImageView(
+    plot_height=ZOOM_CANVAS_HEIGHT,
+    plot_width=ZOOM_CANVAS_WIDTH,
+    image_height=514,
+    image_width=1030,
+    x_start=258,
+    x_end=772,
+)
+
 sv_zoom.proj_toggle = sv_main.proj_toggle
 sv_main.add_as_zoom(sv_zoom)
 
