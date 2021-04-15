@@ -20,6 +20,7 @@ ZOOM_CANVAS_HEIGHT = 514 + 28
 # Create streamvis components
 sv_main = sv.ImageView(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
 sv_zoom = sv.ImageView(plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH)
+sv_zoom.proj_toggle = sv_main.proj_toggle
 sv_main.add_as_zoom(sv_zoom)
 
 sv_colormapper = sv.ColorMapper([sv_main, sv_zoom])
@@ -75,7 +76,7 @@ layout_controls = column(
     sv_colormapper.auto_toggle,
     Spacer(height=10),
     show_overlays_div,
-    row(sv_saturated_pixels.toggle),
+    row(sv_saturated_pixels.toggle, sv_main.proj_toggle),
     Spacer(height=10),
     sv_streamctrl.datatype_select,
     sv_streamctrl.conv_opts_cbbg,

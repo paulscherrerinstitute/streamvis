@@ -24,6 +24,7 @@ RESOLUTION_RINGS_POS = np.array([2, 2.2, 2.6, 3, 5, 10])
 # Create streamvis components
 sv_main = sv.ImageView(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
 sv_zoom = sv.ImageView(plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH)
+sv_zoom.proj_toggle = sv_main.proj_toggle
 sv_main.add_as_zoom(sv_zoom)
 
 sv_zoom_proj_v = sv.Projection(sv_zoom, "vertical")
@@ -92,7 +93,7 @@ layout_controls = column(
     sv_colormapper.auto_toggle,
     Spacer(height=10),
     show_overlays_div,
-    row(sv_resolrings.toggle),
+    row(sv_resolrings.toggle, sv_main.proj_toggle),
     row(sv_intensity_roi.toggle, sv_saturated_pixels.toggle),
     Spacer(height=10),
     row(sv_streamctrl.datatype_select, sv_streamctrl.rotate_image),
