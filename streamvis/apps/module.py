@@ -46,6 +46,7 @@ sv_saturated_pixels = sv.SaturatedPixels([sv_main, sv_zoom])
 sv_hist = sv.Histogram(nplots=2, plot_height=200, plot_width=700)
 sv_hist.plots[0].title = Title(text="Full image")
 sv_hist.plots[1].title = Title(text="Roi")
+sv_hist.auto_toggle.width = 200
 
 sv_streamgraph = sv.StreamGraph(nplots=2, plot_height=200, plot_width=700)
 sv_streamgraph.plots[0].title = Title(text="Total intensity")
@@ -55,7 +56,7 @@ sv_streamctrl = sv.StreamControl()
 
 sv_image_processor = sv.ImageProcessor()
 
-sv_metadata = sv.MetadataHandler()
+sv_metadata = sv.MetadataHandler(datatable_width=500)
 sv_metadata.issues_datatable.height = 100
 
 
@@ -75,23 +76,18 @@ show_overlays_div = Div(text="Show Overlays:")
 layout_controls = column(
     row(sv_image_processor.threshold_min_spinner, sv_image_processor.threshold_max_spinner),
     sv_image_processor.threshold_toggle,
-    Spacer(height=10),
     row(
         sv_image_processor.aggregate_time_spinner,
         sv_image_processor.aggregate_time_counter_textinput,
     ),
     sv_image_processor.aggregate_toggle,
-    Spacer(height=10),
     doc.stats.auxiliary_apps_dropdown,
-    Spacer(height=10),
     row(sv_colormapper.select, sv_colormapper.high_color, sv_colormapper.mask_color),
     sv_colormapper.scale_radiobuttongroup,
     row(sv_colormapper.display_min_spinner, sv_colormapper.display_max_spinner),
     sv_colormapper.auto_toggle,
-    Spacer(height=10),
     show_overlays_div,
     row(sv_saturated_pixels.toggle, sv_main.proj_toggle),
-    Spacer(height=10),
     sv_streamctrl.datatype_select,
     sv_streamctrl.conv_opts_cbbg,
     sv_streamctrl.toggle,
@@ -112,7 +108,7 @@ layout_hist = column(
 )
 
 final_layout = column(
-    row(sv_main.plot, Spacer(width=30), sv_zoom.plot, Spacer(width=30), layout_controls),
+    row(sv_main.plot, sv_zoom.plot, Spacer(width=30), layout_controls),
     row(layout_metadata, layout_utility, layout_hist),
 )
 
