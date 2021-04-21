@@ -269,7 +269,7 @@ class Hitrate:
     def values(self):
         # add an extra point for bokeh Step to display the last value
         x = np.arange(self._start_bin_id, self._stop_bin_id + 1)
-        y = np.zeros_like(x, dtype=np.float)
+        y = np.zeros_like(x, dtype=float)
 
         for i, _bin_id in enumerate(x):
             hits = self._hits[_bin_id]
