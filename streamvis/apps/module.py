@@ -132,6 +132,8 @@ async def internal_periodic_callback():
     sv_colormapper.update(aggr_image)
     sv_main.update(aggr_image)
 
+    sv_saturated_pixels.update(metadata)
+
     # Statistics
     im_block = aggr_image[sv_zoom.y_start : sv_zoom.y_end, sv_zoom.x_start : sv_zoom.x_end]
     total_sum_zoom = bn.nansum(im_block)
@@ -150,8 +152,6 @@ async def internal_periodic_callback():
 
     # Update total intensities plots
     sv_streamgraph.update([bn.nansum(aggr_image), total_sum_zoom])
-
-    sv_saturated_pixels.update(metadata)
 
     sv_metadata.update(metadata)
 

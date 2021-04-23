@@ -265,6 +265,11 @@ async def internal_periodic_callback():
     sv_colormapper.update(aggr_image)
     sv_main.update(aggr_image)
 
+    sv_spots.update(metadata)
+    sv_resolrings.update(metadata)
+    sv_intensity_roi.update(metadata)
+    sv_saturated_pixels.update(metadata)
+
     sv_zoom1_proj_v.update(sv_zoom1.displayed_image)
     sv_zoom1_proj_h.update(sv_zoom1.displayed_image)
 
@@ -296,11 +301,6 @@ async def internal_periodic_callback():
                 sv_zoom2.y_start : sv_zoom2.y_end, sv_zoom2.x_start : sv_zoom2.x_end
             ]
             sv_hist.update([im_block1, im_block2], accumulate=True)
-
-    sv_spots.update(metadata)
-    sv_resolrings.update(metadata)
-    sv_intensity_roi.update(metadata)
-    sv_saturated_pixels.update(metadata)
 
     sv_metadata.update(metadata)
 

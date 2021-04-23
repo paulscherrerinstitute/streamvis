@@ -180,6 +180,11 @@ async def internal_periodic_callback():
     sv_colormapper.update(image)
     sv_main.update(image)
 
+    sv_spots.update(metadata)
+    sv_resolrings.update(metadata)
+    sv_intensity_roi.update(metadata)
+    sv_saturated_pixels.update(metadata)
+
     # Signal roi and intensity
     im_block1 = image[sv_zoom1.y_start : sv_zoom1.y_end, sv_zoom1.x_start : sv_zoom1.x_end]
     sig_sum = bn.nansum(im_block1)
@@ -214,11 +219,6 @@ async def internal_periodic_callback():
 
     # Update total intensities plots
     sv_streamgraph.update([bn.nansum(image), sig_sum])
-
-    sv_spots.update(metadata)
-    sv_resolrings.update(metadata)
-    sv_intensity_roi.update(metadata)
-    sv_saturated_pixels.update(metadata)
 
     sv_metadata.update(metadata)
 

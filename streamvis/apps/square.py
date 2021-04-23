@@ -140,6 +140,11 @@ async def internal_periodic_callback():
     sv_colormapper.update(aggr_image)
     sv_main.update(aggr_image)
 
+    sv_spots.update(metadata)
+    sv_resolrings.update(metadata)
+    sv_intensity_roi.update(metadata)
+    sv_saturated_pixels.update(metadata)
+
     sv_zoom_proj_v.update(sv_zoom.displayed_image)
     sv_zoom_proj_h.update(sv_zoom.displayed_image)
 
@@ -161,11 +166,6 @@ async def internal_periodic_callback():
 
     # Update total intensities plots
     sv_streamgraph.update([bn.nansum(aggr_image), total_sum_zoom])
-
-    sv_spots.update(metadata)
-    sv_resolrings.update(metadata)
-    sv_intensity_roi.update(metadata)
-    sv_saturated_pixels.update(metadata)
 
     sv_metadata.update(metadata)
 
