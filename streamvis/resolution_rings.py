@@ -52,7 +52,7 @@ class ResolutionRings:
         # ---- resolution rings
         self._source = ColumnDataSource(dict(x=[], y=[], w=[], h=[], text_x=[], text_y=[], text=[]))
         ellipse_glyph = Ellipse(
-            x="x", y="y", width="w", height="h", fill_alpha=0, line_color="white", line_alpha=0
+            x="x", y="y", width="w", height="h", fill_alpha=0, line_color="white"
         )
 
         text_glyph = Text(
@@ -62,12 +62,9 @@ class ResolutionRings:
             text_align="center",
             text_baseline="middle",
             text_color="white",
-            text_alpha=0,
         )
 
-        cross_glyph = Cross(
-            x="beam_center_x", y="beam_center_y", size=15, line_color="red", line_alpha=0
-        )
+        cross_glyph = Cross(x="beam_center_x", y="beam_center_y", size=15, line_color="red")
 
         for image_view in image_views:
             image_view.plot.add_glyph(self._source, ellipse_glyph)
@@ -76,19 +73,12 @@ class ResolutionRings:
             image_view.plot.tools[-1] = hovertool
 
         # ---- toggle button
-        def toggle_callback(state):
-            if state:
-                ellipse_glyph.line_alpha = 1
-                text_glyph.text_alpha = 1
-                cross_glyph.line_alpha = 1
-            else:
-                ellipse_glyph.line_alpha = 0
-                text_glyph.text_alpha = 0
-                cross_glyph.line_alpha = 0
-
         toggle = Toggle(label="Resolution Rings", button_type="default", default_size=145)
-        toggle.on_click(toggle_callback)
         self.toggle = toggle
+
+    def _clear(self):
+        if len(self._source.data["x"]):
+            self._source.data.update(x=[], y=[], w=[], h=[], text_x=[], text_y=[], text=[])
 
     def update(self, metadata):
         """Trigger an update for the resolution rings overlay.
@@ -101,32 +91,33 @@ class ResolutionRings:
         beam_center_x = metadata.get("beam_center_x", np.nan)
         beam_center_y = metadata.get("beam_center_y", np.nan)
 
-        if not any(np.isnan([detector_distance, beam_energy, beam_center_x, beam_center_y])):
-            array_beam_center_x = beam_center_x * np.ones(len(self.positions))
-            array_beam_center_y = beam_center_y * np.ones(len(self.positions))
-            # if '6200 / beam_energy > 1', then arcsin returns nan
-            theta = np.arcsin(6200 / beam_energy / self.positions)  # 6200 = 1.24 / 2 / 1e-4
-            ring_diams = 2 * detector_distance * np.tan(2 * theta) / 75e-6
-            # if '2 * theta > pi / 2 <==> diams < 0', then return nan
-            ring_diams[ring_diams < 0] = np.nan
+        self._formatter_source.data.update(
+            detector_distance=[detector_distance],
+            beam_energy=[beam_energy],
+            beam_center_x=[beam_center_x],
+            beam_center_y=[beam_center_y],
+        )
 
-            text_x = array_beam_center_x + ring_diams / 2
-            text_y = array_beam_center_y
-            ring_text = [str(s) + " Å" for s in self.positions]
+        if not self.toggle.active:
+            self._clear()
+            return
 
-        else:
-            array_beam_center_x = []
-            array_beam_center_y = []
-            ring_diams = []
+        if any(np.isnan([detector_distance, beam_energy, beam_center_x, beam_center_y])):
+            self._sv_metadata.add_issue("Metadata does not contain all data for resolution rings")
+            self._clear()
+            return
 
-            text_x = []
-            text_y = []
-            ring_text = []
+        array_beam_center_x = beam_center_x * np.ones(len(self.positions))
+        array_beam_center_y = beam_center_y * np.ones(len(self.positions))
+        # if '6200 / beam_energy > 1', then arcsin returns nan
+        theta = np.arcsin(6200 / beam_energy / self.positions)  # 6200 = 1.24 / 2 / 1e-4
+        ring_diams = 2 * detector_distance * np.tan(2 * theta) / 75e-6
+        # if '2 * theta > pi / 2 <==> diams < 0', then return nan
+        ring_diams[ring_diams < 0] = np.nan
 
-            if self.toggle.active:
-                self._sv_metadata.add_issue(
-                    "Metadata does not contain all data for resolution rings"
-                )
+        text_x = array_beam_center_x + ring_diams / 2
+        text_y = array_beam_center_y
+        ring_text = [str(s) + " Å" for s in self.positions]
 
         self._source.data.update(
             x=array_beam_center_x,
@@ -136,11 +127,4 @@ class ResolutionRings:
             text_x=text_x,
             text_y=text_y,
             text=ring_text,
-        )
-
-        self._formatter_source.data.update(
-            detector_distance=[detector_distance],
-            beam_energy=[beam_energy],
-            beam_center_x=[beam_center_x],
-            beam_center_y=[beam_center_y],
         )

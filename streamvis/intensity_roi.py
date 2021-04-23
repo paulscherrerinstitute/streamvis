@@ -22,7 +22,6 @@ class IntensityROI:
             top="top",
             fill_alpha=0,
             line_color="white",
-            line_alpha=0,
         )
 
         text_glyph = Text(
@@ -32,7 +31,6 @@ class IntensityROI:
             text_align="right",
             text_baseline="top",
             text_color="white",
-            text_alpha=0,
         )
 
         for image_view in image_views:
@@ -40,17 +38,14 @@ class IntensityROI:
             image_view.plot.add_glyph(self._source, text_glyph)
 
         # ---- toggle button
-        def toggle_callback(state):
-            if state:
-                quad_glyph.line_alpha = 1
-                text_glyph.text_alpha = 1
-            else:
-                quad_glyph.line_alpha = 0
-                text_glyph.text_alpha = 0
-
         toggle = Toggle(label="Intensity ROIs", button_type="default", default_size=145)
-        toggle.on_click(toggle_callback)
         self.toggle = toggle
+
+    def _clear(self):
+        if len(self._source.data["left"]):
+            self._source.data.update(
+                left=[], right=[], bottom=[], top=[], text_x=[], text_y=[], text=[]
+            )
 
     def update(self, metadata):
         """Trigger an update for the intensity ROI overlay.
@@ -58,30 +53,31 @@ class IntensityROI:
         Args:
             metadata (dict): A dictionary with current metadata.
         """
+        if not self.toggle.active:
+            self._clear()
+            return
+
         roi_x1 = metadata.get("roi_x1")
         roi_x2 = metadata.get("roi_x2")
         roi_y1 = metadata.get("roi_y1")
         roi_y2 = metadata.get("roi_y2")
 
-        if roi_x1 and roi_x2 and roi_y1 and roi_y2:
-            if not len(roi_x1) == len(roi_x2) == len(roi_y1) == len(roi_y2):
-                self._sv_metadata.add_issue("Metadata for intensity ROIs is inconsistent")
+        if roi_x1 is None or roi_x2 is None or roi_y1 is None or roi_y2 is None:
+            self._sv_metadata.add_issue("Metadata does not contain data for intensity ROIs")
+            self._clear()
+            return
 
-            else:
-                self._source.data.update(
-                    left=roi_x1,
-                    right=roi_x2,
-                    bottom=roi_y1,
-                    top=roi_y2,
-                    text_x=roi_x2,
-                    text_y=roi_y2,
-                    text=[str(i) for i in range(len(roi_x1))],
-                )
+        if not (len(roi_x1) == len(roi_x2) == len(roi_y1) == len(roi_y2)):
+            self._sv_metadata.add_issue("Metadata for intensity ROIs is inconsistent")
+            self._clear()
+            return
 
-        else:
-            self._source.data.update(
-                left=[], right=[], bottom=[], top=[], text_x=[], text_y=[], text=[]
-            )
-
-            if self.toggle.active:
-                self._sv_metadata.add_issue("Metadata does not contain data for intensity ROIs")
+        self._source.data.update(
+            left=roi_x1,
+            right=roi_x2,
+            bottom=roi_y1,
+            top=roi_y2,
+            text_x=roi_x2,
+            text_y=roi_y2,
+            text=[str(i) for i in range(len(roi_x1))],
+        )

@@ -41,7 +41,7 @@ sv_colormapper = sv.ColorMapper([sv_main, sv_zoom])
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
 sv_main.plot.add_layout(sv_colormapper.color_bar, place="below")
 
-sv_saturated_pixels = sv.SaturatedPixels([sv_main, sv_zoom])
+sv_saturated_pixels = sv.SaturatedPixels([sv_main, sv_zoom], sv_metadata)
 
 sv_hist = sv.Histogram(nplots=2, plot_height=200, plot_width=700)
 sv_hist.plots[0].title = Title(text="Full image")

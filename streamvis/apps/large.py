@@ -54,7 +54,7 @@ sv_resolrings = sv.ResolutionRings([sv_main, sv_zoom], RESOLUTION_RINGS_POS, sv_
 
 sv_intensity_roi = sv.IntensityROI([sv_main, sv_zoom], sv_metadata)
 
-sv_saturated_pixels = sv.SaturatedPixels([sv_main, sv_zoom])
+sv_saturated_pixels = sv.SaturatedPixels([sv_main, sv_zoom], sv_metadata)
 
 sv_spots = sv.Spots([sv_main], sv_metadata)
 
