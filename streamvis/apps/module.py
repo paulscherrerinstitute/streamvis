@@ -151,12 +151,9 @@ async def internal_periodic_callback():
     # Update total intensities plots
     sv_streamgraph.update([bn.nansum(aggr_image), total_sum_zoom])
 
-    # Parse and update metadata
-    metadata_toshow = sv_metadata.parse(metadata)
-
     sv_saturated_pixels.update(metadata)
 
-    sv_metadata.update(metadata_toshow)
+    sv_metadata.update(metadata)
 
 
 doc.add_periodic_callback(internal_periodic_callback, 1000 / doc.client_fps)

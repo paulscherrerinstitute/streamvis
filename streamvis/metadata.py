@@ -69,7 +69,7 @@ class MetadataHandler:
         """
         self._issues_menu.append(issue)
 
-    def parse(self, metadata):
+    def _parse(self, metadata):
         """Parse metadata for general issues.
 
         Args:
@@ -152,12 +152,14 @@ class MetadataHandler:
 
         return metadata_toshow
 
-    def update(self, metadata_toshow):
+    def update(self, metadata):
         """Trigger an update for the metadata handler.
 
         Args:
-            metadata_toshow (dict): Metadata entries to be displayed in a datatable.
+            metadata (dict): Metadata to be parsed and displayed in datatables.
         """
+        metadata_toshow = self._parse(metadata)
+
         # Unpack metadata
         self._datatable_source.data.update(
             metadata=list(map(str, metadata_toshow.keys())),

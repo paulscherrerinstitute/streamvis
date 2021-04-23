@@ -169,9 +169,6 @@ async def internal_periodic_callback():
 
     sv_hist.update([sv_zoom.displayed_image])
 
-    # Parse metadata
-    metadata_toshow = sv_metadata.parse(metadata)
-
     # Update total intensities plots
     sv_streamgraph.update(
         [
@@ -190,7 +187,7 @@ async def internal_periodic_callback():
     sv_intensity_roi.update(metadata, sv_metadata)
     sv_saturated_pixels.update(metadata)
 
-    sv_metadata.update(metadata_toshow)
+    sv_metadata.update(metadata)
 
 
 doc.add_periodic_callback(internal_periodic_callback, 1000 / doc.client_fps)
