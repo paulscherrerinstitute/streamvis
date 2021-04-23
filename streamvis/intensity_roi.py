@@ -2,12 +2,15 @@ from bokeh.models import ColumnDataSource, Quad, Text, Toggle
 
 
 class IntensityROI:
-    def __init__(self, image_views):
+    def __init__(self, image_views, sv_metadata):
         """Initialize a intensity ROI overlay.
 
         Args:
             image_views (ImageView): Associated streamvis image view instances.
+            sv_metadata (MetadataHandler): A metadata handler to report metadata issues.
         """
+        self._sv_metadata = sv_metadata
+
         # ---- intensity ROIs
         self._source = ColumnDataSource(
             dict(left=[], right=[], bottom=[], top=[], text_x=[], text_y=[], text=[])
@@ -49,12 +52,11 @@ class IntensityROI:
         toggle.on_click(toggle_callback)
         self.toggle = toggle
 
-    def update(self, metadata, sv_metadata):
+    def update(self, metadata):
         """Trigger an update for the intensity ROI overlay.
 
         Args:
             metadata (dict): A dictionary with current metadata.
-            sv_metadata (MetadataHandler): Report update issues to that metadata handler.
         """
         roi_x1 = metadata.get("roi_x1")
         roi_x2 = metadata.get("roi_x2")
@@ -63,7 +65,7 @@ class IntensityROI:
 
         if roi_x1 and roi_x2 and roi_y1 and roi_y2:
             if not len(roi_x1) == len(roi_x2) == len(roi_y1) == len(roi_y2):
-                sv_metadata.add_issue("Metadata for intensity ROIs is inconsistent")
+                self._sv_metadata.add_issue("Metadata for intensity ROIs is inconsistent")
 
             else:
                 self._source.data.update(
@@ -82,4 +84,4 @@ class IntensityROI:
             )
 
             if self.toggle.active:
-                sv_metadata.add_issue("Metadata does not contain data for intensity ROIs")
+                self._sv_metadata.add_issue("Metadata does not contain data for intensity ROIs")

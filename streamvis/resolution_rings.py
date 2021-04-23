@@ -18,14 +18,16 @@ js_resolution = """
 
 
 class ResolutionRings:
-    def __init__(self, image_views, positions):
+    def __init__(self, image_views, positions, sv_metadata):
         """Initialize a resolution rings overlay.
 
         Args:
             image_views (ImageView): Associated streamvis image view instances.
             positions (ndarray): Scattering radii in Angstroms.
+            sv_metadata (MetadataHandler): A metadata handler to report metadata issues.
         """
         self.positions = positions
+        self._sv_metadata = sv_metadata
 
         # ---- add resolution tooltip to hover tool
         self._formatter_source = ColumnDataSource(
@@ -88,12 +90,11 @@ class ResolutionRings:
         toggle.on_click(toggle_callback)
         self.toggle = toggle
 
-    def update(self, metadata, sv_metadata):
+    def update(self, metadata):
         """Trigger an update for the resolution rings overlay.
 
         Args:
             metadata (dict): A dictionary with current metadata.
-            sv_metadata (MetadataHandler): Report update issues to that metadata handler.
         """
         detector_distance = metadata.get("detector_distance", np.nan)
         beam_energy = metadata.get("beam_energy", np.nan)
@@ -123,7 +124,9 @@ class ResolutionRings:
             ring_text = []
 
             if self.toggle.active:
-                sv_metadata.add_issue("Metadata does not contain all data for resolution rings")
+                self._sv_metadata.add_issue(
+                    "Metadata does not contain all data for resolution rings"
+                )
 
         self._source.data.update(
             x=array_beam_center_x,

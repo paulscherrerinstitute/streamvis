@@ -43,6 +43,9 @@ ZOOM2_TOP = ZOOM2_BOTTOM + ZOOM_HEIGHT
 RESOLUTION_RINGS_POS = np.array([2, 2.2, 2.6, 3, 5, 10])
 
 # Create streamvis components
+sv_metadata = sv.MetadataHandler(datatable_height=430, datatable_width=800)
+sv_metadata.issues_datatable.height = 100
+
 sv_main = sv.ImageView(
     plot_height=MAIN_CANVAS_HEIGHT,
     plot_width=MAIN_CANVAS_WIDTH,
@@ -92,13 +95,13 @@ sv_colormapper = sv.ColorMapper([sv_main, sv_zoom1, sv_zoom2])
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
 sv_main.plot.add_layout(sv_colormapper.color_bar, place="below")
 
-sv_resolrings = sv.ResolutionRings([sv_main, sv_zoom1, sv_zoom2], RESOLUTION_RINGS_POS)
+sv_resolrings = sv.ResolutionRings([sv_main, sv_zoom1, sv_zoom2], RESOLUTION_RINGS_POS, sv_metadata)
 
-sv_intensity_roi = sv.IntensityROI([sv_main, sv_zoom1, sv_zoom2])
+sv_intensity_roi = sv.IntensityROI([sv_main, sv_zoom1, sv_zoom2], sv_metadata)
 
 sv_saturated_pixels = sv.SaturatedPixels([sv_main, sv_zoom1, sv_zoom2])
 
-sv_spots = sv.Spots([sv_main])
+sv_spots = sv.Spots([sv_main], sv_metadata)
 
 sv_hist = sv.Histogram(nplots=2, plot_height=280, plot_width=sv_zoom1.plot.plot_width)
 
@@ -165,9 +168,6 @@ sv_streamgraph.plots[1].title = Title(text="Zoom Area 1 Total Intensity")
 sv_streamgraph.plots[2].title = Title(text="Zoom Area 2 Total Intensity")
 
 sv_streamctrl = sv.StreamControl()
-
-sv_metadata = sv.MetadataHandler(datatable_height=430, datatable_width=800)
-sv_metadata.issues_datatable.height = 100
 
 
 # Final layouts
@@ -297,9 +297,9 @@ async def internal_periodic_callback():
             ]
             sv_hist.update([im_block1, im_block2], accumulate=True)
 
-    sv_spots.update(metadata, sv_metadata)
-    sv_resolrings.update(metadata, sv_metadata)
-    sv_intensity_roi.update(metadata, sv_metadata)
+    sv_spots.update(metadata)
+    sv_resolrings.update(metadata)
+    sv_intensity_roi.update(metadata)
     sv_saturated_pixels.update(metadata)
 
     sv_metadata.update(metadata)

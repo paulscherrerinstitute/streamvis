@@ -22,6 +22,9 @@ RESOLUTION_RINGS_POS = np.array([2, 2.2, 2.6, 3, 5, 10])
 
 
 # Create streamvis components
+sv_metadata = sv.MetadataHandler()
+sv_metadata.issues_datatable.height = 100
+
 sv_main = sv.ImageView(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
 sv_zoom = sv.ImageView(plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH)
 sv_zoom.proj_toggle = sv_main.proj_toggle
@@ -34,13 +37,13 @@ sv_colormapper = sv.ColorMapper([sv_main, sv_zoom])
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
 sv_main.plot.add_layout(sv_colormapper.color_bar, place="below")
 
-sv_resolrings = sv.ResolutionRings([sv_main, sv_zoom], RESOLUTION_RINGS_POS)
+sv_resolrings = sv.ResolutionRings([sv_main, sv_zoom], RESOLUTION_RINGS_POS, sv_metadata)
 
-sv_intensity_roi = sv.IntensityROI([sv_main, sv_zoom])
+sv_intensity_roi = sv.IntensityROI([sv_main, sv_zoom], sv_metadata)
 
 sv_saturated_pixels = sv.SaturatedPixels([sv_main, sv_zoom])
 
-sv_spots = sv.Spots([sv_main])
+sv_spots = sv.Spots([sv_main], sv_metadata)
 
 sv_hist = sv.Histogram(nplots=2, plot_height=200, plot_width=700)
 sv_hist.plots[0].title = Title(text="Full image")
@@ -53,9 +56,6 @@ sv_streamgraph.plots[1].title = Title(text="Zoom total intensity")
 sv_streamctrl = sv.StreamControl()
 
 sv_image_processor = sv.ImageProcessor()
-
-sv_metadata = sv.MetadataHandler()
-sv_metadata.issues_datatable.height = 100
 
 
 # Final layouts
@@ -162,9 +162,9 @@ async def internal_periodic_callback():
     # Update total intensities plots
     sv_streamgraph.update([bn.nansum(aggr_image), total_sum_zoom])
 
-    sv_spots.update(metadata, sv_metadata)
-    sv_resolrings.update(metadata, sv_metadata)
-    sv_intensity_roi.update(metadata, sv_metadata)
+    sv_spots.update(metadata)
+    sv_resolrings.update(metadata)
+    sv_intensity_roi.update(metadata)
     sv_saturated_pixels.update(metadata)
 
     sv_metadata.update(metadata)
