@@ -72,8 +72,6 @@ image_buffer_slider.on_change("value_throttled", image_buffer_slider_callback)
 
 sv_streamctrl = sv.StreamControl()
 
-show_only_hits_toggle = Toggle(label="Show Only Hits", button_type="default")
-
 
 # Final layouts
 layout_intensity = column(
@@ -120,7 +118,7 @@ layout_controls = column(
     row(sv_resolrings.toggle),
     row(sv_intensity_roi.toggle, sv_saturated_pixels.toggle),
     Spacer(height=30),
-    show_only_hits_toggle,
+    sv_streamctrl.show_only_hits_toggle,
     sv_streamctrl.datatype_select,
     image_buffer_slider,
     sv_streamctrl.conv_opts_cbbg,
@@ -138,10 +136,7 @@ doc.add_root(row(Spacer(width=50), final_layout))
 
 async def internal_periodic_callback():
     if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
-        if show_only_hits_toggle.active:
-            sv_rt.metadata, sv_rt.image = sv_streamctrl.get_last_hit()
-        else:
-            sv_rt.metadata, sv_rt.image = sv_streamctrl.get_stream_data(-1)
+        sv_rt.metadata, sv_rt.image = sv_streamctrl.get_stream_data(-1)
 
         if not image_buffer or image_buffer[-1][0] is not sv_rt.metadata:
             image_buffer.append((sv_rt.metadata, sv_rt.image))
