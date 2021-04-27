@@ -9,6 +9,7 @@ class StreamControl:
         """
         doc = curdoc()
         self.receiver = doc.receiver
+        self.stats = doc.stats
 
         # connect toggle button
         def toggle_callback(_active):
@@ -80,6 +81,48 @@ class StreamControl:
         n_rot = int(self.rotate_image.value) // 90
         if n_rot:
             image = np.rot90(image, k=n_rot)
+
+        image = np.ascontiguousarray(image, dtype=np.float32)
+
+        return metadata, image
+
+    def get_last_hit(self):
+        """Get metadata and last hit image.
+        """
+        if self.stats.last_hit == (None, None):
+            return dict(shape=[1, 1]), np.zeros((1, 1), dtype="float32")
+
+        active_opts = list(self.conv_opts_cbbg.active)
+        mask = 0 in active_opts
+        gap_pixels = 1 in active_opts
+        geometry = 2 in active_opts
+
+        metadata, raw_image = self.stats.last_hit
+        if self.datatype_select.value == "Image":
+            image = self.receiver.jf_adapter.process(
+                raw_image, metadata, mask=mask, gap_pixels=gap_pixels, geometry=geometry
+            )
+
+            if (
+                self.receiver.jf_adapter.handler
+                and "saturated_pixels" not in metadata
+                and raw_image.dtype == np.uint16
+            ):
+                saturated_pixels_coord = self.receiver.jf_adapter.handler.get_saturated_pixels(
+                    raw_image, mask=mask, gap_pixels=gap_pixels, geometry=geometry
+                )
+
+                metadata["saturated_pixels_coord"] = saturated_pixels_coord
+                metadata["saturated_pixels"] = len(saturated_pixels_coord[0])
+
+        elif self.datatype_select.value == "Gains":
+            if raw_image.dtype != np.uint16:
+                return metadata, raw_image
+
+            if self.receiver.jf_adapter.handler:
+                image = self.receiver.jf_adapter.handler.get_gains(
+                    raw_image, mask=mask, gap_pixels=gap_pixels, geometry=geometry
+                )
 
         image = np.ascontiguousarray(image, dtype=np.float32)
 

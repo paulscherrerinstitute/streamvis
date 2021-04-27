@@ -4,7 +4,6 @@ from threading import RLock
 
 import numpy as np
 from bokeh.models import CustomJS, Dropdown
-from jungfrau_utils import StreamAdapter
 
 PULSE_ID_STEP = 10000
 
@@ -25,8 +24,6 @@ class StatisticsHandler:
         # TODO: fix maximum number of deques in the buffer
         self.roi_intensities_buffers = [deque(maxlen=50) for _ in range(9)]
         self._lock = RLock()
-
-        self.jf_adapter = StreamAdapter()
 
         self.data = dict(
             pulse_id_bins=[],
@@ -181,44 +178,6 @@ class StatisticsHandler:
             for key, val in self.sum_data.items():
                 if key != "pulse_id_bins":
                     val[0] = 0
-
-    def get_last_hit(self):
-        """Get metadata and last hit image.
-        """
-        metadata, raw_image = self.last_hit
-        image = self.jf_adapter.process(raw_image, metadata)
-
-        if (
-            self.jf_adapter.handler
-            and "saturated_pixels" not in metadata
-            and raw_image.dtype == np.uint16
-        ):
-            saturated_pixels_coord = self.jf_adapter.handler.get_saturated_pixels(
-                raw_image, mask=True, gap_pixels=True, geometry=True
-            )
-
-            metadata["saturated_pixels_coord"] = saturated_pixels_coord
-            metadata["saturated_pixels"] = len(saturated_pixels_coord[0])
-
-        image = np.ascontiguousarray(image, dtype=np.float32)
-
-        return metadata, image
-
-    def get_last_hit_gains(self):
-        """Get metadata and gains of last hit image.
-        """
-        metadata, image = self.last_hit
-        if image.dtype != np.uint16:
-            return metadata, image
-
-        if self.jf_adapter.handler:
-            image = self.jf_adapter.handler.get_gains(
-                image, mask=False, gap_pixels=True, geometry=True
-            )
-
-        image = np.ascontiguousarray(image, dtype=np.float32)
-
-        return metadata, image
 
 
 class Hitrate:

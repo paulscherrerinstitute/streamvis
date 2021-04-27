@@ -139,11 +139,7 @@ doc.add_root(row(Spacer(width=50), final_layout))
 async def internal_periodic_callback():
     if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
         if show_only_hits_toggle.active:
-            if stats.last_hit != (None, None):
-                if sv_streamctrl.datatype_select.value == "Image":
-                    sv_rt.metadata, sv_rt.image = stats.get_last_hit()
-                elif sv_streamctrl.datatype_select.value == "Gains":
-                    sv_rt.metadata, sv_rt.image = stats.get_last_hit_gains()
+            sv_rt.metadata, sv_rt.image = sv_streamctrl.get_last_hit()
         else:
             sv_rt.metadata, sv_rt.image = sv_streamctrl.get_stream_data(-1)
 
