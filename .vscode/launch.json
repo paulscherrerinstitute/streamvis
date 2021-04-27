@@ -10,24 +10,36 @@
             "justMyCode": false,
         },
         {
-            "name": "default",
+            "name": "square",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/streamvis/cli.py",
             "args": [
-                "default"
+                "square"
             ],
             "console": "internalConsole",
             "env": {},
             "justMyCode": false,
         },
         {
-            "name": "alvra",
+            "name": "module",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/streamvis/cli.py",
             "args": [
-                "alvra"
+                "module"
+            ],
+            "console": "internalConsole",
+            "env": {},
+            "justMyCode": false,
+        },
+        {
+            "name": "von_hamos",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/streamvis/cli.py",
+            "args": [
+                "von_hamos"
             ],
             "console": "internalConsole",
             "env": {},
@@ -46,24 +58,12 @@
             "justMyCode": false,
         },
         {
-            "name": "default16m",
+            "name": "large",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/streamvis/cli.py",
             "args": [
-                "default16m"
-            ],
-            "console": "internalConsole",
-            "env": {},
-            "justMyCode": false,
-        },
-        {
-            "name": "swissmx",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/streamvis/cli.py",
-            "args": [
-                "swissmx"
+                "large"
             ],
             "console": "internalConsole",
             "env": {},
