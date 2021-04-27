@@ -16,6 +16,8 @@ MAIN_CANVAS_HEIGHT = 1000 + 59
 
 
 # Create streamvis components
+sv_metadata = sv.MetadataHandler(datatable_height=300, datatable_width=400)
+
 sv_main = sv.ImageView(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
 
 sv_colormapper = sv.ColorMapper([sv_main])
@@ -60,8 +62,6 @@ image_index_slider = Slider(
     start=0, end=99, value_throttled=0, step=1, title="Pulse Number", disabled=True,
 )
 image_index_slider.on_change("value_throttled", image_index_slider_callback)
-
-sv_metadata = sv.MetadataHandler(datatable_height=300, datatable_width=400)
 
 
 # Final layouts

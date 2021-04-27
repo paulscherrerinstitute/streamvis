@@ -18,6 +18,9 @@ ZOOM_CANVAS_HEIGHT = 514 + 28
 
 
 # Create streamvis components
+sv_metadata = sv.MetadataHandler(datatable_width=500)
+sv_metadata.issues_datatable.height = 100
+
 sv_main = sv.ImageView(
     plot_height=MAIN_CANVAS_HEIGHT,
     plot_width=MAIN_CANVAS_WIDTH,
@@ -55,9 +58,6 @@ sv_streamgraph.plots[1].title = Title(text="Zoom total intensity")
 sv_streamctrl = sv.StreamControl()
 
 sv_image_processor = sv.ImageProcessor()
-
-sv_metadata = sv.MetadataHandler(datatable_width=500)
-sv_metadata.issues_datatable.height = 100
 
 
 # Final layouts
