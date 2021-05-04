@@ -17,7 +17,7 @@ from bokeh.models import (
     WheelZoomTool,
 )
 
-STEP = 1
+STEP = 0.1
 
 
 class Histogram:

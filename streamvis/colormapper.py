@@ -24,7 +24,7 @@ cmap_dict = {
 }
 
 # TODO: Can be changed back to 0.1 when https://github.com/bokeh/bokeh/issues/9408 is fixed
-STEP = 1
+STEP = 0.1
 
 
 class ColorMapper:
