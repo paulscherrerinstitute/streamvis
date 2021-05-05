@@ -83,7 +83,7 @@ layout_controls = column(
         sv_image_processor.aggregate_time_spinner,
         sv_image_processor.aggregate_time_counter_textinput,
     ),
-    sv_image_processor.aggregate_toggle,
+    row(sv_image_processor.aggregate_toggle, sv_image_processor.average_toggle),
     Spacer(height=10),
     doc.stats.auxiliary_apps_dropdown,
     Spacer(height=10),

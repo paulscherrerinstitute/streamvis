@@ -196,7 +196,7 @@ layout_bottom_row_controls = row(
             sv_image_processor.aggregate_time_spinner,
             sv_image_processor.aggregate_time_counter_textinput,
         ),
-        sv_image_processor.aggregate_toggle,
+        row(sv_image_processor.aggregate_toggle, sv_image_processor.average_toggle),
     ),
     Spacer(width=100),
     column(save_spectrum_select, save_spectrum_button),

@@ -80,7 +80,7 @@ layout_controls = column(
         sv_image_processor.aggregate_time_spinner,
         sv_image_processor.aggregate_time_counter_textinput,
     ),
-    sv_image_processor.aggregate_toggle,
+    row(sv_image_processor.aggregate_toggle, sv_image_processor.average_toggle),
     doc.stats.auxiliary_apps_dropdown,
     row(sv_colormapper.select, sv_colormapper.high_color, sv_colormapper.mask_color),
     sv_colormapper.scale_radiobuttongroup,

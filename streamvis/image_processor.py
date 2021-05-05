@@ -28,7 +28,9 @@ class ImageProcessor:
         def aggregate_toggle_callback(state):
             self.aggregate_toggle.button_type = "primary" if state else "default"
 
-        aggregate_toggle = Toggle(label="Apply Aggregation", active=False, button_type="default")
+        aggregate_toggle = Toggle(
+            label="Apply Aggregation", active=False, button_type="default", default_size=145
+        )
         aggregate_toggle.on_click(aggregate_toggle_callback)
         self.aggregate_toggle = aggregate_toggle
 
@@ -42,6 +44,16 @@ class ImageProcessor:
             title="Time Counter:", value=str(1), disabled=True, default_size=145
         )
         self.aggregate_time_counter_textinput = aggregate_time_counter_textinput
+
+        # Show Average toggle
+        def average_toggle_callback(state):
+            self.average_toggle.button_type = "primary" if state else "default"
+
+        average_toggle = Toggle(
+            label="Show Average", active=False, button_type="default", default_size=145
+        )
+        average_toggle.on_click(average_toggle_callback)
+        self.average_toggle = average_toggle
 
     @property
     def threshold_flag(self):
@@ -110,4 +122,9 @@ class ImageProcessor:
             self.aggregate_counter = 1
             reset = True
 
-        return thr_image, self.aggregated_image, reset
+        if self.average_toggle.active:
+            aggregated_image = self.aggregated_image / self.aggregate_counter
+        else:
+            aggregated_image = self.aggregated_image
+
+        return thr_image, aggregated_image, reset
