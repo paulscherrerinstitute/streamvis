@@ -252,7 +252,7 @@ async def internal_periodic_callback():
     if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
         sv_rt.metadata, sv_rt.image = sv_streamctrl.get_stream_data(-1)
         sv_rt.thresholded_image, sv_rt.aggregated_image, sv_rt.reset = sv_image_processor.update(
-            sv_rt.image
+            sv_rt.metadata, sv_rt.image
         )
 
     if sv_rt.image.shape == (1, 1):

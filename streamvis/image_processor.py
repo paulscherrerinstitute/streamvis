@@ -95,7 +95,7 @@ class ImageProcessor:
     def aggregate_counter(self, value):
         self.aggregate_time_counter_textinput.value = str(value)
 
-    def update(self, image):
+    def update(self, metadata, image):
         """Trigger an update for the image processor.
 
         Args:
@@ -104,6 +104,8 @@ class ImageProcessor:
         Returns:
             (ndarray, ndarray, bool): Resulting thresholding image, aggregated image and reset flag.
         """
+        counts = metadata.get("aggregated_images", 1)
+
         thr_image = image.copy()
         if self.threshold_flag:
             ind = (thr_image < self.threshold_min) | (self.threshold_max < thr_image)
@@ -115,11 +117,11 @@ class ImageProcessor:
             and self.aggregated_image.shape == image.shape
         ):
             self.aggregated_image += thr_image
-            self.aggregate_counter += 1
+            self.aggregate_counter += counts
             reset = False
         else:
             self.aggregated_image = thr_image
-            self.aggregate_counter = 1
+            self.aggregate_counter = counts
             reset = True
 
         if self.average_toggle.active:
