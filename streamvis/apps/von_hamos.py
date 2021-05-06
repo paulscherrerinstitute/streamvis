@@ -39,8 +39,6 @@ ZOOM2_BOTTOM = 0
 ZOOM2_RIGHT = ZOOM2_LEFT + ZOOM_WIDTH
 ZOOM2_TOP = ZOOM2_BOTTOM + ZOOM_HEIGHT
 
-# Resolution rings positions in angstroms
-RESOLUTION_RINGS_POS = np.array([2, 2.2, 2.6, 3, 5, 10])
 
 # Create streamvis components
 sv_metadata = sv.MetadataHandler(datatable_height=430, datatable_width=800)
@@ -95,7 +93,7 @@ sv_colormapper = sv.ColorMapper([sv_main, sv_zoom1, sv_zoom2])
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
 sv_main.plot.add_layout(sv_colormapper.color_bar, place="below")
 
-sv_resolrings = sv.ResolutionRings([sv_main, sv_zoom1, sv_zoom2], RESOLUTION_RINGS_POS, sv_metadata)
+sv_resolrings = sv.ResolutionRings([sv_main, sv_zoom1, sv_zoom2], sv_metadata)
 
 sv_intensity_roi = sv.IntensityROI([sv_main, sv_zoom1, sv_zoom2], sv_metadata)
 

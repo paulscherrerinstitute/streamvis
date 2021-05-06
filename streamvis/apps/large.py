@@ -24,9 +24,6 @@ ZOOM_PROJ_Y_CANVAS_WIDTH = 150 + 31
 
 image_buffer = deque(maxlen=60)
 
-# Resolution rings positions in angstroms
-RESOLUTION_RINGS_POS = np.array([2, 2.2, 2.6, 3, 5, 10])
-
 
 # Create streamvis components
 sv_metadata = sv.MetadataHandler(datatable_height=230, datatable_width=650)
@@ -50,7 +47,7 @@ sv_streamgraph = sv.StreamGraph(nplots=2, plot_height=210, plot_width=1350)
 sv_streamgraph.plots[0].title = Title(text="Total intensity")
 sv_streamgraph.plots[1].title = Title(text="Zoom total intensity")
 
-sv_resolrings = sv.ResolutionRings([sv_main, sv_zoom], RESOLUTION_RINGS_POS, sv_metadata)
+sv_resolrings = sv.ResolutionRings([sv_main, sv_zoom], sv_metadata)
 
 sv_intensity_roi = sv.IntensityROI([sv_main, sv_zoom], sv_metadata)
 

@@ -16,18 +16,21 @@ js_resolution = """
     return resolution.toFixed(2)
 """
 
+POSITIONS = [1.4, 1.5, 1.6, 1.8, 2, 2.2, 2.6, 3, 5, 10]
+
 
 class ResolutionRings:
-    def __init__(self, image_views, positions, sv_metadata):
+    def __init__(self, image_views, sv_metadata, positions=POSITIONS):
         """Initialize a resolution rings overlay.
 
         Args:
             image_views (ImageView): Associated streamvis image view instances.
-            positions (ndarray): Scattering radii in Angstroms.
             sv_metadata (MetadataHandler): A metadata handler to report metadata issues.
+            positions (list, optional): Scattering radii in Angstroms. Defaults to
+                [1.4, 1.5, 1.6, 1.8, 2, 2.2, 2.6, 3, 5, 10].
         """
-        self.positions = positions
         self._sv_metadata = sv_metadata
+        self.positions = np.array(positions)
 
         # ---- add resolution tooltip to hover tool
         self._formatter_source = ColumnDataSource(

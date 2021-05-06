@@ -12,9 +12,6 @@ doc = curdoc()
 IMAGE_SIZE_X = 1030
 IMAGE_SIZE_Y = 1554
 
-# Resolution rings positions in angstroms
-RESOLUTION_RINGS_POS = np.array([2, 2.2, 2.6, 3, 5, 10])
-
 sv_rt = sv.Runtime()
 
 # Currently, it's possible to control only a canvas size, but not a size of the plotting area.
@@ -87,7 +84,7 @@ sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
 sv_colormapper.color_bar.height = 10
 sv_main.plot.add_layout(sv_colormapper.color_bar, place="below")
 
-sv_resolrings = sv.ResolutionRings([sv_main, sv_zoom1, sv_zoom2], RESOLUTION_RINGS_POS, sv_metadata)
+sv_resolrings = sv.ResolutionRings([sv_main, sv_zoom1, sv_zoom2], sv_metadata)
 
 sv_intensity_roi = sv.IntensityROI([sv_main, sv_zoom1, sv_zoom2], sv_metadata)
 
