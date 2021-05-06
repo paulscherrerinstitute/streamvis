@@ -46,7 +46,8 @@ class ResolutionRings:
             args=dict(params=self._formatter_source), code=js_resolution
         )
 
-        hovertool = HoverTool(
+        hovertool_off = HoverTool(tooltips=[("intensity", "@image")], names=["image_glyph"])
+        hovertool_on = HoverTool(
             tooltips=[("intensity", "@image"), ("resolution", "@x{resolution} Å")],
             formatters={"@x": resolution_formatter},
             names=["image_glyph"],
@@ -73,10 +74,15 @@ class ResolutionRings:
             image_view.plot.add_glyph(self._source, ellipse_glyph)
             image_view.plot.add_glyph(self._source, text_glyph)
             image_view.plot.add_glyph(self._formatter_source, cross_glyph)
-            image_view.plot.tools[-1] = hovertool
 
         # ---- toggle button
+        def toggle_callback(state):
+            hovertool = hovertool_on if state else hovertool_off
+            for image_view in image_views:
+                image_view.plot.tools[-1] = hovertool
+
         toggle = Toggle(label="Resolution Rings", button_type="default", default_size=145)
+        toggle.on_click(toggle_callback)
         self.toggle = toggle
 
     def _clear(self):
