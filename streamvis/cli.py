@@ -10,7 +10,7 @@ from bokeh.application.handlers import ScriptHandler
 from bokeh.server.server import Server
 
 from streamvis import __version__
-from streamvis.handler import StreamvisHandler, StreamvisLimitSessionsHandler
+from streamvis.handler import StreamvisHandler, StreamvisCheckHandler
 from streamvis.receiver import Receiver
 from streamvis.statistics_handler import StatisticsHandler
 
@@ -103,10 +103,15 @@ def main():
     )
 
     parser.add_argument(
-        "--client-fps",
-        type=float,
-        default=1,
-        help="client update rate in frames per second",
+        "--client-fps", type=float, default=1, help="client update rate in frames per second",
+    )
+
+    parser.add_argument(
+        "--allow-client-subnet",
+        type=str,
+        action="append",
+        default=None,
+        help="a subnet from which client connections are allowed",
     )
 
     parser.add_argument(
@@ -137,20 +142,23 @@ def main():
     # StreamvisHandler is a custom bokeh application Handler, which sets some of the core
     # properties for new bokeh documents created by all applications.
     sv_handler = StreamvisHandler(receiver, stats, args)
-    sv_sessions_limit_handler = StreamvisLimitSessionsHandler(args.max_client_connections)
+    sv_check_handler = StreamvisCheckHandler(
+        max_sessions=args.max_client_connections, allow_client_subnet=args.allow_client_subnet
+    )
 
     applications = dict()  # List of bokeh applications
 
     # Main application
-    handler = ScriptHandler(filename=app_path, argv=args.args)
-    applications["/"] = Application(sv_handler, handler, sv_sessions_limit_handler)
+    bokeh_handler = ScriptHandler(filename=app_path, argv=args.args)
+    applications["/"] = Application(sv_handler, bokeh_handler, sv_check_handler)
 
     # Add all common applications
     common_apps_path = os.path.join(base_path, "common_apps")
     for module_info in pkgutil.iter_modules([common_apps_path]):
         app_name = module_info.name
-        app_handler = ScriptHandler(filename=os.path.join(common_apps_path, app_name + ".py"))
-        applications[f"/{app_name}"] = Application(sv_handler, app_handler)
+        bokeh_handler = ScriptHandler(filename=os.path.join(common_apps_path, app_name + ".py"))
+        sv_check_handler = StreamvisCheckHandler(allow_client_subnet=args.allow_client_subnet)
+        applications[f"/{app_name}"] = Application(sv_handler, bokeh_handler, sv_check_handler)
 
     server = Server(
         applications,
