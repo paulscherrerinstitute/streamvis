@@ -20,7 +20,7 @@ class StreamControl:
         def toggle_callback(_active):
             self._update_toggle_view()
 
-        toggle = Toggle(label="Connect", button_type="primary", tags=[True])
+        toggle = Toggle(label="Connect", button_type="primary", tags=[True], default_size=145)
         toggle.js_on_change("tags", CustomJS(code=js_backpressure_code))
         toggle.on_click(toggle_callback)
         self.toggle = toggle
@@ -47,8 +47,10 @@ class StreamControl:
         )
         self.rotate_image = rotate_image
 
-        # show only hits
-        self.show_only_hits_toggle = Toggle(label="Show Only Hits", button_type="default")
+        # show only events
+        self.show_only_events_toggle = Toggle(
+            label="Show Only Events", button_type="default", default_size=145
+        )
 
         doc.add_periodic_callback(self._update_toggle_view, 1000)
 
@@ -81,8 +83,8 @@ class StreamControl:
         gap_pixels = 1 in active_opts
         geometry = 2 in active_opts
 
-        if self.show_only_hits_toggle.active:
-            # Show only hits
+        if self.show_only_events_toggle.active:
+            # Show only events
             metadata, raw_image = self.stats.last_hit
             if self.datatype_select.value == "Image":
                 image = self.receiver.jf_adapter.process(

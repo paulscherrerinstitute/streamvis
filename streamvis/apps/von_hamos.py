@@ -229,7 +229,7 @@ layout_controls = column(
     Spacer(height=30),
     sv_streamctrl.datatype_select,
     sv_streamctrl.conv_opts_cbbg,
-    sv_streamctrl.toggle,
+    row(sv_streamctrl.toggle, sv_streamctrl.show_only_events_toggle),
 )
 
 layout_metadata = column(
