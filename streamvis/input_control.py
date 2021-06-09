@@ -1,6 +1,11 @@
 import numpy as np
 from bokeh.io import curdoc
-from bokeh.models import CheckboxButtonGroup, Select, Toggle
+from bokeh.models import CheckboxButtonGroup, CustomJS, Select, Toggle
+
+js_backpressure_code = """
+if (cb_obj.tags[0]) return;
+cb_obj.tags = [true];
+"""
 
 
 class StreamControl:
@@ -15,7 +20,8 @@ class StreamControl:
         def toggle_callback(_active):
             self._update_toggle_view()
 
-        toggle = Toggle(label="Connect", button_type="primary")
+        toggle = Toggle(label="Connect", button_type="primary", tags=[True])
+        toggle.js_on_change("tags", CustomJS(code=js_backpressure_code))
         toggle.on_click(toggle_callback)
         self.toggle = toggle
 
@@ -67,6 +73,9 @@ class StreamControl:
         Returns:
             (dict, ndarray): metadata and image at index
         """
+        if not self.toggle.tags[0]:
+            return dict(shape=[1, 1]), np.zeros((1, 1), dtype="float32")
+
         active_opts = list(self.conv_opts_cbbg.active)
         mask = 0 in active_opts
         gap_pixels = 1 in active_opts
@@ -116,6 +125,8 @@ class StreamControl:
             image = np.rot90(image, k=n_rot)
 
         image = np.ascontiguousarray(image, dtype=np.float32)
+
+        self.toggle.tags = [False]
 
         return metadata, image
 
