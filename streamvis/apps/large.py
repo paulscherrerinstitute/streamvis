@@ -69,6 +69,8 @@ image_buffer_slider.on_change("value_throttled", image_buffer_slider_callback)
 
 sv_streamctrl = sv.StreamControl()
 
+sv_image_processor = sv.ImageProcessor()
+
 
 # Final layouts
 layout_intensity = column(
@@ -104,6 +106,14 @@ layout_zoom = gridplot(
 show_overlays_div = Div(text="Show Overlays:")
 
 layout_controls = column(
+    row(sv_image_processor.threshold_min_spinner, sv_image_processor.threshold_max_spinner),
+    sv_image_processor.threshold_toggle,
+    row(
+        sv_image_processor.aggregate_time_spinner,
+        sv_image_processor.aggregate_time_counter_textinput,
+    ),
+    row(sv_image_processor.aggregate_toggle, sv_image_processor.average_toggle),
+    Spacer(height=30),
     stats.auxiliary_apps_dropdown,
     Spacer(height=30),
     row(sv_colormapper.select, sv_colormapper.high_color, sv_colormapper.mask_color),
@@ -133,6 +143,9 @@ doc.add_root(row(Spacer(width=50), final_layout))
 async def internal_periodic_callback():
     if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
         sv_rt.metadata, sv_rt.image = sv_streamctrl.get_stream_data(-1)
+        sv_rt.thresholded_image, sv_rt.aggregated_image, sv_rt.reset = sv_image_processor.update(
+            sv_rt.metadata, sv_rt.image
+        )
 
         if not image_buffer or image_buffer[-1][0] is not sv_rt.metadata:
             image_buffer.append((sv_rt.metadata, sv_rt.image))
@@ -146,10 +159,11 @@ async def internal_periodic_callback():
         # skip client update if the current image is dummy
         return
 
-    image, metadata = sv_rt.image, sv_rt.metadata
+    _, metadata = sv_rt.image, sv_rt.metadata
+    thr_image, reset, aggr_image = sv_rt.thresholded_image, sv_rt.reset, sv_rt.aggregated_image
 
-    sv_colormapper.update(image)
-    sv_main.update(image)
+    sv_colormapper.update(aggr_image)
+    sv_main.update(aggr_image)
 
     sv_spots.update(metadata)
     sv_resolrings.update(metadata)
@@ -159,13 +173,26 @@ async def internal_periodic_callback():
     sv_zoom_proj_v.update(sv_zoom.displayed_image)
     sv_zoom_proj_h.update(sv_zoom.displayed_image)
 
-    sv_hist.update([sv_zoom.displayed_image])
+    # Deactivate auto histogram range if aggregation is on
+    if sv_image_processor.aggregate_toggle.active:
+        sv_hist.auto_toggle.active = False
+
+    if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
+        if reset:
+            sv_hist.update(
+                [aggr_image[sv_zoom.y_start : sv_zoom.y_end, sv_zoom.x_start : sv_zoom.x_end]]
+            )
+        else:
+            sv_hist.update(
+                [thr_image[sv_zoom.y_start : sv_zoom.y_end, sv_zoom.x_start : sv_zoom.x_end]],
+                accumulate=True,
+            )
 
     # Update total intensities plots
     sv_streamgraph.update(
         [
-            bn.nansum(image),
-            bn.nansum(image[sv_zoom.y_start : sv_zoom.y_end, sv_zoom.x_start : sv_zoom.x_end]),
+            bn.nansum(aggr_image),
+            bn.nansum(aggr_image[sv_zoom.y_start : sv_zoom.y_end, sv_zoom.x_start : sv_zoom.x_end]),
         ]
     )
 
