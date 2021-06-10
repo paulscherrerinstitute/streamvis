@@ -108,6 +108,7 @@ layout_hist = column(
         column(Spacer(height=19), sv_hist.auto_toggle),
         sv_hist.lower_spinner,
         sv_hist.upper_spinner,
+        column(Spacer(height=19), sv_hist.log10counts_toggle),
         sv_hist.nbins_spinner,
     ),
 )

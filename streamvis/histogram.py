@@ -85,7 +85,7 @@ class Histogram:
                 lower_spinner.disabled = False
                 upper_spinner.disabled = False
 
-        auto_toggle = Toggle(label="Auto Histogram Range", active=True)
+        auto_toggle = Toggle(label="Auto Hist Range", active=True, default_size=145)
         auto_toggle.on_click(auto_toggle_callback)
         self.auto_toggle = auto_toggle
 

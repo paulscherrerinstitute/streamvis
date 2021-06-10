@@ -49,7 +49,6 @@ sv_saturated_pixels = sv.SaturatedPixels([sv_main, sv_zoom], sv_metadata)
 sv_hist = sv.Histogram(nplots=2, plot_height=200, plot_width=700)
 sv_hist.plots[0].title = Title(text="Full image")
 sv_hist.plots[1].title = Title(text="Roi")
-sv_hist.auto_toggle.width = 200
 
 sv_streamgraph = sv.StreamGraph(nplots=2, plot_height=200, plot_width=700)
 sv_streamgraph.plots[0].title = Title(text="Total intensity")
@@ -103,6 +102,7 @@ layout_hist = column(
         column(Spacer(height=19), sv_hist.auto_toggle),
         sv_hist.lower_spinner,
         sv_hist.upper_spinner,
+        column(Spacer(height=19), sv_hist.log10counts_toggle),
         sv_hist.nbins_spinner,
     ),
 )

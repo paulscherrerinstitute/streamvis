@@ -200,7 +200,7 @@ layout_bottom_row_controls = row(
     column(save_spectrum_select, save_spectrum_button),
     Spacer(width=100),
     column(row(sv_hist.lower_spinner, sv_hist.upper_spinner), sv_hist.auto_toggle),
-    column(sv_hist.nbins_spinner),
+    column(sv_hist.nbins_spinner, sv_hist.log10counts_toggle),
 )
 
 layout_streamgraphs = column(
