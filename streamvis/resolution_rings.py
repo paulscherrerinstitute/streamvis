@@ -16,7 +16,7 @@ js_resolution = """
     return resolution.toFixed(2)
 """
 
-POSITIONS = [1.4, 1.5, 1.6, 1.8, 2, 2.2, 2.6, 3, 5, 10]
+POSITIONS = [1, 1.2, 1.4, 1.5, 1.6, 1.8, 2, 2.2, 2.6, 3, 5, 10]
 
 
 class ResolutionRings:
