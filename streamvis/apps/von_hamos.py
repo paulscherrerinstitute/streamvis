@@ -1,7 +1,6 @@
 from datetime import datetime
 
 import bottleneck as bn
-import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
 from bokeh.models import Button, ColumnDataSource, Div, Line, Select, Spacer, Title

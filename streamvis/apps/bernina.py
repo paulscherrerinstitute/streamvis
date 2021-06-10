@@ -1,5 +1,4 @@
 import bottleneck as bn
-import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
 from bokeh.models import Div, Spacer, Title

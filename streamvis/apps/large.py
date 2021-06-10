@@ -1,10 +1,9 @@
 from collections import deque
 
 import bottleneck as bn
-import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import Div, Slider, Spacer, Title, Toggle
+from bokeh.models import Div, Slider, Spacer, Title
 
 import streamvis as sv
 

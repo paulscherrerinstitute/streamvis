@@ -227,14 +227,14 @@ class StreamAdapter:
             if (
                 self._pedestal_file != self.handler.pedestal_file
                 or np.any(self._module_map != self.handler.module_map)
-                or self._gap_pixels != gap_pixels
-                or self._geometry != geometry
+                or self._mask_gap_pixels != gap_pixels
+                or self._mask_geometry != geometry
             ):
                 self._inv_mask = np.invert(self.handler.get_pixel_mask(gap_pixels, geometry))
                 self._pedestal_file = self.handler.pedestal_file
                 self._module_map = self.handler.module_map
-                self._gap_pixels = gap_pixels
-                self._geometry = geometry
+                self._mask_gap_pixels = gap_pixels
+                self._mask_geometry = geometry
 
             # cast to np.float32 in case there was no conversion, but mask should still be applied
             if image.dtype != np.float32:
@@ -249,8 +249,8 @@ class StreamAdapter:
             self._inv_mask = None
             self._pedestal_file = ""
             self._module_map = None
-            self._gap_pixels = None
-            self._geometry = None
+            self._mask_gap_pixels = None
+            self._mask_geometry = None
 
         return image
 
