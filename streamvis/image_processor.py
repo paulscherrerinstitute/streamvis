@@ -104,6 +104,10 @@ class ImageProcessor:
         Returns:
             (ndarray, ndarray, bool): Resulting thresholding image, aggregated image and reset flag.
         """
+        if image.shape == (1, 1):
+            # skip update if the image is dummy
+            return np.zeros((1, 1), dtype="float32"), np.zeros((1, 1), dtype="float32"), False
+
         counts = metadata.get("aggregated_images", 1)
 
         thr_image = image.copy()
