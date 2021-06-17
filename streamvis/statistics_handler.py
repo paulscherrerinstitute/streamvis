@@ -1,5 +1,5 @@
 import copy
-from collections import Counter, deque
+from collections import Counter, OrderedDict, deque
 from threading import RLock
 
 import numpy as np
@@ -23,6 +23,7 @@ class StatisticsHandler:
         self.hitrate_slow = Hitrate(step_size=1000)
         # TODO: fix maximum number of deques in the buffer
         self.roi_intensities_buffers = [deque(maxlen=50) for _ in range(9)]
+        self.radial_profile = RadialProfile()
         self._lock = RLock()
 
         self.data = dict(
@@ -60,10 +61,14 @@ class StatisticsHandler:
             case "ROI Intensities":
                 window.open('/roi_intensities');
                 break;
+            case "Radial Profile":
+                window.open('/radial_profile');
+                break;
         }
         """
         auxiliary_apps_dropdown = Dropdown(
-            label="Open Auxiliary Application", menu=["Statistics", "Hitrate", "ROI Intensities"]
+            label="Open Auxiliary Application",
+            menu=["Statistics", "Hitrate", "ROI Intensities", "Radial Profile"],
         )
         auxiliary_apps_dropdown.js_on_click(CustomJS(code=js_code))
 
@@ -143,6 +148,14 @@ class StatisticsHandler:
 
             laser_on = metadata.get("laser_on")
             if laser_on is not None:
+                radint_q = metadata.get("radint_q")
+                if radint_q is not None:
+                    self.radial_profile.update_q(radint_q)
+
+                radint_I = metadata.get("radint_I")
+                if radint_I is not None:
+                    self.radial_profile.update_I(pulse_id, laser_on, radint_I)
+
                 switch = "laser_on" if laser_on else "laser_off"
 
                 self._increment(f"{switch}_nframes", bin_ind)
@@ -237,3 +250,66 @@ class Hitrate:
                 y[i] = hits / total
 
         return x * self._step_size, y
+
+
+class MaxlenDict(OrderedDict):
+    def __init__(self, maxlen):
+        self._maxlen = maxlen
+
+    def __setitem__(self, key, value):
+        OrderedDict.__setitem__(self, key, value)
+        if len(self) > self._maxlen:
+            self.popitem(False)
+
+
+class RadialProfile:
+    def __init__(self, step_size=100, max_steps=100):
+        self._step_size = step_size
+        self._max_steps = max_steps
+        self._q_limits = []
+
+        self._profile_off = MaxlenDict(maxlen=max_steps)
+        self._profile_on = MaxlenDict(maxlen=max_steps)
+
+    def __bool__(self):
+        return bool(self._profile_off and self._profile_on)
+
+    def update_q(self, q):
+        if self._q_limits != q:
+            self._q_limits = q
+            self._profile_off.clear()
+            self._profile_on.clear()
+            self._q = np.arange(*q)
+
+    def update_I(self, pulse_id, laser_on, I):
+        if len(self._q) != len(I):
+            # probably an old message sent before q has changed
+            return
+
+        I = np.array(I)
+        bin_id = pulse_id // self._step_size
+        profile = self._profile_on if laser_on else self._profile_off
+
+        if bin_id in profile:
+            profile[bin_id][0] += 1
+            profile[bin_id][1] += I
+        else:
+            profile[bin_id] = [1, I]
+
+    @staticmethod
+    def _sum_profiles(entries):
+        total_num = 0
+        total_sum = 0
+        for num, profile in entries:
+            total_num += num
+            total_sum += profile
+        return total_sum, total_num
+
+    def __call__(self, n_steps):
+        if n_steps > self._max_steps:
+            raise ValueError("Number of requested steps is larger than max_steps.")
+
+        I_off, num_off = self._sum_profiles(list(self._profile_off.values())[-n_steps:])
+        I_on, num_on = self._sum_profiles(list(self._profile_on.values())[-n_steps:])
+
+        return self._q, I_off / num_off, num_off, I_on / num_on, num_on
