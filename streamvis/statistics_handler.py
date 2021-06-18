@@ -268,17 +268,15 @@ class RadialProfile:
         self._max_steps = max_steps
         self._q_limits = []
 
-        self._profile_off = MaxlenDict(maxlen=max_steps)
-        self._profile_on = MaxlenDict(maxlen=max_steps)
+        self._profiles = MaxlenDict(maxlen=max_steps)
 
     def __bool__(self):
-        return bool(self._profile_off and self._profile_on)
+        return bool(self._profiles)
 
     def update_q(self, q):
         if self._q_limits != q:
             self._q_limits = q
-            self._profile_off.clear()
-            self._profile_on.clear()
+            self._profiles.clear()
             self._q = np.arange(*q)
 
     def update_I(self, pulse_id, laser_on, I):
@@ -288,28 +286,33 @@ class RadialProfile:
 
         I = np.array(I)
         bin_id = pulse_id // self._step_size
-        profile = self._profile_on if laser_on else self._profile_off
 
-        if bin_id in profile:
-            profile[bin_id][0] += 1
-            profile[bin_id][1] += I
+        if bin_id not in self._profiles:
+            self._profiles[bin_id] = [0, 0, 0, 0]
+
+        if laser_on:
+            self._profiles[bin_id][0] += 1
+            self._profiles[bin_id][1] += I
         else:
-            profile[bin_id] = [1, I]
+            self._profiles[bin_id][2] += 1
+            self._profiles[bin_id][3] += I
 
-    @staticmethod
-    def _sum_profiles(entries):
-        total_num = 0
-        total_sum = 0
-        for num, profile in entries:
-            total_num += num
-            total_sum += profile
-        return total_sum, total_num
-
-    def __call__(self, n_steps):
+    def __call__(self, n_pulse_ids):
+        n_steps = n_pulse_ids // self._step_size
         if n_steps > self._max_steps:
             raise ValueError("Number of requested steps is larger than max_steps.")
 
-        I_off, num_off = self._sum_profiles(list(self._profile_off.values())[-n_steps:])
-        I_on, num_on = self._sum_profiles(list(self._profile_on.values())[-n_steps:])
+        newest_bin_id = next(reversed(self._profiles))
 
-        return self._q, I_off / num_off, num_off, I_on / num_on, num_on
+        profiles_list = [
+            profiles
+            for bin_id, profiles in self._profiles.items()
+            if bin_id > newest_bin_id - n_steps
+        ]
+
+        n_on, I_on, n_off, I_off = np.sum(np.array(profiles_list, dtype=object), axis=0)
+
+        I_on_avg = I_on / n_on if n_on != 0 else 0
+        I_off_avg = I_off / n_off if n_off != 0 else 0
+
+        return self._q, I_on_avg, n_on, I_off_avg, n_off
