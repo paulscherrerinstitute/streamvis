@@ -121,7 +121,6 @@ class StreamAdapter:
     def __init__(self):
         # a placeholder for jf data handler to be initiated with detector name
         self.handler = None
-        self._mask_double_pixels = None
 
         # Buffer image mask data
         self._inv_mask = None
@@ -129,19 +128,6 @@ class StreamAdapter:
         self._mask_gap_pixels = None
         self._mask_geometry = None
         self._module_map = None
-
-    @property
-    def mask_double_pixels(self):
-        """Current flag for masking double pixels.
-        """
-        return self._mask_double_pixels
-
-    @mask_double_pixels.setter
-    def mask_double_pixels(self, value):
-        value = bool(value)
-        self._mask_double_pixels = value
-        if self.handler is not None:
-            self.handler.mask_double_pixels = value
 
     def process(self, image, metadata, mask=True, gap_pixels=True, geometry=True):
         """Perform jungfrau detector data processing on an image received via stream.
@@ -160,8 +146,6 @@ class StreamAdapter:
             if self.handler is None or self.handler.detector_name != detector_name:
                 try:
                     self.handler = JFDataHandler(detector_name)
-                    if self.mask_double_pixels is not None:
-                        self.handler.mask_double_pixels = self.mask_double_pixels
                 except KeyError:
                     logging.exception(f"Error creating data handler for detector {detector_name}")
                     self.handler = None
@@ -230,7 +214,9 @@ class StreamAdapter:
                 or self._mask_gap_pixels != gap_pixels
                 or self._mask_geometry != geometry
             ):
-                self._inv_mask = np.invert(self.handler.get_pixel_mask(gap_pixels, geometry))
+                self._inv_mask = np.invert(
+                    self.handler.get_pixel_mask(gap_pixels=gap_pixels, geometry=geometry)
+                )
                 self._pedestal_file = self.handler.pedestal_file
                 self._module_map = self.handler.module_map
                 self._mask_gap_pixels = gap_pixels
