@@ -190,6 +190,26 @@ class Histogram:
 
         # get histogram counts and update plots
         for i, data in enumerate(input_data):
+            # np.histogram on 16M values can take around 0.5 sec, which is too much, thus reduce the
+            # number of processed values (not the ideal implementation, but should be good enough)
+            ratio = np.sqrt(data.size / 2_000_000)
+            if ratio > 1:
+                shape_x, shape_y = data.shape
+                stride_x = ratio * shape_x / shape_y
+                stride_y = ratio * shape_y / shape_x
+
+                if stride_x < 1:
+                    stride_y = int(np.ceil(stride_y * stride_x))
+                    stride_x = 1
+                elif stride_y < 1:
+                    stride_x = int(np.ceil(stride_y * stride_x))
+                    stride_y = 1
+                else:
+                    stride_x = int(np.ceil(stride_x))
+                    stride_y = int(np.ceil(stride_y))
+
+                data = data[::stride_y, ::stride_x]
+
             next_counts, edges = np.histogram(data, bins=self.nbins, range=(self.lower, self.upper))
 
             if self.log10counts_toggle.active:
