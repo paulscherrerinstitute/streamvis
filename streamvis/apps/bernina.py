@@ -98,6 +98,8 @@ sv_hist.plots[2].title = Title(text="Background roi", text_color="green")
 
 sv_streamctrl = sv.StreamControl()
 
+sv_image_processor = sv.ImageProcessor()
+
 
 # Final layouts
 layout_main = gridplot([[sv_main.plot, column(sv_zoom1.plot, sv_zoom2.plot)]], merge_tools=False)
@@ -143,6 +145,17 @@ layout_controls = row(
         sv_streamctrl.conv_opts_cbbg,
         row(sv_streamctrl.toggle, sv_streamctrl.show_only_events_toggle),
     ),
+    Spacer(width=30),
+    column(
+        row(sv_image_processor.threshold_min_spinner, sv_image_processor.threshold_max_spinner),
+        sv_image_processor.threshold_toggle,
+        Spacer(height=10),
+        row(
+            sv_image_processor.aggregate_time_spinner,
+            sv_image_processor.aggregate_time_counter_textinput,
+        ),
+        row(sv_image_processor.aggregate_toggle, sv_image_processor.average_toggle),
+    )
 )
 
 layout_metadata = column(
@@ -166,33 +179,52 @@ doc.add_root(final_layout)
 async def internal_periodic_callback():
     if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
         sv_rt.metadata, sv_rt.image = sv_streamctrl.get_stream_data(-1)
+        sv_rt.thresholded_image, sv_rt.aggregated_image, sv_rt.reset = sv_image_processor.update(
+            sv_rt.metadata, sv_rt.image
+        )
 
     if sv_rt.image.shape == (1, 1):
         # skip client update if the current image is dummy
         return
 
-    image, metadata = sv_rt.image, sv_rt.metadata
+    _, metadata = sv_rt.image, sv_rt.metadata
+    thr_image, reset, aggr_image = sv_rt.thresholded_image, sv_rt.reset, sv_rt.aggregated_image
 
-    sv_colormapper.update(image)
-    sv_main.update(image)
+    sv_colormapper.update(aggr_image)
+    sv_main.update(aggr_image)
 
     sv_spots.update(metadata)
     sv_resolrings.update(metadata)
     sv_intensity_roi.update(metadata)
     sv_saturated_pixels.update(metadata)
 
+    # Deactivate auto histogram range if aggregation is on
+    if sv_image_processor.aggregate_toggle.active:
+        sv_hist.auto_toggle.active = False
+
     # Signal roi and intensity
-    im_block1 = image[sv_zoom1.y_start : sv_zoom1.y_end, sv_zoom1.x_start : sv_zoom1.x_end]
+    im_block1 = aggr_image[sv_zoom1.y_start : sv_zoom1.y_end, sv_zoom1.x_start : sv_zoom1.x_end]
     sig_sum = bn.nansum(im_block1)
     sig_area = (sv_zoom1.y_end - sv_zoom1.y_start) * (sv_zoom1.x_end - sv_zoom1.x_start)
 
     # Background roi and intensity
-    im_block2 = image[sv_zoom2.y_start : sv_zoom2.y_end, sv_zoom2.x_start : sv_zoom2.x_end]
+    im_block2 = aggr_image[sv_zoom2.y_start : sv_zoom2.y_end, sv_zoom2.x_start : sv_zoom2.x_end]
     bkg_sum = bn.nansum(im_block2)
     bkg_area = (sv_zoom2.y_end - sv_zoom2.y_start) * (sv_zoom2.x_end - sv_zoom2.x_start)
 
     # Update histogram
-    sv_hist.update([image, im_block1, im_block2])
+    if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
+        # Update histograms
+        if reset:
+            sv_hist.update([aggr_image, im_block1, im_block2])
+        else:
+            im_block1 = thr_image[
+                sv_zoom1.y_start : sv_zoom1.y_end, sv_zoom1.x_start : sv_zoom1.x_end
+            ]
+            im_block2 = thr_image[
+                sv_zoom2.y_start : sv_zoom2.y_end, sv_zoom2.x_start : sv_zoom2.x_end
+            ]
+            sv_hist.update([thr_image, im_block1, im_block2], accumulate=True)
 
     # correct the backgroud roi sum by subtracting overlap area sum
     overlap_y_start = max(sv_zoom1.y_start, sv_zoom2.y_start)
@@ -201,7 +233,9 @@ async def internal_periodic_callback():
     overlap_x_end = min(sv_zoom1.x_end, sv_zoom2.x_end)
     if (overlap_y_end - overlap_y_start > 0) and (overlap_x_end - overlap_x_start > 0):
         # else no overlap
-        bkg_sum -= bn.nansum(image[overlap_y_start:overlap_y_end, overlap_x_start:overlap_x_end])
+        bkg_sum -= bn.nansum(
+            aggr_image[overlap_y_start:overlap_y_end, overlap_x_start:overlap_x_end]
+        )
         bkg_area -= (overlap_y_end - overlap_y_start) * (overlap_x_end - overlap_x_start)
 
     if bkg_area == 0:
@@ -214,7 +248,7 @@ async def internal_periodic_callback():
     sig_sum -= bkg_int * sig_area
 
     # Update total intensities plots
-    sv_streamgraph.update([bn.nansum(image), sig_sum])
+    sv_streamgraph.update([bn.nansum(aggr_image), sig_sum])
 
     sv_metadata.update(metadata)
 
