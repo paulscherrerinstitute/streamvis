@@ -1,6 +1,6 @@
 import numpy as np
 from bokeh.io import curdoc
-from bokeh.models import CheckboxButtonGroup, CustomJS, Select, Toggle
+from bokeh.models import CheckboxGroup, CustomJS, Select, Toggle
 
 js_backpressure_code = """
 if (cb_obj.tags[0]) return;
@@ -32,10 +32,10 @@ class StreamControl:
         self.datatype_select = datatype_select
 
         # conversion options
-        conv_opts_cbbg = CheckboxButtonGroup(
-            labels=["Mask", "Gap pixels", "Geometry"], active=[0, 1, 2]
+        conv_opts_cbg = CheckboxGroup(
+            labels=["Mask", "Gap pixels", "Geometry"], active=[0, 1, 2], default_size=145
         )
-        self.conv_opts_cbbg = conv_opts_cbbg
+        self.conv_opts_cbg = conv_opts_cbg
 
         # rotate image select
         rotate_values = ["0", "90", "180", "270"]
@@ -78,7 +78,7 @@ class StreamControl:
         if not self.toggle.tags[0]:
             return dict(shape=[1, 1]), np.zeros((1, 1), dtype="float32")
 
-        active_opts = list(self.conv_opts_cbbg.active)
+        active_opts = list(self.conv_opts_cbg.active)
         mask = 0 in active_opts
         gap_pixels = 1 in active_opts
         geometry = 2 in active_opts
