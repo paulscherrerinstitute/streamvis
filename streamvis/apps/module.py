@@ -88,7 +88,7 @@ layout_controls = column(
     show_overlays_div,
     row(sv_saturated_pixels.toggle, sv_main.proj_toggle),
     sv_streamctrl.datatype_select,
-    sv_streamctrl.conv_opts_cbg,
+    row(sv_streamctrl.conv_opts_cbg, sv_streamctrl.double_pixels_rg),
     row(sv_streamctrl.toggle, sv_streamctrl.show_only_events_toggle),
 )
 

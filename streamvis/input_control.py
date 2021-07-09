@@ -1,11 +1,13 @@
 import numpy as np
 from bokeh.io import curdoc
-from bokeh.models import CheckboxGroup, CustomJS, Select, Toggle
+from bokeh.models import CheckboxGroup, CustomJS, RadioGroup, Select, Toggle
 
 js_backpressure_code = """
 if (cb_obj.tags[0]) return;
 cb_obj.tags = [true];
 """
+
+DP_LABELS = ["keep", "mask", "interp"]
 
 
 class StreamControl:
@@ -36,6 +38,10 @@ class StreamControl:
             labels=["Mask", "Gap pixels", "Geometry"], active=[0, 1, 2], default_size=145
         )
         self.conv_opts_cbg = conv_opts_cbg
+
+        # double pixels handling
+        double_pixels_rg = RadioGroup(labels=DP_LABELS, active=0, default_size=145)
+        self.double_pixels_rg = double_pixels_rg
 
         # rotate image select
         rotate_values = ["0", "90", "180", "270"]
@@ -82,13 +88,23 @@ class StreamControl:
         mask = 0 in active_opts
         gap_pixels = 1 in active_opts
         geometry = 2 in active_opts
+        double_pixels = DP_LABELS[self.double_pixels_rg.active]
+
+        if not gap_pixels and double_pixels == "interp":
+            double_pixels = "keep"
+            self.double_pixels_rg.active = 0
 
         if self.show_only_events_toggle.active:
             # Show only events
             metadata, raw_image = self.stats.last_hit
             if self.datatype_select.value == "Image":
                 image = self.receiver.jf_adapter.process(
-                    raw_image, metadata, mask=mask, gap_pixels=gap_pixels, geometry=geometry
+                    raw_image,
+                    metadata,
+                    mask=mask,
+                    gap_pixels=gap_pixels,
+                    double_pixels=double_pixels,
+                    geometry=geometry,
                 )
 
                 if (
@@ -115,7 +131,11 @@ class StreamControl:
             # Show image at index
             if self.datatype_select.value == "Image":
                 metadata, image = self.receiver.get_image(
-                    index, mask=mask, gap_pixels=gap_pixels, geometry=geometry
+                    index,
+                    mask=mask,
+                    gap_pixels=gap_pixels,
+                    double_pixels=double_pixels,
+                    geometry=geometry,
                 )
             elif self.datatype_select.value == "Gains":
                 metadata, image = self.receiver.get_image_gains(
