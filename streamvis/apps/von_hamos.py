@@ -60,7 +60,7 @@ sv_zoom1 = sv.ImageView(
     y_start=ZOOM1_BOTTOM,
     y_end=ZOOM1_TOP,
 )
-
+sv_zoom1.proj_toggle = sv_main.proj_toggle
 sv_main.add_as_zoom(sv_zoom1, line_color="red")
 
 sv_zoom1_proj_v = sv.Projection(sv_zoom1, "vertical", plot_height=ZOOM_AGG_X_PLOT_HEIGHT)
@@ -79,7 +79,7 @@ sv_zoom2 = sv.ImageView(
     y_start=ZOOM2_BOTTOM,
     y_end=ZOOM2_TOP,
 )
-
+sv_zoom2.proj_toggle = sv_main.proj_toggle
 sv_main.add_as_zoom(sv_zoom2, line_color="green")
 
 sv_zoom2_proj_v = sv.Projection(sv_zoom2, "vertical", plot_height=ZOOM_AGG_X_PLOT_HEIGHT)
@@ -223,7 +223,7 @@ layout_controls = column(
     sv_colormapper.auto_toggle,
     Spacer(height=30),
     show_overlays_div,
-    row(sv_resolrings.toggle),
+    row(sv_resolrings.toggle, sv_main.proj_toggle),
     row(sv_intensity_roi.toggle, sv_saturated_pixels.toggle),
     Spacer(height=30),
     sv_streamctrl.datatype_select,

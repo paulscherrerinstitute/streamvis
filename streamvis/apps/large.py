@@ -30,6 +30,7 @@ sv_metadata.issues_datatable.height = 100
 
 sv_main = sv.ImageView(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
 sv_zoom = sv.ImageView(plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH)
+sv_zoom.proj_toggle = sv_main.proj_toggle
 sv_main.add_as_zoom(sv_zoom, line_color="white")
 
 sv_zoom_proj_v = sv.Projection(sv_zoom, "vertical", plot_height=ZOOM_PROJ_X_CANVAS_HEIGHT)
@@ -121,7 +122,7 @@ layout_controls = column(
     sv_colormapper.auto_toggle,
     Spacer(height=30),
     show_overlays_div,
-    row(sv_resolrings.toggle),
+    row(sv_resolrings.toggle, sv_main.proj_toggle),
     row(sv_intensity_roi.toggle, sv_saturated_pixels.toggle),
     Spacer(height=30),
     sv_streamctrl.datatype_select,

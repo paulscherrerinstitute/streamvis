@@ -59,6 +59,7 @@ sv_zoom1 = sv.ImageView(
     y_end=ZOOM1_TOP,
 )
 sv_zoom1.plot.title = Title(text="Signal roi", text_color="red")
+sv_zoom1.proj_toggle = sv_main.proj_toggle
 sv_main.add_as_zoom(sv_zoom1, line_color="red")
 
 sv_zoom2 = sv.ImageView(
@@ -72,6 +73,7 @@ sv_zoom2 = sv.ImageView(
     y_end=ZOOM2_TOP,
 )
 sv_zoom2.plot.title = Title(text="Background roi", text_color="green")
+sv_zoom2.proj_toggle = sv_main.proj_toggle
 sv_main.add_as_zoom(sv_zoom2, line_color="green")
 
 sv_streamgraph = sv.StreamGraph(nplots=2, plot_height=160, plot_width=DEBUG_INTENSITY_WIDTH)
@@ -139,7 +141,7 @@ layout_controls = row(
     Spacer(width=30),
     column(
         show_overlays_div,
-        row(sv_resolrings.toggle),
+        row(sv_resolrings.toggle, sv_main.proj_toggle),
         row(sv_intensity_roi.toggle, sv_saturated_pixels.toggle),
         row(sv_streamctrl.datatype_select, sv_streamctrl.rotate_image),
         row(sv_streamctrl.conv_opts, sv_streamctrl.double_pixels),
