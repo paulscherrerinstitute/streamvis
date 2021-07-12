@@ -11,7 +11,7 @@ from bokeh.server.server import Server
 
 from streamvis import __version__
 from streamvis.handler import StreamvisHandler, StreamvisCheckHandler
-from streamvis.receiver import Receiver
+from streamvis.receiver import Receiver, StreamAdapter
 from streamvis.statistics_handler import StatisticsHandler
 
 logging.basicConfig(format="%(asctime)s %(message)s", level=logging.INFO)
@@ -130,8 +130,7 @@ def main():
     # 'statistics' application, all messages are being processed.
     stats = StatisticsHandler(hit_threshold=args.hit_threshold, buffer_size=args.buffer_size)
 
-    # Receiver gets messages via zmq stream, reconstruct images (only those that are being
-    # requested), and parses statistics with StatisticsHandler
+    # Receiver gets messages via zmq stream and parses statistics with StatisticsHandler
     receiver = Receiver(on_receive=stats.parse, buffer_size=args.buffer_size)
 
     # Start receiver in a separate thread
@@ -139,9 +138,12 @@ def main():
     t = Thread(target=start_receiver, daemon=True)
     t.start()
 
+    # Reconstructs requested images
+    jf_adapter = StreamAdapter()
+
     # StreamvisHandler is a custom bokeh application Handler, which sets some of the core
     # properties for new bokeh documents created by all applications.
-    sv_handler = StreamvisHandler(receiver, stats, args)
+    sv_handler = StreamvisHandler(receiver, stats, jf_adapter, args)
     sv_check_handler = StreamvisCheckHandler(
         max_sessions=args.max_client_connections, allow_client_subnet=args.allow_client_subnet
     )

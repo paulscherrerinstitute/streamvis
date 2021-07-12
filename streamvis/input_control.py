@@ -17,6 +17,7 @@ class StreamControl:
         doc = curdoc()
         self.receiver = doc.receiver
         self.stats = doc.stats
+        self.jf_adapter = doc.jf_adapter
 
         # connect toggle button
         def toggle_callback(_active):
@@ -97,49 +98,39 @@ class StreamControl:
         if self.show_only_events_toggle.active:
             # Show only events
             metadata, raw_image = self.stats.last_hit
-            if self.datatype_select.value == "Image":
-                image = self.receiver.jf_adapter.process(
-                    raw_image,
-                    metadata,
-                    mask=mask,
-                    gap_pixels=gap_pixels,
-                    double_pixels=double_pixels,
-                    geometry=geometry,
-                )
-
-                if (
-                    self.receiver.jf_adapter.handler
-                    and "saturated_pixels" not in metadata
-                    and raw_image.dtype == np.uint16
-                ):
-                    saturated_pixels_coord = self.receiver.jf_adapter.handler.get_saturated_pixels(
-                        raw_image, mask=mask, gap_pixels=gap_pixels, geometry=geometry
-                    )
-
-                    metadata["saturated_pixels_coord"] = saturated_pixels_coord
-                    metadata["saturated_pixels"] = len(saturated_pixels_coord[0])
-
-            elif self.datatype_select.value == "Gains":
-                if raw_image.dtype != np.uint16:
-                    return metadata, raw_image
-
-                if self.receiver.jf_adapter.handler:
-                    image = self.receiver.jf_adapter.handler.get_gains(
-                        raw_image, mask=mask, gap_pixels=gap_pixels, geometry=geometry
-                    )
         else:
             # Show image at index
-            if self.datatype_select.value == "Image":
-                metadata, image = self.receiver.get_image(
-                    index,
-                    mask=mask,
-                    gap_pixels=gap_pixels,
-                    double_pixels=double_pixels,
-                    geometry=geometry,
+            metadata, raw_image = self.receiver.buffer[index]
+
+        if self.datatype_select.value == "Image":
+            image = self.jf_adapter.process(
+                raw_image,
+                metadata,
+                mask=mask,
+                gap_pixels=gap_pixels,
+                double_pixels=double_pixels,
+                geometry=geometry,
+            )
+
+            if (
+                self.jf_adapter.handler
+                and "saturated_pixels" not in metadata
+                and raw_image.dtype == np.uint16
+            ):
+                saturated_pixels_coord = self.jf_adapter.handler.get_saturated_pixels(
+                    raw_image, mask=mask, gap_pixels=gap_pixels, geometry=geometry
                 )
-            elif self.datatype_select.value == "Gains":
-                metadata, image = self.receiver.get_image_gains(
-                    index, mask=mask, gap_pixels=gap_pixels, geometry=geometry
+
+                metadata["saturated_pixels_coord"] = saturated_pixels_coord
+                metadata["saturated_pixels"] = len(saturated_pixels_coord[0])
+
+        elif self.datatype_select.value == "Gains":
+            if raw_image.dtype != np.uint16:
+                return dict(shape=[1, 1]), np.zeros((1, 1), dtype="float32")
+
+            if self.jf_adapter.handler:
+                image = self.jf_adapter.handler.get_gains(
+                    raw_image, mask=mask, gap_pixels=gap_pixels, geometry=geometry
                 )
 
         n_rot = int(self.rotate_image.value) // 90

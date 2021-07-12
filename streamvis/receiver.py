@@ -24,8 +24,6 @@ class Receiver:
         self.state = "polling"
         self.on_receive = on_receive
 
-        self.jf_adapter = StreamAdapter()
-
     def start(self, io_threads, connection_mode, address):
         """Start the receiver loop.
 
@@ -79,47 +77,6 @@ class Receiver:
 
             if self.on_receive is not None:
                 self.on_receive(metadata, image)
-
-    def get_image(self, index, mask=True, gap_pixels=True, double_pixels="keep", geometry=True):
-        """Get metadata and image with the index.
-        """
-        metadata, raw_image = self.buffer[index]
-        image = self.jf_adapter.process(
-            raw_image,
-            metadata,
-            mask=mask,
-            gap_pixels=gap_pixels,
-            double_pixels=double_pixels,
-            geometry=geometry,
-        )
-
-        if (
-            self.jf_adapter.handler
-            and "saturated_pixels" not in metadata
-            and raw_image.dtype == np.uint16
-        ):
-            saturated_pixels_coord = self.jf_adapter.handler.get_saturated_pixels(
-                raw_image, mask=mask, gap_pixels=gap_pixels, geometry=geometry
-            )
-
-            metadata["saturated_pixels_coord"] = saturated_pixels_coord
-            metadata["saturated_pixels"] = len(saturated_pixels_coord[0])
-
-        return metadata, image
-
-    def get_image_gains(self, index, mask=True, gap_pixels=True, geometry=True):
-        """Get metadata and gains of image with the index.
-        """
-        metadata, image = self.buffer[index]
-        if image.dtype != np.uint16:
-            return metadata, image
-
-        if self.jf_adapter.handler:
-            image = self.jf_adapter.handler.get_gains(
-                image, mask=mask, gap_pixels=gap_pixels, geometry=geometry
-            )
-
-        return metadata, image
 
 
 class StreamAdapter:
@@ -243,7 +200,7 @@ class StreamAdapter:
                 image = image.astype(np.float32)
 
             if image.shape == self._inv_mask.shape:
-                _apply_mask_core(image, self._inv_mask)
+                _apply_mask_njit(image, self._inv_mask)
             else:
                 raise ValueError("Image and mask shapes are not the same")
 
@@ -258,7 +215,7 @@ class StreamAdapter:
 
 
 @njit
-def _apply_mask_core(image, mask):
+def _apply_mask_njit(image, mask):
     sy, sx = image.shape
     for i in range(sx):
         for j in range(sy):
