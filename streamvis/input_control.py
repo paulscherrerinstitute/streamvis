@@ -1,6 +1,7 @@
 import numpy as np
 from bokeh.io import curdoc
-from bokeh.models import CheckboxGroup, CustomJS, RadioGroup, Select, Toggle
+from bokeh.layouts import column
+from bokeh.models import CheckboxGroup, CustomJS, Div, RadioGroup, Select, Toggle
 
 js_backpressure_code = """
 if (cb_obj.tags[0]) return;
@@ -35,14 +36,18 @@ class StreamControl:
         self.datatype_select = datatype_select
 
         # conversion options
+        conv_opts_div = Div(text="Conversion options:", margin=(5, 5, 0, 5))
         conv_opts_cbg = CheckboxGroup(
             labels=["Mask", "Gap pixels", "Geometry"], active=[0, 1, 2], default_size=145
         )
         self.conv_opts_cbg = conv_opts_cbg
+        self.conv_opts = column(conv_opts_div, conv_opts_cbg)
 
         # double pixels handling
+        double_pixels_div = Div(text="Double pixels:", margin=(5, 5, 0, 5))
         double_pixels_rg = RadioGroup(labels=DP_LABELS, active=0, default_size=145)
         self.double_pixels_rg = double_pixels_rg
+        self.double_pixels = column(double_pixels_div, double_pixels_rg)
 
         # rotate image select
         rotate_values = ["0", "90", "180", "270"]

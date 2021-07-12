@@ -227,7 +227,7 @@ layout_controls = column(
     row(sv_intensity_roi.toggle, sv_saturated_pixels.toggle),
     Spacer(height=30),
     sv_streamctrl.datatype_select,
-    row(sv_streamctrl.conv_opts_cbg, sv_streamctrl.double_pixels_rg),
+    row(sv_streamctrl.conv_opts, sv_streamctrl.double_pixels),
     row(sv_streamctrl.toggle, sv_streamctrl.show_only_events_toggle),
 )
 

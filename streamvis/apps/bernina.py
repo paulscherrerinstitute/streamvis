@@ -142,7 +142,7 @@ layout_controls = row(
         row(sv_resolrings.toggle),
         row(sv_intensity_roi.toggle, sv_saturated_pixels.toggle),
         row(sv_streamctrl.datatype_select, sv_streamctrl.rotate_image),
-        row(sv_streamctrl.conv_opts_cbg, sv_streamctrl.double_pixels_rg),
+        row(sv_streamctrl.conv_opts, sv_streamctrl.double_pixels),
         row(sv_streamctrl.toggle, sv_streamctrl.show_only_events_toggle),
     ),
     Spacer(width=30),
