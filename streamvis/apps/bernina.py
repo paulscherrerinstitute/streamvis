@@ -133,9 +133,8 @@ layout_controls = row(
         doc.stats.auxiliary_apps_dropdown,
         Spacer(height=10),
         row(sv_colormapper.select, sv_colormapper.high_color, sv_colormapper.mask_color),
-        sv_colormapper.scale_radiobuttongroup,
         row(sv_colormapper.display_min_spinner, sv_colormapper.display_max_spinner),
-        sv_colormapper.auto_toggle,
+        row(sv_colormapper.auto_toggle, sv_colormapper.scale_radiobuttongroup),
     ),
     Spacer(width=30),
     column(

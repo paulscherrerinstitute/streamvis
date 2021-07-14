@@ -70,9 +70,8 @@ layout_controls = column(
     load_file_button,
     image_index_slider,
     row(sv_colormapper.select, sv_colormapper.high_color),
-    sv_colormapper.scale_radiobuttongroup,
     row(sv_colormapper.display_min_spinner, sv_colormapper.display_max_spinner),
-    sv_colormapper.auto_toggle,
+    row(sv_colormapper.auto_toggle, sv_colormapper.scale_radiobuttongroup),
 )
 
 final_layout = row(layout_controls, sv_main.plot, column(sv_hist.plots[0], sv_metadata.datatable))

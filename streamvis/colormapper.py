@@ -2,15 +2,15 @@ import colorcet as cc
 import numpy as np
 from bokeh.models import (
     BasicTicker,
+    CheckboxGroup,
     ColorBar,
     ColorPicker,
     LinearColorMapper,
     LogColorMapper,
     LogTicker,
-    RadioButtonGroup,
+    RadioGroup,
     Select,
     Spinner,
-    Toggle,
 )
 
 from bokeh.palettes import Cividis256, Greys256, Plasma256
@@ -78,7 +78,7 @@ class ColorMapper:
                 display_min_spinner.disabled = False
                 display_max_spinner.disabled = False
 
-        auto_toggle = Toggle(label="Auto Colormap Range", active=False, button_type="default")
+        auto_toggle = CheckboxGroup(labels=["Auto Colormap Range"], default_size=145)
         auto_toggle.on_click(auto_toggle_callback)
         self.auto_toggle = auto_toggle
 
@@ -99,7 +99,9 @@ class ColorMapper:
                 else:
                     scale_radiobuttongroup.active = 0
 
-        scale_radiobuttongroup = RadioButtonGroup(labels=["Linear", "Logarithmic"], active=0)
+        scale_radiobuttongroup = RadioGroup(
+            labels=["Linear", "Logarithmic"], active=0, default_size=145
+        )
         scale_radiobuttongroup.on_click(scale_radiobuttongroup_callback)
         self.scale_radiobuttongroup = scale_radiobuttongroup
 
@@ -117,7 +119,7 @@ class ColorMapper:
             low=disp_min + STEP,
             value=disp_max,
             step=STEP,
-            disabled=auto_toggle.active,
+            disabled=bool(auto_toggle.active),
             default_size=145,
         )
         display_max_spinner.on_change("value", display_max_spinner_callback)
@@ -137,7 +139,7 @@ class ColorMapper:
             high=disp_max - STEP,
             value=disp_min,
             step=STEP,
-            disabled=auto_toggle.active,
+            disabled=bool(auto_toggle.active),
             default_size=145,
         )
         display_min_spinner.on_change("value", display_min_spinner_callback)
