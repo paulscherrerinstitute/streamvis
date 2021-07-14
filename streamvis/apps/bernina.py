@@ -161,7 +161,7 @@ layout_controls = row(
 )
 
 layout_metadata = column(
-    sv_metadata.issues_datatable, sv_metadata.datatable, row(sv_metadata.show_all_toggle)
+    sv_metadata.issues_datatable, row(sv_metadata.show_all_toggle), sv_metadata.datatable
 )
 
 final_layout = column(

@@ -1,7 +1,7 @@
 from datetime import datetime
 from itertools import compress, repeat
 
-from bokeh.models import ColumnDataSource, DataTable, StringFormatter, TableColumn, Toggle
+from bokeh.models import CheckboxGroup, ColumnDataSource, DataTable, StringFormatter, TableColumn
 
 # metadata entries that are always shown (if present)
 default_entries = ["frame", "pulse_id", "is_good_frame", "saturated_pixels", "time_poll"]
@@ -58,7 +58,7 @@ class MetadataHandler:
         self.issues_datatable = issues_datatable
 
         # Show all toggle
-        show_all_toggle = Toggle(label="Show All Metadata", button_type="default", default_size=145)
+        show_all_toggle = CheckboxGroup(labels=["Show All Metadata"], default_size=145)
         self.show_all_toggle = show_all_toggle
 
     def add_issue(self, issue):

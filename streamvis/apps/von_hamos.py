@@ -232,7 +232,7 @@ layout_controls = column(
 )
 
 layout_metadata = column(
-    sv_metadata.issues_datatable, sv_metadata.datatable, row(sv_metadata.show_all_toggle)
+    sv_metadata.issues_datatable, row(sv_metadata.show_all_toggle), sv_metadata.datatable
 )
 
 layout_left = column(row(layout_zoom1, layout_zoom2), layout_bottom_row_controls)
