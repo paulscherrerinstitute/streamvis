@@ -1,5 +1,5 @@
 import numpy as np
-from bokeh.models import Asterisk, ColumnDataSource, Toggle
+from bokeh.models import Asterisk, CheckboxGroup, ColumnDataSource
 
 
 class SaturatedPixels:
@@ -21,9 +21,7 @@ class SaturatedPixels:
             image_view.plot.add_glyph(self._source, marker_glyph)
 
         # ---- toggle button
-        toggle = Toggle(
-            label="Saturated Pixels", button_type="default", active=True, default_size=145
-        )
+        toggle = CheckboxGroup(labels=["Saturated Pixels"], active=[0], default_size=145)
         self.toggle = toggle
 
     def _clear(self):

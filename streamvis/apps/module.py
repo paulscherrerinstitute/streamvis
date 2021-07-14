@@ -44,6 +44,10 @@ sv_colormapper = sv.ColorMapper([sv_main, sv_zoom])
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
 sv_main.plot.add_layout(sv_colormapper.color_bar, place="below")
 
+sv_resolrings = sv.ResolutionRings([sv_main, sv_zoom], sv_metadata)
+
+sv_intensity_roi = sv.IntensityROI([sv_main, sv_zoom], sv_metadata)
+
 sv_saturated_pixels = sv.SaturatedPixels([sv_main, sv_zoom], sv_metadata)
 
 sv_hist = sv.Histogram(nplots=2, plot_height=200, plot_width=700)
@@ -86,7 +90,8 @@ layout_controls = column(
     row(sv_colormapper.display_min_spinner, sv_colormapper.display_max_spinner),
     sv_colormapper.auto_toggle,
     show_overlays_div,
-    row(sv_saturated_pixels.toggle, sv_main.proj_toggle),
+    row(sv_resolrings.toggle, sv_main.proj_toggle),
+    row(sv_intensity_roi.toggle, sv_saturated_pixels.toggle),
     sv_streamctrl.datatype_select,
     row(sv_streamctrl.conv_opts, sv_streamctrl.double_pixels),
     row(sv_streamctrl.toggle, sv_streamctrl.show_only_events_toggle),
@@ -132,6 +137,8 @@ async def internal_periodic_callback():
     sv_colormapper.update(aggr_image)
     sv_main.update(aggr_image)
 
+    sv_resolrings.update(metadata)
+    sv_intensity_roi.update(metadata)
     sv_saturated_pixels.update(metadata)
 
     # Statistics

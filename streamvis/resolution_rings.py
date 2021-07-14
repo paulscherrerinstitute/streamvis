@@ -1,5 +1,13 @@
 import numpy as np
-from bokeh.models import ColumnDataSource, Cross, CustomJSHover, Ellipse, HoverTool, Text, Toggle
+from bokeh.models import (
+    CheckboxGroup,
+    ColumnDataSource,
+    Cross,
+    CustomJSHover,
+    Ellipse,
+    HoverTool,
+    Text,
+)
 
 js_resolution = """
     var detector_distance = params.data.detector_distance
@@ -81,7 +89,7 @@ class ResolutionRings:
             for image_view in image_views:
                 image_view.plot.tools[-1] = hovertool
 
-        toggle = Toggle(label="Resolution Rings", button_type="default", default_size=145)
+        toggle = CheckboxGroup(labels=["Resolution Rings"], default_size=145)
         toggle.on_click(toggle_callback)
         self.toggle = toggle
 

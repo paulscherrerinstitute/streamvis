@@ -2,6 +2,7 @@ import bottleneck as bn
 import numpy as np
 from bokeh.models import (
     BasicTicker,
+    CheckboxGroup,
     ColumnDataSource,
     CustomJS,
     Grid,
@@ -16,7 +17,6 @@ from bokeh.models import (
     ResetTool,
     SaveTool,
     Text,
-    Toggle,
     WheelZoomTool,
 )
 from PIL import Image as PIL_Image
@@ -138,7 +138,7 @@ class ImageView:
         self._vproj_source = ColumnDataSource(dict(x=[], y=[]))
         plot.add_glyph(self._vproj_source, Line(x="x", y="y", line_color="red"))
 
-        proj_toggle = Toggle(label="Inner Projections", button_type="default", default_size=145)
+        proj_toggle = CheckboxGroup(labels=["Inner Projections"], default_size=145)
         self.proj_toggle = proj_toggle
 
     @property

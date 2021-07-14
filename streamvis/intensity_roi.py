@@ -1,4 +1,4 @@
-from bokeh.models import ColumnDataSource, Quad, Text, Toggle
+from bokeh.models import CheckboxGroup, ColumnDataSource, Quad, Text
 
 
 class IntensityROI:
@@ -38,7 +38,7 @@ class IntensityROI:
             image_view.plot.add_glyph(self._source, text_glyph)
 
         # ---- toggle button
-        toggle = Toggle(label="Intensity ROIs", button_type="default", default_size=145)
+        toggle = CheckboxGroup(labels=["Intensity ROIs"], default_size=145)
         self.toggle = toggle
 
     def _clear(self):
