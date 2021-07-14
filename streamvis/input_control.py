@@ -60,9 +60,7 @@ class StreamControl:
         self.rotate_image = rotate_image
 
         # show only events
-        self.show_only_events_toggle = Toggle(
-            label="Show Only Events", button_type="default", default_size=145
-        )
+        self.show_only_events_toggle = CheckboxGroup(labels=["Show Only Events"], default_size=145)
 
         doc.add_periodic_callback(self._update_toggle_view, 1000)
 
