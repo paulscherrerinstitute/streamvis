@@ -1,5 +1,5 @@
 import numpy as np
-from bokeh.models import Spinner, TextInput, Toggle
+from bokeh.models import CheckboxGroup, Spinner, TextInput
 
 
 class ImageProcessor:
@@ -9,11 +9,7 @@ class ImageProcessor:
         self.aggregated_image = np.zeros((1, 1), dtype=np.float32)
 
         # Intensity threshold toggle
-        def threshold_toggle_callback(state):
-            self.threshold_toggle.button_type = "primary" if state else "default"
-
-        threshold_toggle = Toggle(label="Apply Thresholding", active=False, button_type="default")
-        threshold_toggle.on_click(threshold_toggle_callback)
+        threshold_toggle = CheckboxGroup(labels=["Apply Thresholding"], default_size=145)
         self.threshold_toggle = threshold_toggle
 
         # Threshold min/max value spinners
@@ -25,13 +21,7 @@ class ImageProcessor:
         )
 
         # Aggregation time toggle
-        def aggregate_toggle_callback(state):
-            self.aggregate_toggle.button_type = "primary" if state else "default"
-
-        aggregate_toggle = Toggle(
-            label="Apply Aggregation", active=False, button_type="default", default_size=145
-        )
-        aggregate_toggle.on_click(aggregate_toggle_callback)
+        aggregate_toggle = CheckboxGroup(labels=["Apply Aggregation"], default_size=145)
         self.aggregate_toggle = aggregate_toggle
 
         # Aggregate time spinner
@@ -46,20 +36,8 @@ class ImageProcessor:
         self.aggregate_time_counter_textinput = aggregate_time_counter_textinput
 
         # Show Average toggle
-        def average_toggle_callback(state):
-            self.average_toggle.button_type = "primary" if state else "default"
-
-        average_toggle = Toggle(
-            label="Show Average", active=False, button_type="default", default_size=145
-        )
-        average_toggle.on_click(average_toggle_callback)
+        average_toggle = CheckboxGroup(labels=["Show Average"], default_size=145)
         self.average_toggle = average_toggle
-
-    @property
-    def threshold_flag(self):
-        """Threshold toggle state (readonly).
-        """
-        return self.threshold_toggle.active
 
     @property
     def threshold_min(self):
@@ -72,12 +50,6 @@ class ImageProcessor:
         """Maximal image threshold value (readonly).
         """
         return self.threshold_max_spinner.value
-
-    @property
-    def aggregate_flag(self):
-        """Aggregate toggle state (readonly).
-        """
-        return self.aggregate_toggle.active
 
     @property
     def aggregate_time(self):
@@ -111,12 +83,12 @@ class ImageProcessor:
         counts = metadata.get("aggregated_images", 1)
 
         thr_image = image.copy()
-        if self.threshold_flag:
+        if self.threshold_toggle.active:
             ind = (thr_image < self.threshold_min) | (self.threshold_max < thr_image)
             thr_image[ind] = 0
 
         if (
-            self.aggregate_flag
+            self.aggregate_toggle.active
             and (self.aggregate_time == 0 or self.aggregate_time > self.aggregate_counter)
             and self.aggregated_image.shape == image.shape
         ):
