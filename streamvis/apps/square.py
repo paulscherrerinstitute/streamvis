@@ -81,19 +81,17 @@ layout_controls = column(
     ),
     row(sv_image_processor.aggregate_toggle, sv_image_processor.average_toggle),
     Spacer(height=10),
-    doc.stats.auxiliary_apps_dropdown,
-    Spacer(height=10),
     row(sv_colormapper.select, sv_colormapper.high_color, sv_colormapper.mask_color),
     row(sv_colormapper.display_min_spinner, sv_colormapper.display_max_spinner),
     row(sv_colormapper.auto_toggle, sv_colormapper.scale_radiobuttongroup),
-    Spacer(height=10),
     show_overlays_div,
     row(sv_resolrings.toggle, sv_main.proj_toggle),
     row(sv_intensity_roi.toggle, sv_saturated_pixels.toggle),
     Spacer(height=10),
     row(sv_streamctrl.datatype_select, sv_streamctrl.rotate_image),
     row(sv_streamctrl.conv_opts, sv_streamctrl.double_pixels),
-    row(sv_streamctrl.toggle, sv_streamctrl.show_only_events_toggle),
+    row(Spacer(width=155), sv_streamctrl.show_only_events_toggle),
+    row(doc.stats.auxiliary_apps_dropdown, sv_streamctrl.toggle),
 )
 
 layout_metadata = column(

@@ -67,8 +67,9 @@ class StatisticsHandler:
         }
         """
         auxiliary_apps_dropdown = Dropdown(
-            label="Open Auxiliary Application",
+            label="Open Auxiliary App",
             menu=["Statistics", "Hitrate", "ROI Intensities", "Radial Profile"],
+            default_size=145,
         )
         auxiliary_apps_dropdown.js_on_click(CustomJS(code=js_code))
 

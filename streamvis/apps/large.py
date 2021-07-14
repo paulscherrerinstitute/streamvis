@@ -116,8 +116,6 @@ layout_controls = column(
     ),
     row(sv_image_processor.aggregate_toggle, sv_image_processor.average_toggle),
     Spacer(height=30),
-    stats.auxiliary_apps_dropdown,
-    Spacer(height=30),
     row(sv_colormapper.select, sv_colormapper.high_color, sv_colormapper.mask_color),
     row(sv_colormapper.display_min_spinner, sv_colormapper.display_max_spinner),
     row(sv_colormapper.auto_toggle, sv_colormapper.scale_radiobuttongroup),
@@ -129,7 +127,8 @@ layout_controls = column(
     row(sv_streamctrl.datatype_select, sv_streamctrl.rotate_image),
     image_buffer_slider,
     row(sv_streamctrl.conv_opts, sv_streamctrl.double_pixels),
-    row(sv_streamctrl.toggle, sv_streamctrl.show_only_events_toggle),
+    row(Spacer(width=155), sv_streamctrl.show_only_events_toggle),
+    row(doc.stats.auxiliary_apps_dropdown, sv_streamctrl.toggle),
 )
 
 layout_side_panel = column(
