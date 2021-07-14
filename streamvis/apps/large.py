@@ -86,8 +86,10 @@ layout_intensity = column(
 layout_hist = column(
     sv_hist.plots[0],
     row(
-        column(row(sv_hist.lower_spinner, sv_hist.upper_spinner), sv_hist.auto_toggle),
-        column(sv_hist.nbins_spinner, sv_hist.log10counts_toggle),
+        column(sv_hist.auto_toggle, sv_hist.log10counts_toggle),
+        sv_hist.lower_spinner,
+        sv_hist.upper_spinner,
+        sv_hist.nbins_spinner,
     ),
 )
 
@@ -175,7 +177,7 @@ async def internal_periodic_callback():
 
     # Deactivate auto histogram range if aggregation is on
     if sv_image_processor.aggregate_toggle.active:
-        sv_hist.auto_toggle.active = False
+        sv_hist.auto_toggle.active = []
 
     if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
         if reset:

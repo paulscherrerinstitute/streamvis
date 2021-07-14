@@ -104,10 +104,9 @@ layout_metadata = column(
 layout_hist = column(
     gridplot(sv_hist.plots, ncols=1, toolbar_location="left", toolbar_options=dict(logo=None)),
     row(
-        column(Spacer(height=19), sv_hist.auto_toggle),
+        column(sv_hist.auto_toggle, sv_hist.log10counts_toggle),
         sv_hist.lower_spinner,
         sv_hist.upper_spinner,
-        column(Spacer(height=19), sv_hist.log10counts_toggle),
         sv_hist.nbins_spinner,
     ),
 )
@@ -147,7 +146,7 @@ async def internal_periodic_callback():
 
     # Deactivate auto histogram range if aggregation is on
     if sv_image_processor.aggregate_toggle.active:
-        sv_hist.auto_toggle.active = False
+        sv_hist.auto_toggle.active = []
 
     # Update histogram
     if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:

@@ -3,6 +3,7 @@ import numpy as np
 from bokeh.models import (
     BasicTicker,
     BoxZoomTool,
+    CheckboxGroup,
     ColumnDataSource,
     DataRange1d,
     Grid,
@@ -13,7 +14,6 @@ from bokeh.models import (
     ResetTool,
     SaveTool,
     Spinner,
-    Toggle,
     WheelZoomTool,
 )
 
@@ -85,7 +85,7 @@ class Histogram:
                 lower_spinner.disabled = False
                 upper_spinner.disabled = False
 
-        auto_toggle = Toggle(label="Auto Hist Range", active=True, default_size=145)
+        auto_toggle = CheckboxGroup(labels=["Auto Hist Range"], active=[0], default_size=145)
         auto_toggle.on_click(auto_toggle_callback)
         self.auto_toggle = auto_toggle
 
@@ -99,7 +99,7 @@ class Histogram:
             high=upper - STEP,
             value=lower,
             step=STEP,
-            disabled=auto_toggle.active,
+            disabled=bool(auto_toggle.active),
             default_size=145,
         )
         lower_spinner.on_change("value", lower_spinner_callback)
@@ -115,7 +115,7 @@ class Histogram:
             low=lower + STEP,
             value=upper,
             step=STEP,
-            disabled=auto_toggle.active,
+            disabled=bool(auto_toggle.active),
             default_size=145,
         )
         upper_spinner.on_change("value", upper_spinner_callback)
@@ -138,7 +138,7 @@ class Histogram:
                 else:
                     plot.yaxis[0].axis_label = "Counts"
 
-        log10counts_toggle = Toggle(label="log⏨(Counts)", button_type="default", default_size=145)
+        log10counts_toggle = CheckboxGroup(labels=["log⏨(Counts)"], default_size=145)
         log10counts_toggle.on_click(log10counts_toggle_callback)
         self.log10counts_toggle = log10counts_toggle
 

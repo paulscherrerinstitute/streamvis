@@ -198,8 +198,10 @@ layout_bottom_row_controls = row(
     Spacer(width=100),
     column(save_spectrum_select, save_spectrum_button),
     Spacer(width=100),
-    column(row(sv_hist.lower_spinner, sv_hist.upper_spinner), sv_hist.auto_toggle),
-    column(sv_hist.nbins_spinner, sv_hist.log10counts_toggle),
+    column(sv_hist.auto_toggle, sv_hist.log10counts_toggle),
+    sv_hist.lower_spinner,
+    sv_hist.upper_spinner,
+    sv_hist.nbins_spinner,
 )
 
 layout_streamgraphs = column(
@@ -275,7 +277,7 @@ async def internal_periodic_callback():
 
     # Deactivate auto histogram range if aggregation is on
     if sv_image_processor.aggregate_toggle.active:
-        sv_hist.auto_toggle.active = False
+        sv_hist.auto_toggle.active = []
 
     im_block1 = aggr_image[sv_zoom1.y_start : sv_zoom1.y_end, sv_zoom1.x_start : sv_zoom1.x_end]
     total_sum_zoom1 = bn.nansum(im_block1)
