@@ -133,10 +133,10 @@ class ImageView:
 
         # ---- horizontal and vertical projection line glyphs
         self._hproj_source = ColumnDataSource(dict(x=[], y=[]))
-        plot.add_glyph(self._hproj_source, Line(x="x", y="y", line_color="red"))
+        plot.add_glyph(self._hproj_source, Line(x="x", y="y", line_color="greenyellow"))
 
         self._vproj_source = ColumnDataSource(dict(x=[], y=[]))
-        plot.add_glyph(self._vproj_source, Line(x="x", y="y", line_color="red"))
+        plot.add_glyph(self._vproj_source, Line(x="x", y="y", line_color="greenyellow"))
 
         proj_toggle = CheckboxGroup(labels=["Inner Projections"], default_size=145)
         self.proj_toggle = proj_toggle
