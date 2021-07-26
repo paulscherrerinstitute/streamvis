@@ -17,5 +17,6 @@ from .image_processor import ImageProcessor
 from .saturated_pixels import SaturatedPixels
 from .spots import Spots
 from .progress_bar import ProgressBar
+from .trajectory_plot import TrajectoryPlot
 
 __version__ = "1.6.0"
