@@ -64,7 +64,6 @@ def send_array(socket, array, frame_num, pulse_id, flags=0, copy=False, track=Fa
     """send a numpy array with metadata"""
     n_spots = int(np.random.uniform(0, 40))
     md = dict(
-        htype=["array-1.0"],
         type=str(array.dtype),
         shape=array.shape,
         frame=frame_num,
@@ -80,7 +79,6 @@ def send_array(socket, array, frame_num, pulse_id, flags=0, copy=False, track=Fa
         pedestal_file="/home/usov_i/pedestals/run_000089.JF06T32V02.res.h5",
         gain_file="/home/usov_i/gains/gains.2020-08.h5",
         detector_name="JF07T32V01",
-        run_name="run_001",
         detector_distance=0.015,
         beam_energy=4570.0,
         beam_center_x=700,
