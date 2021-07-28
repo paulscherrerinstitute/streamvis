@@ -38,16 +38,16 @@ class SaturatedPixels:
             self._clear()
             return
 
-        saturated_pixels_coord = metadata.get("saturated_pixels_coord")
+        saturated_pixels_y = metadata.get("saturated_pixels_y")
+        saturated_pixels_x = metadata.get("saturated_pixels_x")
 
-        if saturated_pixels_coord is None:
+        if saturated_pixels_y is None or saturated_pixels_x is None:
             self._sv_metadata.add_issue("Metadata does not contain data for saturated pixels")
             self._clear()
             return
 
-        y, x = saturated_pixels_coord
         # convert coordinates to numpy arrays, because if these values were received as a part
         # of a zmq message, they will be lists (ndarray is not JSON serializable)
-        y = np.array(y, copy=False)
-        x = np.array(x, copy=False)
-        self._source.data.update(x=x + 0.5, y=y + 0.5)
+        saturated_pixels_y = np.array(saturated_pixels_y, copy=False)
+        saturated_pixels_x = np.array(saturated_pixels_x, copy=False)
+        self._source.data.update(x=saturated_pixels_x + 0.5, y=saturated_pixels_y + 0.5)

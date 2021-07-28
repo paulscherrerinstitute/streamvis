@@ -105,6 +105,7 @@ class StreamControl:
             # Show image at index
             metadata, raw_image = self.receiver.buffer[index]
 
+        jf_handler = self.jf_adapter.handler
         if self.datatype_select.value == "Image":
             image = self.jf_adapter.process(
                 raw_image,
@@ -115,24 +116,21 @@ class StreamControl:
                 geometry=geometry,
             )
 
-            if (
-                self.jf_adapter.handler
-                and "saturated_pixels" not in metadata
-                and raw_image.dtype == np.uint16
-            ):
-                saturated_pixels_coord = self.jf_adapter.handler.get_saturated_pixels(
+            if jf_handler and "saturated_pixels" not in metadata and raw_image.dtype == np.uint16:
+                saturated_pixels_y, saturated_pixels_x = jf_handler.get_saturated_pixels(
                     raw_image, mask=mask, gap_pixels=gap_pixels, geometry=geometry
                 )
 
-                metadata["saturated_pixels_coord"] = saturated_pixels_coord
-                metadata["saturated_pixels"] = len(saturated_pixels_coord[0])
+                metadata["saturated_pixels_y"] = saturated_pixels_y
+                metadata["saturated_pixels_x"] = saturated_pixels_x
+                metadata["saturated_pixels"] = len(saturated_pixels_x)
 
         elif self.datatype_select.value == "Gains":
             if raw_image.dtype != np.uint16:
                 return dict(shape=[1, 1]), np.zeros((1, 1), dtype="float32")
 
-            if self.jf_adapter.handler:
-                image = self.jf_adapter.handler.get_gains(
+            if jf_handler:
+                image = jf_handler.get_gains(
                     raw_image, mask=mask, gap_pixels=gap_pixels, geometry=geometry
                 )
 

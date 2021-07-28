@@ -81,7 +81,8 @@ ROI intensities tab / Intensity ROIs overlay:
 * `roi_intensities_normalised: Iterable[float]` - a vector of corresponding ROI intensities
 
 Saturated Pixels overlay:
-* `saturated_pixels_coord: Iterable[Iterable[float], Iterable[float]]` - y- and x-coordinate vectors of saturated pixels (attempt to derive if not present in case of raw data (uint16))
+* `saturated_pixels_x: Iterable[float]` - x-coordinates of saturated pixels (attempt to derive if not present in case of raw data (uint16))
+* `saturated_pixels_y: Iterable[float]` - y-coordinates of saturated pixels (attempt to derive if not present in case of raw data (uint16))
 * `saturated_pixels: int` - a number of saturated pixels (attempt to derive if not present in case of raw data (uint16))
 
 Spots overlay:
