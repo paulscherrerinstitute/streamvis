@@ -21,7 +21,7 @@ test_disp_ranges = [
 def test_update_lin_auto(disp_min, disp_max):
     im = sv.ImageView()
     sv_cm = sv.ColorMapper([im], disp_min=disp_min, disp_max=disp_max)
-    sv_cm.auto_toggle.active = True
+    sv_cm.auto_toggle.active = [0]  # True
     sv_cm.update(test_image)
 
     assert sv_cm.display_min_spinner.value == 1
@@ -43,7 +43,7 @@ def test_update_log_auto(disp_min, disp_max):
     im = sv.ImageView()
     sv_cm = sv.ColorMapper([im], disp_min=disp_min, disp_max=disp_max)
     sv_cm.scale_radiobuttongroup.active = 1
-    sv_cm.auto_toggle.active = True
+    sv_cm.auto_toggle.active = [0]  # True
     sv_cm.update(test_image)
 
     assert sv_cm.display_min_spinner.value == 1

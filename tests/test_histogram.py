@@ -52,7 +52,7 @@ def test_update_array(sv_hist_single_plot):
 @pytest.mark.parametrize("nbins", [1, 300, 1000])
 def test_update_fixed(nbins):
     sv_hist = sv.Histogram(nplots=1, nbins=nbins)
-    sv_hist.auto_toggle.active = True
+    sv_hist.auto_toggle.active = [0]  # True
     data = [np.random.randint(-100, 100, 1000)]
     sv_hist.update(data)
 
