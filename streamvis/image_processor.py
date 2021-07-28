@@ -8,36 +8,29 @@ class ImageProcessor:
         """
         self.aggregated_image = np.zeros((1, 1), dtype=np.float32)
 
-        # Intensity threshold toggle
-        threshold_toggle = CheckboxGroup(labels=["Apply Thresholding"], default_size=145)
-        self.threshold_toggle = threshold_toggle
+        # Threshold widgets
+        self.threshold_toggle = CheckboxGroup(labels=["Apply Thresholding"], default_size=145)
 
-        # Threshold min/max value spinners
         self.threshold_min_spinner = Spinner(
             title="Min Intensity:", value=0, step=0.1, default_size=145
         )
+
         self.threshold_max_spinner = Spinner(
             title="Max Intensity:", value=1000, step=0.1, default_size=145
         )
 
-        # Aggregation time toggle
-        aggregate_toggle = CheckboxGroup(labels=["Apply Aggregation"], default_size=145)
-        self.aggregate_toggle = aggregate_toggle
+        # Aggregate widgets
+        self.aggregate_toggle = CheckboxGroup(labels=["Apply Aggregation"], default_size=145)
 
-        # Aggregate time spinner
-        self.aggregate_time_spinner = Spinner(
-            title="Aggregate Time:", value=0, low=0, step=1, default_size=145
+        self.aggregate_limit_spinner = Spinner(
+            title="Limit:", value=0, low=0, step=1, default_size=145
         )
 
-        # Aggregate time counter textinput
-        aggregate_time_counter_textinput = TextInput(
-            title="Time Counter:", value=str(1), disabled=True, default_size=145
+        self.aggregate_counter_textinput = TextInput(
+            title="Counter:", value=str(1), disabled=True, default_size=145
         )
-        self.aggregate_time_counter_textinput = aggregate_time_counter_textinput
 
-        # Show Average toggle
-        average_toggle = CheckboxGroup(labels=["Show Average"], default_size=145)
-        self.average_toggle = average_toggle
+        self.average_toggle = CheckboxGroup(labels=["Show Average"], default_size=145)
 
     @property
     def threshold_min(self):
@@ -52,20 +45,20 @@ class ImageProcessor:
         return self.threshold_max_spinner.value
 
     @property
-    def aggregate_time(self):
+    def aggregate_limit(self):
         """A number of image aggregation before resetting (readonly).
         """
-        return self.aggregate_time_spinner.value
+        return self.aggregate_limit_spinner.value
 
     @property
     def aggregate_counter(self):
         """A current number of aggregated images (readonly).
         """
-        return int(self.aggregate_time_counter_textinput.value)
+        return int(self.aggregate_counter_textinput.value)
 
     @aggregate_counter.setter
     def aggregate_counter(self, value):
-        self.aggregate_time_counter_textinput.value = str(value)
+        self.aggregate_counter_textinput.value = str(value)
 
     def update(self, metadata, image):
         """Trigger an update for the image processor.
@@ -89,7 +82,7 @@ class ImageProcessor:
 
         if (
             self.aggregate_toggle.active
-            and (self.aggregate_time == 0 or self.aggregate_time > self.aggregate_counter)
+            and (self.aggregate_limit == 0 or self.aggregate_limit > self.aggregate_counter)
             and self.aggregated_image.shape == image.shape
         ):
             self.aggregated_image += thr_image

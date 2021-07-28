@@ -100,7 +100,7 @@ sv_hist.plots[2].title = Title(text="Background roi", text_color="green")
 
 sv_streamctrl = sv.StreamControl()
 
-sv_image_processor = sv.ImageProcessor()
+sv_imageproc = sv.ImageProcessor()
 
 
 # Final layouts
@@ -146,15 +146,12 @@ layout_controls = row(
     ),
     Spacer(width=30),
     column(
-        row(sv_image_processor.threshold_min_spinner, sv_image_processor.threshold_max_spinner),
-        sv_image_processor.threshold_toggle,
+        row(sv_imageproc.threshold_min_spinner, sv_imageproc.threshold_max_spinner),
+        sv_imageproc.threshold_toggle,
         Spacer(height=10),
-        row(
-            sv_image_processor.aggregate_time_spinner,
-            sv_image_processor.aggregate_time_counter_textinput,
-        ),
-        row(sv_image_processor.aggregate_toggle, sv_image_processor.average_toggle),
-    )
+        row(sv_imageproc.aggregate_limit_spinner, sv_imageproc.aggregate_counter_textinput),
+        row(sv_imageproc.aggregate_toggle, sv_imageproc.average_toggle),
+    ),
 )
 
 layout_metadata = column(
@@ -178,7 +175,7 @@ doc.add_root(final_layout)
 async def internal_periodic_callback():
     if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
         sv_rt.metadata, sv_rt.image = sv_streamctrl.get_stream_data(-1)
-        sv_rt.thresholded_image, sv_rt.aggregated_image, sv_rt.reset = sv_image_processor.update(
+        sv_rt.thresholded_image, sv_rt.aggregated_image, sv_rt.reset = sv_imageproc.update(
             sv_rt.metadata, sv_rt.image
         )
 
@@ -198,7 +195,7 @@ async def internal_periodic_callback():
     sv_saturated_pixels.update(metadata)
 
     # Deactivate auto histogram range if aggregation is on
-    if sv_image_processor.aggregate_toggle.active:
+    if sv_imageproc.aggregate_toggle.active:
         sv_hist.auto_toggle.active = []
 
     # Signal roi and intensity

@@ -102,7 +102,7 @@ sv_spots = sv.Spots([sv_main], sv_metadata)
 
 sv_hist = sv.Histogram(nplots=2, plot_height=280, plot_width=sv_zoom1.plot.plot_width)
 
-sv_image_processor = sv.ImageProcessor()
+sv_imageproc = sv.ImageProcessor()
 
 zoom1_spectrum_x_source = ColumnDataSource(dict(x=[], y=[]))
 zoom1_spectrum_y_source = ColumnDataSource(dict(x=[], y=[]))
@@ -184,16 +184,13 @@ layout_zoom2 = column(
 
 layout_bottom_row_controls = row(
     column(
-        row(sv_image_processor.threshold_min_spinner, sv_image_processor.threshold_max_spinner),
-        sv_image_processor.threshold_toggle,
+        row(sv_imageproc.threshold_min_spinner, sv_imageproc.threshold_max_spinner),
+        sv_imageproc.threshold_toggle,
     ),
     Spacer(width=100),
     column(
-        row(
-            sv_image_processor.aggregate_time_spinner,
-            sv_image_processor.aggregate_time_counter_textinput,
-        ),
-        row(sv_image_processor.aggregate_toggle, sv_image_processor.average_toggle),
+        row(sv_imageproc.aggregate_limit_spinner, sv_imageproc.aggregate_counter_textinput),
+        row(sv_imageproc.aggregate_toggle, sv_imageproc.average_toggle),
     ),
     Spacer(width=100),
     column(save_spectrum_select, save_spectrum_button),
@@ -248,7 +245,7 @@ doc.add_root(row(Spacer(width=20), final_layout))
 async def internal_periodic_callback():
     if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:
         sv_rt.metadata, sv_rt.image = sv_streamctrl.get_stream_data(-1)
-        sv_rt.thresholded_image, sv_rt.aggregated_image, sv_rt.reset = sv_image_processor.update(
+        sv_rt.thresholded_image, sv_rt.aggregated_image, sv_rt.reset = sv_imageproc.update(
             sv_rt.metadata, sv_rt.image
         )
 
@@ -274,7 +271,7 @@ async def internal_periodic_callback():
     sv_zoom2_proj_h.update(sv_zoom2.displayed_image)
 
     # Deactivate auto histogram range if aggregation is on
-    if sv_image_processor.aggregate_toggle.active:
+    if sv_imageproc.aggregate_toggle.active:
         sv_hist.auto_toggle.active = []
 
     im_block1 = aggr_image[sv_zoom1.y_start : sv_zoom1.y_end, sv_zoom1.x_start : sv_zoom1.x_end]
