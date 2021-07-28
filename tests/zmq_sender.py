@@ -72,7 +72,6 @@ def send_array(socket, array, frame_num, pulse_id, flags=0, copy=False, track=Fa
         missing_packets_1=[0, 0, 0],
         missing_packets_2=[0, 1, 0],
         is_good_frame=int(np.random.uniform(0, 2)),
-        module_enabled=[1, 0, 1],
         number_of_spots=n_spots,
         spot_x=list(np.random.rand(n_spots) * 1000),
         spot_y=list(np.random.rand(n_spots) * 1000),

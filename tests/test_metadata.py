@@ -84,20 +84,6 @@ def test_is_good_frame_bad():
     assert len(sv_meta.issues_datatable.source.data["issues"]) == 1
 
 
-def test_module_enabled_good():
-    sv_meta = sv.MetadataHandler()
-    sv_meta.update({"module_enabled": [1, 0, 1], "missing_packets_1": [0, 1, 0]})
-
-    assert len(sv_meta.issues_datatable.source.data["issues"]) == 0
-
-
-def test_module_enabled_bad():
-    sv_meta = sv.MetadataHandler()
-    sv_meta.update({"module_enabled": [1, 1, 1], "missing_packets_1": [0, 1, 0]})
-
-    assert len(sv_meta.issues_datatable.source.data["issues"]) == 1
-
-
 def test_saturated_pixels_good():
     sv_meta = sv.MetadataHandler()
     sv_meta.update({"saturated_pixels": 0})
