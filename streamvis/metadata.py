@@ -86,24 +86,6 @@ class MetadataHandler:
             }
 
         # Check metadata for issues
-        pulse_id_diff = metadata.get("pulse_id_diff")
-        if pulse_id_diff:
-            if any(pulse_id_diff):
-                self.add_issue("Not all pulse_id_diff are 0")
-                metadata_toshow["pulse_id_diff"] = pulse_id_diff
-
-        missing_packets_1 = metadata.get("missing_packets_1")
-        if missing_packets_1:
-            if any(missing_packets_1):
-                self.add_issue("Not all missing_packets_1 are 0")
-                metadata_toshow["missing_packets_1"] = missing_packets_1
-
-        missing_packets_2 = metadata.get("missing_packets_2")
-        if missing_packets_2:
-            if any(missing_packets_2):
-                self.add_issue("Not all missing_packets_2 are 0")
-                metadata_toshow["missing_packets_2"] = missing_packets_2
-
         is_good_frame = metadata.get("is_good_frame", True)
         if not is_good_frame:
             self.add_issue("Frame is not good")

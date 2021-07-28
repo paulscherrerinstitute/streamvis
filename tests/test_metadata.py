@@ -28,48 +28,6 @@ def test_check_shape_bad(shape):
     assert len(sv_meta.issues_datatable.source.data["issues"]) == 1
 
 
-def test_pulse_id_diff_good():
-    sv_meta = sv.MetadataHandler()
-    sv_meta.update({"pulse_id_diff": [0, 0, 0]})
-
-    assert len(sv_meta.issues_datatable.source.data["issues"]) == 0
-
-
-def test_pulse_id_diff_bad():
-    sv_meta = sv.MetadataHandler()
-    sv_meta.update({"pulse_id_diff": [0, 1, 0]})
-
-    assert len(sv_meta.issues_datatable.source.data["issues"]) == 1
-
-
-def test_missing_packets_1_good():
-    sv_meta = sv.MetadataHandler()
-    sv_meta.update({"missing_packets_1": [0, 0, 0]})
-
-    assert len(sv_meta.issues_datatable.source.data["issues"]) == 0
-
-
-def test_missing_packets_1_bad():
-    sv_meta = sv.MetadataHandler()
-    sv_meta.update({"missing_packets_1": [0, 1, 0]})
-
-    assert len(sv_meta.issues_datatable.source.data["issues"]) == 1
-
-
-def test_missing_packets_2_good():
-    sv_meta = sv.MetadataHandler()
-    sv_meta.update({"missing_packets_2": [0, 0, 0]})
-
-    assert len(sv_meta.issues_datatable.source.data["issues"]) == 0
-
-
-def test_missing_packets_2_bad():
-    sv_meta = sv.MetadataHandler()
-    sv_meta.update({"missing_packets_2": [0, 1, 0]})
-
-    assert len(sv_meta.issues_datatable.source.data["issues"]) == 1
-
-
 def test_is_good_frame_good():
     sv_meta = sv.MetadataHandler()
     sv_meta.update({"is_good_frame": 1})

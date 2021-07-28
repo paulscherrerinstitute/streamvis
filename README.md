@@ -54,9 +54,6 @@ Optional jungfrau-related metadata entries:
 * `pedestal_file: str` - path to a pedestal file, required for adc->keV conversion and mask
 * `daq_rec: int` - a last bit is used to determine whether detector is in a highgain mode
 * `module_map: Iterable[int]` - a mapping between data regions and detector module positions (e.g. [0, -1, 1] - a second module is switched off)
-* `pulse_id_diff: Iterable[int]` - causes a metadata issue if not all values are equal to 0
-* `missing_packets_1: Iterable[int]` - causes a metadata issue if not all values are equal to 0
-* `missing_packets_2: Iterable[int]` - causes a metadata issue if not all values are equal to 0
 
 Statistics tab:
 * `pulse_id: int` - is required for statistics to be collected, data is grouped into runs based on this value
