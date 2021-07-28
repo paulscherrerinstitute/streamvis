@@ -105,6 +105,13 @@ class StreamControl:
             # Show image at index
             metadata, raw_image = self.receiver.buffer[index]
 
+        if raw_image.dtype == np.uint16:
+            self.conv_opts_cbg.disabled = False
+            self.double_pixels_rg.disabled = False
+        else:
+            self.conv_opts_cbg.disabled = True
+            self.double_pixels_rg.disabled = True
+
         jf_handler = self.jf_adapter.handler
         if self.datatype_select.value == "Image":
             image = self.jf_adapter.process(
