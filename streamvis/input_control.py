@@ -113,19 +113,16 @@ class StreamControl:
             self.double_pixels_rg.disabled = True
 
         jf_handler = self.jf_adapter.handler
+        opts_args = dict(
+            mask=mask, gap_pixels=gap_pixels, double_pixels=double_pixels, geometry=geometry
+        )
+
         if self.datatype_select.value == "Image":
-            image = self.jf_adapter.process(
-                raw_image,
-                metadata,
-                mask=mask,
-                gap_pixels=gap_pixels,
-                double_pixels=double_pixels,
-                geometry=geometry,
-            )
+            image = self.jf_adapter.process(raw_image, metadata, **opts_args)
 
             if jf_handler and "saturated_pixels" not in metadata and raw_image.dtype == np.uint16:
                 saturated_pixels_y, saturated_pixels_x = jf_handler.get_saturated_pixels(
-                    raw_image, mask=mask, gap_pixels=gap_pixels, geometry=geometry
+                    raw_image, **opts_args
                 )
 
                 metadata["saturated_pixels_y"] = saturated_pixels_y
@@ -137,9 +134,7 @@ class StreamControl:
                 return dict(shape=[1, 1]), np.zeros((1, 1), dtype="float32")
 
             if jf_handler:
-                image = jf_handler.get_gains(
-                    raw_image, mask=mask, gap_pixels=gap_pixels, geometry=geometry
-                )
+                image = jf_handler.get_gains(raw_image, **opts_args)
 
         n_rot = int(self.rotate_image.value) // 90
         if n_rot:
