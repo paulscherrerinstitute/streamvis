@@ -130,11 +130,7 @@ class StreamControl:
                 metadata["saturated_pixels"] = len(saturated_pixels_x)
 
         elif self.datatype_select.value == "Gains":
-            if raw_image.dtype != np.uint16:
-                return dict(shape=[1, 1]), np.zeros((1, 1), dtype="float32")
-
-            if jf_handler:
-                image = jf_handler.get_gains(raw_image, **opts_args)
+            image = self.jf_adapter.get_gains(raw_image, metadata, **opts_args)
 
         n_rot = int(self.rotate_image.value) // 90
         if n_rot:

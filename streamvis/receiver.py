@@ -148,6 +148,42 @@ class StreamAdapter:
 
         return proc_image
 
+    def get_gains(
+        self, image, metadata, mask=True, gap_pixels=True, double_pixels="keep", geometry=True
+    ):
+        # as a first step, try to set the detector_name, skip if detector_name is empty
+        detector_name = metadata.get("detector_name")
+        if detector_name:
+            # check if jungfrau data handler is already set for this detector
+            if self.handler is None or self.handler.detector_name != detector_name:
+                try:
+                    self.handler = JFDataHandler(detector_name)
+                except KeyError:
+                    logging.exception(f"Error creating data handler for detector {detector_name}")
+                    self.handler = None
+        else:
+            self.handler = None
+
+        if self.handler is None:
+            return dict(shape=[1, 1]), np.zeros((1, 1), dtype="float32")
+
+        if image.dtype != np.uint16:
+            return dict(shape=[1, 1]), np.zeros((1, 1), dtype="float32")
+
+        # parse metadata
+        self._update_handler(metadata)
+
+        gains = self.handler.get_gains(
+            image, mask=mask, gap_pixels=gap_pixels, double_pixels=double_pixels, geometry=geometry
+        )
+
+        if mask:
+            if double_pixels == "interp":
+                double_pixels = "keep"
+            gains = self._apply_mask(gains, gap_pixels, double_pixels, geometry)
+
+        return gains
+
     def _update_handler(self, md_dict):
         # gain file
         gain_file = md_dict.get("gain_file", "")
