@@ -164,7 +164,7 @@ sv_streamgraph.plots[0].title = Title(text="Total Intensity")
 sv_streamgraph.plots[1].title = Title(text="Zoom Area 1 Total Intensity")
 sv_streamgraph.plots[2].title = Title(text="Zoom Area 2 Total Intensity")
 
-sv_streamctrl = sv.StreamControl()
+sv_streamctrl = sv.StreamControl(sv_rt)
 
 
 # Final layouts
@@ -223,6 +223,7 @@ layout_controls = column(
     row(sv_intensity_roi.toggle, sv_saturated_pixels.toggle),
     Spacer(height=30),
     row(sv_streamctrl.datatype_select, sv_streamctrl.rotate_image),
+    sv_streamctrl.prev_image_slider,
     row(sv_streamctrl.conv_opts, sv_streamctrl.double_pixels),
     row(Spacer(width=155), sv_streamctrl.show_only_events_toggle),
     row(doc.stats.auxiliary_apps_dropdown, sv_streamctrl.toggle),

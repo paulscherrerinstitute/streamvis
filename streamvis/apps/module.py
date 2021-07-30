@@ -58,7 +58,7 @@ sv_streamgraph = sv.StreamGraph(nplots=2, plot_height=200, plot_width=700)
 sv_streamgraph.plots[0].title = Title(text="Total intensity")
 sv_streamgraph.plots[1].title = Title(text="Zoom total intensity")
 
-sv_streamctrl = sv.StreamControl()
+sv_streamctrl = sv.StreamControl(sv_rt)
 
 sv_imageproc = sv.ImageProcessor()
 
@@ -88,6 +88,7 @@ layout_controls = column(
     row(sv_resolrings.toggle, sv_main.proj_toggle),
     row(sv_intensity_roi.toggle, sv_saturated_pixels.toggle),
     row(sv_streamctrl.datatype_select, sv_streamctrl.rotate_image),
+    sv_streamctrl.prev_image_slider,
     row(sv_streamctrl.conv_opts, sv_streamctrl.double_pixels),
     row(Spacer(width=155), sv_streamctrl.show_only_events_toggle),
     row(doc.stats.auxiliary_apps_dropdown, sv_streamctrl.toggle),

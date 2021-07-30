@@ -98,7 +98,7 @@ sv_hist.plots[0].title = Title(text="Full image")
 sv_hist.plots[1].title = Title(text="Signal roi", text_color="red")
 sv_hist.plots[2].title = Title(text="Background roi", text_color="green")
 
-sv_streamctrl = sv.StreamControl()
+sv_streamctrl = sv.StreamControl(sv_rt)
 
 sv_imageproc = sv.ImageProcessor()
 
@@ -140,6 +140,7 @@ layout_controls = row(
     Spacer(width=30),
     column(
         row(sv_streamctrl.datatype_select, sv_streamctrl.rotate_image),
+        sv_streamctrl.prev_image_slider,
         row(sv_streamctrl.conv_opts, sv_streamctrl.double_pixels),
         row(Spacer(width=155), sv_streamctrl.show_only_events_toggle),
         row(doc.stats.auxiliary_apps_dropdown, sv_streamctrl.toggle),

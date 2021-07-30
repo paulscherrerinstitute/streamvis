@@ -1,7 +1,9 @@
+from collections import deque
+
 import numpy as np
 from bokeh.io import curdoc
 from bokeh.layouts import column
-from bokeh.models import CheckboxGroup, CustomJS, Div, RadioGroup, Select, Toggle
+from bokeh.models import CheckboxGroup, CustomJS, Div, RadioGroup, Select, Slider, Toggle
 
 js_backpressure_code = """
 if (cb_obj.tags[0]) return;
@@ -12,7 +14,7 @@ DP_LABELS = ["keep", "mask", "interp"]
 
 
 class StreamControl:
-    def __init__(self):
+    def __init__(self, sv_rt):
         """Initialize a stream control widget.
         """
         doc = curdoc()
@@ -22,6 +24,11 @@ class StreamControl:
 
         # connect toggle button
         def toggle_callback(_active):
+            if _active or not self._prev_image_buffer:
+                self.prev_image_slider.disabled = True
+            else:
+                self.prev_image_slider.disabled = False
+
             self._update_toggle_view()
 
         toggle = Toggle(label="Connect", button_type="primary", tags=[True], default_size=145)
@@ -61,6 +68,20 @@ class StreamControl:
 
         # show only events
         self.show_only_events_toggle = CheckboxGroup(labels=["Show Only Events"], default_size=145)
+
+        # Previous Image slider
+        self._prev_image_buffer = deque(maxlen=60)
+
+        def prev_image_slider_callback(_attr, _old, new):
+            sv_rt.metadata, sv_rt.image = self._prev_image_buffer[new]
+            # TODO: fix this workaround
+            sv_rt.aggregated_image = sv_rt.image
+
+        prev_image_slider = Slider(
+            start=0, end=59, value_throttled=0, step=1, title="Previous Image", disabled=True,
+        )
+        prev_image_slider.on_change("value_throttled", prev_image_slider_callback)
+        self.prev_image_slider = prev_image_slider
 
         doc.add_periodic_callback(self._update_toggle_view, 1000)
 
@@ -139,6 +160,14 @@ class StreamControl:
         image = np.ascontiguousarray(image, dtype=np.float32)
 
         self.toggle.tags = [False]
+
+        if not self._prev_image_buffer or self._prev_image_buffer[-1][0] is not metadata:
+            self._prev_image_buffer.append((metadata, image))
+
+        # Set slider to the right-most position
+        if len(self._prev_image_buffer) > 1:
+            self.prev_image_slider.end = len(self._prev_image_buffer) - 1
+            self.prev_image_slider.value = len(self._prev_image_buffer) - 1
 
         return metadata, image
 
