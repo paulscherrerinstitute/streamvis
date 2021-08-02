@@ -121,12 +121,8 @@ class StreamAdapter:
         if self.handler is None:
             return np.copy(image)
 
-        # still try to apply mask if data type differs from 'uint16' (probably, it is already been
-        # processed)
         if image.dtype != np.uint16:
             image = image.astype(np.float32, copy=True)
-            if mask:
-                image = self._apply_mask(image, gap_pixels, double_pixels, geometry)
             return image
 
         # parse metadata
