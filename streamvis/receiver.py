@@ -84,14 +84,6 @@ class StreamAdapter:
         # a placeholder for jf data handler to be initiated with detector name
         self.handler = None
 
-        # Buffer image mask data
-        self._inv_mask = None
-        self._pedestal_file = ""
-        self._mask_gap_pixels = None
-        self._mask_double_pixels = None
-        self._mask_geometry = None
-        self._module_map = None
-
     def process(
         self, image, metadata, mask=True, gap_pixels=True, double_pixels="keep", geometry=True
     ):
@@ -208,40 +200,18 @@ class StreamAdapter:
     def _apply_mask(self, image, gap_pixels, double_pixels, geometry):
         # assign masked values to np.nan
         if self.handler.pixel_mask is not None:
-            # check if mask needs to be refreshed
-            if (
-                self._pedestal_file != self.handler.pedestal_file
-                or np.any(self._module_map != self.handler.module_map)
-                or self._mask_gap_pixels != gap_pixels
-                or self._mask_double_pixels != double_pixels
-                or self._mask_geometry != geometry
-            ):
-                self._inv_mask = np.invert(
-                    self.handler.get_pixel_mask(
-                        gap_pixels=gap_pixels, double_pixels=double_pixels, geometry=geometry
-                    )
-                )
-                self._pedestal_file = self.handler.pedestal_file
-                self._module_map = self.handler.module_map
-                self._mask_gap_pixels = gap_pixels
-                self._mask_double_pixels = double_pixels
-                self._mask_geometry = geometry
+            mask = self.handler.get_pixel_mask(
+                gap_pixels=gap_pixels, double_pixels=double_pixels, geometry=geometry
+            )
 
             # cast to np.float32 in case there was no conversion, but mask should still be applied
             if image.dtype != np.float32:
                 image = image.astype(np.float32)
 
-            if image.shape == self._inv_mask.shape:
-                _apply_mask_njit(image, self._inv_mask)
+            if image.shape == mask.shape:
+                _apply_mask_njit(image, mask)
             else:
                 raise ValueError("Image and mask shapes are not the same")
-
-        else:
-            self._inv_mask = None
-            self._pedestal_file = ""
-            self._module_map = None
-            self._mask_gap_pixels = None
-            self._mask_geometry = None
 
         return image
 
@@ -251,5 +221,5 @@ def _apply_mask_njit(image, mask):
     sy, sx = image.shape
     for i in range(sx):
         for j in range(sy):
-            if mask[j, i]:
+            if not mask[j, i]:
                 image[j, i] = np.nan
