@@ -19,4 +19,4 @@ from .spots import Spots
 from .progress_bar import ProgressBar
 from .trajectory_plot import TrajectoryPlot
 
-__version__ = "1.7.1"
+__version__ = "1.7.2"
