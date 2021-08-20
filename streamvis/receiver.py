@@ -98,7 +98,7 @@ class StreamAdapter:
         """
         # as a first step, try to set the detector_name, skip if detector_name is empty
         detector_name = metadata.get("detector_name")
-        if detector_name:
+        if detector_name and detector_name.startswith("JF"):
             # check if jungfrau data handler is already set for this detector
             if self.handler is None or self.handler.detector_name != detector_name:
                 try:
@@ -111,6 +111,8 @@ class StreamAdapter:
 
         # return a copy of input image if jf data handler creation failed for that detector_name
         if self.handler is None:
+            if detector_name.startswith("Eiger"):
+                image = np.flipud(image)
             return np.copy(image)
 
         if image.dtype != np.uint16:
