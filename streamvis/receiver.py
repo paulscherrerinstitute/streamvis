@@ -111,7 +111,7 @@ class StreamAdapter:
 
         # return a copy of input image if jf data handler creation failed for that detector_name
         if self.handler is None:
-            if detector_name.startswith("Eiger"):
+            if detector_name and detector_name.startswith("Eiger"):
                 image = np.flipud(image)
             return np.copy(image)
 
