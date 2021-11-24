@@ -48,24 +48,65 @@ plot.add_layout(LinearAxis(axis_label="Hitrate"), place="left")
 plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
 plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
-# ---- blue step glyph
+# ---- hitrate fast step glyphs
 step_fast_source = ColumnDataSource(dict(x=[], y=[]))
 step_fast = plot.add_glyph(
     step_fast_source, Step(x="x", y="y", mode="after", line_color="steelblue", line_width=2)
 )
 
-# ---- red step glyph
+step_fast_lon_source = ColumnDataSource(dict(x=[], y=[]))
+step_fast_lon = plot.add_glyph(
+    step_fast_lon_source,
+    Step(x="x", y="y", mode="after", line_color="steelblue", line_width=2, line_dash="dashed"),
+    visible=False,
+)
+
+step_fast_loff_source = ColumnDataSource(dict(x=[], y=[]))
+step_fast_loff = plot.add_glyph(
+    step_fast_loff_source,
+    Step(x="x", y="y", mode="after", line_color="steelblue", line_width=2, line_dash="dotted"),
+    visible=False,
+)
+
+# ---- hitrate slow step glyphs
 step_slow_source = ColumnDataSource(dict(x=[], y=[]))
 step_slow = plot.add_glyph(
     step_slow_source, Step(x="x", y="y", mode="after", line_color="red", line_width=2)
+)
+
+step_slow_lon_source = ColumnDataSource(dict(x=[], y=[]))
+step_slow_lon = plot.add_glyph(
+    step_slow_lon_source,
+    Step(x="x", y="y", mode="after", line_color="red", line_width=2, line_dash="dashed"),
+    visible=False,
+)
+
+step_slow_loff_source = ColumnDataSource(dict(x=[], y=[]))
+step_slow_loff = plot.add_glyph(
+    step_slow_loff_source,
+    Step(x="x", y="y", mode="after", line_color="red", line_width=2, line_dash="dotted"),
+    visible=False,
+)
+
+hitrate_sources = (
+    (stats.hitrate_fast, step_fast_source),
+    (stats.hitrate_fast_lon, step_fast_lon_source),
+    (stats.hitrate_fast_loff, step_fast_loff_source),
+    (stats.hitrate_slow, step_slow_source),
+    (stats.hitrate_slow_lon, step_slow_lon_source),
+    (stats.hitrate_slow_loff, step_slow_loff_source),
 )
 
 # ---- legend
 plot.add_layout(
     Legend(
         items=[
-            (f"{stats.hitrate_fast.step_size} pulse ids avg", [step_fast]),
-            (f"{stats.hitrate_slow.step_size} pulse ids avg", [step_slow]),
+            (f"{stats.hitrate_fast.step_size} pulse avg", [step_fast]),
+            ("    laser on", [step_fast_lon]),
+            ("    laser off", [step_fast_loff]),
+            (f"{stats.hitrate_slow.step_size} pulse avg", [step_slow]),
+            ("    laser on", [step_slow_lon]),
+            ("    laser off", [step_slow_loff]),
         ],
         location="top_left",
     )
@@ -75,13 +116,9 @@ plot.legend.click_policy = "hide"
 
 # Reset button
 def reset_button_callback():
-    data = step_fast_source.data
-    if data["x"]:
-        step_fast_source.data.update(dict(x=[data["x"][-1]], y=[data["y"][-1]]))
-
-    data = step_slow_source.data
-    if data["x"]:
-        step_slow_source.data.update(dict(x=[data["x"][-1]], y=[data["y"][-1]]))
+    for _, source in hitrate_sources:
+        if source.data["x"]:
+            source.data.update(dict(x=[source.data["x"][-1]], y=[source.data["y"][-1]]))
 
 
 reset_button = Button(label="Reset", button_type="default", disabled=True)
@@ -94,13 +131,10 @@ def update():
         # Do not update graphs if data is not yet received
         return
 
-    x_fast, y_fast = stats.hitrate_fast.values
-    y_fast[-1] = y_fast[-2]
-    step_fast_source.data.update(dict(x=x_fast, y=y_fast))
-
-    x_slow, y_slow = stats.hitrate_slow.values
-    y_slow[-1] = y_slow[-2]
-    step_slow_source.data.update(dict(x=x_slow, y=y_slow))
+    for hitrate, source in hitrate_sources:
+        x, y = hitrate.values
+        y[-1] = y[-2]
+        source.data.update(dict(x=x, y=y))
 
 
 doc.add_root(

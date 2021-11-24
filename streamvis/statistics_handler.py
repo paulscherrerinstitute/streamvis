@@ -20,7 +20,11 @@ class StatisticsHandler:
         self.last_hit = (None, None)
         self.peakfinder_buffer = deque(maxlen=buffer_size)
         self.hitrate_fast = Hitrate(step_size=100)
+        self.hitrate_fast_lon = Hitrate(step_size=100)
+        self.hitrate_fast_loff = Hitrate(step_size=100)
         self.hitrate_slow = Hitrate(step_size=1000)
+        self.hitrate_slow_lon = Hitrate(step_size=1000)
+        self.hitrate_slow_loff = Hitrate(step_size=1000)
         # TODO: fix maximum number of deques in the buffer
         self.roi_intensities_buffers = [deque(maxlen=50) for _ in range(9)]
         self.radial_profile = RadialProfile()
@@ -109,6 +113,14 @@ class StatisticsHandler:
 
         self.hitrate_fast.update(pulse_id, sfx_hit)
         self.hitrate_slow.update(pulse_id, sfx_hit)
+        laser_on = metadata.get("laser_on")
+        if laser_on is not None:
+            if laser_on:
+                self.hitrate_fast_lon.update(pulse_id, sfx_hit)
+                self.hitrate_slow_lon.update(pulse_id, sfx_hit)
+            else:
+                self.hitrate_fast_loff.update(pulse_id, sfx_hit)
+                self.hitrate_slow_loff.update(pulse_id, sfx_hit)
 
         pulse_id_bin = pulse_id // PULSE_ID_STEP * PULSE_ID_STEP
         with self._lock:
@@ -147,7 +159,6 @@ class StatisticsHandler:
             else:
                 self.data["sat_pix_nframes"][bin_ind] = np.nan
 
-            laser_on = metadata.get("laser_on")
             if laser_on is not None:
                 radint_q = metadata.get("radint_q")
                 if radint_q is not None:
