@@ -127,7 +127,7 @@ class StreamAdapter:
         proc_image = self.handler.process(
             image,
             conversion=conversion,
-            mask=True,
+            mask=False,
             gap_pixels=gap_pixels,
             double_pixels=double_pixels,
             geometry=geometry,
