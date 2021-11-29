@@ -71,27 +71,28 @@ frames_on_spinner = Spinner(title="Frames laser on:", value=0, disabled=True)
 
 # Update ROI intensities plot
 def update():
-    if not stats.radial_profile:
+    if not (stats.radial_profile_lon or stats.radial_profile_loff):
         # Do not update graphs if data is not yet received
         return
 
-    q, I_on, num_on, I_off, num_off = stats.radial_profile(average_window_spinner.value)
+    q, avg_I_on, num_on = stats.radial_profile_lon(average_window_spinner.value)
+    _, avg_I_off, num_off = stats.radial_profile_loff(average_window_spinner.value)
 
     frames_off_spinner.value = num_off
     frames_on_spinner.value = num_on
 
     if num_off:
-        line_off_source.data.update(x=q, y=I_off)
+        line_off_source.data.update(x=q, y=avg_I_off)
     else:
         line_off_source.data.update(x=[], y=[])
 
     if num_on:
-        line_on_source.data.update(x=q, y=I_on)
+        line_on_source.data.update(x=q, y=avg_I_on)
     else:
         line_on_source.data.update(x=[], y=[])
 
     if num_off and num_on:
-        line_diff_source.data.update(x=q, y=I_on - I_off)
+        line_diff_source.data.update(x=q, y=avg_I_on - avg_I_off)
     else:
         line_diff_source.data.update(x=[], y=[])
 

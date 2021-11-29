@@ -27,7 +27,8 @@ class StatisticsHandler:
         self.hitrate_slow_loff = Hitrate(step_size=1000)
         # TODO: fix maximum number of deques in the buffer
         self.roi_intensities_buffers = [deque(maxlen=50) for _ in range(9)]
-        self.radial_profile = RadialProfile()
+        self.radial_profile_lon = RadialProfile()
+        self.radial_profile_loff = RadialProfile()
         self._lock = RLock()
 
         self.data = dict(
@@ -122,6 +123,18 @@ class StatisticsHandler:
                 self.hitrate_fast_loff.update(pulse_id, sfx_hit)
                 self.hitrate_slow_loff.update(pulse_id, sfx_hit)
 
+            radint_q = metadata.get("radint_q")
+            if radint_q is not None:
+                self.radial_profile_lon.update_q(radint_q)
+                self.radial_profile_loff.update_q(radint_q)
+
+            radint_I = metadata.get("radint_I")
+            if radint_I is not None:
+                if laser_on:
+                    self.radial_profile_lon.update_I(pulse_id, radint_I)
+                else:
+                    self.radial_profile_loff.update_I(pulse_id, radint_I)
+
         pulse_id_bin = pulse_id // PULSE_ID_STEP * PULSE_ID_STEP
         with self._lock:
             try:
@@ -160,14 +173,6 @@ class StatisticsHandler:
                 self.data["sat_pix_nframes"][bin_ind] = np.nan
 
             if laser_on is not None:
-                radint_q = metadata.get("radint_q")
-                if radint_q is not None:
-                    self.radial_profile.update_q(radint_q)
-
-                radint_I = metadata.get("radint_I")
-                if radint_I is not None:
-                    self.radial_profile.update_I(pulse_id, laser_on, radint_I)
-
                 switch = "laser_on" if laser_on else "laser_off"
 
                 self._increment(f"{switch}_nframes", bin_ind)
@@ -279,7 +284,7 @@ class RadialProfile:
         self._step_size = step_size
         self._max_steps = max_steps
         self._q_limits = []
-
+        self._q = np.zeros(1)
         self._profiles = MaxlenDict(maxlen=max_steps)
 
     def __bool__(self):
@@ -291,40 +296,38 @@ class RadialProfile:
             self._profiles.clear()
             self._q = np.arange(*q)
 
-    def update_I(self, pulse_id, laser_on, I):
+    def update_I(self, pulse_id, I):
         if len(self._q) != len(I):
-            # probably an old message sent before q has changed
+            # probably an old message sent before q has changed, in any case we can't process it
             return
 
         I = np.array(I)
         bin_id = pulse_id // self._step_size
 
         if bin_id not in self._profiles:
-            self._profiles[bin_id] = [0, 0, 0, 0]
+            self._profiles[bin_id] = [0, 0]
 
-        if laser_on:
-            self._profiles[bin_id][0] += 1
-            self._profiles[bin_id][1] += I
-        else:
-            self._profiles[bin_id][2] += 1
-            self._profiles[bin_id][3] += I
+        self._profiles[bin_id][0] += 1
+        self._profiles[bin_id][1] += I
 
     def __call__(self, n_pulse_ids):
-        n_steps = n_pulse_ids // self._step_size
-        if n_steps > self._max_steps:
-            raise ValueError("Number of requested steps is larger than max_steps.")
+        if bool(self):
+            n_steps = n_pulse_ids // self._step_size
+            if n_steps > self._max_steps:
+                raise ValueError("Number of requested steps is larger than max_steps.")
 
-        newest_bin_id = next(reversed(self._profiles))
+            newest_bin_id = next(reversed(self._profiles))
 
-        profiles_list = [
-            profiles
-            for bin_id, profiles in self._profiles.items()
-            if bin_id > newest_bin_id - n_steps
-        ]
+            profiles_list = [
+                profiles
+                for bin_id, profiles in self._profiles.items()
+                if bin_id > newest_bin_id - n_steps
+            ]
 
-        n_on, I_on, n_off, I_off = np.sum(np.array(profiles_list, dtype=object), axis=0)
+            num, sum_I = np.sum(np.array(profiles_list, dtype=object), axis=0)
+            avg_I = sum_I / num if num != 0 else np.zeros_like(self._q)
+        else:
+            num = 0
+            avg_I = np.zeros_like(self._q)
 
-        I_on_avg = I_on / n_on if n_on != 0 else 0
-        I_off_avg = I_off / n_off if n_off != 0 else 0
-
-        return self._q, I_on_avg, n_on, I_off_avg, n_off
+        return self._q, avg_I, num
