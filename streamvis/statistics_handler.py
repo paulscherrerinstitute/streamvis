@@ -1,5 +1,5 @@
 import copy
-from collections import Counter, OrderedDict, deque
+from collections import Counter, defaultdict, deque
 from threading import RLock
 
 import numpy as np
@@ -269,65 +269,76 @@ class Hitrate:
         return x * self._step_size, y
 
 
-class MaxlenDict(OrderedDict):
-    def __init__(self, maxlen):
-        self._maxlen = maxlen
-
-    def __setitem__(self, key, value):
-        OrderedDict.__setitem__(self, key, value)
-        if len(self) > self._maxlen:
-            self.popitem(False)
-
-
 class RadialProfile:
-    def __init__(self, step_size=100, max_steps=100):
+    def __init__(self, step_size=100, max_span=10_000):
         self._step_size = step_size
-        self._max_steps = max_steps
+        self._max_num_steps = max_span // step_size
+
+        self._start_bin_id = -1
+        self._stop_bin_id = -1
+
         self._q_limits = []
         self._q = np.zeros(1)
-        self._profiles = MaxlenDict(maxlen=max_steps)
+
+        self._I = defaultdict(int)
+        self._n = defaultdict(int)
 
     def __bool__(self):
-        return bool(self._profiles)
+        return bool(self._I and self._n)
+
+    @property
+    def step_size(self):
+        return self._step_size
 
     def update_q(self, q):
         if self._q_limits != q:
             self._q_limits = q
-            self._profiles.clear()
+
             self._q = np.arange(*q)
+            self._I.clear()
+            self._n.clear()
 
     def update_I(self, pulse_id, I):
-        if len(self._q) != len(I):
-            # probably an old message sent before q has changed, in any case we can't process it
-            return
-
-        I = np.array(I)
         bin_id = pulse_id // self._step_size
 
-        if bin_id not in self._profiles:
-            self._profiles[bin_id] = [0, 0]
+        if self._start_bin_id == -1:
+            self._start_bin_id = bin_id
 
-        self._profiles[bin_id][0] += 1
-        self._profiles[bin_id][1] += I
+        if bin_id < self._start_bin_id:
+            # the data is too old
+            return
+
+        min_bin_id = max(bin_id - self._max_num_steps, 0)
+        if self._start_bin_id < min_bin_id:
+            # update start_bin_id and drop old data from the counters
+            for _bin_id in range(self._start_bin_id, min_bin_id):
+                self._I.pop(_bin_id, None)
+                self._n.pop(_bin_id, None)
+
+            self._start_bin_id = min_bin_id
+
+        if self._stop_bin_id < bin_id + 1:
+            self._stop_bin_id = bin_id + 1
+
+        # update the counter
+        self._I[bin_id] += np.array(I)
+        self._n[bin_id] += 1
 
     def __call__(self, n_pulse_ids):
         if bool(self):
             n_steps = n_pulse_ids // self._step_size
-            if n_steps > self._max_steps:
-                raise ValueError("Number of requested steps is larger than max_steps.")
+            if n_steps > self._max_num_steps:
+                raise ValueError("Number of requested steps is larger than max_num_steps.")
 
-            newest_bin_id = next(reversed(self._profiles))
+            I_sum = 0
+            n_sum = 0
+            for _bin_id in range(self._stop_bin_id - n_steps, self._stop_bin_id + 1):
+                I_sum += self._I[_bin_id]
+                n_sum += self._n[_bin_id]
 
-            profiles_list = [
-                profiles
-                for bin_id, profiles in self._profiles.items()
-                if bin_id > newest_bin_id - n_steps
-            ]
-
-            num, sum_I = np.sum(np.array(profiles_list, dtype=object), axis=0)
-            avg_I = sum_I / num if num != 0 else np.zeros_like(self._q)
+            I_avg = I_sum / n_sum if n_sum != 0 else np.zeros_like(self._q)
         else:
-            num = 0
-            avg_I = np.zeros_like(self._q)
+            n_sum = 0
+            I_avg = np.zeros_like(self._q)
 
-        return self._q, avg_I, num
+        return self._q, I_avg, n_sum
