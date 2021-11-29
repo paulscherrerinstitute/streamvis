@@ -127,12 +127,8 @@ reset_button.on_click(reset_button_callback)
 
 # Update hitrate plot
 def update():
-    if not (stats.hitrate_fast and stats.hitrate_slow):
-        # Do not update graphs if data is not yet received
-        return
-
     for hitrate, source in hitrate_sources:
-        x, y = hitrate.values
+        x, y = hitrate()
         y[-1] = y[-2]
         source.data.update(dict(x=x, y=y))
 

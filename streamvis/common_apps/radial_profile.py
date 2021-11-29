@@ -65,16 +65,16 @@ plot.add_layout(
 plot.legend.click_policy = "hide"
 
 # Average window spinner
-average_window_spinner = Spinner(title="Pulse ID Window:", value=100, low=100, high=10000, step=100)
+step_size = stats.radial_profile_lon.step_size
+max_span = step_size * stats.radial_profile_lon.max_num_steps
+average_window_spinner = Spinner(
+    title="Pulse ID Window:", value=step_size, low=step_size, high=max_span, step=step_size
+)
 frames_off_spinner = Spinner(title="Frames laser off:", value=0, disabled=True)
 frames_on_spinner = Spinner(title="Frames laser on:", value=0, disabled=True)
 
 # Update ROI intensities plot
 def update():
-    if not (stats.radial_profile_lon or stats.radial_profile_loff):
-        # Do not update graphs if data is not yet received
-        return
-
     q, avg_I_on, num_on = stats.radial_profile_lon(average_window_spinner.value)
     _, avg_I_off, num_off = stats.radial_profile_loff(average_window_spinner.value)
 

@@ -211,9 +211,9 @@ class StatisticsHandler:
 
 
 class Hitrate:
-    def __init__(self, step_size=100, max_span=120_000):
+    def __init__(self, step_size=100, max_num_steps=1200):
         self._step_size = step_size
-        self._max_num_steps = max_span // step_size
+        self._max_num_steps = max_num_steps
 
         self._start_bin_id = -1
         self._stop_bin_id = -1
@@ -227,6 +227,10 @@ class Hitrate:
     @property
     def step_size(self):
         return self._step_size
+
+    @property
+    def max_num_steps(self):
+        return self._max_num_steps
 
     def update(self, pulse_id, is_hit):
         bin_id = pulse_id // self._step_size
@@ -254,8 +258,11 @@ class Hitrate:
         counter = self._hits if is_hit else self._empty
         counter.update([bin_id])
 
-    @property
-    def values(self):
+    def __call__(self):
+        if not bool(self):
+            # return zeros in case no data has been received yet
+            return np.zeros(2), np.zeros(2)
+
         # add an extra point for bokeh Step to display the last value
         x = np.arange(self._start_bin_id, self._stop_bin_id + 1)
         y = np.zeros_like(x, dtype=float)
@@ -270,16 +277,15 @@ class Hitrate:
 
 
 class RadialProfile:
-    def __init__(self, step_size=100, max_span=10_000):
+    def __init__(self, step_size=100, max_num_steps=100):
         self._step_size = step_size
-        self._max_num_steps = max_span // step_size
+        self._max_num_steps = max_num_steps
 
         self._start_bin_id = -1
         self._stop_bin_id = -1
 
         self._q_limits = []
         self._q = np.zeros(1)
-
         self._I = defaultdict(int)
         self._n = defaultdict(int)
 
@@ -290,10 +296,13 @@ class RadialProfile:
     def step_size(self):
         return self._step_size
 
+    @property
+    def max_num_steps(self):
+        return self._max_num_steps
+
     def update_q(self, q):
         if self._q_limits != q:
             self._q_limits = q
-
             self._q = np.arange(*q)
             self._I.clear()
             self._n.clear()
@@ -310,7 +319,7 @@ class RadialProfile:
 
         min_bin_id = max(bin_id - self._max_num_steps, 0)
         if self._start_bin_id < min_bin_id:
-            # update start_bin_id and drop old data from the counters
+            # drop old data from the counters and update start_bin_id
             for _bin_id in range(self._start_bin_id, min_bin_id):
                 self._I.pop(_bin_id, None)
                 self._n.pop(_bin_id, None)
@@ -320,25 +329,25 @@ class RadialProfile:
         if self._stop_bin_id < bin_id + 1:
             self._stop_bin_id = bin_id + 1
 
-        # update the counter
+        # update the counters
         self._I[bin_id] += np.array(I)
         self._n[bin_id] += 1
 
     def __call__(self, n_pulse_ids):
-        if bool(self):
-            n_steps = n_pulse_ids // self._step_size
-            if n_steps > self._max_num_steps:
-                raise ValueError("Number of requested steps is larger than max_num_steps.")
+        if not bool(self):
+            # return zeros in case no data has been received yet
+            return self._q, np.zeros_like(self._q), 0
 
-            I_sum = 0
-            n_sum = 0
-            for _bin_id in range(self._stop_bin_id - n_steps, self._stop_bin_id + 1):
-                I_sum += self._I[_bin_id]
-                n_sum += self._n[_bin_id]
+        n_steps = n_pulse_ids // self._step_size
+        if n_steps > self._max_num_steps:
+            raise ValueError("Number of requested steps is larger than max_num_steps.")
 
-            I_avg = I_sum / n_sum if n_sum != 0 else np.zeros_like(self._q)
-        else:
-            n_sum = 0
-            I_avg = np.zeros_like(self._q)
+        I_sum = 0
+        n_sum = 0
+        for _bin_id in range(self._stop_bin_id - n_steps, self._stop_bin_id):
+            I_sum += self._I[_bin_id]
+            n_sum += self._n[_bin_id]
+
+        I_avg = I_sum / n_sum if n_sum != 0 else np.zeros_like(self._q)
 
         return self._q, I_avg, n_sum
