@@ -27,6 +27,7 @@ class StatisticsHandler:
         self.hitrate_slow_loff = Hitrate(step_size=1000)
         # TODO: fix maximum number of deques in the buffer
         self.roi_intensities_buffers = [deque(maxlen=50) for _ in range(9)]
+        self.roi_pump_probe = PumpProbe()
         self.radial_profile_lon = RadialProfile()
         self.radial_profile_loff = RadialProfile()
         self._lock = RLock()
@@ -66,6 +67,9 @@ class StatisticsHandler:
             case "ROI Intensities":
                 window.open('/roi_intensities');
                 break;
+            case "ROI Pump-Probe":
+                window.open('/roi_pump_probe');
+                break;
             case "Radial Profile":
                 window.open('/radial_profile');
                 break;
@@ -73,7 +77,7 @@ class StatisticsHandler:
         """
         auxiliary_apps_dropdown = Dropdown(
             label="Open Auxiliary App",
-            menu=["Statistics", "Hitrate", "ROI Intensities", "Radial Profile"],
+            menu=["Statistics", "Hitrate", "ROI Intensities", "ROI Pump-Probe", "Radial Profile"],
             default_size=145,
         )
         auxiliary_apps_dropdown.js_on_click(CustomJS(code=js_code))
@@ -95,17 +99,6 @@ class StatisticsHandler:
         if image.shape != (2, 2) and sfx_hit:
             # add to buffer only if the recieved image is not dummy
             self.last_hit = (metadata, image)
-
-        roi_intensities = metadata.get("roi_intensities_normalised")
-        if roi_intensities is not None:
-            for buf_ind, buffer in enumerate(self.roi_intensities_buffers):
-                if buf_ind < len(roi_intensities):
-                    buffer.append(roi_intensities[buf_ind])
-                else:
-                    buffer.clear()
-        else:
-            for buffer in self.roi_intensities_buffers:
-                buffer.clear()
 
         pulse_id = metadata.get("pulse_id")
         if pulse_id is None:
@@ -134,6 +127,19 @@ class StatisticsHandler:
                     self.radial_profile_lon.update_I(pulse_id, radint_I)
                 else:
                     self.radial_profile_loff.update_I(pulse_id, radint_I)
+
+        roi_intensities = metadata.get("roi_intensities_normalised")
+        if roi_intensities is not None:
+            self.roi_pump_probe.update(pulse_id, laser_on, roi_intensities[0], roi_intensities[1])
+
+            for buf_ind, buffer in enumerate(self.roi_intensities_buffers):
+                if buf_ind < len(roi_intensities):
+                    buffer.append(roi_intensities[buf_ind])
+                else:
+                    buffer.clear()
+        else:
+            for buffer in self.roi_intensities_buffers:
+                buffer.clear()
 
         pulse_id_bin = pulse_id // PULSE_ID_STEP * PULSE_ID_STEP
         with self._lock:
@@ -351,3 +357,87 @@ class RadialProfile:
         I_avg = I_sum / n_sum if n_sum != 0 else np.zeros_like(self._q)
 
         return self._q, I_avg, n_sum
+
+
+class PumpProbe:
+    def __init__(self, step_size=100, max_span=120_000):
+        self._step_size = step_size
+        self._max_num_steps = max_span // step_size
+
+        self._start_bin_id = -1
+        self._stop_bin_id = -1
+
+        self._sig_lon = defaultdict(int)
+        self._bkg_lon = defaultdict(int)
+        self._sig_loff = defaultdict(int)
+        self._bkg_loff = defaultdict(int)
+
+    def __bool__(self):
+        return bool(self._sig_lon and self._bkg_lon and self._sig_loff and self._bkg_loff)
+
+    @property
+    def step_size(self):
+        return self._step_size
+
+    @property
+    def max_span(self):
+        return self._step_size * self._max_num_steps
+
+    def update(self, pulse_id, laser_on, sig, bkg):
+        bin_id = pulse_id // self._step_size
+
+        if self._start_bin_id == -1:
+            self._start_bin_id = bin_id
+
+        if bin_id < self._start_bin_id:
+            # the data is too old
+            return
+
+        min_bin_id = max(bin_id - self._max_num_steps, 0)
+        if self._start_bin_id < min_bin_id:
+            # update start_bin_id and drop old data from the counters
+            for _bin_id in range(self._start_bin_id, min_bin_id):
+                del self._sig_lon[_bin_id]
+                del self._bkg_lon[_bin_id]
+                del self._sig_loff[_bin_id]
+                del self._bkg_loff[_bin_id]
+
+            self._start_bin_id = min_bin_id
+
+        if self._stop_bin_id < bin_id + 1:
+            self._stop_bin_id = bin_id + 1
+
+        # update the counters
+        if laser_on:
+            self._sig_lon[bin_id] += sig
+            self._bkg_lon[bin_id] += bkg
+        else:
+            self._sig_loff[bin_id] += sig
+            self._bkg_loff[bin_id] += bkg
+
+    def __call__(self, pulse_id_window):
+        if not bool(self):
+            # return zeros in case no data has been received yet
+            return np.zeros(2), np.zeros(2)
+
+        n_steps = pulse_id_window // self._step_size
+        if n_steps > self._max_num_steps:
+            raise ValueError("Requested pulse_id window is larger than the maximum pulse_id span.")
+
+        # add an extra point for bokeh Step to display the last value
+        start_bin_id = self._start_bin_id - self._start_bin_id % n_steps
+        x = np.arange(start_bin_id, self._stop_bin_id + 1, n_steps)
+        y = np.zeros_like(x, dtype=np.float64)
+
+        for ind, _bin_id in enumerate(x):
+            sum_sig_lon = sum_bkg_lon = sum_sig_loff = sum_bkg_loff = 0
+            for shift in range(n_steps):
+                sum_sig_lon += self._sig_lon[_bin_id + shift]
+                sum_bkg_lon += self._bkg_lon[_bin_id + shift]
+                sum_sig_loff += self._sig_loff[_bin_id + shift]
+                sum_bkg_loff += self._bkg_loff[_bin_id + shift]
+
+            if sum_bkg_lon and sum_sig_loff and sum_bkg_loff:
+                y[ind] = (sum_sig_lon / sum_bkg_lon) / (sum_sig_loff / sum_bkg_loff) - 1
+
+        return x * self._step_size, y
