@@ -211,9 +211,9 @@ class StatisticsHandler:
 
 
 class Hitrate:
-    def __init__(self, step_size=100, max_num_steps=1200):
+    def __init__(self, step_size=100, max_span=120_000):
         self._step_size = step_size
-        self._max_num_steps = max_num_steps
+        self._max_num_steps = max_span // step_size
 
         self._start_bin_id = -1
         self._stop_bin_id = -1
@@ -229,8 +229,8 @@ class Hitrate:
         return self._step_size
 
     @property
-    def max_num_steps(self):
-        return self._max_num_steps
+    def max_span(self):
+        return self._step_size * self._max_num_steps
 
     def update(self, pulse_id, is_hit):
         bin_id = pulse_id // self._step_size
@@ -267,19 +267,19 @@ class Hitrate:
         x = np.arange(self._start_bin_id, self._stop_bin_id + 1)
         y = np.zeros_like(x, dtype=float)
 
-        for i, _bin_id in enumerate(x):
+        for ind, _bin_id in enumerate(x):
             hits = self._hits[_bin_id]
             total = hits + self._empty[_bin_id]
             if total:
-                y[i] = hits / total
+                y[ind] = hits / total
 
         return x * self._step_size, y
 
 
 class RadialProfile:
-    def __init__(self, step_size=100, max_num_steps=100):
+    def __init__(self, step_size=100, max_span=10_000):
         self._step_size = step_size
-        self._max_num_steps = max_num_steps
+        self._max_num_steps = max_span // step_size
 
         self._start_bin_id = -1
         self._stop_bin_id = -1
@@ -297,8 +297,8 @@ class RadialProfile:
         return self._step_size
 
     @property
-    def max_num_steps(self):
-        return self._max_num_steps
+    def max_span(self):
+        return self._step_size * self._max_num_steps
 
     def update_q(self, q):
         if self._q_limits != q:
@@ -333,14 +333,14 @@ class RadialProfile:
         self._I[bin_id] += np.array(I)
         self._n[bin_id] += 1
 
-    def __call__(self, n_pulse_ids):
+    def __call__(self, pulse_id_window):
         if not bool(self):
             # return zeros in case no data has been received yet
             return self._q, np.zeros_like(self._q), 0
 
-        n_steps = n_pulse_ids // self._step_size
+        n_steps = pulse_id_window // self._step_size
         if n_steps > self._max_num_steps:
-            raise ValueError("Number of requested steps is larger than max_num_steps.")
+            raise ValueError("Requested pulse_id window is larger than the maximum pulse_id span.")
 
         I_sum = 0
         n_sum = 0

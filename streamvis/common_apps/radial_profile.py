@@ -66,7 +66,7 @@ plot.legend.click_policy = "hide"
 
 # Average window spinner
 step_size = stats.radial_profile_lon.step_size
-max_span = step_size * stats.radial_profile_lon.max_num_steps
+max_span = stats.radial_profile_lon.max_span
 average_window_spinner = Spinner(
     title="Pulse ID Window:", value=step_size, low=step_size, high=max_span, step=step_size
 )
