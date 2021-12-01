@@ -130,7 +130,10 @@ class StatisticsHandler:
 
         roi_intensities = metadata.get("roi_intensities_normalised")
         if roi_intensities is not None:
-            self.roi_pump_probe.update(pulse_id, laser_on, roi_intensities[0], roi_intensities[1])
+            if len(roi_intensities) >= 2:
+                self.roi_pump_probe.update(
+                    pulse_id, laser_on, sig=roi_intensities[0], bkg=roi_intensities[1]
+                )
 
             for buf_ind, buffer in enumerate(self.roi_intensities_buffers):
                 if buf_ind < len(roi_intensities):
