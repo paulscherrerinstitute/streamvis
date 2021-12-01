@@ -1,5 +1,5 @@
 from bokeh.io import curdoc
-from bokeh.layouts import column
+from bokeh.layouts import column, row
 from bokeh.models import (
     BasicTicker,
     BasicTickFormatter,
@@ -116,12 +116,11 @@ plot.legend.click_policy = "hide"
 
 # Reset button
 def reset_button_callback():
-    for _, source in hitrate_sources:
-        if source.data["x"]:
-            source.data.update(dict(x=[source.data["x"][-1]], y=[source.data["y"][-1]]))
+    for hitrate, _ in hitrate_sources:
+        hitrate.clear()
 
 
-reset_button = Button(label="Reset", button_type="default", disabled=True)
+reset_button = Button(label="Reset", button_type="default")
 reset_button.on_click(reset_button_callback)
 
 
@@ -134,6 +133,6 @@ def update():
 
 
 doc.add_root(
-    column(column(plot, sizing_mode="stretch_both"), reset_button, sizing_mode="stretch_width")
+    column(column(plot, sizing_mode="stretch_both"), row(reset_button), sizing_mode="stretch_width")
 )
 doc.add_periodic_callback(update, 1000)

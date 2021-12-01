@@ -284,6 +284,13 @@ class Hitrate:
 
         return x * self._step_size, y
 
+    def clear(self):
+        self._start_bin_id = -1
+        self._stop_bin_id = -1
+
+        self._hits.clear()
+        self._empty.clear()
+
 
 class RadialProfile:
     def __init__(self, step_size=100, max_span=10_000):
