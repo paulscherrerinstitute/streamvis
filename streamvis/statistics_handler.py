@@ -458,3 +458,12 @@ class PumpProbe:
                 y[ind] = (sum_sig_lon / sum_bkg_lon) / (sum_sig_loff / sum_bkg_loff) - 1
 
         return x * self._step_size, y
+
+    def clear(self):
+        self._start_bin_id = -1
+        self._stop_bin_id = -1
+
+        self._sig_lon.clear()
+        self._bkg_lon.clear()
+        self._sig_loff.clear()
+        self._bkg_loff.clear()

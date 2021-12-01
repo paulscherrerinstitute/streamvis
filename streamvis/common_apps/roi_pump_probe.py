@@ -4,6 +4,7 @@ from bokeh.models import (
     BasicTicker,
     BasicTickFormatter,
     BoxZoomTool,
+    Button,
     ColumnDataSource,
     DataRange1d,
     Grid,
@@ -13,6 +14,7 @@ from bokeh.models import (
     Plot,
     ResetTool,
     SaveTool,
+    Spacer,
     Spinner,
     Step,
     Title,
@@ -58,6 +60,12 @@ average_window_spinner = Spinner(
     title="Pulse ID Window:", value=step_size, low=step_size, high=max_span, step=step_size
 )
 
+def reset_button_callback():
+    stats.roi_pump_probe.clear()
+
+
+reset_button = Button(label="Reset", button_type="default")
+reset_button.on_click(reset_button_callback)
 
 def update():
     x, y = stats.roi_pump_probe(average_window_spinner.value)
@@ -68,7 +76,7 @@ def update():
 doc.add_root(
     column(
         column(plot, sizing_mode="stretch_both"),
-        row(average_window_spinner),
+        row(average_window_spinner, column(Spacer(height=19), reset_button)),
         sizing_mode="stretch_width",
     )
 )
