@@ -3,6 +3,7 @@ from bokeh.layouts import column, row
 from bokeh.models import (
     BasicTicker,
     BoxZoomTool,
+    Button,
     ColumnDataSource,
     DataRange1d,
     Grid,
@@ -13,11 +14,11 @@ from bokeh.models import (
     Plot,
     ResetTool,
     SaveTool,
+    Spacer,
     Spinner,
     Title,
     WheelZoomTool,
 )
-
 
 doc = curdoc()
 stats = doc.stats
@@ -73,6 +74,15 @@ average_window_spinner = Spinner(
 frames_off_spinner = Spinner(title="Frames laser off:", value=0, disabled=True)
 frames_on_spinner = Spinner(title="Frames laser on:", value=0, disabled=True)
 
+# Reset button
+def reset_button_callback():
+    stats.radial_profile_lon.clear()
+    stats.radial_profile_loff.clear()
+
+
+reset_button = Button(label="Reset", button_type="default")
+reset_button.on_click(reset_button_callback)
+
 # Update ROI intensities plot
 def update():
     q, avg_I_on, num_on = stats.radial_profile_lon(average_window_spinner.value)
@@ -100,7 +110,12 @@ def update():
 doc.add_root(
     column(
         column(plot, sizing_mode="stretch_both"),
-        row(average_window_spinner, frames_off_spinner, frames_on_spinner),
+        row(
+            average_window_spinner,
+            frames_off_spinner,
+            frames_on_spinner,
+            column(Spacer(height=19), reset_button),
+        ),
         sizing_mode="stretch_width",
     )
 )

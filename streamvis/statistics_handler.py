@@ -368,6 +368,13 @@ class RadialProfile:
 
         return self._q, I_avg, n_sum
 
+    def clear(self):
+        self._start_bin_id = -1
+        self._stop_bin_id = -1
+
+        self._I.clear()
+        self._n.clear()
+
 
 class PumpProbe:
     def __init__(self, step_size=100, max_span=120_000):
