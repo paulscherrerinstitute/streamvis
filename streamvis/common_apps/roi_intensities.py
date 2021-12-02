@@ -1,15 +1,13 @@
-from datetime import datetime
-
 import numpy as np
 from bokeh.io import curdoc
-from bokeh.layouts import column
+from bokeh.layouts import column, row
 from bokeh.models import (
     BasicTicker,
+    BasicTickFormatter,
     BoxZoomTool,
     Button,
     ColumnDataSource,
     DataRange1d,
-    DatetimeAxis,
     Grid,
     Legend,
     LegendItem,
@@ -25,7 +23,8 @@ from bokeh.models import (
 
 from bokeh.palettes import Set1
 
-cm = Set1[9]
+N_BUF = 9
+cm = Set1[N_BUF]
 
 doc = curdoc()
 stats = doc.stats
@@ -46,7 +45,10 @@ plot.toolbar.logo = None
 plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool())
 
 # ---- axes
-plot.add_layout(DatetimeAxis(), place="below")
+plot.add_layout(
+    LinearAxis(axis_label="pulse_id", formatter=BasicTickFormatter(use_scientific=False)),
+    place="below",
+)
 plot.add_layout(LinearAxis(), place="left")
 
 # ---- grid lines
@@ -57,20 +59,18 @@ plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 plot.add_layout(Legend(items=[], location="top_left"))
 plot.legend.click_policy = "hide"
 
-sources = []
+line_sources = []
 lines = []
 
-for ind in range(len(stats.roi_intensities_buffers)):
+for ind in range(N_BUF):
     line_source = ColumnDataSource(dict(x=[], y=[]))
     line = plot.add_glyph(line_source, Line(x="x", y="y", line_color=cm[ind], line_width=2))
-    sources.append(line_source)
+    line_sources.append(line_source)
     lines.append(line)
 
 # Reset button
 def reset_button_callback():
-    for source in sources:
-        if source.data["x"]:
-            source.data.update(dict(x=[source.data["x"][-1]], y=[source.data["y"][-1]]))
+    stats.roi_intensities.clear()
 
 
 reset_button = Button(label="Reset", button_type="default")
@@ -79,23 +79,17 @@ reset_button.on_click(reset_button_callback)
 
 # Update ROI intensities plot
 def update():
-    stream_t = datetime.now()
+    x, ys = stats.roi_intensities()
+    for y, source in zip(ys, line_sources):
+        source.data.update(dict(x=x, y=y))
 
-    n_buf = 0
-    for buffer, source in zip(stats.roi_intensities_buffers, sources):
-        if buffer:
-            n_buf += 1
-            source.stream(new_data=dict(x=[stream_t], y=[np.mean(buffer)]), rollover=ROLLOVER)
-        else:
-            source.data.update(dict(x=[], y=[]))
-
-    if len(plot.legend.items) != n_buf:
+    if len(plot.legend.items) != len(ys):
         plot.legend.items.clear()
-        for i in range(n_buf):
+        for i in range(len(ys)):
             plot.legend.items.append(LegendItem(label=f"ROI_{i}", renderers=[lines[i]]))
 
 
 doc.add_root(
-    column(column(plot, sizing_mode="stretch_both"), reset_button, sizing_mode="stretch_width")
+    column(column(plot, sizing_mode="stretch_both"), row(reset_button), sizing_mode="stretch_width")
 )
 doc.add_periodic_callback(update, 1000)

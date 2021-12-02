@@ -1,5 +1,6 @@
 import copy
 from collections import Counter, defaultdict, deque
+from functools import partial
 from threading import RLock
 
 import numpy as np
@@ -26,7 +27,7 @@ class StatisticsHandler:
         self.hitrate_slow_lon = Hitrate(step_size=1000)
         self.hitrate_slow_loff = Hitrate(step_size=1000)
         # TODO: fix maximum number of deques in the buffer
-        self.roi_intensities_buffers = [deque(maxlen=50) for _ in range(9)]
+        self.roi_intensities = Intensities()
         self.roi_pump_probe = PumpProbe()
         self.roi_pump_probe_nobkg = PumpProbe_nobkg()
         self.radial_profile_lon = RadialProfile()
@@ -131,21 +132,13 @@ class StatisticsHandler:
 
         roi_intensities = metadata.get("roi_intensities_normalised")
         if roi_intensities is not None:
+            self.roi_intensities.update(pulse_id, roi_intensities)
             if len(roi_intensities) >= 1:
                 self.roi_pump_probe_nobkg.update(pulse_id, laser_on, sig=roi_intensities[0])
             if len(roi_intensities) >= 2:
                 self.roi_pump_probe.update(
                     pulse_id, laser_on, sig=roi_intensities[0], bkg=roi_intensities[1]
                 )
-
-            for buf_ind, buffer in enumerate(self.roi_intensities_buffers):
-                if buf_ind < len(roi_intensities):
-                    buffer.append(roi_intensities[buf_ind])
-                else:
-                    buffer.clear()
-        else:
-            for buffer in self.roi_intensities_buffers:
-                buffer.clear()
 
         pulse_id_bin = pulse_id // PULSE_ID_STEP * PULSE_ID_STEP
         with self._lock:
@@ -553,3 +546,71 @@ class PumpProbe:
         self._bkg_lon.clear()
         self._sig_loff.clear()
         self._bkg_loff.clear()
+
+
+class Intensities:
+    def __init__(self, step_size=100, max_span=120_000):
+        self._step_size = step_size
+        self._max_num_steps = max_span // step_size
+
+        self._start_bin_id = -1
+        self._stop_bin_id = -1
+
+        self._n = 0
+        self._intensities = defaultdict(partial(np.zeros, shape=9))
+
+    def __bool__(self):
+        return bool(self._intensities)
+
+    @property
+    def step_size(self):
+        return self._step_size
+
+    @property
+    def max_span(self):
+        return self._step_size * self._max_num_steps
+
+    def update(self, pulse_id, values):
+        bin_id = pulse_id // self._step_size
+
+        if self._start_bin_id == -1:
+            self._start_bin_id = bin_id
+
+        if bin_id < self._start_bin_id:
+            # the data is too old
+            return
+
+        min_bin_id = max(bin_id - self._max_num_steps, 0)
+        if self._start_bin_id < min_bin_id:
+            # update start_bin_id and drop old data from the counters
+            for _bin_id in range(self._start_bin_id, min_bin_id):
+                del self._intensities[_bin_id]
+
+            self._start_bin_id = min_bin_id
+
+        if self._stop_bin_id < bin_id + 1:
+            self._stop_bin_id = bin_id + 1
+
+        # update the counters
+        self._n = len(values)
+        self._intensities[bin_id][: len(values)] += values
+
+    def __call__(self):
+        if not bool(self):
+            # return zeros in case no data has been received yet
+            return np.zeros(2), np.zeros((2, 2))
+
+        x = np.arange(self._start_bin_id, self._stop_bin_id)
+        ys = np.zeros(shape=(self._n, len(x)), dtype=np.float64)
+
+        for ind, bin_id in enumerate(x):
+            ys[:, ind] += self._intensities[bin_id][: self._n]
+
+        return x * self._step_size, ys
+
+    def clear(self):
+        self._start_bin_id = -1
+        self._stop_bin_id = -1
+
+        self._n = 0
+        self._intensities.clear()
