@@ -382,6 +382,8 @@ class PumpProbe_nobkg:
 
         self._sig_lon = defaultdict(int)
         self._sig_loff = defaultdict(int)
+        self._n_sig_lon = defaultdict(int)
+        self._n_sig_loff = defaultdict(int)
 
     def __bool__(self):
         return bool(self._sig_lon and self._sig_loff)
@@ -410,6 +412,8 @@ class PumpProbe_nobkg:
             for _bin_id in range(self._start_bin_id, min_bin_id):
                 del self._sig_lon[_bin_id]
                 del self._sig_loff[_bin_id]
+                del self._n_sig_lon[_bin_id]
+                del self._n_sig_loff[_bin_id]
 
             self._start_bin_id = min_bin_id
 
@@ -419,8 +423,10 @@ class PumpProbe_nobkg:
         # update the counters
         if laser_on:
             self._sig_lon[bin_id] += sig
+            self._n_sig_lon[bin_id] += 1
         else:
             self._sig_loff[bin_id] += sig
+            self._n_sig_loff[bin_id] += 1
 
     def __call__(self, pulse_id_window):
         if not bool(self):
@@ -437,13 +443,15 @@ class PumpProbe_nobkg:
         y = np.zeros_like(x, dtype=np.float64)
 
         for ind, _bin_id in enumerate(x):
-            sum_sig_lon = sum_sig_loff = 0
+            sum_sig_lon = sum_n_sig_lon = sum_sig_loff = sum_n_sig_loff = 0
             for shift in range(n_steps):
                 sum_sig_lon += self._sig_lon[_bin_id + shift]
                 sum_sig_loff += self._sig_loff[_bin_id + shift]
+                sum_n_sig_lon += self._n_sig_lon[_bin_id + shift]
+                sum_n_sig_loff += self._n_sig_loff[_bin_id + shift]
 
             if sum_sig_loff:
-                y[ind] = sum_sig_lon / sum_sig_loff - 1
+                y[ind] = (sum_sig_lon / sum_n_sig_lon) / (sum_sig_loff / sum_n_sig_loff) - 1
 
         return x * self._step_size, y
 
@@ -453,6 +461,8 @@ class PumpProbe_nobkg:
 
         self._sig_lon.clear()
         self._sig_loff.clear()
+        self._n_sig_lon.clear()
+        self._n_sig_loff.clear()
 
 
 class PumpProbe:
