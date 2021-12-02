@@ -51,7 +51,17 @@ step = plot.add_glyph(
     step_source, Step(x="x", y="y", mode="after", line_color="steelblue", line_width=2)
 )
 
-plot.add_layout(Legend(items=[("ROI Pump-probe", [step])], location="top_left"))
+step_nobkg_source = ColumnDataSource(dict(x=[], y=[]))
+step_nobkg = plot.add_glyph(
+    step_nobkg_source, Step(x="x", y="y", mode="after", line_color="firebrick", line_width=2)
+)
+
+plot.add_layout(
+    Legend(
+        items=[("ROI Pump-probe", [step]), ("ROI Pump-probe nobkg", [step_nobkg])],
+        location="top_left",
+    )
+)
 plot.legend.click_policy = "hide"
 
 step_size = stats.roi_pump_probe.step_size
@@ -60,17 +70,24 @@ average_window_spinner = Spinner(
     title="Pulse ID Window:", value=step_size, low=step_size, high=max_span, step=step_size
 )
 
+
 def reset_button_callback():
     stats.roi_pump_probe.clear()
+    stats.roi_pump_probe_nobkg.clear()
 
 
 reset_button = Button(label="Reset", button_type="default")
 reset_button.on_click(reset_button_callback)
 
+
 def update():
     x, y = stats.roi_pump_probe(average_window_spinner.value)
     y[-1] = y[-2]
     step_source.data.update(dict(x=x, y=y))
+
+    x, y = stats.roi_pump_probe_nobkg(average_window_spinner.value)
+    y[-1] = y[-2]
+    step_nobkg_source.data.update(dict(x=x, y=y))
 
 
 doc.add_root(

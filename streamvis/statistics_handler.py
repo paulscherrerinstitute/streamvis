@@ -28,6 +28,7 @@ class StatisticsHandler:
         # TODO: fix maximum number of deques in the buffer
         self.roi_intensities_buffers = [deque(maxlen=50) for _ in range(9)]
         self.roi_pump_probe = PumpProbe()
+        self.roi_pump_probe_nobkg = PumpProbe_nobkg()
         self.radial_profile_lon = RadialProfile()
         self.radial_profile_loff = RadialProfile()
         self._lock = RLock()
@@ -130,6 +131,8 @@ class StatisticsHandler:
 
         roi_intensities = metadata.get("roi_intensities_normalised")
         if roi_intensities is not None:
+            if len(roi_intensities) >= 1:
+                self.roi_pump_probe_nobkg.update(pulse_id, laser_on, sig=roi_intensities[0])
             if len(roi_intensities) >= 2:
                 self.roi_pump_probe.update(
                     pulse_id, laser_on, sig=roi_intensities[0], bkg=roi_intensities[1]
@@ -374,6 +377,89 @@ class RadialProfile:
 
         self._I.clear()
         self._n.clear()
+
+
+class PumpProbe_nobkg:
+    def __init__(self, step_size=100, max_span=120_000):
+        self._step_size = step_size
+        self._max_num_steps = max_span // step_size
+
+        self._start_bin_id = -1
+        self._stop_bin_id = -1
+
+        self._sig_lon = defaultdict(int)
+        self._sig_loff = defaultdict(int)
+
+    def __bool__(self):
+        return bool(self._sig_lon and self._sig_loff)
+
+    @property
+    def step_size(self):
+        return self._step_size
+
+    @property
+    def max_span(self):
+        return self._step_size * self._max_num_steps
+
+    def update(self, pulse_id, laser_on, sig):
+        bin_id = pulse_id // self._step_size
+
+        if self._start_bin_id == -1:
+            self._start_bin_id = bin_id
+
+        if bin_id < self._start_bin_id:
+            # the data is too old
+            return
+
+        min_bin_id = max(bin_id - self._max_num_steps, 0)
+        if self._start_bin_id < min_bin_id:
+            # update start_bin_id and drop old data from the counters
+            for _bin_id in range(self._start_bin_id, min_bin_id):
+                del self._sig_lon[_bin_id]
+                del self._sig_loff[_bin_id]
+
+            self._start_bin_id = min_bin_id
+
+        if self._stop_bin_id < bin_id + 1:
+            self._stop_bin_id = bin_id + 1
+
+        # update the counters
+        if laser_on:
+            self._sig_lon[bin_id] += sig
+        else:
+            self._sig_loff[bin_id] += sig
+
+    def __call__(self, pulse_id_window):
+        if not bool(self):
+            # return zeros in case no data has been received yet
+            return np.zeros(2), np.zeros(2)
+
+        n_steps = pulse_id_window // self._step_size
+        if n_steps > self._max_num_steps:
+            raise ValueError("Requested pulse_id window is larger than the maximum pulse_id span.")
+
+        # add an extra point for bokeh Step to display the last value
+        start_bin_id = self._start_bin_id - self._start_bin_id % n_steps
+        x = np.arange(start_bin_id, self._stop_bin_id + 1, n_steps)
+        y = np.zeros_like(x, dtype=np.float64)
+
+        for ind, _bin_id in enumerate(x):
+            sum_sig_lon = sum_sig_loff = 0
+            for shift in range(n_steps):
+                sum_sig_lon += self._sig_lon[_bin_id + shift]
+                sum_sig_loff += self._sig_loff[_bin_id + shift]
+
+            if sum_sig_loff:
+                y[ind] = sum_sig_lon / sum_sig_loff - 1
+
+        return x * self._step_size, y
+
+    def clear(self):
+        self._start_bin_id = -1
+        self._stop_bin_id = -1
+
+        self._sig_lon.clear()
+        self._sig_loff.clear()
 
 
 class PumpProbe:
