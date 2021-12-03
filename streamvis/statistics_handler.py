@@ -26,7 +26,6 @@ class StatisticsHandler:
         self.hitrate_slow = Hitrate(step_size=1000)
         self.hitrate_slow_lon = Hitrate(step_size=1000)
         self.hitrate_slow_loff = Hitrate(step_size=1000)
-        # TODO: fix maximum number of deques in the buffer
         self.roi_intensities = Intensities()
         self.roi_pump_probe = PumpProbe()
         self.roi_pump_probe_nobkg = PumpProbe_nobkg()
@@ -566,11 +565,12 @@ class Intensities:
         self._start_bin_id = -1
         self._stop_bin_id = -1
 
-        self._n = 0
-        self._intensities = defaultdict(partial(np.zeros, shape=9))
+        self._len = 0
+        self._I = defaultdict(partial(np.zeros, shape=9))
+        self._n_I = defaultdict(partial(np.zeros, shape=9))
 
     def __bool__(self):
-        return bool(self._intensities)
+        return bool(self._len)
 
     @property
     def step_size(self):
@@ -594,7 +594,8 @@ class Intensities:
         if self._start_bin_id < min_bin_id:
             # update start_bin_id and drop old data from the counters
             for _bin_id in range(self._start_bin_id, min_bin_id):
-                del self._intensities[_bin_id]
+                del self._I[_bin_id]
+                del self._n_I[_bin_id]
 
             self._start_bin_id = min_bin_id
 
@@ -602,8 +603,9 @@ class Intensities:
             self._stop_bin_id = bin_id + 1
 
         # update the counters
-        self._n = len(values)
-        self._intensities[bin_id][: len(values)] += values
+        self._len = len(values)
+        self._I[bin_id][: self._len] += values
+        self._n_I[bin_id][: self._len] += 1
 
     def __call__(self):
         if not bool(self):
@@ -611,10 +613,12 @@ class Intensities:
             return [], [[]]
 
         x = np.arange(self._start_bin_id, self._stop_bin_id)
-        ys = np.zeros(shape=(self._n, len(x)), dtype=np.float64)
+        ys = np.zeros(shape=(self._len, len(x)), dtype=np.float64)
 
         for ind, bin_id in enumerate(x):
-            ys[:, ind] += self._intensities[bin_id][: self._n]
+            with np.errstate(invalid="ignore"):
+                # it's ok here to divide by 0 and get np.nan as a result
+                ys[:, ind] += self._I[bin_id][: self._len] / self._n_I[bin_id][: self._len]
 
         return x * self._step_size, ys
 
@@ -622,5 +626,6 @@ class Intensities:
         self._start_bin_id = -1
         self._stop_bin_id = -1
 
-        self._n = 0
-        self._intensities.clear()
+        self._len = 0
+        self._I.clear()
+        self._n_I.clear()
