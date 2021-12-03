@@ -128,7 +128,8 @@ reset_button.on_click(reset_button_callback)
 def update():
     for hitrate, source in hitrate_sources:
         x, y = hitrate()
-        y[-1] = y[-2]
+        if len(y) > 1:
+            y[-1] = y[-2]
         source.data.update(dict(x=x, y=y))
 
 

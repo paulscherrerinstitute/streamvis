@@ -91,20 +91,11 @@ def update():
     frames_off_spinner.value = num_off
     frames_on_spinner.value = num_on
 
-    if num_off:
-        line_off_source.data.update(x=q, y=avg_I_off)
-    else:
-        line_off_source.data.update(x=[], y=[])
+    line_off_source.data.update(x=q, y=avg_I_off)
+    line_on_source.data.update(x=q, y=avg_I_on)
 
-    if num_on:
-        line_on_source.data.update(x=q, y=avg_I_on)
-    else:
-        line_on_source.data.update(x=[], y=[])
-
-    if num_off and num_on:
-        line_diff_source.data.update(x=q, y=avg_I_on - avg_I_off)
-    else:
-        line_diff_source.data.update(x=[], y=[])
+    avg_I_diff = avg_I_on - avg_I_off if num_off and num_on else []
+    line_diff_source.data.update(x=q, y=avg_I_diff)
 
 
 doc.add_root(

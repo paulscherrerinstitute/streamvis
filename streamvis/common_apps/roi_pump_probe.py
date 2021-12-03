@@ -82,11 +82,13 @@ reset_button.on_click(reset_button_callback)
 
 def update():
     x, y = stats.roi_pump_probe(average_window_spinner.value)
-    y[-1] = y[-2]
+    if len(y) > 1:
+        y[-1] = y[-2]
     step_source.data.update(dict(x=x, y=y))
 
     x, y = stats.roi_pump_probe_nobkg(average_window_spinner.value)
-    y[-1] = y[-2]
+    if len(y) > 1:
+        y[-1] = y[-2]
     step_nobkg_source.data.update(dict(x=x, y=y))
 
 

@@ -265,8 +265,8 @@ class Hitrate:
 
     def __call__(self):
         if not bool(self):
-            # return zeros in case no data has been received yet
-            return np.zeros(2), np.zeros(2)
+            # no data has been received yet
+            return [], []
 
         # add an extra point for bokeh Step to display the last value
         x = np.arange(self._start_bin_id, self._stop_bin_id + 1)
@@ -347,8 +347,8 @@ class RadialProfile:
 
     def __call__(self, pulse_id_window):
         if not bool(self):
-            # return zeros in case no data has been received yet
-            return self._q, np.zeros_like(self._q), 0
+            # no data has been received yet
+            return [], [], 0
 
         n_steps = pulse_id_window // self._step_size
         if n_steps > self._max_num_steps:
@@ -430,8 +430,8 @@ class PumpProbe_nobkg:
 
     def __call__(self, pulse_id_window):
         if not bool(self):
-            # return zeros in case no data has been received yet
-            return np.zeros(2), np.zeros(2)
+            # no data has been received yet
+            return [], []
 
         n_steps = pulse_id_window // self._step_size
         if n_steps > self._max_num_steps:
@@ -523,8 +523,8 @@ class PumpProbe:
 
     def __call__(self, pulse_id_window):
         if not bool(self):
-            # return zeros in case no data has been received yet
-            return np.zeros(2), np.zeros(2)
+            # no data has been received yet
+            return [], []
 
         n_steps = pulse_id_window // self._step_size
         if n_steps > self._max_num_steps:
@@ -607,8 +607,8 @@ class Intensities:
 
     def __call__(self):
         if not bool(self):
-            # return zeros in case no data has been received yet
-            return np.zeros(2), np.zeros((2, 2))
+            # no data has been received yet
+            return [], [[]]
 
         x = np.arange(self._start_bin_id, self._stop_bin_id)
         ys = np.zeros(shape=(self._n, len(x)), dtype=np.float64)
