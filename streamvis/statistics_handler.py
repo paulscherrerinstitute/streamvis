@@ -450,7 +450,7 @@ class PumpProbe_nobkg:
                 sum_n_sig_lon += self._n_sig_lon[_bin_id + shift]
                 sum_n_sig_loff += self._n_sig_loff[_bin_id + shift]
 
-            if sum_sig_loff:
+            if sum_n_sig_lon and sum_sig_loff and sum_n_sig_loff:
                 y[ind] = (sum_sig_lon / sum_n_sig_lon) / (sum_sig_loff / sum_n_sig_loff) - 1
 
         return x * self._step_size, y
