@@ -1,5 +1,5 @@
 import copy
-from collections import Counter, defaultdict, deque
+from collections import defaultdict, deque
 from functools import partial
 from threading import RLock
 
@@ -246,8 +246,8 @@ class Hitrate:
         self._start_bin_id = -1
         self._stop_bin_id = -1
 
-        self._hits = Counter()
-        self._empty = Counter()
+        self._hits = defaultdict(int)
+        self._empty = defaultdict(int)
 
     def __bool__(self):
         return bool(self._hits or self._empty)
@@ -272,10 +272,10 @@ class Hitrate:
 
         min_bin_id = max(bin_id - self._max_num_steps, 0)
         if self._start_bin_id < min_bin_id:
-            # update start_bin_id and drop old data from the counters
+            # update start_bin_id and drop old data from the buffers
             for _bin_id in range(self._start_bin_id, min_bin_id):
-                del self._hits[_bin_id]
-                del self._empty[_bin_id]
+                self._hits.pop(_bin_id, None)
+                self._empty.pop(_bin_id, None)
 
             self._start_bin_id = min_bin_id
 
@@ -283,8 +283,10 @@ class Hitrate:
             self._stop_bin_id = bin_id + 1
 
         # update the counter
-        counter = self._hits if is_hit else self._empty
-        counter.update([bin_id])
+        if is_hit:
+            self._hits[bin_id] += 1
+        else:
+            self._empty[bin_id] += 1
 
     def __call__(self):
         if not bool(self):
@@ -431,7 +433,7 @@ class PumpProbe_nobkg:
 
         min_bin_id = max(bin_id - self._max_num_steps, 0)
         if self._start_bin_id < min_bin_id:
-            # update start_bin_id and drop old data from the counters
+            # update start_bin_id and drop old data from the buffers
             for _bin_id in range(self._start_bin_id, min_bin_id):
                 self._sig_lon.pop(_bin_id, None)
                 self._sig_loff.pop(_bin_id, None)
@@ -443,7 +445,7 @@ class PumpProbe_nobkg:
         if self._stop_bin_id < bin_id + 1:
             self._stop_bin_id = bin_id + 1
 
-        # update the counters
+        # update the buffers
         if laser_on:
             self._sig_lon[bin_id] += sig
             self._n_sig_lon[bin_id] += 1
@@ -524,7 +526,7 @@ class PumpProbe:
 
         min_bin_id = max(bin_id - self._max_num_steps, 0)
         if self._start_bin_id < min_bin_id:
-            # update start_bin_id and drop old data from the counters
+            # update start_bin_id and drop old data from the buffers
             for _bin_id in range(self._start_bin_id, min_bin_id):
                 self._sig_lon.pop(_bin_id, None)
                 self._bkg_lon.pop(_bin_id, None)
@@ -536,7 +538,7 @@ class PumpProbe:
         if self._stop_bin_id < bin_id + 1:
             self._stop_bin_id = bin_id + 1
 
-        # update the counters
+        # update the buffers
         if laser_on:
             self._sig_lon[bin_id] += sig
             self._bkg_lon[bin_id] += bkg
@@ -616,7 +618,7 @@ class Intensities:
 
         min_bin_id = max(bin_id - self._max_num_steps, 0)
         if self._start_bin_id < min_bin_id:
-            # update start_bin_id and drop old data from the counters
+            # update start_bin_id and drop old data from the buffers
             for _bin_id in range(self._start_bin_id, min_bin_id):
                 self._I.pop(_bin_id, None)
                 self._n_I.pop(_bin_id, None)
@@ -626,7 +628,7 @@ class Intensities:
         if self._stop_bin_id < bin_id + 1:
             self._stop_bin_id = bin_id + 1
 
-        # update the counters
+        # update the buffers
         self._len = len(values)
         self._I[bin_id][: self._len] += values
         self._n_I[bin_id][: self._len] += 1
