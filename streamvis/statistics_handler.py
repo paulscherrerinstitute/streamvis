@@ -31,6 +31,8 @@ class StatisticsHandler:
         self.roi_pump_probe_nobkg = PumpProbe_nobkg()
         self.radial_profile_lon = RadialProfile()
         self.radial_profile_loff = RadialProfile()
+        self.projections_lon = [Projection() for _ in range(9)]
+        self.projections_loff = [Projection() for _ in range(9)]
         self._lock = RLock()
 
         self.data = dict(
@@ -71,6 +73,9 @@ class StatisticsHandler:
             case "ROI Pump-Probe":
                 window.open('/roi_pump_probe');
                 break;
+            case "ROI Projections":
+                window.open('/roi_projections');
+                break;
             case "Radial Profile":
                 window.open('/radial_profile');
                 break;
@@ -78,7 +83,14 @@ class StatisticsHandler:
         """
         auxiliary_apps_dropdown = Dropdown(
             label="Open Auxiliary App",
-            menu=["Statistics", "Hitrate", "ROI Intensities", "ROI Pump-Probe", "Radial Profile"],
+            menu=[
+                "Statistics",
+                "Hitrate",
+                "ROI Intensities",
+                "ROI Pump-Probe",
+                "ROI Projections",
+                "Radial Profile",
+            ],
             default_size=145,
         )
         auxiliary_apps_dropdown.js_on_click(CustomJS(code=js_code))
@@ -128,6 +140,18 @@ class StatisticsHandler:
                     self.radial_profile_lon.update_I(pulse_id, radint_I)
                 else:
                     self.radial_profile_loff.update_I(pulse_id, radint_I)
+
+            roi_intensities_x = metadata.get("roi_intensities_x")
+            if roi_intensities_x is not None:
+                for ind, x in enumerate(roi_intensities_x):
+                    self.projections_lon[ind].update_x(x)
+                    self.projections_loff[ind].update_x(x)
+
+            roi_intensities_proj_x = metadata.get("roi_intensities_proj_x")
+            if roi_intensities_proj_x is not None:
+                projections = self.projections_lon if laser_on else self.projections_loff
+                for projection, I in zip(projections, roi_intensities_proj_x):
+                    projection.update_I(pulse_id, I)
 
         roi_intensities = metadata.get("roi_intensities_normalised")
         if roi_intensities is not None:
@@ -362,6 +386,90 @@ class RadialProfile:
         I_avg = I_sum / n_sum if n_sum != 0 else np.zeros_like(self._q)
 
         return self._q, I_avg, n_sum
+
+    def clear(self):
+        self._start_bin_id = -1
+        self._stop_bin_id = -1
+
+        self._I.clear()
+        self._n.clear()
+
+
+class Projection:
+    def __init__(self, step_size=100, max_span=10_000):
+        self._step_size = step_size
+        self._max_num_steps = max_span // step_size
+
+        self._start_bin_id = -1
+        self._stop_bin_id = -1
+
+        self._x_limits = []
+        self._x = np.zeros(1)
+        self._I = defaultdict(int)
+        self._n = defaultdict(int)
+
+    def __bool__(self):
+        return bool(self._I and self._n)
+
+    @property
+    def step_size(self):
+        return self._step_size
+
+    @property
+    def max_span(self):
+        return self._step_size * self._max_num_steps
+
+    def update_x(self, x):
+        if self._x_limits != x:
+            self._x_limits = x
+            self._x = np.arange(*x)
+            self._I.clear()
+            self._n.clear()
+
+    def update_I(self, pulse_id, I):
+        bin_id = pulse_id // self._step_size
+
+        if self._start_bin_id == -1:
+            self._start_bin_id = bin_id
+
+        if bin_id < self._start_bin_id:
+            # the data is too old
+            return
+
+        min_bin_id = max(bin_id - self._max_num_steps, 0)
+        if self._start_bin_id < min_bin_id:
+            # drop old data from the counters and update start_bin_id
+            for _bin_id in range(self._start_bin_id, min_bin_id):
+                self._I.pop(_bin_id, None)
+                self._n.pop(_bin_id, None)
+
+            self._start_bin_id = min_bin_id
+
+        if self._stop_bin_id < bin_id + 1:
+            self._stop_bin_id = bin_id + 1
+
+        # update the counters
+        self._I[bin_id] += np.array(I)
+        self._n[bin_id] += 1
+
+    def __call__(self, pulse_id_window):
+        if not bool(self):
+            # no data has been received yet
+            return [], [], 0
+
+        n_steps = pulse_id_window // self._step_size
+        if n_steps > self._max_num_steps:
+            raise ValueError("Requested pulse_id window is larger than the maximum pulse_id span.")
+
+        I_sum = 0
+        n_sum = 0
+        for _bin_id in range(self._stop_bin_id - n_steps, self._stop_bin_id):
+            I_sum += self._I[_bin_id]
+            n_sum += self._n[_bin_id]
+
+        I_avg = I_sum / n_sum if n_sum != 0 else np.zeros_like(self._x)
+
+        return self._x, I_avg, n_sum
 
     def clear(self):
         self._start_bin_id = -1
