@@ -29,10 +29,10 @@ class StatisticsHandler:
         self.roi_intensities = Intensities()
         self.roi_pump_probe = PumpProbe()
         self.roi_pump_probe_nobkg = PumpProbe_nobkg()
-        self.radial_profile_lon = RadialProfile()
-        self.radial_profile_loff = RadialProfile()
-        self.projections_lon = [Projection() for _ in range(9)]
-        self.projections_loff = [Projection() for _ in range(9)]
+        self.radial_profile_lon = Profile()
+        self.radial_profile_loff = Profile()
+        self.projections_lon = [Profile() for _ in range(9)]
+        self.projections_loff = [Profile() for _ in range(9)]
         self._lock = RLock()
 
         self.data = dict(
@@ -131,15 +131,15 @@ class StatisticsHandler:
 
             radint_q = metadata.get("radint_q")
             if radint_q is not None:
-                self.radial_profile_lon.update_q(radint_q)
-                self.radial_profile_loff.update_q(radint_q)
+                self.radial_profile_lon.update_x(radint_q)
+                self.radial_profile_loff.update_x(radint_q)
 
             radint_I = metadata.get("radint_I")
             if radint_I is not None:
                 if laser_on:
-                    self.radial_profile_lon.update_I(pulse_id, radint_I)
+                    self.radial_profile_lon.update_y(pulse_id, radint_I)
                 else:
-                    self.radial_profile_loff.update_I(pulse_id, radint_I)
+                    self.radial_profile_loff.update_y(pulse_id, radint_I)
 
             roi_intensities_x = metadata.get("roi_intensities_x")
             if roi_intensities_x is not None:
@@ -150,8 +150,8 @@ class StatisticsHandler:
             roi_intensities_proj_x = metadata.get("roi_intensities_proj_x")
             if roi_intensities_proj_x is not None:
                 projections = self.projections_lon if laser_on else self.projections_loff
-                for projection, I in zip(projections, roi_intensities_proj_x):
-                    projection.update_I(pulse_id, I)
+                for projection, proj_I in zip(projections, roi_intensities_proj_x):
+                    projection.update_y(pulse_id, proj_I)
 
         roi_intensities = metadata.get("roi_intensities_normalised")
         if roi_intensities is not None:
@@ -311,91 +311,7 @@ class Hitrate:
         self._empty.clear()
 
 
-class RadialProfile:
-    def __init__(self, step_size=100, max_span=10_000):
-        self._step_size = step_size
-        self._max_num_steps = max_span // step_size
-
-        self._start_bin_id = -1
-        self._stop_bin_id = -1
-
-        self._q_limits = []
-        self._q = np.zeros(1)
-        self._I = defaultdict(int)
-        self._n = defaultdict(int)
-
-    def __bool__(self):
-        return bool(self._I and self._n)
-
-    @property
-    def step_size(self):
-        return self._step_size
-
-    @property
-    def max_span(self):
-        return self._step_size * self._max_num_steps
-
-    def update_q(self, q):
-        if self._q_limits != q:
-            self._q_limits = q
-            self._q = np.arange(*q)
-            self._I.clear()
-            self._n.clear()
-
-    def update_I(self, pulse_id, I):
-        bin_id = pulse_id // self._step_size
-
-        if self._start_bin_id == -1:
-            self._start_bin_id = bin_id
-
-        if bin_id < self._start_bin_id:
-            # the data is too old
-            return
-
-        min_bin_id = max(bin_id - self._max_num_steps, 0)
-        if self._start_bin_id < min_bin_id:
-            # drop old data from the counters and update start_bin_id
-            for _bin_id in range(self._start_bin_id, min_bin_id):
-                self._I.pop(_bin_id, None)
-                self._n.pop(_bin_id, None)
-
-            self._start_bin_id = min_bin_id
-
-        if self._stop_bin_id < bin_id + 1:
-            self._stop_bin_id = bin_id + 1
-
-        # update the counters
-        self._I[bin_id] += np.array(I)
-        self._n[bin_id] += 1
-
-    def __call__(self, pulse_id_window):
-        if not bool(self):
-            # no data has been received yet
-            return [], [], 0
-
-        n_steps = pulse_id_window // self._step_size
-        if n_steps > self._max_num_steps:
-            raise ValueError("Requested pulse_id window is larger than the maximum pulse_id span.")
-
-        I_sum = 0
-        n_sum = 0
-        for _bin_id in range(self._stop_bin_id - n_steps, self._stop_bin_id):
-            I_sum += self._I[_bin_id]
-            n_sum += self._n[_bin_id]
-
-        I_avg = I_sum / n_sum if n_sum != 0 else np.zeros_like(self._q)
-
-        return self._q, I_avg, n_sum
-
-    def clear(self):
-        self._start_bin_id = -1
-        self._stop_bin_id = -1
-
-        self._I.clear()
-        self._n.clear()
-
-
-class Projection:
+class Profile:
     def __init__(self, step_size=100, max_span=10_000):
         self._step_size = step_size
         self._max_num_steps = max_span // step_size
@@ -405,11 +321,11 @@ class Projection:
 
         self._x_limits = []
         self._x = np.zeros(1)
-        self._I = defaultdict(int)
+        self._y = defaultdict(int)
         self._n = defaultdict(int)
 
     def __bool__(self):
-        return bool(self._I and self._n)
+        return bool(self._y and self._n)
 
     @property
     def step_size(self):
@@ -423,10 +339,10 @@ class Projection:
         if self._x_limits != x:
             self._x_limits = x
             self._x = np.arange(*x)
-            self._I.clear()
+            self._y.clear()
             self._n.clear()
 
-    def update_I(self, pulse_id, I):
+    def update_y(self, pulse_id, y):
         bin_id = pulse_id // self._step_size
 
         if self._start_bin_id == -1:
@@ -438,9 +354,9 @@ class Projection:
 
         min_bin_id = max(bin_id - self._max_num_steps, 0)
         if self._start_bin_id < min_bin_id:
-            # drop old data from the counters and update start_bin_id
+            # drop old data from the buffers and update start_bin_id
             for _bin_id in range(self._start_bin_id, min_bin_id):
-                self._I.pop(_bin_id, None)
+                self._y.pop(_bin_id, None)
                 self._n.pop(_bin_id, None)
 
             self._start_bin_id = min_bin_id
@@ -448,8 +364,8 @@ class Projection:
         if self._stop_bin_id < bin_id + 1:
             self._stop_bin_id = bin_id + 1
 
-        # update the counters
-        self._I[bin_id] += np.array(I)
+        # update the buffers
+        self._y[bin_id] += np.array(y)
         self._n[bin_id] += 1
 
     def __call__(self, pulse_id_window):
@@ -461,21 +377,21 @@ class Projection:
         if n_steps > self._max_num_steps:
             raise ValueError("Requested pulse_id window is larger than the maximum pulse_id span.")
 
-        I_sum = 0
+        y_sum = 0
         n_sum = 0
         for _bin_id in range(self._stop_bin_id - n_steps, self._stop_bin_id):
-            I_sum += self._I[_bin_id]
+            y_sum += self._y[_bin_id]
             n_sum += self._n[_bin_id]
 
-        I_avg = I_sum / n_sum if n_sum != 0 else np.zeros_like(self._x)
+        y_avg = y_sum / n_sum if n_sum != 0 else np.zeros_like(self._x)
 
-        return self._x, I_avg, n_sum
+        return self._x, y_avg, n_sum
 
     def clear(self):
         self._start_bin_id = -1
         self._stop_bin_id = -1
 
-        self._I.clear()
+        self._y.clear()
         self._n.clear()
 
 
