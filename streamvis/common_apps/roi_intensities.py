@@ -31,7 +31,6 @@ doc.title = f"{doc.title} ROI intensities"
 
 ROLLOVER = 3600
 
-# ROI intensities plot
 plot = Plot(
     title=Title(text="ROI intensities"),
     x_range=DataRange1d(),
@@ -39,22 +38,18 @@ plot = Plot(
     toolbar_location="left",
 )
 
-# ---- tools
 plot.toolbar.logo = None
 plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool())
 
-# ---- axes
 plot.add_layout(
     LinearAxis(axis_label="pulse_id", formatter=BasicTickFormatter(use_scientific=False)),
     place="below",
 )
 plot.add_layout(LinearAxis(), place="left")
 
-# ---- grid lines
 plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
 plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
-# ---- legend
 plot.add_layout(Legend(items=[], location="top_left"))
 plot.legend.click_policy = "hide"
 
@@ -67,7 +62,7 @@ for ind in range(N_BUF):
     line_sources.append(line_source)
     lines.append(line)
 
-# Reset button
+
 def reset_button_callback():
     stats.roi_intensities.clear()
 
@@ -76,11 +71,13 @@ reset_button = Button(label="Reset", button_type="default")
 reset_button.on_click(reset_button_callback)
 
 
-# Update ROI intensities plot
 def update():
     x, ys = stats.roi_intensities()
     for y, source in zip(ys, line_sources):
         source.data.update(dict(x=x, y=y))
+
+    for source in line_sources[len(ys) :]:
+        source.data.update(dict(x=[], y=[]))
 
     if len(plot.legend.items) != len(ys):
         plot.legend.items.clear()
