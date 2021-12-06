@@ -517,10 +517,10 @@ class PumpProbe_nobkg:
         if self._start_bin_id < min_bin_id:
             # update start_bin_id and drop old data from the counters
             for _bin_id in range(self._start_bin_id, min_bin_id):
-                del self._sig_lon[_bin_id]
-                del self._sig_loff[_bin_id]
-                del self._n_sig_lon[_bin_id]
-                del self._n_sig_loff[_bin_id]
+                self._sig_lon.pop(_bin_id, None)
+                self._sig_loff.pop(_bin_id, None)
+                self._n_sig_lon.pop(_bin_id, None)
+                self._n_sig_loff.pop(_bin_id, None)
 
             self._start_bin_id = min_bin_id
 
@@ -610,10 +610,10 @@ class PumpProbe:
         if self._start_bin_id < min_bin_id:
             # update start_bin_id and drop old data from the counters
             for _bin_id in range(self._start_bin_id, min_bin_id):
-                del self._sig_lon[_bin_id]
-                del self._bkg_lon[_bin_id]
-                del self._sig_loff[_bin_id]
-                del self._bkg_loff[_bin_id]
+                self._sig_lon.pop(_bin_id, None)
+                self._bkg_lon.pop(_bin_id, None)
+                self._sig_loff.pop(_bin_id, None)
+                self._bkg_loff.pop(_bin_id, None)
 
             self._start_bin_id = min_bin_id
 
@@ -702,8 +702,8 @@ class Intensities:
         if self._start_bin_id < min_bin_id:
             # update start_bin_id and drop old data from the counters
             for _bin_id in range(self._start_bin_id, min_bin_id):
-                del self._I[_bin_id]
-                del self._n_I[_bin_id]
+                self._I.pop(_bin_id, None)
+                self._n_I.pop(_bin_id, None)
 
             self._start_bin_id = min_bin_id
 
