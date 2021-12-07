@@ -153,15 +153,15 @@ class StatisticsHandler:
                 for projection, proj_I in zip(projections, roi_intensities_proj_x):
                     projection.update_y(pulse_id, proj_I)
 
-        roi_intensities = metadata.get("roi_intensities_normalised")
-        if roi_intensities is not None:
-            self.roi_intensities.update(pulse_id, roi_intensities)
-            if len(roi_intensities) >= 1:
-                self.roi_pump_probe_nobkg.update(pulse_id, laser_on, sig=roi_intensities[0])
-            if len(roi_intensities) >= 2:
-                self.roi_pump_probe.update(
-                    pulse_id, laser_on, sig=roi_intensities[0], bkg=roi_intensities[1]
-                )
+            roi_intensities = metadata.get("roi_intensities_normalised")
+            if roi_intensities is not None:
+                self.roi_intensities.update(pulse_id, roi_intensities)
+                if len(roi_intensities) >= 1:
+                    self.roi_pump_probe_nobkg.update(pulse_id, laser_on, sig=roi_intensities[0])
+                if len(roi_intensities) >= 2:
+                    self.roi_pump_probe.update(
+                        pulse_id, laser_on, sig=roi_intensities[0], bkg=roi_intensities[1]
+                    )
 
         pulse_id_bin = pulse_id // PULSE_ID_STEP * PULSE_ID_STEP
         with self._lock:
