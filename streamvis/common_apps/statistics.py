@@ -51,7 +51,6 @@ sum_table = DataTable(
 )
 
 
-# update statistics callback
 def update_statistics():
     update_columns = False
     if np.all(np.isnan(stats.data["sat_pix_nframes"])):
@@ -92,7 +91,6 @@ def update_statistics():
     sum_table_source.data = stats.sum_data
 
 
-# reset statistics button
 def reset_stats_button_callback():
     stats.reset()
 

@@ -23,7 +23,6 @@ doc = curdoc()
 stats = doc.stats
 doc.title = f"{doc.title} Hitrate"
 
-# Hitrate plot
 plot = Plot(
     title=Title(text="Hitrate Plot"),
     x_range=DataRange1d(),
@@ -31,24 +30,20 @@ plot = Plot(
     toolbar_location="left",
 )
 
-# ---- tools
 plot.toolbar.logo = None
 plot.add_tools(
     PanTool(), BoxZoomTool(), WheelZoomTool(maintain_focus=False), SaveTool(), ResetTool(),
 )
 
-# ---- axes
 plot.add_layout(
     LinearAxis(axis_label="pulse_id", formatter=BasicTickFormatter(use_scientific=False)),
     place="below",
 )
 plot.add_layout(LinearAxis(axis_label="Hitrate"), place="left")
 
-# ---- grid lines
 plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
 plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
-# ---- hitrate fast step glyphs
 step_fast_source = ColumnDataSource(dict(x=[], y=[]))
 step_fast = plot.add_glyph(
     step_fast_source, Step(x="x", y="y", mode="after", line_color="steelblue", line_width=2)
@@ -68,7 +63,6 @@ step_fast_loff = plot.add_glyph(
     visible=False,
 )
 
-# ---- hitrate slow step glyphs
 step_slow_source = ColumnDataSource(dict(x=[], y=[]))
 step_slow = plot.add_glyph(
     step_slow_source, Step(x="x", y="y", mode="after", line_color="red", line_width=2)
@@ -97,7 +91,6 @@ hitrate_sources = (
     (stats.hitrate_slow_loff, step_slow_loff_source),
 )
 
-# ---- legend
 plot.add_layout(
     Legend(
         items=[
@@ -114,7 +107,6 @@ plot.add_layout(
 plot.legend.click_policy = "hide"
 
 
-# Reset button
 def reset_button_callback():
     for hitrate, _ in hitrate_sources:
         hitrate.clear()
@@ -124,7 +116,6 @@ reset_button = Button(label="Reset", button_type="default")
 reset_button.on_click(reset_button_callback)
 
 
-# Update hitrate plot
 def update():
     for hitrate, source in hitrate_sources:
         x, y = hitrate()
