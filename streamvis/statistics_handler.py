@@ -31,8 +31,8 @@ class StatisticsHandler:
         self.roi_pump_probe_nobkg = PumpProbe_nobkg()
         self.radial_profile_lon = Profile()
         self.radial_profile_loff = Profile()
-        self.projections_lon = [Profile() for _ in range(9)]
-        self.projections_loff = [Profile() for _ in range(9)]
+        self.projections_lon = [Profile() for _ in range(10)]
+        self.projections_loff = [Profile() for _ in range(10)]
         self._lock = RLock()
 
         self.data = dict(
@@ -592,8 +592,8 @@ class Intensities:
         self._stop_bin_id = -1
 
         self._len = 0
-        self._I = defaultdict(partial(np.zeros, shape=9))
-        self._n_I = defaultdict(partial(np.zeros, shape=9))
+        self._I = defaultdict(partial(np.zeros, shape=10))
+        self._n_I = defaultdict(partial(np.zeros, shape=10))
 
     def __bool__(self):
         return bool(self._len)

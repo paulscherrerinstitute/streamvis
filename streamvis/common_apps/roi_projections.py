@@ -76,7 +76,7 @@ reset_button = Button(label="Reset", button_type="default")
 reset_button.on_click(reset_button_callback)
 
 
-roi_select = Select(title="Select ROI", value="0", options=list(map(str, range(9))))
+roi_select = Select(title="Select ROI", value="0", options=list(map(str, range(10))))
 
 
 def update():

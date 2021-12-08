@@ -20,10 +20,10 @@ from bokeh.models import (
     WheelZoomTool,
 )
 
-from bokeh.palettes import Set1
+from bokeh.palettes import Category10
 
-N_BUF = 9
-cm = Set1[N_BUF]
+N_BUF = 10
+cm = Category10[N_BUF]
 
 doc = curdoc()
 stats = doc.stats
