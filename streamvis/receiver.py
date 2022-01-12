@@ -96,31 +96,16 @@ class StreamAdapter:
         Returns:
             ndarray: Resulting image.
         """
-        # as a first step, try to set the detector_name, skip if detector_name is empty
+        # Eiger workaround
         detector_name = metadata.get("detector_name")
-        if detector_name and detector_name.startswith("JF"):
-            # check if jungfrau data handler is already set for this detector
-            if self.handler is None or self.handler.detector_name != detector_name:
-                try:
-                    self.handler = JFDataHandler(detector_name)
-                except KeyError:
-                    logging.exception(f"Error creating data handler for detector {detector_name}")
-                    self.handler = None
-        else:
-            self.handler = None
-
-        # return a copy of input image if jf data handler creation failed for that detector_name
-        if self.handler is None:
-            if detector_name and detector_name.startswith("Eiger"):
-                image = np.flipud(image)
-            return np.copy(image)
-
-        if image.dtype != np.uint16:
-            image = image.astype(np.float32, copy=True)
-            return image
+        if detector_name and detector_name.startswith("Eiger"):
+            return np.copy(np.flipud(image))
 
         # parse metadata
         self._update_handler(metadata)
+
+        if self.handler is None or image.dtype != np.uint16:
+            return image.astype(np.float32, copy=True)
 
         # skip conversion step if jungfrau data handler cannot do it, thus avoiding Exception raise
         conversion = self.handler.can_convert()
@@ -141,27 +126,11 @@ class StreamAdapter:
     def get_gains(
         self, image, metadata, mask=True, gap_pixels=True, double_pixels="keep", geometry=True
     ):
-        # as a first step, try to set the detector_name, skip if detector_name is empty
-        detector_name = metadata.get("detector_name")
-        if detector_name:
-            # check if jungfrau data handler is already set for this detector
-            if self.handler is None or self.handler.detector_name != detector_name:
-                try:
-                    self.handler = JFDataHandler(detector_name)
-                except KeyError:
-                    logging.exception(f"Error creating data handler for detector {detector_name}")
-                    self.handler = None
-        else:
-            self.handler = None
-
-        if self.handler is None:
-            return dict(shape=[1, 1]), np.zeros((1, 1), dtype="float32")
-
-        if image.dtype != np.uint16:
-            return dict(shape=[1, 1]), np.zeros((1, 1), dtype="float32")
-
         # parse metadata
         self._update_handler(metadata)
+
+        if self.handler is None or image.dtype != np.uint16:
+            return np.zeros((2, 2), dtype="float32")
 
         gains = self.handler.get_gains(
             image, mask=mask, gap_pixels=gap_pixels, double_pixels=double_pixels, geometry=geometry
@@ -174,9 +143,24 @@ class StreamAdapter:
 
         return gains
 
-    def _update_handler(self, md_dict):
+    def _update_handler(self, metadata):
+        # as a first step, try to set the detector_name, skip if detector_name is empty
+        detector_name = metadata.get("detector_name")
+        if detector_name and detector_name.startswith("JF"):
+            # check if jungfrau data handler is already set for this detector
+            if self.handler is None or self.handler.detector_name != detector_name:
+                try:
+                    self.handler = JFDataHandler(detector_name)
+                except KeyError:
+                    logging.exception(f"Error creating data handler for detector {detector_name}")
+                    self.handler = None
+                    return
+        else:
+            self.handler = None
+            return
+
         # gain file
-        gain_file = md_dict.get("gain_file", "")
+        gain_file = metadata.get("gain_file", "")
         try:
             self.handler.gain_file = gain_file
         except Exception:
@@ -184,7 +168,7 @@ class StreamAdapter:
             self.handler.gain_file = ""
 
         # pedestal file
-        pedestal_file = md_dict.get("pedestal_file", "")
+        pedestal_file = metadata.get("pedestal_file", "")
         try:
             self.handler.pedestal_file = pedestal_file
         except Exception:
@@ -192,11 +176,11 @@ class StreamAdapter:
             self.handler.pedestal_file = ""
 
         # module map
-        module_map = md_dict.get("module_map")
+        module_map = metadata.get("module_map")
         self.handler.module_map = None if (module_map is None) else np.array(module_map)
 
         # highgain
-        daq_rec = md_dict.get("daq_rec")
+        daq_rec = metadata.get("daq_rec")
         self.handler.highgain = False if (daq_rec is None) else bool(daq_rec & 0b1)
 
     def _apply_mask(self, image, gap_pixels, double_pixels, geometry):
