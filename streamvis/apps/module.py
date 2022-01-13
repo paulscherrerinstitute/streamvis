@@ -50,6 +50,8 @@ sv_intensity_roi = sv.IntensityROI([sv_main, sv_zoom], sv_metadata)
 
 sv_saturated_pixels = sv.SaturatedPixels([sv_main, sv_zoom], sv_metadata)
 
+sv_spots = sv.Spots([sv_main], sv_metadata)
+
 sv_disabled_modules = sv.DisabledModules([sv_main])
 
 sv_hist = sv.Histogram(nplots=2, plot_height=200, plot_width=700)
@@ -135,6 +137,7 @@ async def internal_periodic_callback():
     sv_colormapper.update(aggr_image)
     sv_main.update(aggr_image)
 
+    sv_spots.update(metadata)
     sv_resolrings.update(metadata)
     sv_intensity_roi.update(metadata)
     sv_saturated_pixels.update(metadata)
