@@ -97,6 +97,26 @@ class StreamControl:
         """
         return self.receiver.state == "receiving"
 
+    @property
+    def mask_active(self):
+        return 0 in list(self.conv_opts_cbg.active)
+
+    @property
+    def gap_pixels_active(self):
+        return 1 in list(self.conv_opts_cbg.active)
+
+    @property
+    def geometry_active(self):
+        return 2 in list(self.conv_opts_cbg.active)
+
+    @property
+    def double_pixels_active(self):
+        return DP_LABELS[self.double_pixels_rg.active]
+
+    @property
+    def n_rot90(self):
+        return int(self.rotate_image.value) // 90
+
     def get_stream_data(self, index):
         """Get data from the stream receiver.
 
@@ -109,11 +129,10 @@ class StreamControl:
         if not self.toggle.tags[0]:
             return dict(shape=[1, 1]), np.zeros((1, 1), dtype="float32")
 
-        active_opts = list(self.conv_opts_cbg.active)
-        mask = 0 in active_opts
-        gap_pixels = 1 in active_opts
-        geometry = 2 in active_opts
-        double_pixels = DP_LABELS[self.double_pixels_rg.active]
+        mask = self.mask_active
+        gap_pixels = self.gap_pixels_active
+        geometry = self.geometry_active
+        double_pixels = self.double_pixels_active
 
         if not gap_pixels and double_pixels == "interp":
             double_pixels = "keep"
@@ -153,9 +172,9 @@ class StreamControl:
         elif self.datatype_select.value == "Gains":
             image = self.jf_adapter.get_gains(raw_image, metadata, **opts_args)
 
-        n_rot = int(self.rotate_image.value) // 90
-        if n_rot:
-            image = np.rot90(image, k=n_rot)
+        n_rot90 = self.n_rot90
+        if n_rot90:
+            image = np.rot90(image, k=n_rot90)
 
         image = np.ascontiguousarray(image, dtype=np.float32)
 

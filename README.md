@@ -96,6 +96,9 @@ Resolution Rings overlay:
 * `beam_center_x: float` - beam x-coordinate
 * `beam_center_y: float` - beam y-coordinate
 
+Disabled Modules overlay (requires a valid `detector_name`):
+* `disabled_modules: Iterable[int]` - indexes of modules to display as disabled
+
 Trajectory Plot:
 * `number_of_spots: int` - a value increases a color saturation of trajectory glyphs and is shown on mouse hover
 * `swissmx_x: float` - trajectory x-coordinate

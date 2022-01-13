@@ -93,6 +93,8 @@ sv_saturated_pixels = sv.SaturatedPixels([sv_main, sv_zoom1, sv_zoom2], sv_metad
 
 sv_spots = sv.Spots([sv_main], sv_metadata)
 
+sv_disabled_modules = sv.DisabledModules([sv_main])
+
 sv_hist = sv.Histogram(nplots=3, plot_height=300, plot_width=600)
 sv_hist.plots[0].title = Title(text="Full image")
 sv_hist.plots[1].title = Title(text="Signal roi", text_color="red")
@@ -194,6 +196,12 @@ async def internal_periodic_callback():
     sv_resolrings.update(metadata)
     sv_intensity_roi.update(metadata)
     sv_saturated_pixels.update(metadata)
+    sv_disabled_modules.update(
+        metadata,
+        geometry=sv_streamctrl.geometry_active,
+        gap_pixels=sv_streamctrl.gap_pixels_active,
+        n_rot90=sv_streamctrl.n_rot90,
+    )
 
     # Deactivate auto histogram range if aggregation is on
     if sv_imageproc.aggregate_toggle.active:

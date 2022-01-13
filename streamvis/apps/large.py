@@ -50,6 +50,8 @@ sv_saturated_pixels = sv.SaturatedPixels([sv_main, sv_zoom], sv_metadata)
 
 sv_spots = sv.Spots([sv_main], sv_metadata)
 
+sv_disabled_modules = sv.DisabledModules([sv_main])
+
 sv_hist = sv.Histogram(nplots=1, plot_height=290, plot_width=700)
 
 sv_streamctrl = sv.StreamControl(sv_rt)
@@ -143,6 +145,12 @@ async def internal_periodic_callback():
     sv_resolrings.update(metadata)
     sv_intensity_roi.update(metadata)
     sv_saturated_pixels.update(metadata)
+    sv_disabled_modules.update(
+        metadata,
+        geometry=sv_streamctrl.geometry_active,
+        gap_pixels=sv_streamctrl.gap_pixels_active,
+        n_rot90=sv_streamctrl.n_rot90,
+    )
 
     sv_zoom_proj_v.update(sv_zoom.displayed_image)
     sv_zoom_proj_h.update(sv_zoom.displayed_image)
