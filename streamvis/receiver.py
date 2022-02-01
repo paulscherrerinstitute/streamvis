@@ -21,6 +21,8 @@ class Receiver:
                 Defaults to 1.
         """
         self.buffer = deque(maxlen=buffer_size)
+        # initialize buffer with dummy data
+        self.buffer.append((dict(shape=[1, 1]), np.zeros((1, 1), dtype="float32")))
         self.state = "polling"
         self.on_receive = on_receive
 

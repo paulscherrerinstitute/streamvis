@@ -18,7 +18,7 @@ class StatisticsHandler:
             buffer_size (int, optional): A peakfinder buffer size. Defaults to 1.
         """
         self.hit_threshold = hit_threshold
-        self.last_hit = (None, None)
+        self.last_hit = (dict(shape=[1, 1]), np.zeros((1, 1), dtype="float32"))
         self.peakfinder_buffer = deque(maxlen=buffer_size)
         self.hitrate_fast = Hitrate(step_size=100)
         self.hitrate_fast_lon = Hitrate(step_size=100)
