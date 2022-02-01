@@ -76,17 +76,20 @@ reset_button.on_click(reset_button_callback)
 
 
 def update():
-    q, avg_I_on, num_on = stats.radial_profile_lon(average_window_spinner.value)
-    _, avg_I_off, num_off = stats.radial_profile_loff(average_window_spinner.value)
+    q_on, avg_I_on, num_on = stats.radial_profile_lon(average_window_spinner.value)
+    q_off, avg_I_off, num_off = stats.radial_profile_loff(average_window_spinner.value)
 
     frames_off_spinner.value = num_off
     frames_on_spinner.value = num_on
 
-    line_off_source.data.update(x=q, y=avg_I_off)
-    line_on_source.data.update(x=q, y=avg_I_on)
+    line_off_source.data.update(x=q_off, y=avg_I_off)
+    line_on_source.data.update(x=q_on, y=avg_I_on)
 
-    avg_I_diff = avg_I_on - avg_I_off if num_off and num_on else []
-    line_diff_source.data.update(x=q, y=avg_I_diff)
+    if num_off and num_on:
+        # in this case, q_on is equal to q_off
+        line_diff_source.data.update(x=q_on, y=avg_I_on - avg_I_off)
+    else:
+        line_diff_source.data.update(x=[], y=[])
 
 
 doc.add_root(

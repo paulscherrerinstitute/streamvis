@@ -82,17 +82,20 @@ roi_select = Select(title="Select ROI", value="0", options=list(map(str, range(1
 def update():
     projection_lon = stats.projections_lon[int(roi_select.value)]
     projection_loff = stats.projections_loff[int(roi_select.value)]
-    x, avg_I_on, num_on = projection_lon(average_window_spinner.value)
-    _, avg_I_off, num_off = projection_loff(average_window_spinner.value)
+    x_on, avg_I_on, num_on = projection_lon(average_window_spinner.value)
+    x_off, avg_I_off, num_off = projection_loff(average_window_spinner.value)
 
     frames_off_spinner.value = num_off
     frames_on_spinner.value = num_on
 
-    line_off_source.data.update(x=x, y=avg_I_off)
-    line_on_source.data.update(x=x, y=avg_I_on)
+    line_off_source.data.update(x=x_off, y=avg_I_off)
+    line_on_source.data.update(x=x_on, y=avg_I_on)
 
-    avg_I_diff = avg_I_on - avg_I_off if num_off and num_on else []
-    line_diff_source.data.update(x=x, y=avg_I_diff)
+    if num_off and num_on:
+        # in this case, x_on is equal to x_off
+        line_diff_source.data.update(x=x_on, y=avg_I_on - avg_I_off)
+    else:
+        line_diff_source.data.update(x=[], y=[])
 
 
 doc.add_root(

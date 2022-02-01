@@ -385,9 +385,12 @@ class Profile:
             y_sum += self._y[_bin_id]
             n_sum += self._n[_bin_id]
 
-        y_avg = y_sum / n_sum if n_sum != 0 else np.zeros_like(self._x)
+        if n_sum == 0:
+            # TODO: is this even possible? i.e. this is probably captured by the first check at the
+            # beginning of the function
+            return [], [], 0
 
-        return self._x, y_avg, n_sum
+        return self._x, y_sum / n_sum, n_sum
 
     def clear(self):
         self._start_bin_id = -1
