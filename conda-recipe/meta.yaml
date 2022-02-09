@@ -8,16 +8,17 @@ source:
   path: ..
 
 build:
+  noarch: python
   number: 0
   entry_points:
     - streamvis = streamvis.cli:main
 
 requirements:
   build:
-    - python {{ python }}
+    - python >=3.7
     - setuptools
   run:
-    - python {{ python }}
+    - python >=3.7
     - numba
     - bokeh =2.1
     - jungfrau_utils =3.5
@@ -28,9 +29,9 @@ requirements:
 
 test:
   source_files:
-      - tests
+    - tests
   requires:
-      - pytest
+    - pytest
 
 about:
   home: https://github.com/paulscherrerinstitute/streamvis
