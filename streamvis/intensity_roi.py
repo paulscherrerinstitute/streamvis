@@ -1,15 +1,18 @@
+import numpy as np
 from bokeh.models import CheckboxGroup, ColumnDataSource, Quad, Text
 
 
 class IntensityROI:
-    def __init__(self, image_views, sv_metadata):
+    def __init__(self, image_views, sv_metadata, sv_streamctrl):
         """Initialize a intensity ROI overlay.
 
         Args:
             image_views (ImageView): Associated streamvis image view instances.
             sv_metadata (MetadataHandler): A metadata handler to report metadata issues.
+            sv_streamctrl (StreamControl): A StreamControl instance of an application.
         """
         self._sv_metadata = sv_metadata
+        self._sv_streamctrl = sv_streamctrl
 
         # ---- intensity ROIs
         self._source = ColumnDataSource(
@@ -71,6 +74,24 @@ class IntensityROI:
             self._sv_metadata.add_issue("Metadata for intensity ROIs is inconsistent")
             self._clear()
             return
+
+        n_rot90 = self._sv_streamctrl.n_rot90
+        im_shape = self._sv_streamctrl.current_image_shape  # image shape after rotation in sv
+        if n_rot90 == 1 or n_rot90 == 3:
+            # get the original shape for consistency in calculations
+            im_shape = im_shape[1], im_shape[0]
+
+        roi_x1 = np.array(roi_x1)
+        roi_x2 = np.array(roi_x2)
+        roi_y1 = np.array(roi_y1)
+        roi_y2 = np.array(roi_y2)
+        if n_rot90 == 1:  # (x, y) -> (y, -x)
+            roi_x1, roi_x2, roi_y1, roi_y2 = roi_y1, roi_y2, im_shape[1] - roi_x1, im_shape[1] - roi_x2
+        elif n_rot90 == 2:  # (x, y) -> (-x, -y)
+            roi_x1, roi_x2 = im_shape[1] - roi_x1, im_shape[1] - roi_x2
+            roi_y1, roi_y2 = im_shape[0] - roi_y1, im_shape[0] - roi_y2
+        elif n_rot90 == 3:  # (x, y) -> (-y, x)
+            roi_x1, roi_x2, roi_y1, roi_y2 = im_shape[0] - roi_y1, im_shape[0] - roi_y2, roi_x1, roi_x2
 
         self._source.data.update(
             left=roi_x1,
