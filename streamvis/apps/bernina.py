@@ -37,6 +37,7 @@ ZOOM2_TOP = ZOOM2_BOTTOM + ZOOM_HEIGHT
 
 
 # Create streamvis components
+sv_streamctrl = sv.StreamControl(sv_rt)
 sv_metadata = sv.MetadataHandler(datatable_height=130, datatable_width=700)
 sv_metadata.issues_datatable.height = 100
 
@@ -86,21 +87,15 @@ sv_colormapper.color_bar.height = 10
 sv_main.plot.add_layout(sv_colormapper.color_bar, place="below")
 
 sv_resolrings = sv.ResolutionRings([sv_main, sv_zoom1, sv_zoom2], sv_metadata)
-
 sv_intensity_roi = sv.IntensityROI([sv_main, sv_zoom1, sv_zoom2], sv_metadata)
-
 sv_saturated_pixels = sv.SaturatedPixels([sv_main, sv_zoom1, sv_zoom2], sv_metadata)
-
 sv_spots = sv.Spots([sv_main], sv_metadata)
-
-sv_disabled_modules = sv.DisabledModules([sv_main])
+sv_disabled_modules = sv.DisabledModules([sv_main], sv_streamctrl)
 
 sv_hist = sv.Histogram(nplots=3, plot_height=300, plot_width=600)
 sv_hist.plots[0].title = Title(text="Full image")
 sv_hist.plots[1].title = Title(text="Signal roi", text_color="red")
 sv_hist.plots[2].title = Title(text="Background roi", text_color="green")
-
-sv_streamctrl = sv.StreamControl(sv_rt)
 
 sv_imageproc = sv.ImageProcessor()
 
@@ -196,12 +191,7 @@ async def internal_periodic_callback():
     sv_resolrings.update(metadata)
     sv_intensity_roi.update(metadata)
     sv_saturated_pixels.update(metadata)
-    sv_disabled_modules.update(
-        metadata,
-        geometry=sv_streamctrl.geometry_active,
-        gap_pixels=sv_streamctrl.gap_pixels_active,
-        n_rot90=sv_streamctrl.n_rot90,
-    )
+    sv_disabled_modules.update(metadata)
 
     # Deactivate auto histogram range if aggregation is on
     if sv_imageproc.aggregate_toggle.active:

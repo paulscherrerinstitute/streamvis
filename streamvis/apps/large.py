@@ -20,6 +20,7 @@ ZOOM_PROJ_X_CANVAS_HEIGHT = 150 + 11
 ZOOM_PROJ_Y_CANVAS_WIDTH = 150 + 31
 
 # Create streamvis components
+sv_streamctrl = sv.StreamControl(sv_rt)
 sv_metadata = sv.MetadataHandler(datatable_height=230, datatable_width=650)
 sv_metadata.issues_datatable.height = 100
 
@@ -43,18 +44,12 @@ sv_streamgraph.plots[0].title = Title(text="Total intensity")
 sv_streamgraph.plots[1].title = Title(text="Zoom total intensity")
 
 sv_resolrings = sv.ResolutionRings([sv_main, sv_zoom], sv_metadata)
-
 sv_intensity_roi = sv.IntensityROI([sv_main, sv_zoom], sv_metadata)
-
 sv_saturated_pixels = sv.SaturatedPixels([sv_main, sv_zoom], sv_metadata)
-
 sv_spots = sv.Spots([sv_main], sv_metadata)
-
-sv_disabled_modules = sv.DisabledModules([sv_main])
+sv_disabled_modules = sv.DisabledModules([sv_main], sv_streamctrl)
 
 sv_hist = sv.Histogram(nplots=1, plot_height=290, plot_width=700)
-
-sv_streamctrl = sv.StreamControl(sv_rt)
 
 sv_imageproc = sv.ImageProcessor()
 
@@ -145,12 +140,7 @@ async def internal_periodic_callback():
     sv_resolrings.update(metadata)
     sv_intensity_roi.update(metadata)
     sv_saturated_pixels.update(metadata)
-    sv_disabled_modules.update(
-        metadata,
-        geometry=sv_streamctrl.geometry_active,
-        gap_pixels=sv_streamctrl.gap_pixels_active,
-        n_rot90=sv_streamctrl.n_rot90,
-    )
+    sv_disabled_modules.update(metadata)
 
     sv_zoom_proj_v.update(sv_zoom.displayed_image)
     sv_zoom_proj_h.update(sv_zoom.displayed_image)

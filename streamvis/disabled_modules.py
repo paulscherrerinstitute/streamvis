@@ -4,14 +4,16 @@ from bokeh.models import ColumnDataSource, Quad
 
 
 class DisabledModules:
-    def __init__(self, image_views):
+    def __init__(self, image_views, sv_streamctrl):
         """Initialize a disabled pixels overlay.
 
         Args:
             image_views (ImageView): Associated streamvis image view instances.
+            sv_streamctrl (StreamControl): A StreamControl instance of an application.
         """
         self._detector_name = ""
         self._ju_handler = None
+        self._sv_streamctrl = sv_streamctrl
         self._source = ColumnDataSource(dict(left=[], right=[], top=[], bottom=[]))
 
         glyph = Quad(
@@ -28,14 +30,11 @@ class DisabledModules:
         for image_view in image_views:
             image_view.plot.add_glyph(self._source, glyph)
 
-    def update(self, metadata, geometry, gap_pixels, n_rot90):
+    def update(self, metadata):
         """Trigger an update for the disabled modules overlay.
 
         Args:
             metadata (dict): A dictionary with current metadata.
-            geometry (bool): Geometry corrections are applied.
-            gap_pixels (bool): Gap pixels are added.
-            n_rot90 (int): Number of image 90 deg rotations.
         """
         detector_name = metadata.get("detector_name")
         disabled_modules = metadata.get("disabled_modules")
@@ -57,6 +56,8 @@ class DisabledModules:
             return
 
         detector_geometry = self._ju_handler.detector_geometry
+        geometry = self._sv_streamctrl.geometry_active
+        gap_pixels = self._sv_streamctrl.gap_pixels_active
         im_shape = self._ju_handler._get_shape_out(gap_pixels=gap_pixels, geometry=geometry)
 
         if geometry:
@@ -70,7 +71,7 @@ class DisabledModules:
         top = bottom + 512 + 2 * gap_pixels
 
         # a total number of rotations
-        n_rot90 += detector_geometry.rotate90
+        n_rot90 = self._sv_streamctrl.n_rot90 + detector_geometry.rotate90
 
         if n_rot90 == 1:  # (x, y) -> (y, -x)
             left, right, bottom, top = bottom, top, im_shape[1] - right, im_shape[1] - left
