@@ -21,6 +21,7 @@ class StreamControl:
         self.receiver = doc.receiver
         self.stats = doc.stats
         self.jf_adapter = doc.jf_adapter
+        self._sv_rt = sv_rt
 
         # connect toggle button
         def toggle_callback(_active):
@@ -116,6 +117,10 @@ class StreamControl:
     @property
     def n_rot90(self):
         return int(self.rotate_image.value) // 90
+
+    @property
+    def current_image_shape(self):
+        return self._sv_rt.image.shape
 
     def get_stream_data(self, index):
         """Get data from the stream receiver.
