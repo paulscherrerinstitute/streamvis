@@ -1,15 +1,18 @@
+import numpy as np
 from bokeh.models import Circle, ColumnDataSource
 
 
 class Spots:
-    def __init__(self, image_views, sv_metadata):
+    def __init__(self, image_views, sv_metadata, sv_streamctrl):
         """Initialize a spots overlay.
 
         Args:
             image_views (ImageView): Associated streamvis image view instances.
             sv_metadata (MetadataHandler): A metadata handler to report metadata issues.
+            sv_streamctrl (StreamControl): A StreamControl instance of an application.
         """
         self._sv_metadata = sv_metadata
+        self._sv_streamctrl = sv_streamctrl
 
         # ---- spots circles
         self._source = ColumnDataSource(dict(x=[], y=[]))
@@ -40,5 +43,20 @@ class Spots:
             self._sv_metadata.add_issue("Spots data is inconsistent")
             self._clear()
             return
+
+        n_rot90 = self._sv_streamctrl.n_rot90
+        im_shape = self._sv_streamctrl.current_image_shape  # image shape after rotation in sv
+        if n_rot90 == 1 or n_rot90 == 3:
+            # get the original shape for consistency in calculations
+            im_shape = im_shape[1], im_shape[0]
+
+        spot_x = np.array(spot_x)
+        spot_y = np.array(spot_y)
+        if n_rot90 == 1:  # (x, y) -> (y, -x)
+            spot_x, spot_y = spot_y, im_shape[1] - spot_x
+        elif n_rot90 == 2:  # (x, y) -> (-x, -y)
+            spot_x, spot_y = im_shape[1] - spot_x, im_shape[0] - spot_y
+        elif n_rot90 == 3:  # (x, y) -> (-y, x)
+            spot_x, spot_y = im_shape[0] - spot_y, spot_x
 
         self._source.data.update(x=spot_x, y=spot_y)
