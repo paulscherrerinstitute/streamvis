@@ -28,16 +28,18 @@ POSITIONS = (1, 1.2, 1.4, 1.5, 1.6, 1.8, 2, 2.2, 2.6, 3, 5, 10)
 
 
 class ResolutionRings:
-    def __init__(self, image_views, sv_metadata, positions=POSITIONS):
+    def __init__(self, image_views, sv_metadata, sv_streamctrl, positions=POSITIONS):
         """Initialize a resolution rings overlay.
 
         Args:
             image_views (ImageView): Associated streamvis image view instances.
             sv_metadata (MetadataHandler): A metadata handler to report metadata issues.
+            sv_streamctrl (StreamControl): A StreamControl instance of an application.
             positions (list, optional): Scattering radii in Angstroms. Defaults to
                 [1.4, 1.5, 1.6, 1.8, 2, 2.2, 2.6, 3, 5, 10].
         """
         self._sv_metadata = sv_metadata
+        self._sv_streamctrl = sv_streamctrl
         self.positions = np.array(positions)
 
         # ---- add resolution tooltip to hover tool
@@ -107,6 +109,19 @@ class ResolutionRings:
         beam_energy = metadata.get("beam_energy", np.nan)
         beam_center_x = metadata.get("beam_center_x", np.nan)
         beam_center_y = metadata.get("beam_center_y", np.nan)
+
+        n_rot90 = self._sv_streamctrl.n_rot90
+        im_shape = self._sv_streamctrl.current_image_shape  # image shape after rotation in sv
+        if n_rot90 == 1 or n_rot90 == 3:
+            # get the original shape for consistency in calculations
+            im_shape = im_shape[1], im_shape[0]
+
+        if n_rot90 == 1:  # (x, y) -> (y, -x)
+            beam_center_x, beam_center_y = beam_center_y, im_shape[1] - beam_center_x
+        elif n_rot90 == 2:  # (x, y) -> (-x, -y)
+            beam_center_x, beam_center_y = im_shape[1] - beam_center_x, im_shape[0] - beam_center_y
+        elif n_rot90 == 3:  # (x, y) -> (-y, x)
+            beam_center_x, beam_center_y = im_shape[0] - beam_center_y, beam_center_x
 
         self._formatter_source.data.update(
             detector_distance=[detector_distance],

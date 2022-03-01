@@ -43,7 +43,7 @@ sv_streamgraph = sv.StreamGraph(nplots=2, plot_height=210, plot_width=1350)
 sv_streamgraph.plots[0].title = Title(text="Total intensity")
 sv_streamgraph.plots[1].title = Title(text="Zoom total intensity")
 
-sv_resolrings = sv.ResolutionRings([sv_main, sv_zoom], sv_metadata)
+sv_resolrings = sv.ResolutionRings([sv_main, sv_zoom], sv_metadata, sv_streamctrl)
 sv_intensity_roi = sv.IntensityROI([sv_main, sv_zoom], sv_metadata)
 sv_saturated_pixels = sv.SaturatedPixels([sv_main, sv_zoom], sv_metadata)
 sv_spots = sv.Spots([sv_main], sv_metadata)
