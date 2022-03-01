@@ -3,14 +3,16 @@ from bokeh.models import Asterisk, CheckboxGroup, ColumnDataSource
 
 
 class SaturatedPixels:
-    def __init__(self, image_views, sv_metadata):
+    def __init__(self, image_views, sv_metadata, sv_streamctrl):
         """Initialize a saturated pixels overlay.
 
         Args:
             image_views (ImageView): Associated streamvis image view instances.
             sv_metadata (MetadataHandler): A metadata handler to report metadata issues.
+            sv_streamctrl (StreamControl): A StreamControl instance of an application.
         """
         self._sv_metadata = sv_metadata
+        self._sv_streamctrl = sv_streamctrl
 
         # ---- saturated pixel markers
         self._source = ColumnDataSource(dict(x=[], y=[]))
@@ -38,16 +40,30 @@ class SaturatedPixels:
             self._clear()
             return
 
-        saturated_pixels_y = metadata.get("saturated_pixels_y")
-        saturated_pixels_x = metadata.get("saturated_pixels_x")
+        sat_pix_y = metadata.get("saturated_pixels_y")
+        sat_pix_x = metadata.get("saturated_pixels_x")
 
-        if saturated_pixels_y is None or saturated_pixels_x is None:
+        if sat_pix_y is None or sat_pix_x is None:
             self._sv_metadata.add_issue("Metadata does not contain data for saturated pixels")
             self._clear()
             return
 
         # convert coordinates to numpy arrays, because if these values were received as a part
         # of a zmq message, they will be lists (ndarray is not JSON serializable)
-        saturated_pixels_y = np.array(saturated_pixels_y, copy=False)
-        saturated_pixels_x = np.array(saturated_pixels_x, copy=False)
-        self._source.data.update(x=saturated_pixels_x + 0.5, y=saturated_pixels_y + 0.5)
+        sat_pix_y = np.array(sat_pix_y, copy=False)
+        sat_pix_x = np.array(sat_pix_x, copy=False)
+
+        n_rot90 = self._sv_streamctrl.n_rot90
+        im_shape = self._sv_streamctrl.current_image_shape  # image shape after rotation in sv
+        if n_rot90 == 1 or n_rot90 == 3:
+            # get the original shape for consistency in calculations
+            im_shape = im_shape[1], im_shape[0]
+
+        if n_rot90 == 1:  # (x, y) -> (y, -x)
+            sat_pix_x, sat_pix_y = sat_pix_y, im_shape[1] - sat_pix_x
+        elif n_rot90 == 2:  # (x, y) -> (-x, -y)
+            sat_pix_x, sat_pix_y = im_shape[1] - sat_pix_x, im_shape[0] - sat_pix_y
+        elif n_rot90 == 3:  # (x, y) -> (-y, x)
+            sat_pix_x, sat_pix_y = im_shape[0] - sat_pix_y, sat_pix_x
+
+        self._source.data.update(x=sat_pix_x + 0.5, y=sat_pix_y + 0.5)

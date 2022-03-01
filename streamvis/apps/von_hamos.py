@@ -95,7 +95,7 @@ sv_main.plot.add_layout(sv_colormapper.color_bar, place="below")
 
 sv_resolrings = sv.ResolutionRings([sv_main, sv_zoom1, sv_zoom2], sv_metadata, sv_streamctrl)
 sv_intensity_roi = sv.IntensityROI([sv_main, sv_zoom1, sv_zoom2], sv_metadata, sv_streamctrl)
-sv_saturated_pixels = sv.SaturatedPixels([sv_main, sv_zoom1, sv_zoom2], sv_metadata)
+sv_saturated_pixels = sv.SaturatedPixels([sv_main, sv_zoom1, sv_zoom2], sv_metadata, sv_streamctrl)
 sv_spots = sv.Spots([sv_main], sv_metadata, sv_streamctrl)
 sv_disabled_modules = sv.DisabledModules([sv_main], sv_streamctrl)
 
