@@ -15,8 +15,7 @@ DP_LABELS = ["keep", "mask", "interp"]
 
 class StreamControl:
     def __init__(self, sv_rt):
-        """Initialize a stream control widget.
-        """
+        """Initialize a stream control widget."""
         doc = curdoc()
         self.receiver = doc.receiver
         self.stats = doc.stats
@@ -44,12 +43,21 @@ class StreamControl:
         self.datatype_select = datatype_select
 
         # conversion options
-        conv_opts_div = Div(text="Conversion options:", margin=(5, 5, 0, 5))
-        conv_opts_cbg = CheckboxGroup(
-            labels=["Mask", "Gap pixels", "Geometry"], active=[0, 1, 2], default_size=145
+        mask_cb = CheckboxGroup(labels=["Mask"], active=[0], default_size=145, margin=(5, 5, 0, 5))
+        self.mask_cb = mask_cb
+
+        gap_pixels_cb = CheckboxGroup(
+            labels=["Gap pixels"], active=[0], default_size=145, margin=(0, 5, 0, 5)
         )
-        self.conv_opts_cbg = conv_opts_cbg
-        self.conv_opts = column(conv_opts_div, conv_opts_cbg)
+        self.gap_pixels_cb = gap_pixels_cb
+
+        geometry_cb = CheckboxGroup(
+            labels=["Geometry"], active=[0], default_size=145, margin=(0, 5, 5, 5)
+        )
+        self.geometry_cb = geometry_cb
+
+        conv_opts_div = Div(text="Conversion options:", margin=(5, 5, 0, 5))
+        self.conv_opts = column(conv_opts_div, mask_cb, gap_pixels_cb, geometry_cb)
 
         # double pixels handling
         double_pixels_div = Div(text="Double pixels:", margin=(5, 5, 0, 5))
@@ -79,7 +87,12 @@ class StreamControl:
             sv_rt.aggregated_image = sv_rt.image
 
         prev_image_slider = Slider(
-            start=0, end=59, value_throttled=0, step=1, title="Previous Image", disabled=True,
+            start=0,
+            end=59,
+            value_throttled=0,
+            step=1,
+            title="Previous Image",
+            disabled=True,
         )
         prev_image_slider.on_change("value_throttled", prev_image_slider_callback)
         self.prev_image_slider = prev_image_slider
@@ -88,27 +101,25 @@ class StreamControl:
 
     @property
     def is_activated(self):
-        """Return the stream toggle state (readonly)
-        """
+        """Return the stream toggle state (readonly)"""
         return self.toggle.active
 
     @property
     def is_receiving(self):
-        """Return the stream receiver state (readonly)
-        """
+        """Return the stream receiver state (readonly)"""
         return self.receiver.state == "receiving"
 
     @property
     def mask_active(self):
-        return 0 in list(self.conv_opts_cbg.active)
+        return bool(self.mask_cb.active)
 
     @property
     def gap_pixels_active(self):
-        return 1 in list(self.conv_opts_cbg.active)
+        return bool(self.gap_pixels_cb.active)
 
     @property
     def geometry_active(self):
-        return 2 in list(self.conv_opts_cbg.active)
+        return bool(self.geometry_cb.active)
 
     @property
     def double_pixels_active(self):
@@ -151,10 +162,14 @@ class StreamControl:
             metadata, raw_image = self.receiver.buffer[index]
 
         if raw_image.dtype == np.uint16:
-            self.conv_opts_cbg.disabled = False
+            self.mask_cb.disabled = False
+            self.gap_pixels_cb.disabled = False
+            self.geometry_cb.disabled = False
             self.double_pixels_rg.disabled = False
         else:
-            self.conv_opts_cbg.disabled = True
+            self.mask_cb.disabled = True
+            self.gap_pixels_cb.disabled = True
+            self.geometry_cb.disabled = True
             self.double_pixels_rg.disabled = True
 
         jf_handler = self.jf_adapter.handler
@@ -196,8 +211,7 @@ class StreamControl:
         return metadata, image
 
     def _update_toggle_view(self):
-        """Update label and button type of the toggle
-        """
+        """Update label and button type of the toggle"""
         if self.is_activated:
             if self.is_receiving:
                 label = "Receiving"
