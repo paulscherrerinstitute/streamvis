@@ -101,7 +101,7 @@ class StreamAdapter:
         """
         # Eiger workaround
         detector_name = metadata.get("detector_name")
-        if detector_name and re.match("(^[A-Za-z]*).EG([0-9A-Za-z]*)",detector_name):
+        if detector_name and re.match("(^[A-Za-z]*).EG([0-9A-Za-z]*)", detector_name):
             return np.copy(np.flipud(image))
 
         # parse metadata

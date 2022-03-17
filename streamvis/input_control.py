@@ -145,15 +145,6 @@ class StreamControl:
         if not self.toggle.tags[0]:
             return dict(shape=[1, 1]), np.zeros((1, 1), dtype="float32")
 
-        mask = self.mask_active
-        gap_pixels = self.gap_pixels_active
-        geometry = self.geometry_active
-        double_pixels = self.double_pixels_active
-
-        if not gap_pixels and double_pixels == "interp":
-            double_pixels = "keep"
-            self.double_pixels_rg.active = 0
-
         if self.show_only_events_toggle.active:
             # Show only events
             metadata, raw_image = self.stats.last_hit
@@ -161,11 +152,47 @@ class StreamControl:
             # Show image at index
             metadata, raw_image = self.receiver.buffer[index]
 
+        mask = metadata.get("mask")
+        if mask is None:
+            mask = self.mask_active
+            mask_locked = False
+        else:
+            self.mask_cb.active = [0] if mask else []
+            mask_locked = True
+
+        gap_pixels = metadata.get("gap_pixels")
+        if gap_pixels is None:
+            gap_pixels = self.gap_pixels_active
+            gap_pixels_locked = False
+        else:
+            self.gap_pixels_cb.active = [0] if gap_pixels else []
+            gap_pixels_locked = True
+
+        geometry = metadata.get("geometry")
+        if geometry is None:
+            geometry = self.geometry_active
+            geometry_locked = False
+        else:
+            self.geometry_cb.active = [0] if geometry else []
+            geometry_locked = True
+
+        double_pixels = metadata.get("double_pixels")
+        if double_pixels is None:
+            double_pixels = self.double_pixels_active
+            double_pixels_locked = False
+        else:
+            self.double_pixels_rg.active = DP_LABELS.index(double_pixels)
+            double_pixels_locked = True
+
+        if not gap_pixels and double_pixels == "interp":
+            double_pixels = "keep"
+            self.double_pixels_rg.active = 0
+
         if raw_image.dtype == np.uint16:
-            self.mask_cb.disabled = False
-            self.gap_pixels_cb.disabled = False
-            self.geometry_cb.disabled = False
-            self.double_pixels_rg.disabled = False
+            self.mask_cb.disabled = mask_locked
+            self.gap_pixels_cb.disabled = gap_pixels_locked
+            self.geometry_cb.disabled = geometry_locked
+            self.double_pixels_rg.disabled = double_pixels_locked
         else:
             self.mask_cb.disabled = True
             self.gap_pixels_cb.disabled = True

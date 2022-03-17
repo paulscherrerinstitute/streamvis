@@ -54,6 +54,10 @@ Optional jungfrau-related metadata entries:
 * `pedestal_file: str` - path to a pedestal file, required for adc->keV conversion and mask
 * `daq_rec: int` - a last bit is used to determine whether detector is in a highgain mode
 * `module_map: Iterable[int]` - a mapping between data regions and detector module positions (e.g. [0, -1, 1] - a second module is switched off)
+* `mask: bool` - superseed a user GUI selection for mask
+* `gap_pixels: bool` - superseed a user GUI selection for gap_pixels
+* `geometry: bool` - superseed a user GUI selection for geometry
+* `double_pixels: str` - superseed a user GUI selection for double_pixels, can be "keep", "mask", or "interp"
 
 Statistics tab:
 * `pulse_id: int` - is required for statistics to be collected, data is grouped into runs based on this value
