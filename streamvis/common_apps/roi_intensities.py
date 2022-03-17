@@ -16,6 +16,8 @@ from bokeh.models import (
     Plot,
     ResetTool,
     SaveTool,
+    Select,
+    Spacer,
     Title,
     WheelZoomTool,
 )
@@ -28,8 +30,6 @@ cm = Category10[N_BUF]
 doc = curdoc()
 stats = doc.stats
 doc.title = f"{doc.title} ROI intensities"
-
-ROLLOVER = 3600
 
 plot = Plot(
     title=Title(text="ROI intensities"),
@@ -65,6 +65,16 @@ for ind in range(N_BUF):
 
 def reset_button_callback():
     stats.roi_intensities.clear()
+    stats.roi_intensities_fast.clear()
+
+
+step_size = stats.roi_intensities.step_size
+step_size_fast = stats.roi_intensities_fast.step_size
+step_size_select = Select(
+    title="Step size (pulse_ids):",
+    options=[str(step_size), str(step_size_fast)],
+    value=str(step_size),
+)
 
 
 reset_button = Button(label="Reset", button_type="default")
@@ -72,7 +82,11 @@ reset_button.on_click(reset_button_callback)
 
 
 def update():
-    x, ys = stats.roi_intensities()
+    if int(step_size_select.value) == step_size:
+        x, ys = stats.roi_intensities()
+    else:
+        x, ys = stats.roi_intensities_fast()
+
     for y, source in zip(ys, line_sources):
         source.data.update(dict(x=x, y=y))
 
@@ -86,6 +100,10 @@ def update():
 
 
 doc.add_root(
-    column(column(plot, sizing_mode="stretch_both"), row(reset_button), sizing_mode="stretch_width")
+    column(
+        column(plot, sizing_mode="stretch_both"),
+        row(step_size_select, column(Spacer(height=18), reset_button)),
+        sizing_mode="stretch_width",
+    )
 )
 doc.add_periodic_callback(update, 1000)
