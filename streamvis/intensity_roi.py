@@ -86,12 +86,14 @@ class IntensityROI:
         roi_y1 = np.array(roi_y1)
         roi_y2 = np.array(roi_y2)
         if n_rot90 == 1:  # (x, y) -> (y, -x)
-            roi_x1, roi_x2, roi_y1, roi_y2 = roi_y1, roi_y2, im_shape[1] - roi_x1, im_shape[1] - roi_x2
+            roi_x1, roi_y1 = roi_y1, im_shape[1] - roi_x1
+            roi_x2, roi_y2 = roi_y2, im_shape[1] - roi_x2
         elif n_rot90 == 2:  # (x, y) -> (-x, -y)
-            roi_x1, roi_x2 = im_shape[1] - roi_x1, im_shape[1] - roi_x2
-            roi_y1, roi_y2 = im_shape[0] - roi_y1, im_shape[0] - roi_y2
+            roi_x1, roi_y1 = im_shape[1] - roi_x1, im_shape[0] - roi_y1
+            roi_x2, roi_y2 = im_shape[1] - roi_x2, im_shape[0] - roi_y2
         elif n_rot90 == 3:  # (x, y) -> (-y, x)
-            roi_x1, roi_x2, roi_y1, roi_y2 = im_shape[0] - roi_y1, im_shape[0] - roi_y2, roi_x1, roi_x2
+            roi_x1, roi_y1 = im_shape[0] - roi_y1, roi_x1
+            roi_x2, roi_y2 = im_shape[0] - roi_y2, roi_x2
 
         self._source.data.update(
             left=roi_x1,

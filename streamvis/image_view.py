@@ -143,34 +143,29 @@ class ImageView:
 
     @property
     def displayed_image(self):
-        """Return resized image that is currently displayed (readonly).
-        """
+        """Return resized image that is currently displayed (readonly)."""
         return self._image_source.data["image"][0]
 
     # a reason for the additional boundary checks:
     # https://github.com/bokeh/bokeh/issues/8118
     @property
     def x_start(self):
-        """Current x-axis image start value (readonly).
-        """
+        """Current x-axis image start value (readonly)."""
         return int(np.floor(max(self.plot.x_range.start, self.plot.x_range.bounds[0])))
 
     @property
     def x_end(self):
-        """Current x-axis image end value (readonly).
-        """
+        """Current x-axis image end value (readonly)."""
         return int(np.ceil(min(self.plot.x_range.end, self.plot.x_range.bounds[1])))
 
     @property
     def y_start(self):
-        """Current y-axis image start value (readonly).
-        """
+        """Current y-axis image start value (readonly)."""
         return int(np.floor(max(self.plot.y_range.start, self.plot.y_range.bounds[0])))
 
     @property
     def y_end(self):
-        """Current y-axis image end value (readonly).
-        """
+        """Current y-axis image end value (readonly)."""
         return int(np.ceil(min(self.plot.y_range.end, self.plot.y_range.bounds[1])))
 
     def add_as_zoom(self, image_view, line_color="red"):
