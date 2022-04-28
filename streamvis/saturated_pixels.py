@@ -23,7 +23,9 @@ class SaturatedPixels:
             image_view.plot.add_glyph(self._source, marker_glyph)
 
         # ---- toggle button
-        toggle = CheckboxGroup(labels=["Saturated Pixels"], active=[0], default_size=145)
+        toggle = CheckboxGroup(
+            labels=["Saturated Pixels"], active=[0], default_size=145, margin=(0, 5, 0, 5)
+        )
         self.toggle = toggle
 
     def _clear(self):

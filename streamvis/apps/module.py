@@ -86,6 +86,7 @@ layout_controls = column(
     show_overlays_div,
     row(sv_resolrings.toggle, sv_main.proj_toggle),
     row(sv_intensity_roi.toggle, sv_saturated_pixels.toggle),
+    Spacer(height=5),
     row(sv_streamctrl.datatype_select, sv_streamctrl.rotate_image),
     sv_streamctrl.prev_image_slider,
     row(sv_streamctrl.conv_opts, sv_streamctrl.double_pixels),

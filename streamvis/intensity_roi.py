@@ -41,7 +41,7 @@ class IntensityROI:
             image_view.plot.add_glyph(self._source, text_glyph)
 
         # ---- toggle button
-        toggle = CheckboxGroup(labels=["Intensity ROIs"], default_size=145)
+        toggle = CheckboxGroup(labels=["Intensity ROIs"], default_size=145, margin=(0, 5, 0, 5))
         self.toggle = toggle
 
     def _clear(self):

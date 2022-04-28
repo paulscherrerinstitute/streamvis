@@ -138,7 +138,9 @@ class ImageView:
         self._vproj_source = ColumnDataSource(dict(x=[], y=[]))
         plot.add_glyph(self._vproj_source, Line(x="x", y="y", line_color="greenyellow"))
 
-        proj_toggle = CheckboxGroup(labels=["Inner Projections"], default_size=145)
+        proj_toggle = CheckboxGroup(
+            labels=["Inner Projections"], default_size=145, margin=(0, 5, 0, 5)
+        )
         self.proj_toggle = proj_toggle
 
     @property

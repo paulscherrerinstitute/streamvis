@@ -91,7 +91,7 @@ class ResolutionRings:
             for image_view in image_views:
                 image_view.plot.tools[-1] = hovertool
 
-        toggle = CheckboxGroup(labels=["Resolution Rings"], default_size=145)
+        toggle = CheckboxGroup(labels=["Resolution Rings"], default_size=145, margin=(0, 5, 0, 5))
         toggle.on_click(toggle_callback)
         self.toggle = toggle
 
