@@ -21,7 +21,7 @@ requirements:
     - python >=3.7
     - numba
     - bokeh =2.1
-    - jungfrau_utils =3.5
+    - jungfrau_utils =3.6
     - pyzmq
     - pillow >=4.3
     - colorcet
