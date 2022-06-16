@@ -71,7 +71,7 @@ class DisabledModules:
         top = bottom + 512 + 2 * gap_pixels
 
         # a total number of rotations
-        n_rot90 = self._sv_streamctrl.n_rot90 + detector_geometry.rotate90
+        n_rot90 = self._sv_streamctrl.n_rot90 + detector_geometry.det_rot90
 
         if n_rot90 == 1:  # (x, y) -> (y, -x)
             left, right, bottom, top = bottom, top, im_shape[1] - right, im_shape[1] - left
