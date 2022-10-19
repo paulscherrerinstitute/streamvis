@@ -88,7 +88,6 @@ class ImageView:
         plot.add_tools(
             PanTool(), WheelZoomTool(maintain_focus=False), SaveTool(), ResetTool(), hovertool
         )
-        plot.toolbar.active_scroll = plot.tools[1]
 
         # ---- axes
         plot.add_layout(LinearAxis(), place="above")
@@ -177,6 +176,9 @@ class ImageView:
             image_plot (ImageView): Associated streamvis image view instance.
             line_color (str, optional): Zoom border box color. Defaults to 'red'.
         """
+        # ---- activate WheelZoomTool
+        image_view.plot.toolbar.active_scroll = image_view.plot.tools[1]
+
         # ---- add quad glyph of zoom area to the main plot
         area_source = ColumnDataSource(
             dict(
