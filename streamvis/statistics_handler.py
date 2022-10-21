@@ -28,6 +28,10 @@ class StatisticsHandler:
         self.hitrate_slow_loff = Hitrate(step_size=1000)
         self.roi_intensities = Intensities()
         self.roi_intensities_fast = Intensities(step_size=1, max_span=1200)
+        self.roi_intensities_hit = Intensities()
+        self.roi_intensities_hit_fast = Intensities(step_size=1, max_span=1200)
+        self.roi_intensities_nohit = Intensities()
+        self.roi_intensities_nohit_fast = Intensities(step_size=1, max_span=1200)
         self.roi_pump_probe = PumpProbe()
         self.roi_pump_probe_nobkg = PumpProbe_nobkg()
         self.radial_profile_lon = Profile()
@@ -158,6 +162,13 @@ class StatisticsHandler:
             if roi_intensities is not None:
                 self.roi_intensities.update(pulse_id, roi_intensities)
                 self.roi_intensities_fast.update(pulse_id, roi_intensities)
+                if sfx_hit:
+                    self.roi_intensities_hit.update(pulse_id, roi_intensities)
+                    self.roi_intensities_hit_fast.update(pulse_id, roi_intensities)
+                else:
+                    self.roi_intensities_nohit.update(pulse_id, roi_intensities)
+                    self.roi_intensities_nohit_fast.update(pulse_id, roi_intensities)
+
                 if len(roi_intensities) >= 1:
                     self.roi_pump_probe_nobkg.update(pulse_id, laser_on, sig=roi_intensities[0])
                 if len(roi_intensities) >= 2:
