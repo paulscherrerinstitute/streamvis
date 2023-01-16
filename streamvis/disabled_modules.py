@@ -51,11 +51,11 @@ class DisabledModules:
                 self._source.data.update(left=[], right=[], top=[], bottom=[])
                 return
 
-        if self._ju_handler.is_stripsel():
+        detector_geometry = self._ju_handler.detector_geometry
+        if detector_geometry.is_stripsel:
             self._source.data.update(left=[], right=[], top=[], bottom=[])
             return
 
-        detector_geometry = self._ju_handler.detector_geometry
         geometry = self._sv_streamctrl.geometry_active
         gap_pixels = self._sv_streamctrl.gap_pixels_active
         im_shape = self._ju_handler._get_shape_out(gap_pixels=gap_pixels, geometry=geometry)
