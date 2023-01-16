@@ -87,12 +87,7 @@ class StreamControl:
             sv_rt.aggregated_image = sv_rt.image
 
         prev_image_slider = Slider(
-            start=0,
-            end=59,
-            value_throttled=0,
-            step=1,
-            title="Previous Image",
-            disabled=True,
+            start=0, end=59, value_throttled=0, step=1, title="Previous Image", disabled=True
         )
         prev_image_slider.on_change("value_throttled", prev_image_slider_callback)
         self.prev_image_slider = prev_image_slider

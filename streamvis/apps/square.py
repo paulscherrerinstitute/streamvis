@@ -1,7 +1,7 @@
 import bottleneck as bn
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import Spacer, Title, Div
+from bokeh.models import Div, Spacer, Title
 
 import streamvis as sv
 

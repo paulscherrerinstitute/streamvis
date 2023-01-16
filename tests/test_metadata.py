@@ -1,4 +1,5 @@
 import pytest
+
 import streamvis as sv
 
 test_shapes = [(20, 100), (1, 350), (800, 800)]

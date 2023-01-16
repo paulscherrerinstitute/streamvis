@@ -1,8 +1,8 @@
 import bokeh
 import numpy as np
+import pytest
 from PIL import Image as PIL_Image
 
-import pytest
 import streamvis as sv
 
 test_image = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float32)

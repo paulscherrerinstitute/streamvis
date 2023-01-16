@@ -10,7 +10,7 @@ from bokeh.application.handlers import ScriptHandler
 from bokeh.server.server import Server
 
 from streamvis import __version__
-from streamvis.handler import StreamvisHandler, StreamvisCheckHandler
+from streamvis.handler import StreamvisCheckHandler, StreamvisHandler
 from streamvis.receiver import Receiver, StreamAdapter
 from streamvis.statistics_handler import StatisticsHandler
 
@@ -103,7 +103,7 @@ def main():
     )
 
     parser.add_argument(
-        "--client-fps", type=float, default=1, help="client update rate in frames per second",
+        "--client-fps", type=float, default=1, help="client update rate in frames per second"
     )
 
     parser.add_argument(

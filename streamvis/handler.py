@@ -5,8 +5,7 @@ from bokeh.models import Div
 
 
 class StreamvisHandler(Handler):
-    """Provides a mechanism for generic bokeh applications to build up new streamvis documents.
-    """
+    """Provides a mechanism for generic bokeh applications to build up new streamvis documents."""
 
     def __init__(self, receiver, stats, jf_adapter, args):
         """Initialize a streamvis handler for bokeh applications.
@@ -42,8 +41,7 @@ class StreamvisHandler(Handler):
 
 
 class StreamvisCheckHandler(Handler):
-    """Checks whether the document should be cleared based on a set of conditions.
-    """
+    """Checks whether the document should be cleared based on a set of conditions."""
 
     div_access_denied = """
         <h2>

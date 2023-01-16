@@ -19,12 +19,7 @@ class IntensityROI:
             dict(left=[], right=[], bottom=[], top=[], text_x=[], text_y=[], text=[])
         )
         quad_glyph = Quad(
-            left="left",
-            right="right",
-            bottom="bottom",
-            top="top",
-            fill_alpha=0,
-            line_color="white",
+            left="left", right="right", bottom="bottom", top="top", fill_alpha=0, line_color="white"
         )
 
         text_glyph = Text(

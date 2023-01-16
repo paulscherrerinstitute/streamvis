@@ -147,20 +147,17 @@ class Histogram:
 
     @property
     def lower(self):
-        """Lower range of the bins (readonly)
-        """
+        """Lower range of the bins (readonly)"""
         return self.lower_spinner.value
 
     @property
     def upper(self):
-        """Upper range of the bins (readonly)
-        """
+        """Upper range of the bins (readonly)"""
         return self.upper_spinner.value
 
     @property
     def nbins(self):
-        """Number of the bins (readonly)
-        """
+        """Number of the bins (readonly)"""
         return self.nbins_spinner.value
 
     def update(self, input_data, accumulate=False):

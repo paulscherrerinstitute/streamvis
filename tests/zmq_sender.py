@@ -17,7 +17,7 @@ if args.stream == "base":
     im_size_y = 512
 elif args.stream == "raw-16m":
     im_size_x = 1024
-    im_size_y = 512*32
+    im_size_y = 512 * 32
 elif args.stream == "alvra":
     im_size_x = 9318
     im_size_y = 514
@@ -91,7 +91,7 @@ def send_array(socket, array, frame_num, pulse_id, flags=0, copy=False, track=Fa
         saturated_pixels_y=[100, 110, 120],
         saturated_pixels_x=[200, 210, 220],
         roi_intensities_normalised=roi_intensities_normalised,
-        roi_intensities_x=[[0,10], [40, 45]],
+        roi_intensities_x=[[0, 10], [40, 45]],
         roi_intensities_proj_x=[list(range(10)), list(range(5))],
         roi_x1=[10, 20],
         roi_x2=[110, 120],

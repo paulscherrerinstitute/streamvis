@@ -62,8 +62,7 @@ class StatisticsHandler:
 
     @property
     def auxiliary_apps_dropdown(self):
-        """Return a button that opens statistics application.
-        """
+        """Return a button that opens statistics application."""
         js_code = """
         switch (this.item) {
             case "Statistics":
@@ -240,8 +239,7 @@ class StatisticsHandler:
         self.sum_data[key][-1] += 1
 
     def reset(self):
-        """Reset statistics entries.
-        """
+        """Reset statistics entries."""
         with self._lock:
             for val in self.data.values():
                 val.clear()

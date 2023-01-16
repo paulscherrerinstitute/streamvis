@@ -21,7 +21,6 @@ from bokeh.models import (
     Title,
     WheelZoomTool,
 )
-
 from bokeh.palettes import Category10
 
 N_BUF = 10

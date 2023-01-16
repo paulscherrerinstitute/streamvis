@@ -12,7 +12,6 @@ from bokeh.models import (
     Select,
     Spinner,
 )
-
 from bokeh.palettes import Cividis256, Greys256, Plasma256
 
 cmap_dict = {
@@ -167,14 +166,12 @@ class ColorMapper:
 
     @property
     def disp_min(self):
-        """Minimal display value (readonly)
-        """
+        """Minimal display value (readonly)"""
         return self.display_min_spinner.value
 
     @property
     def disp_max(self):
-        """Maximal display value (readonly)
-        """
+        """Maximal display value (readonly)"""
         return self.display_max_spinner.value
 
     def update(self, image):

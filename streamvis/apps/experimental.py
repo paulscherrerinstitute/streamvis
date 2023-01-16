@@ -58,7 +58,7 @@ def image_index_slider_callback(_attr, _old, new):
 
 
 image_index_slider = Slider(
-    start=0, end=99, value_throttled=0, step=1, title="Pulse Number", disabled=True,
+    start=0, end=99, value_throttled=0, step=1, title="Pulse Number", disabled=True
 )
 image_index_slider.on_change("value_throttled", image_index_slider_callback)
 

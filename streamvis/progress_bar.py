@@ -1,12 +1,11 @@
-from bokeh.models import Plot, Range1d, ColumnDataSource, Quad, Text
+from bokeh.models import ColumnDataSource, Plot, Quad, Range1d, Text
 
 
 # TODO: this could be replaced with a bokeh ProgressBar widget
 # https://github.com/bokeh/bokeh/issues/6556
 class ProgressBar:
     def __init__(self):
-        """Initialize a progress bar widget.
-        """
+        """Initialize a progress bar widget."""
         self._source = ColumnDataSource(
             dict(left=[0], right=[0], top=[1], bottom=[0], text_x=[0.5], text_y=[0.5], text=[""])
         )

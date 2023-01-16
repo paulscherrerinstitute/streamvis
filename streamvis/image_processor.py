@@ -4,8 +4,7 @@ from bokeh.models import CheckboxGroup, Spinner, TextInput
 
 class ImageProcessor:
     def __init__(self):
-        """Initialize an image processor.
-        """
+        """Initialize an image processor."""
         self.aggregated_image = np.zeros((1, 1), dtype=np.float32)
 
         # Threshold widgets
@@ -34,26 +33,22 @@ class ImageProcessor:
 
     @property
     def threshold_min(self):
-        """Minimal image threshold value (readonly).
-        """
+        """Minimal image threshold value (readonly)."""
         return self.threshold_min_spinner.value
 
     @property
     def threshold_max(self):
-        """Maximal image threshold value (readonly).
-        """
+        """Maximal image threshold value (readonly)."""
         return self.threshold_max_spinner.value
 
     @property
     def aggregate_limit(self):
-        """A number of image aggregation before resetting (readonly).
-        """
+        """A number of image aggregation before resetting (readonly)."""
         return self.aggregate_limit_spinner.value
 
     @property
     def aggregate_counter(self):
-        """A current number of aggregated images (readonly).
-        """
+        """A current number of aggregated images (readonly)."""
         return int(self.aggregate_counter_textinput.value)
 
     @aggregate_counter.setter

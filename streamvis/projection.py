@@ -74,14 +74,12 @@ class Projection:
 
     @property
     def x(self):
-        """Current x-axis values (readonly).
-        """
+        """Current x-axis values (readonly)."""
         return self._line_source.data["x"]
 
     @property
     def y(self):
-        """Current y-axis values (readonly).
-        """
+        """Current y-axis values (readonly)."""
         return self._line_source.data["y"]
 
     def update(self, image):

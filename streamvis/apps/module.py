@@ -1,7 +1,7 @@
 import bottleneck as bn
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import Spacer, Title, Div
+from bokeh.models import Div, Spacer, Title
 
 import streamvis as sv
 
@@ -23,10 +23,7 @@ sv_metadata = sv.MetadataHandler(datatable_width=500)
 sv_metadata.issues_datatable.height = 100
 
 sv_main = sv.ImageView(
-    plot_height=MAIN_CANVAS_HEIGHT,
-    plot_width=MAIN_CANVAS_WIDTH,
-    image_height=514,
-    image_width=1030,
+    plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH, image_height=514, image_width=1030
 )
 
 sv_zoom = sv.ImageView(

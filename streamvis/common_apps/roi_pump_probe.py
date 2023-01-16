@@ -34,7 +34,7 @@ plot = Plot(
 
 plot.toolbar.logo = None
 plot.add_tools(
-    PanTool(), BoxZoomTool(), WheelZoomTool(maintain_focus=False), SaveTool(), ResetTool(),
+    PanTool(), BoxZoomTool(), WheelZoomTool(maintain_focus=False), SaveTool(), ResetTool()
 )
 
 plot.add_layout(
