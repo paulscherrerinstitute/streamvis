@@ -8,6 +8,7 @@ from bokeh.models import (
     Grid,
     HoverTool,
     Image,
+    Label,
     Line,
     LinearAxis,
     PanTool,
@@ -141,6 +142,12 @@ class ImageView:
             labels=["Inner Projections"], default_size=145, margin=(0, 5, 0, 5)
         )
         self.proj_toggle = proj_toggle
+
+        # ---- image view coordinates label
+        self._coord_label = Label(
+            x=10, y=10, text="", text_color="white", x_units="screen", y_units="screen"
+        )
+        plot.add_layout(self._coord_label)
 
     @property
     def displayed_image(self):
@@ -298,6 +305,11 @@ class ImageView:
         else:
             self._hproj_source.data.update(x=[], y=[])
             self._vproj_source.data.update(x=[], y=[])
+
+        # Update image view coordinates label text
+        self._coord_label.text = (
+            f"Y:({self.y_start}, {self.y_end}) X:({self.x_start}, {self.x_end})"
+        )
 
         # Process all accociated zoom views
         for zoom_view in self.zoom_views:
