@@ -92,12 +92,13 @@ def send_array(socket, array, frame_num, pulse_id, flags=0, copy=False, track=Fa
         saturated_pixels_x=[200, 210, 220],
         roi_intensities_normalised=roi_intensities_normalised,
         roi_intensities_x=[[0, 10], [40, 45]],
-        roi_intensities_proj_x=[list(range(10)), list(range(5))],
+        roi_intensities_proj_x=[list(np.random.rand(10) * 100), list(range(5))],
         roi_x1=[10, 20],
         roi_x2=[110, 120],
         roi_y1=[210, 220],
         roi_y2=[310, 320],
         disabled_modules=[2],
+        is_hit_frame=(frame_num % 3 == 0),
     )
 
     if "raw" not in args.stream:
