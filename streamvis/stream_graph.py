@@ -48,7 +48,6 @@ class StreamGraph:
 
         # Stream graphs
         self.plots = []
-        self.glyphs = []
         self._sources = []
         for ind in range(nplots):
             # share x_range between plots
@@ -76,10 +75,8 @@ class StreamGraph:
 
             # ---- line glyph
             source = ColumnDataSource(dict(x=[], y=[], x_avg=[], y_avg=[]))
-            line = Line(x="x", y="y", line_color="gray")
-            line_avg = Line(x="x_avg", y="y_avg", line_color="red")
-            line_renderer = plot.add_glyph(source, line)
-            line_avg_renderer = plot.add_glyph(source, line_avg)
+            line_renderer = plot.add_glyph(source, Line(x="x", y="y", line_color="gray"))
+            line_avg_renderer = plot.add_glyph(source, Line(x="x_avg", y="y_avg", line_color="red"))
 
             # ---- legend
             plot.add_layout(
@@ -91,7 +88,6 @@ class StreamGraph:
             plot.legend.click_policy = "hide"
 
             self.plots.append(plot)
-            self.glyphs.append(line)
             self._sources.append(source)
             self._buffers.append(deque(maxlen=MAXLEN))
 
