@@ -43,27 +43,29 @@ class StreamControl:
         self.datatype_select = datatype_select
 
         # conversion options
-        mask_cb = CheckboxGroup(labels=["Mask"], active=[0], default_size=145, margin=(5, 5, 0, 5))
-        self.mask_cb = mask_cb
+        mask_switch = CheckboxGroup(
+            labels=["Mask"], active=[0], default_size=145, margin=(5, 5, 0, 5)
+        )
+        self.mask_switch = mask_switch
 
-        gap_pixels_cb = CheckboxGroup(
+        gap_pixels_switch = CheckboxGroup(
             labels=["Gap pixels"], active=[0], default_size=145, margin=(0, 5, 0, 5)
         )
-        self.gap_pixels_cb = gap_pixels_cb
+        self.gap_pixels_switch = gap_pixels_switch
 
-        geometry_cb = CheckboxGroup(
+        geometry_switch = CheckboxGroup(
             labels=["Geometry"], active=[0], default_size=145, margin=(0, 5, 5, 5)
         )
-        self.geometry_cb = geometry_cb
+        self.geometry_switch = geometry_switch
 
         conv_opts_div = Div(text="Conversion options:", margin=(5, 5, 0, 5))
-        self.conv_opts = column(conv_opts_div, mask_cb, gap_pixels_cb, geometry_cb)
+        self.conv_opts = column(conv_opts_div, mask_switch, gap_pixels_switch, geometry_switch)
 
         # double pixels handling
         double_pixels_div = Div(text="Double pixels:", margin=(5, 5, 0, 5))
-        double_pixels_rg = RadioGroup(labels=DP_LABELS, active=0, default_size=145)
-        self.double_pixels_rg = double_pixels_rg
-        self.double_pixels = column(double_pixels_div, double_pixels_rg)
+        double_pixels_radiogroup = RadioGroup(labels=DP_LABELS, active=0, default_size=145)
+        self.double_pixels_radiogroup = double_pixels_radiogroup
+        self.double_pixels = column(double_pixels_div, double_pixels_radiogroup)
 
         # rotate image select
         rotate_values = ["0", "90", "180", "270"]
@@ -76,7 +78,7 @@ class StreamControl:
         self.rotate_image = rotate_image
 
         # show only events
-        self.show_only_events_toggle = CheckboxGroup(labels=["Show Only Events"], default_size=145)
+        self.show_only_events_switch = CheckboxGroup(labels=["Show Only Events"], default_size=145)
 
         # Previous Image slider
         self._prev_image_buffer = deque(maxlen=60)
@@ -106,19 +108,19 @@ class StreamControl:
 
     @property
     def mask_active(self):
-        return bool(self.mask_cb.active)
+        return bool(self.mask_switch.active)
 
     @property
     def gap_pixels_active(self):
-        return bool(self.gap_pixels_cb.active)
+        return bool(self.gap_pixels_switch.active)
 
     @property
     def geometry_active(self):
-        return bool(self.geometry_cb.active)
+        return bool(self.geometry_switch.active)
 
     @property
     def double_pixels_active(self):
-        return DP_LABELS[self.double_pixels_rg.active]
+        return DP_LABELS[self.double_pixels_radiogroup.active]
 
     @property
     def n_rot90(self):
@@ -140,7 +142,7 @@ class StreamControl:
         if not self.toggle.tags[0]:
             return dict(shape=[1, 1]), np.zeros((1, 1), dtype="float32")
 
-        if self.show_only_events_toggle.active:
+        if self.show_only_events_switch.active:
             # Show only events
             metadata, raw_image = self.stats.last_hit
         else:
@@ -152,7 +154,7 @@ class StreamControl:
             mask = self.mask_active
             mask_locked = False
         else:
-            self.mask_cb.active = [0] if mask else []
+            self.mask_switch.active = [0] if mask else []
             mask_locked = True
 
         gap_pixels = metadata.get("gap_pixels")
@@ -160,7 +162,7 @@ class StreamControl:
             gap_pixels = self.gap_pixels_active
             gap_pixels_locked = False
         else:
-            self.gap_pixels_cb.active = [0] if gap_pixels else []
+            self.gap_pixels_switch.active = [0] if gap_pixels else []
             gap_pixels_locked = True
 
         geometry = metadata.get("geometry")
@@ -168,7 +170,7 @@ class StreamControl:
             geometry = self.geometry_active
             geometry_locked = False
         else:
-            self.geometry_cb.active = [0] if geometry else []
+            self.geometry_switch.active = [0] if geometry else []
             geometry_locked = True
 
         double_pixels = metadata.get("double_pixels")
@@ -176,23 +178,23 @@ class StreamControl:
             double_pixels = self.double_pixels_active
             double_pixels_locked = False
         else:
-            self.double_pixels_rg.active = DP_LABELS.index(double_pixels)
+            self.double_pixels_radiogroup.active = DP_LABELS.index(double_pixels)
             double_pixels_locked = True
 
         if not gap_pixels and double_pixels == "interp":
             double_pixels = "keep"
-            self.double_pixels_rg.active = 0
+            self.double_pixels_radiogroup.active = 0
 
         if raw_image.dtype == np.uint16:
-            self.mask_cb.disabled = mask_locked
-            self.gap_pixels_cb.disabled = gap_pixels_locked
-            self.geometry_cb.disabled = geometry_locked
-            self.double_pixels_rg.disabled = double_pixels_locked
+            self.mask_switch.disabled = mask_locked
+            self.gap_pixels_switch.disabled = gap_pixels_locked
+            self.geometry_switch.disabled = geometry_locked
+            self.double_pixels_radiogroup.disabled = double_pixels_locked
         else:
-            self.mask_cb.disabled = True
-            self.gap_pixels_cb.disabled = True
-            self.geometry_cb.disabled = True
-            self.double_pixels_rg.disabled = True
+            self.mask_switch.disabled = True
+            self.gap_pixels_switch.disabled = True
+            self.geometry_switch.disabled = True
+            self.double_pixels_radiogroup.disabled = True
 
         jf_handler = self.jf_adapter.handler
         opts_args = dict(

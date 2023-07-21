@@ -71,7 +71,7 @@ layout_controls = column(
     image_index_slider,
     row(sv_colormapper.select, sv_colormapper.high_color),
     row(sv_colormapper.display_min_spinner, sv_colormapper.display_max_spinner),
-    row(sv_colormapper.auto_toggle, sv_colormapper.scale_radiobuttongroup),
+    row(sv_colormapper.auto_switch, sv_colormapper.scale_radiogroup),
 )
 
 final_layout = row(layout_controls, sv_main.plot, column(sv_hist.plots[0], sv_metadata.datatable))

@@ -75,8 +75,8 @@ class Histogram:
         self._empty_counts()
 
         # Histogram controls
-        # ---- histogram range toggle button
-        def auto_toggle_callback(_attr, _old, new):
+        # ---- histogram range switch
+        def auto_switch_callback(_attr, _old, new):
             if 0 in new:  # Automatic
                 lower_spinner.disabled = True
                 upper_spinner.disabled = True
@@ -85,9 +85,9 @@ class Histogram:
                 lower_spinner.disabled = False
                 upper_spinner.disabled = False
 
-        auto_toggle = CheckboxGroup(labels=["Auto Hist Range"], active=[0], default_size=145)
-        auto_toggle.on_change("active", auto_toggle_callback)
-        self.auto_toggle = auto_toggle
+        auto_switch = CheckboxGroup(labels=["Auto Hist Range"], active=[0], default_size=145)
+        auto_switch.on_change("active", auto_switch_callback)
+        self.auto_switch = auto_switch
 
         # ---- histogram lower range
         def lower_spinner_callback(_attr, _old_value, new_value):
@@ -99,7 +99,7 @@ class Histogram:
             high=upper - STEP,
             value=lower,
             step=STEP,
-            disabled=bool(auto_toggle.active),
+            disabled=bool(auto_switch.active),
             default_size=145,
         )
         lower_spinner.on_change("value", lower_spinner_callback)
@@ -115,7 +115,7 @@ class Histogram:
             low=lower + STEP,
             value=upper,
             step=STEP,
-            disabled=bool(auto_toggle.active),
+            disabled=bool(auto_switch.active),
             default_size=145,
         )
         upper_spinner.on_change("value", upper_spinner_callback)
@@ -129,8 +129,8 @@ class Histogram:
         nbins_spinner.on_change("value", nbins_spinner_callback)
         self.nbins_spinner = nbins_spinner
 
-        # ---- histogram log10 of counts toggle button
-        def log10counts_toggle_callback(_attr, _old, new):
+        # ---- histogram log10 of counts switch
+        def log10counts_switch_callback(_attr, _old, new):
             self._empty_counts()
             for plot in self.plots:
                 if 0 in new:
@@ -138,9 +138,9 @@ class Histogram:
                 else:
                     plot.yaxis[0].axis_label = "Counts"
 
-        log10counts_toggle = CheckboxGroup(labels=["log⏨(Counts)"], default_size=145)
-        log10counts_toggle.on_change("active", log10counts_toggle_callback)
-        self.log10counts_toggle = log10counts_toggle
+        log10counts_switch = CheckboxGroup(labels=["log⏨(Counts)"], default_size=145)
+        log10counts_switch.on_change("active", log10counts_switch_callback)
+        self.log10counts_switch = log10counts_switch
 
     def _empty_counts(self):
         self._counts = [0 for _ in range(len(self.plots))]
@@ -168,7 +168,7 @@ class Histogram:
             accumulate (bool, optional): Add together bin values of the previous and current data.
                 Defaults to False.
         """
-        if self.auto_toggle.active and not accumulate:  # automatic
+        if self.auto_switch.active and not accumulate:  # automatic
             # find the lowest and the highest value in input data
             lower = 0
             upper = 1
@@ -209,7 +209,7 @@ class Histogram:
 
             next_counts, edges = np.histogram(data, bins=self.nbins, range=(self.lower, self.upper))
 
-            if self.log10counts_toggle.active:
+            if self.log10counts_switch.active:
                 next_counts = np.log10(next_counts, where=next_counts > 0)
 
             if accumulate:

@@ -61,7 +61,7 @@ sv_zoom1 = sv.ImageView(
     y_start=ZOOM1_BOTTOM,
     y_end=ZOOM1_TOP,
 )
-sv_zoom1.proj_toggle = sv_main.proj_toggle
+sv_zoom1.proj_switch = sv_main.proj_switch
 sv_main.add_as_zoom(sv_zoom1, line_color="red")
 
 sv_zoom1_proj_v = sv.Projection(sv_zoom1, "vertical", height=ZOOM_AGG_X_PLOT_HEIGHT)
@@ -80,7 +80,7 @@ sv_zoom2 = sv.ImageView(
     y_start=ZOOM2_BOTTOM,
     y_end=ZOOM2_TOP,
 )
-sv_zoom2.proj_toggle = sv_main.proj_toggle
+sv_zoom2.proj_switch = sv_main.proj_switch
 sv_main.add_as_zoom(sv_zoom2, line_color="green")
 
 sv_zoom2_proj_v = sv.Projection(sv_zoom2, "vertical", height=ZOOM_AGG_X_PLOT_HEIGHT)
@@ -182,17 +182,17 @@ layout_zoom2 = column(
 layout_bottom_row_controls = row(
     column(
         row(sv_imageproc.threshold_min_spinner, sv_imageproc.threshold_max_spinner),
-        sv_imageproc.threshold_toggle,
+        sv_imageproc.threshold_switch,
     ),
     Spacer(width=100),
     column(
         row(sv_imageproc.aggregate_limit_spinner, sv_imageproc.aggregate_counter_textinput),
-        row(sv_imageproc.aggregate_toggle, sv_imageproc.average_toggle),
+        row(sv_imageproc.aggregate_switch, sv_imageproc.average_switch),
     ),
     Spacer(width=100),
     column(save_spectrum_select, save_spectrum_button),
     Spacer(width=100),
-    column(sv_hist.auto_toggle, sv_hist.log10counts_toggle),
+    column(sv_hist.auto_switch, sv_hist.log10counts_switch),
     sv_hist.lower_spinner,
     sv_hist.upper_spinner,
     sv_hist.nbins_spinner,
@@ -213,21 +213,21 @@ show_overlays_div = Div(text="Show Overlays:")
 layout_controls = column(
     row(sv_colormapper.select, sv_colormapper.high_color, sv_colormapper.mask_color),
     row(sv_colormapper.display_min_spinner, sv_colormapper.display_max_spinner),
-    row(sv_colormapper.auto_toggle, sv_colormapper.scale_radiobuttongroup),
+    row(sv_colormapper.auto_switch, sv_colormapper.scale_radiogroup),
     Spacer(height=10),
     show_overlays_div,
-    row(sv_resolrings.toggle, sv_main.proj_toggle),
-    row(sv_intensity_roi.toggle, sv_saturated_pixels.toggle),
+    row(sv_resolrings.switch, sv_main.proj_switch),
+    row(sv_intensity_roi.switch, sv_saturated_pixels.switch),
     Spacer(height=10),
     row(sv_streamctrl.datatype_select, sv_streamctrl.rotate_image),
     sv_streamctrl.prev_image_slider,
     row(sv_streamctrl.conv_opts, sv_streamctrl.double_pixels),
-    row(Spacer(width=155), sv_streamctrl.show_only_events_toggle),
+    row(Spacer(width=155), sv_streamctrl.show_only_events_switch),
     row(doc.stats.auxiliary_apps_dropdown, sv_streamctrl.toggle),
 )
 
 layout_metadata = column(
-    sv_metadata.issues_datatable, row(sv_metadata.show_all_toggle), sv_metadata.datatable
+    sv_metadata.issues_datatable, row(sv_metadata.show_all_switch), sv_metadata.datatable
 )
 
 layout_left = column(row(layout_zoom1, layout_zoom2), layout_bottom_row_controls)
@@ -270,8 +270,8 @@ async def internal_periodic_callback():
     sv_zoom2_proj_h.update(sv_zoom2.displayed_image)
 
     # Deactivate auto histogram range if aggregation is on
-    if sv_imageproc.aggregate_toggle.active:
-        sv_hist.auto_toggle.active = []
+    if sv_imageproc.aggregate_switch.active:
+        sv_hist.auto_switch.active = []
 
     im_block1 = aggr_image[sv_zoom1.y_start : sv_zoom1.y_end, sv_zoom1.x_start : sv_zoom1.x_end]
     total_sum_zoom1 = bn.nansum(im_block1)

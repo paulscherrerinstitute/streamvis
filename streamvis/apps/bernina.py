@@ -60,7 +60,7 @@ sv_zoom1 = sv.ImageView(
     y_end=ZOOM1_TOP,
 )
 sv_zoom1.plot.title = Title(text="Signal roi", text_color="red")
-sv_zoom1.proj_toggle = sv_main.proj_toggle
+sv_zoom1.proj_switch = sv_main.proj_switch
 sv_main.add_as_zoom(sv_zoom1, line_color="red")
 
 sv_zoom2 = sv.ImageView(
@@ -74,7 +74,7 @@ sv_zoom2 = sv.ImageView(
     y_end=ZOOM2_TOP,
 )
 sv_zoom2.plot.title = Title(text="Background roi", text_color="green")
-sv_zoom2.proj_toggle = sv_main.proj_toggle
+sv_zoom2.proj_switch = sv_main.proj_switch
 sv_main.add_as_zoom(sv_zoom2, line_color="green")
 
 sv_streamgraph = sv.StreamGraph(nplots=2, height=160, width=DEBUG_INTENSITY_WIDTH)
@@ -106,7 +106,7 @@ layout_main = gridplot([[sv_main.plot, column(sv_zoom1.plot, sv_zoom2.plot)]], m
 layout_hist = column(
     gridplot([[sv_hist.plots[0], sv_hist.plots[1], sv_hist.plots[2]]], merge_tools=False),
     row(
-        column(sv_hist.auto_toggle, sv_hist.log10counts_toggle),
+        column(sv_hist.auto_switch, sv_hist.log10counts_switch),
         sv_hist.lower_spinner,
         sv_hist.upper_spinner,
         sv_hist.nbins_spinner,
@@ -129,31 +129,31 @@ layout_controls = row(
     column(
         row(sv_colormapper.select, sv_colormapper.high_color, sv_colormapper.mask_color),
         row(sv_colormapper.display_min_spinner, sv_colormapper.display_max_spinner),
-        row(sv_colormapper.auto_toggle, sv_colormapper.scale_radiobuttongroup),
+        row(sv_colormapper.auto_switch, sv_colormapper.scale_radiogroup),
         show_overlays_div,
-        row(sv_resolrings.toggle, sv_main.proj_toggle),
-        row(sv_intensity_roi.toggle, sv_saturated_pixels.toggle),
+        row(sv_resolrings.switch, sv_main.proj_switch),
+        row(sv_intensity_roi.switch, sv_saturated_pixels.switch),
     ),
     Spacer(width=30),
     column(
         row(sv_streamctrl.datatype_select, sv_streamctrl.rotate_image),
         sv_streamctrl.prev_image_slider,
         row(sv_streamctrl.conv_opts, sv_streamctrl.double_pixels),
-        row(Spacer(width=155), sv_streamctrl.show_only_events_toggle),
+        row(Spacer(width=155), sv_streamctrl.show_only_events_switch),
         row(doc.stats.auxiliary_apps_dropdown, sv_streamctrl.toggle),
     ),
     Spacer(width=30),
     column(
         row(sv_imageproc.threshold_min_spinner, sv_imageproc.threshold_max_spinner),
-        sv_imageproc.threshold_toggle,
+        sv_imageproc.threshold_switch,
         Spacer(height=10),
         row(sv_imageproc.aggregate_limit_spinner, sv_imageproc.aggregate_counter_textinput),
-        row(sv_imageproc.aggregate_toggle, sv_imageproc.average_toggle),
+        row(sv_imageproc.aggregate_switch, sv_imageproc.average_switch),
     ),
 )
 
 layout_metadata = column(
-    sv_metadata.issues_datatable, row(sv_metadata.show_all_toggle), sv_metadata.datatable
+    sv_metadata.issues_datatable, row(sv_metadata.show_all_switch), sv_metadata.datatable
 )
 
 final_layout = column(
@@ -194,8 +194,8 @@ async def internal_periodic_callback():
     sv_disabled_modules.update(metadata)
 
     # Deactivate auto histogram range if aggregation is on
-    if sv_imageproc.aggregate_toggle.active:
-        sv_hist.auto_toggle.active = []
+    if sv_imageproc.aggregate_switch.active:
+        sv_hist.auto_switch.active = []
 
     # Signal roi and intensity
     im_block1 = aggr_image[sv_zoom1.y_start : sv_zoom1.y_end, sv_zoom1.x_start : sv_zoom1.x_end]

@@ -22,11 +22,11 @@ class SaturatedPixels:
         for image_view in image_views:
             image_view.plot.add_glyph(self._source, marker_glyph)
 
-        # ---- toggle button
-        toggle = CheckboxGroup(
+        # ---- switch
+        switch = CheckboxGroup(
             labels=["Saturated Pixels"], active=[0], default_size=145, margin=(0, 5, 0, 5)
         )
-        self.toggle = toggle
+        self.switch = switch
 
     def _clear(self):
         if len(self._source.data["x"]):
@@ -38,7 +38,7 @@ class SaturatedPixels:
         Args:
             metadata (dict): A dictionary with current metadata.
         """
-        if not self.toggle.active:
+        if not self.switch.active:
             self._clear()
             return
 

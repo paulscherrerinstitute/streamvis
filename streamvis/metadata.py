@@ -56,9 +56,9 @@ class MetadataHandler:
         self._issues_datatable_source = issues_datatable_source
         self.issues_datatable = issues_datatable
 
-        # Show all toggle
-        show_all_toggle = CheckboxGroup(labels=["Show All Metadata"], default_size=145)
-        self.show_all_toggle = show_all_toggle
+        # Show all switch
+        show_all_switch = CheckboxGroup(labels=["Show All Metadata"], default_size=145)
+        self.show_all_switch = show_all_switch
 
     def add_issue(self, issue):
         """Add an issue to be displayed in metadata issues dropdown.
@@ -78,7 +78,7 @@ class MetadataHandler:
             dict: Metadata entries to be displayed in a datatable.
         """
         # Prepare a dictionary with metadata entries to show
-        if self.show_all_toggle.active:
+        if self.show_all_switch.active:
             metadata_toshow = metadata
         else:
             metadata_toshow = {

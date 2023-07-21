@@ -8,7 +8,7 @@ class ImageProcessor:
         self.aggregated_image = np.zeros((1, 1), dtype=np.float32)
 
         # Threshold widgets
-        self.threshold_toggle = CheckboxGroup(labels=["Apply Thresholding"], default_size=145)
+        self.threshold_switch = CheckboxGroup(labels=["Apply Thresholding"], default_size=145)
 
         self.threshold_min_spinner = Spinner(
             title="Min Intensity:", value=0, step=0.1, default_size=145
@@ -19,7 +19,7 @@ class ImageProcessor:
         )
 
         # Aggregate widgets
-        self.aggregate_toggle = CheckboxGroup(labels=["Apply Aggregation"], default_size=145)
+        self.aggregate_switch = CheckboxGroup(labels=["Apply Aggregation"], default_size=145)
 
         self.aggregate_limit_spinner = Spinner(
             title="Limit:", value=0, low=0, step=1, default_size=145
@@ -29,7 +29,7 @@ class ImageProcessor:
             title="Counter:", value=str(1), disabled=True, default_size=145
         )
 
-        self.average_toggle = CheckboxGroup(labels=["Show Average"], default_size=145)
+        self.average_switch = CheckboxGroup(labels=["Show Average"], default_size=145)
 
     @property
     def threshold_min(self):
@@ -71,12 +71,12 @@ class ImageProcessor:
         counts = metadata.get("aggregated_images", 1)
 
         thr_image = image.copy()
-        if self.threshold_toggle.active:
+        if self.threshold_switch.active:
             ind = (thr_image < self.threshold_min) | (self.threshold_max < thr_image)
             thr_image[ind] = 0
 
         if (
-            self.aggregate_toggle.active
+            self.aggregate_switch.active
             and (self.aggregate_limit == 0 or self.aggregate_limit > self.aggregate_counter)
             and self.aggregated_image.shape == image.shape
         ):
@@ -88,7 +88,7 @@ class ImageProcessor:
             self.aggregate_counter = counts
             reset = True
 
-        if self.average_toggle.active:
+        if self.average_switch.active:
             aggregated_image = self.aggregated_image / self.aggregate_counter
         else:
             aggregated_image = self.aggregated_image

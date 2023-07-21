@@ -68,8 +68,8 @@ class ColorMapper:
         select.on_change("value", select_callback)
         self.select = select
 
-        # ---- auto toggle button
-        def auto_toggle_callback(_attr, _old, new):
+        # ---- auto switch
+        def auto_switch_callback(_attr, _old, new):
             if 0 in new:
                 display_min_spinner.disabled = True
                 display_max_spinner.disabled = True
@@ -77,12 +77,12 @@ class ColorMapper:
                 display_min_spinner.disabled = False
                 display_max_spinner.disabled = False
 
-        auto_toggle = CheckboxGroup(labels=["Auto Colormap Range"], default_size=145)
-        auto_toggle.on_change("active", auto_toggle_callback)
-        self.auto_toggle = auto_toggle
+        auto_switch = CheckboxGroup(labels=["Auto Colormap Range"], default_size=145)
+        auto_switch.on_change("active", auto_switch_callback)
+        self.auto_switch = auto_switch
 
-        # ---- scale radiobutton group
-        def scale_radiobuttongroup_callback(_attr, _old, new):
+        # ---- scale radiogroup
+        def scale_radiogroup_callback(_attr, _old, new):
             if new == 0:  # Linear
                 for image_view in image_views:
                     image_view.image_glyph.color_mapper = lin_colormapper
@@ -96,19 +96,17 @@ class ColorMapper:
                     color_bar.color_mapper = log_colormapper
                     color_bar.ticker = LogTicker()
                 else:
-                    scale_radiobuttongroup.active = 0
+                    scale_radiogroup.active = 0
 
-        scale_radiobuttongroup = RadioGroup(
-            labels=["Linear", "Logarithmic"], active=0, default_size=145
-        )
-        scale_radiobuttongroup.on_change("active", scale_radiobuttongroup_callback)
-        self.scale_radiobuttongroup = scale_radiobuttongroup
+        scale_radiogroup = RadioGroup(labels=["Linear", "Logarithmic"], active=0, default_size=145)
+        scale_radiogroup.on_change("active", scale_radiogroup_callback)
+        self.scale_radiogroup = scale_radiogroup
 
         # ---- display max value
         def display_max_spinner_callback(_attr, _old_value, new_value):
             self.display_min_spinner.high = new_value - STEP
             if new_value <= 0:
-                scale_radiobuttongroup.active = 0
+                scale_radiogroup.active = 0
 
             lin_colormapper.high = new_value
             log_colormapper.high = new_value
@@ -118,7 +116,7 @@ class ColorMapper:
             low=disp_min + STEP,
             value=disp_max,
             step=STEP,
-            disabled=bool(auto_toggle.active),
+            disabled=bool(auto_switch.active),
             default_size=145,
         )
         display_max_spinner.on_change("value", display_max_spinner_callback)
@@ -128,7 +126,7 @@ class ColorMapper:
         def display_min_spinner_callback(_attr, _old_value, new_value):
             self.display_max_spinner.low = new_value + STEP
             if new_value <= 0:
-                scale_radiobuttongroup.active = 0
+                scale_radiogroup.active = 0
 
             lin_colormapper.low = new_value
             log_colormapper.low = new_value
@@ -138,7 +136,7 @@ class ColorMapper:
             high=disp_max - STEP,
             value=disp_min,
             step=STEP,
-            disabled=bool(auto_toggle.active),
+            disabled=bool(auto_switch.active),
             default_size=145,
         )
         display_min_spinner.on_change("value", display_min_spinner_callback)
@@ -180,12 +178,12 @@ class ColorMapper:
         Args:
             image (ndarray): A source image for colormapper.
         """
-        if self.auto_toggle.active:
+        if self.auto_switch.active:
             image_min = int(np.nanmin(image))
             image_max = int(np.nanmax(image))
 
             if image_min <= 0:  # switch to linear colormap
-                self.scale_radiobuttongroup.active = 0
+                self.scale_radiogroup.active = 0
 
             # force update independently on current display values
             self.display_min_spinner.high = None

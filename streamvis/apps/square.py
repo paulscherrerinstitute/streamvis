@@ -24,7 +24,7 @@ sv_metadata.issues_datatable.height = 100
 
 sv_main = sv.ImageView(height=MAIN_CANVAS_HEIGHT, width=MAIN_CANVAS_WIDTH)
 sv_zoom = sv.ImageView(height=ZOOM_CANVAS_HEIGHT, width=ZOOM_CANVAS_WIDTH)
-sv_zoom.proj_toggle = sv_main.proj_toggle
+sv_zoom.proj_switch = sv_main.proj_switch
 sv_main.add_as_zoom(sv_zoom)
 
 sv_zoom_proj_v = sv.Projection(sv_zoom, "vertical")
@@ -70,33 +70,33 @@ show_overlays_div = Div(text="Show Overlays:")
 
 layout_controls = column(
     row(sv_imageproc.threshold_min_spinner, sv_imageproc.threshold_max_spinner),
-    sv_imageproc.threshold_toggle,
+    sv_imageproc.threshold_switch,
     Spacer(height=10),
     row(sv_imageproc.aggregate_limit_spinner, sv_imageproc.aggregate_counter_textinput),
-    row(sv_imageproc.aggregate_toggle, sv_imageproc.average_toggle),
+    row(sv_imageproc.aggregate_switch, sv_imageproc.average_switch),
     Spacer(height=10),
     row(sv_colormapper.select, sv_colormapper.high_color, sv_colormapper.mask_color),
     row(sv_colormapper.display_min_spinner, sv_colormapper.display_max_spinner),
-    row(sv_colormapper.auto_toggle, sv_colormapper.scale_radiobuttongroup),
+    row(sv_colormapper.auto_switch, sv_colormapper.scale_radiogroup),
     show_overlays_div,
-    row(sv_resolrings.toggle, sv_main.proj_toggle),
-    row(sv_intensity_roi.toggle, sv_saturated_pixels.toggle),
+    row(sv_resolrings.switch, sv_main.proj_switch),
+    row(sv_intensity_roi.switch, sv_saturated_pixels.switch),
     Spacer(height=10),
     row(sv_streamctrl.datatype_select, sv_streamctrl.rotate_image),
     sv_streamctrl.prev_image_slider,
     row(sv_streamctrl.conv_opts, sv_streamctrl.double_pixels),
-    row(Spacer(width=155), sv_streamctrl.show_only_events_toggle),
+    row(Spacer(width=155), sv_streamctrl.show_only_events_switch),
     row(doc.stats.auxiliary_apps_dropdown, sv_streamctrl.toggle),
 )
 
 layout_metadata = column(
-    sv_metadata.issues_datatable, row(sv_metadata.show_all_toggle), sv_metadata.datatable
+    sv_metadata.issues_datatable, row(sv_metadata.show_all_switch), sv_metadata.datatable
 )
 
 layout_hist = column(
     gridplot(sv_hist.plots, ncols=1, toolbar_location="left", toolbar_options=dict(logo=None)),
     row(
-        column(sv_hist.auto_toggle, sv_hist.log10counts_toggle),
+        column(sv_hist.auto_switch, sv_hist.log10counts_switch),
         sv_hist.lower_spinner,
         sv_hist.upper_spinner,
         sv_hist.nbins_spinner,
@@ -142,8 +142,8 @@ async def internal_periodic_callback():
     total_sum_zoom = bn.nansum(im_block)
 
     # Deactivate auto histogram range if aggregation is on
-    if sv_imageproc.aggregate_toggle.active:
-        sv_hist.auto_toggle.active = []
+    if sv_imageproc.aggregate_switch.active:
+        sv_hist.auto_switch.active = []
 
     # Update histogram
     if sv_streamctrl.is_activated and sv_streamctrl.is_receiving:

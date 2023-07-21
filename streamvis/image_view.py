@@ -138,10 +138,10 @@ class ImageView:
         self._vproj_source = ColumnDataSource(dict(x=[], y=[]))
         plot.add_glyph(self._vproj_source, Line(x="x", y="y", line_color="greenyellow"))
 
-        proj_toggle = CheckboxGroup(
+        proj_switch = CheckboxGroup(
             labels=["Inner Projections"], default_size=145, margin=(0, 5, 0, 5)
         )
-        self.proj_toggle = proj_toggle
+        self.proj_switch = proj_switch
 
         # ---- image view coordinates label
         self._coord_label = Label(
@@ -288,7 +288,7 @@ class ImageView:
             self._pvalue_source.data.update(x=[], y=[], text=[])
 
         # Draw projections
-        if self.proj_toggle.active:
+        if self.proj_switch.active:
             im_y_len, im_x_len = resized_image.shape
 
             h_x = np.linspace(self.x_start + 0.5, self.x_end - 0.5, im_x_len)
