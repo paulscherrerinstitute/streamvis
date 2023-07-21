@@ -21,13 +21,13 @@ STEP = 0.1
 
 
 class Histogram:
-    def __init__(self, nplots, plot_height=350, plot_width=700, lower=0, upper=1000, nbins=100):
+    def __init__(self, nplots, height=350, width=700, lower=0, upper=1000, nbins=100):
         """Initialize histogram plots.
 
         Args:
             nplots (int): Number of histogram plots that will share common controls.
-            plot_height (int, optional): Height of plot area in screen pixels. Defaults to 350.
-            plot_width (int, optional): Width of plot area in screen pixels. Defaults to 700.
+            height (int, optional): Height of plot area in screen pixels. Defaults to 350.
+            width (int, optional): Width of plot area in screen pixels. Defaults to 700.
             lower (int, optional): Initial lower range of the bins. Defaults to 0.
             upper (int, optional): Initial upper range of the bins. Defaults to 1000.
             nbins (int, optional): Initial number of the bins. Defaults to 100.
@@ -39,8 +39,8 @@ class Histogram:
             plot = Plot(
                 x_range=DataRange1d(),
                 y_range=DataRange1d(),
-                plot_height=plot_height,
-                plot_width=plot_width,
+                height=height,
+                width=width,
                 toolbar_location="left",
             )
 
@@ -76,8 +76,8 @@ class Histogram:
 
         # Histogram controls
         # ---- histogram range toggle button
-        def auto_toggle_callback(state):
-            if state:  # Automatic
+        def auto_toggle_callback(_attr, _old, new):
+            if 0 in new:  # Automatic
                 lower_spinner.disabled = True
                 upper_spinner.disabled = True
 
@@ -86,7 +86,7 @@ class Histogram:
                 upper_spinner.disabled = False
 
         auto_toggle = CheckboxGroup(labels=["Auto Hist Range"], active=[0], default_size=145)
-        auto_toggle.on_click(auto_toggle_callback)
+        auto_toggle.on_change("active", auto_toggle_callback)
         self.auto_toggle = auto_toggle
 
         # ---- histogram lower range
@@ -130,16 +130,16 @@ class Histogram:
         self.nbins_spinner = nbins_spinner
 
         # ---- histogram log10 of counts toggle button
-        def log10counts_toggle_callback(state):
+        def log10counts_toggle_callback(_attr, _old, new):
             self._empty_counts()
             for plot in self.plots:
-                if state:
+                if 0 in new:
                     plot.yaxis[0].axis_label = "log⏨(Counts)"
                 else:
                     plot.yaxis[0].axis_label = "Counts"
 
         log10counts_toggle = CheckboxGroup(labels=["log⏨(Counts)"], default_size=145)
-        log10counts_toggle.on_click(log10counts_toggle_callback)
+        log10counts_toggle.on_change("active", log10counts_toggle_callback)
         self.log10counts_toggle = log10counts_toggle
 
     def _empty_counts(self):

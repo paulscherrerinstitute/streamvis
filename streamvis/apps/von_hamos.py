@@ -45,15 +45,15 @@ sv_metadata = sv.MetadataHandler(datatable_height=430, datatable_width=800)
 sv_metadata.issues_datatable.height = 100
 
 sv_main = sv.ImageView(
-    plot_height=MAIN_CANVAS_HEIGHT,
-    plot_width=MAIN_CANVAS_WIDTH,
+    height=MAIN_CANVAS_HEIGHT,
+    width=MAIN_CANVAS_WIDTH,
     image_height=IMAGE_SIZE_Y,
     image_width=IMAGE_SIZE_X,
 )
 
 sv_zoom1 = sv.ImageView(
-    plot_height=ZOOM_CANVAS_HEIGHT,
-    plot_width=ZOOM_CANVAS_WIDTH,
+    height=ZOOM_CANVAS_HEIGHT,
+    width=ZOOM_CANVAS_WIDTH,
     image_height=IMAGE_SIZE_Y,
     image_width=IMAGE_SIZE_X,
     x_start=ZOOM1_LEFT,
@@ -64,15 +64,15 @@ sv_zoom1 = sv.ImageView(
 sv_zoom1.proj_toggle = sv_main.proj_toggle
 sv_main.add_as_zoom(sv_zoom1, line_color="red")
 
-sv_zoom1_proj_v = sv.Projection(sv_zoom1, "vertical", plot_height=ZOOM_AGG_X_PLOT_HEIGHT)
+sv_zoom1_proj_v = sv.Projection(sv_zoom1, "vertical", height=ZOOM_AGG_X_PLOT_HEIGHT)
 sv_zoom1_proj_v.plot.title = Title(text="Zoom Area 1")
 sv_zoom1_proj_v.plot.renderers[0].glyph.line_width = 2
 
-sv_zoom1_proj_h = sv.Projection(sv_zoom1, "horizontal", plot_width=ZOOM_AGG_Y_PLOT_WIDTH)
+sv_zoom1_proj_h = sv.Projection(sv_zoom1, "horizontal", width=ZOOM_AGG_Y_PLOT_WIDTH)
 
 sv_zoom2 = sv.ImageView(
-    plot_height=ZOOM_CANVAS_HEIGHT,
-    plot_width=ZOOM_CANVAS_WIDTH,
+    height=ZOOM_CANVAS_HEIGHT,
+    width=ZOOM_CANVAS_WIDTH,
     image_height=IMAGE_SIZE_Y,
     image_width=IMAGE_SIZE_X,
     x_start=ZOOM2_LEFT,
@@ -83,11 +83,11 @@ sv_zoom2 = sv.ImageView(
 sv_zoom2.proj_toggle = sv_main.proj_toggle
 sv_main.add_as_zoom(sv_zoom2, line_color="green")
 
-sv_zoom2_proj_v = sv.Projection(sv_zoom2, "vertical", plot_height=ZOOM_AGG_X_PLOT_HEIGHT)
+sv_zoom2_proj_v = sv.Projection(sv_zoom2, "vertical", height=ZOOM_AGG_X_PLOT_HEIGHT)
 sv_zoom2_proj_v.plot.title = Title(text="Zoom Area 2")
 sv_zoom2_proj_v.plot.renderers[0].glyph.line_width = 2
 
-sv_zoom2_proj_h = sv.Projection(sv_zoom2, "horizontal", plot_width=ZOOM_AGG_Y_PLOT_WIDTH)
+sv_zoom2_proj_h = sv.Projection(sv_zoom2, "horizontal", width=ZOOM_AGG_Y_PLOT_WIDTH)
 
 sv_colormapper = sv.ColorMapper([sv_main, sv_zoom1, sv_zoom2])
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
@@ -99,7 +99,7 @@ sv_saturated_pixels = sv.SaturatedPixels([sv_main, sv_zoom1, sv_zoom2], sv_metad
 sv_spots = sv.Spots([sv_main], sv_metadata, sv_streamctrl)
 sv_disabled_modules = sv.DisabledModules([sv_main], sv_streamctrl)
 
-sv_hist = sv.Histogram(nplots=2, plot_height=280, plot_width=sv_zoom1.plot.plot_width)
+sv_hist = sv.Histogram(nplots=2, height=280, width=sv_zoom1.plot.width)
 
 sv_imageproc = sv.ImageProcessor()
 
@@ -158,7 +158,7 @@ def save_spectrum_select_callback(_attr, _old, new):
 save_spectrum_select = Select(title="Saved Spectra:", options=["None"], value="None")
 save_spectrum_select.on_change("value", save_spectrum_select_callback)
 
-sv_streamgraph = sv.StreamGraph(nplots=3, plot_height=200, plot_width=1100)
+sv_streamgraph = sv.StreamGraph(nplots=3, height=200, width=1100)
 sv_streamgraph.plots[0].title = Title(text="Total Intensity")
 sv_streamgraph.plots[1].title = Title(text="Zoom Area 1 Total Intensity")
 sv_streamgraph.plots[2].title = Title(text="Zoom Area 2 Total Intensity")

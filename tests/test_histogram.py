@@ -18,14 +18,14 @@ def test_nplots(nplots):
     assert len(sv_hist._plot_sources) == nplots
 
 
-@pytest.mark.parametrize("plot_height", [10, 200, 1000])
-@pytest.mark.parametrize("plot_width", [20, 350, 800])
-def test_plot_sizes(plot_height, plot_width):
-    sv_hist = sv.Histogram(nplots=1, plot_height=plot_height, plot_width=plot_width)
+@pytest.mark.parametrize("height", [10, 200, 1000])
+@pytest.mark.parametrize("width", [20, 350, 800])
+def test_plot_sizes(height, width):
+    sv_hist = sv.Histogram(nplots=1, height=height, width=width)
     plot = sv_hist.plots[0]
 
-    assert plot.plot_height == plot_height
-    assert plot.plot_width == plot_width
+    assert plot.height == height
+    assert plot.width == width
 
 
 @pytest.mark.parametrize("value", [0, -1, 1, 350, 800, -1000])

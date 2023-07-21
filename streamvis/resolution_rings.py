@@ -86,13 +86,13 @@ class ResolutionRings:
             image_view.plot.add_glyph(self._formatter_source, cross_glyph)
 
         # ---- toggle button
-        def toggle_callback(state):
-            hovertool = hovertool_on if state else hovertool_off
+        def toggle_callback(_attr, _old, new):
+            hovertool = hovertool_on if 0 in new else hovertool_off
             for image_view in image_views:
                 image_view.plot.tools[-1] = hovertool
 
         toggle = CheckboxGroup(labels=["Resolution Rings"], default_size=145, margin=(0, 5, 0, 5))
-        toggle.on_click(toggle_callback)
+        toggle.on_change("active", toggle_callback)
         self.toggle = toggle
 
     def _clear(self):

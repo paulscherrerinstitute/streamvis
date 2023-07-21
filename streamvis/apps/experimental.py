@@ -17,13 +17,13 @@ MAIN_CANVAS_HEIGHT = 1000 + 59
 # Create streamvis components
 sv_metadata = sv.MetadataHandler(datatable_height=300, datatable_width=400)
 
-sv_main = sv.ImageView(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
+sv_main = sv.ImageView(height=MAIN_CANVAS_HEIGHT, width=MAIN_CANVAS_WIDTH)
 
 sv_colormapper = sv.ColorMapper([sv_main])
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
 sv_main.plot.add_layout(sv_colormapper.color_bar, place="below")
 
-sv_hist = sv.Histogram(nplots=1, plot_height=400, plot_width=700)
+sv_hist = sv.Histogram(nplots=1, height=400, width=700)
 
 file_path = TextInput(title="File Path:", value="/")
 

@@ -24,22 +24,22 @@ sv_streamctrl = sv.StreamControl(sv_rt)
 sv_metadata = sv.MetadataHandler(datatable_height=230, datatable_width=650)
 sv_metadata.issues_datatable.height = 100
 
-sv_main = sv.ImageView(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
-sv_zoom = sv.ImageView(plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH)
+sv_main = sv.ImageView(height=MAIN_CANVAS_HEIGHT, width=MAIN_CANVAS_WIDTH)
+sv_zoom = sv.ImageView(height=ZOOM_CANVAS_HEIGHT, width=ZOOM_CANVAS_WIDTH)
 sv_zoom.proj_toggle = sv_main.proj_toggle
 sv_main.add_as_zoom(sv_zoom, line_color="white")
 
-sv_zoom_proj_v = sv.Projection(sv_zoom, "vertical", plot_height=ZOOM_PROJ_X_CANVAS_HEIGHT)
+sv_zoom_proj_v = sv.Projection(sv_zoom, "vertical", height=ZOOM_PROJ_X_CANVAS_HEIGHT)
 sv_zoom_proj_v.plot.renderers[0].glyph.line_width = 2
 
-sv_zoom_proj_h = sv.Projection(sv_zoom, "horizontal", plot_width=ZOOM_PROJ_Y_CANVAS_WIDTH)
+sv_zoom_proj_h = sv.Projection(sv_zoom, "horizontal", width=ZOOM_PROJ_Y_CANVAS_WIDTH)
 sv_zoom_proj_h.plot.renderers[0].glyph.line_width = 2
 
 sv_colormapper = sv.ColorMapper([sv_main, sv_zoom])
 sv_colormapper.color_bar.width = MAIN_CANVAS_WIDTH // 2
 sv_main.plot.add_layout(sv_colormapper.color_bar, place="below")
 
-sv_streamgraph = sv.StreamGraph(nplots=2, plot_height=210, plot_width=1350)
+sv_streamgraph = sv.StreamGraph(nplots=2, height=210, width=1350)
 sv_streamgraph.plots[0].title = Title(text="Total intensity")
 sv_streamgraph.plots[1].title = Title(text="Zoom total intensity")
 
@@ -49,7 +49,7 @@ sv_saturated_pixels = sv.SaturatedPixels([sv_main, sv_zoom], sv_metadata, sv_str
 sv_spots = sv.Spots([sv_main], sv_metadata, sv_streamctrl)
 sv_disabled_modules = sv.DisabledModules([sv_main], sv_streamctrl)
 
-sv_hist = sv.Histogram(nplots=1, plot_height=290, plot_width=700)
+sv_hist = sv.Histogram(nplots=1, height=290, width=700)
 
 sv_imageproc = sv.ImageProcessor()
 

@@ -22,8 +22,8 @@ sv_streamctrl = sv.StreamControl(sv_rt)
 sv_metadata = sv.MetadataHandler()
 sv_metadata.issues_datatable.height = 100
 
-sv_main = sv.ImageView(plot_height=MAIN_CANVAS_HEIGHT, plot_width=MAIN_CANVAS_WIDTH)
-sv_zoom = sv.ImageView(plot_height=ZOOM_CANVAS_HEIGHT, plot_width=ZOOM_CANVAS_WIDTH)
+sv_main = sv.ImageView(height=MAIN_CANVAS_HEIGHT, width=MAIN_CANVAS_WIDTH)
+sv_zoom = sv.ImageView(height=ZOOM_CANVAS_HEIGHT, width=ZOOM_CANVAS_WIDTH)
 sv_zoom.proj_toggle = sv_main.proj_toggle
 sv_main.add_as_zoom(sv_zoom)
 
@@ -40,11 +40,11 @@ sv_saturated_pixels = sv.SaturatedPixels([sv_main, sv_zoom], sv_metadata, sv_str
 sv_spots = sv.Spots([sv_main], sv_metadata, sv_streamctrl)
 sv_disabled_modules = sv.DisabledModules([sv_main], sv_streamctrl)
 
-sv_hist = sv.Histogram(nplots=2, plot_height=200, plot_width=700)
+sv_hist = sv.Histogram(nplots=2, height=200, width=700)
 sv_hist.plots[0].title = Title(text="Full image")
 sv_hist.plots[1].title = Title(text="Roi")
 
-sv_streamgraph = sv.StreamGraph(nplots=2, plot_height=200, plot_width=700)
+sv_streamgraph = sv.StreamGraph(nplots=2, height=200, width=700)
 sv_streamgraph.plots[0].title = Title(text="Total intensity")
 sv_streamgraph.plots[1].title = Title(text="Zoom total intensity")
 

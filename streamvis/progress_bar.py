@@ -29,8 +29,8 @@ class ProgressBar:
         )
 
         plot = Plot(
-            plot_width=310,
-            plot_height=40,
+            width=310,
+            height=40,
             x_range=Range1d(0, 1, bounds=(0, 1)),
             y_range=Range1d(0, 1, bounds=(0, 1)),
             toolbar_location=None,

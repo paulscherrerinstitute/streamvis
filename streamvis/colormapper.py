@@ -69,8 +69,8 @@ class ColorMapper:
         self.select = select
 
         # ---- auto toggle button
-        def auto_toggle_callback(state):
-            if state:
+        def auto_toggle_callback(_attr, _old, new):
+            if 0 in new:
                 display_min_spinner.disabled = True
                 display_max_spinner.disabled = True
             else:
@@ -78,12 +78,12 @@ class ColorMapper:
                 display_max_spinner.disabled = False
 
         auto_toggle = CheckboxGroup(labels=["Auto Colormap Range"], default_size=145)
-        auto_toggle.on_click(auto_toggle_callback)
+        auto_toggle.on_change("active", auto_toggle_callback)
         self.auto_toggle = auto_toggle
 
         # ---- scale radiobutton group
-        def scale_radiobuttongroup_callback(selection):
-            if selection == 0:  # Linear
+        def scale_radiobuttongroup_callback(_attr, _old, new):
+            if new == 0:  # Linear
                 for image_view in image_views:
                     image_view.image_glyph.color_mapper = lin_colormapper
                 color_bar.color_mapper = lin_colormapper
@@ -101,7 +101,7 @@ class ColorMapper:
         scale_radiobuttongroup = RadioGroup(
             labels=["Linear", "Logarithmic"], active=0, default_size=145
         )
-        scale_radiobuttongroup.on_click(scale_radiobuttongroup_callback)
+        scale_radiobuttongroup.on_change("active", scale_radiobuttongroup_callback)
         self.scale_radiobuttongroup = scale_radiobuttongroup
 
         # ---- display max value

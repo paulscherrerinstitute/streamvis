@@ -6,14 +6,14 @@ DEFAULT_PLOT_SIZE = 200
 
 
 class Projection:
-    def __init__(self, image_view, direction, plot_height=None, plot_width=None):
+    def __init__(self, image_view, direction, height=None, width=None):
         """Initialize a projection plot.
 
         Args:
             image_view (ImageView): Associated streamvis image view instance.
             direction (str): Display plot projection along the direction - 'horizontal', 'vertical'.
-            plot_height (int, optional): Height of plot area in screen pixels. Defaults to None.
-            plot_width (int, optional): Width of plot area in screen pixels. Defaults to None.
+            height (int, optional): Height of plot area in screen pixels. Defaults to None.
+            width (int, optional): Width of plot area in screen pixels. Defaults to None.
 
         Raises:
             ValueError: Projection direction can be either 'horizontal' or 'vertical'.
@@ -25,17 +25,17 @@ class Projection:
         self._direction = direction
 
         if direction == "vertical":
-            if plot_height is None:
-                plot_height = DEFAULT_PLOT_SIZE
+            if height is None:
+                height = DEFAULT_PLOT_SIZE
 
-            if plot_width is None:
-                plot_width = image_view.plot.plot_width
+            if width is None:
+                width = image_view.plot.width
 
             plot = Plot(
                 x_range=image_view.plot.x_range,
                 y_range=DataRange1d(),
-                plot_height=plot_height,
-                plot_width=plot_width,
+                height=height,
+                width=width,
                 toolbar_location=None,
             )
 
@@ -44,17 +44,17 @@ class Projection:
             plot.add_layout(LinearAxis(major_label_text_font_size="0pt"), place="below")
 
         elif direction == "horizontal":
-            if plot_height is None:
-                plot_height = image_view.plot.plot_height
+            if height is None:
+                height = image_view.plot.height
 
-            if plot_width is None:
-                plot_width = DEFAULT_PLOT_SIZE
+            if width is None:
+                width = DEFAULT_PLOT_SIZE
 
             plot = Plot(
                 x_range=DataRange1d(),
                 y_range=image_view.plot.y_range,
-                plot_height=plot_height,
-                plot_width=plot_width,
+                height=height,
+                width=width,
                 toolbar_location=None,
             )
 

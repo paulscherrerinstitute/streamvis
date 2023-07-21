@@ -33,8 +33,8 @@ js_move_zoom = """
 class ImageView:
     def __init__(
         self,
-        plot_height=894,
-        plot_width=854,
+        height=894,
+        width=854,
         image_height=100,
         image_width=100,
         x_start=None,
@@ -45,8 +45,8 @@ class ImageView:
         """Initialize image view plot.
 
         Args:
-            plot_height (int, optional): Height of plot area in screen pixels. Defaults to 894.
-            plot_width (int, optional): Width of plot area in screen pixels. Defaults to 854.
+            height (int, optional): Height of plot area in screen pixels. Defaults to 894.
+            width (int, optional): Width of plot area in screen pixels. Defaults to 854.
             image_height (int, optional): Image height in pixels. Defaults to 100.
             image_width (int, optional): Image width in pixels. Defaults to 100.
             x_start (int, optional): Initial x-axis start value. If None, then equals to 0.
@@ -75,8 +75,8 @@ class ImageView:
         plot = Plot(
             x_range=Range1d(x_start, x_end, bounds=(0, image_width)),
             y_range=Range1d(y_start, y_end, bounds=(0, image_height)),
-            plot_height=plot_height,
-            plot_width=plot_width,
+            height=height,
+            width=width,
             toolbar_location="left",
         )
         self.plot = plot
