@@ -68,7 +68,6 @@ Statistics tab:
 
 Hitrate Plot tab:
 * `pulse_id: int` - is required for statistics to be collected, determines which point along x-axis is updated
-* `number_of_spots: int` - if larger than a value of --hit-threshold cli argument, then sets is_hit_frame to True (ignored, if is_hit_frame is present)
 * `is_hit_frame: bool` - determines whether it's a hit (also whether the data may be displayed when "Show Only Hits" button is toggled)
 
 Radial Profile tab:

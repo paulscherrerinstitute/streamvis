@@ -10,14 +10,12 @@ PULSE_ID_STEP = 10000
 
 
 class StatisticsHandler:
-    def __init__(self, hit_threshold, buffer_size=1):
+    def __init__(self, buffer_size=1):
         """Initialize a statistics handler.
 
         Args:
-            hit_threshold (int): A number of spots, above which a shot is registered as 'hit'.
             buffer_size (int, optional): A peakfinder buffer size. Defaults to 1.
         """
-        self.hit_threshold = hit_threshold
         self.last_hit = (dict(shape=[1, 1]), np.zeros((1, 1), dtype="float32"))
         self.peakfinder_buffer = deque(maxlen=buffer_size)
         self.hitrate_fast = Hitrate(step_size=100)
@@ -109,9 +107,7 @@ class StatisticsHandler:
             image (ndarray): An associated image.
         """
         number_of_spots = metadata.get("number_of_spots")
-        is_hit_frame = metadata.get("is_hit_frame")
-        if is_hit_frame is None:
-            is_hit_frame = number_of_spots and number_of_spots > self.hit_threshold
+        is_hit_frame = metadata.get("is_hit_frame", False)
 
         if image.shape != (2, 2) and is_hit_frame:
             # add to buffer only if the recieved image is not dummy

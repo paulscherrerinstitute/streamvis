@@ -89,13 +89,6 @@ def main():
     )
 
     parser.add_argument(
-        "--hit-threshold",
-        type=int,
-        default=15,
-        help="a number of spots above which a shot is registered in statistics as 'hit'",
-    )
-
-    parser.add_argument(
         "--max-client-connections",
         type=int,
         default=2,
@@ -128,7 +121,7 @@ def main():
 
     # StatisticsHandler is used by Receiver to parse metadata information to be displayed in
     # 'statistics' application, all messages are being processed.
-    stats = StatisticsHandler(hit_threshold=args.hit_threshold, buffer_size=args.buffer_size)
+    stats = StatisticsHandler(buffer_size=args.buffer_size)
 
     # Receiver gets messages via zmq stream and parses statistics with StatisticsHandler
     receiver = Receiver(on_receive=stats.parse, buffer_size=args.buffer_size)
