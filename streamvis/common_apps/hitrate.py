@@ -1,84 +1,79 @@
 from bokeh.io import curdoc
 from bokeh.layouts import column, row
-from bokeh.models import (
-    BasicTicker,
-    BasicTickFormatter,
-    BoxZoomTool,
-    Button,
-    ColumnDataSource,
-    DataRange1d,
-    Grid,
-    Legend,
-    LinearAxis,
-    PanTool,
-    Plot,
-    ResetTool,
-    SaveTool,
-    Step,
-    Title,
-    WheelZoomTool,
-)
+from bokeh.models import Button, ColumnDataSource, DataRange1d, Legend
+from bokeh.plotting import figure
 
 doc = curdoc()
 stats = doc.stats
 doc.title = f"{doc.title} Hitrate"
 
-plot = Plot(
-    title=Title(text="Hitrate Plot"),
+plot = figure(
+    title="Hitrate",
+    x_axis_label="Pulse ID",
+    y_axis_label="Hitrate",
     x_range=DataRange1d(),
     y_range=DataRange1d(),
     toolbar_location="left",
+    tools="pan,box_zoom,wheel_zoom,save,reset",
 )
 
 plot.toolbar.logo = None
-plot.add_tools(
-    PanTool(), BoxZoomTool(), WheelZoomTool(maintain_focus=False), SaveTool(), ResetTool()
-)
-
-plot.add_layout(
-    LinearAxis(axis_label="pulse_id", formatter=BasicTickFormatter(use_scientific=False)),
-    place="below",
-)
-plot.add_layout(LinearAxis(axis_label="Hitrate"), place="left")
-
-plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
 step_fast_source = ColumnDataSource(dict(x=[], y=[]))
-step_fast = plot.add_glyph(
-    step_fast_source, Step(x="x", y="y", mode="after", line_color="steelblue", line_width=2)
+step_fast = plot.step(
+    source=step_fast_source, x="x", y="y", mode="after", line_color="steelblue", line_width=2
 )
 
 step_fast_lon_source = ColumnDataSource(dict(x=[], y=[]))
-step_fast_lon = plot.add_glyph(
-    step_fast_lon_source,
-    Step(x="x", y="y", mode="after", line_color="steelblue", line_width=2, line_dash="dashed"),
+step_fast_lon = plot.step(
+    source=step_fast_lon_source,
+    x="x",
+    y="y",
+    mode="after",
+    line_color="steelblue",
+    line_width=2,
+    line_dash="dashed",
     visible=False,
 )
 
 step_fast_loff_source = ColumnDataSource(dict(x=[], y=[]))
-step_fast_loff = plot.add_glyph(
-    step_fast_loff_source,
-    Step(x="x", y="y", mode="after", line_color="steelblue", line_width=2, line_dash="dotted"),
+step_fast_loff = plot.step(
+    source=step_fast_loff_source,
+    x="x",
+    y="y",
+    mode="after",
+    line_color="steelblue",
+    line_width=2,
+    line_dash="dotted",
     visible=False,
 )
 
 step_slow_source = ColumnDataSource(dict(x=[], y=[]))
-step_slow = plot.add_glyph(
-    step_slow_source, Step(x="x", y="y", mode="after", line_color="red", line_width=2)
+step_slow = plot.step(
+    source=step_slow_source, x="x", y="y", mode="after", line_color="red", line_width=2
 )
 
 step_slow_lon_source = ColumnDataSource(dict(x=[], y=[]))
-step_slow_lon = plot.add_glyph(
-    step_slow_lon_source,
-    Step(x="x", y="y", mode="after", line_color="red", line_width=2, line_dash="dashed"),
+step_slow_lon = plot.step(
+    source=step_slow_lon_source,
+    x="x",
+    y="y",
+    mode="after",
+    line_color="red",
+    line_width=2,
+    line_dash="dashed",
     visible=False,
 )
 
 step_slow_loff_source = ColumnDataSource(dict(x=[], y=[]))
-step_slow_loff = plot.add_glyph(
-    step_slow_loff_source,
-    Step(x="x", y="y", mode="after", line_color="red", line_width=2, line_dash="dotted"),
+step_slow_loff = plot.step(
+    source=step_slow_loff_source,
+    x="x",
+    y="y",
+    mode="after",
+    line_color="red",
+    line_width=2,
+    line_dash="dotted",
     visible=False,
 )
 

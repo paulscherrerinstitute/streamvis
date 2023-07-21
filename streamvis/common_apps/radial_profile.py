@@ -1,53 +1,30 @@
 from bokeh.io import curdoc
 from bokeh.layouts import column, row
-from bokeh.models import (
-    BasicTicker,
-    BoxZoomTool,
-    Button,
-    ColumnDataSource,
-    DataRange1d,
-    Grid,
-    Legend,
-    Line,
-    LinearAxis,
-    PanTool,
-    Plot,
-    ResetTool,
-    SaveTool,
-    Spacer,
-    Spinner,
-    Title,
-    WheelZoomTool,
-)
+from bokeh.models import Button, ColumnDataSource, DataRange1d, Legend, Spacer, Spinner
+from bokeh.plotting import figure
 
 doc = curdoc()
 stats = doc.stats
 doc.title = f"{doc.title} Radial Profile"
 
-plot = Plot(
-    title=Title(text="Radial Profile"),
+plot = figure(
+    title="Radial Profile",
     x_range=DataRange1d(),
     y_range=DataRange1d(),
     toolbar_location="left",
+    tools="pan,box_zoom,wheel_zoom,save,reset",
 )
 
 plot.toolbar.logo = None
-plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(), SaveTool(), ResetTool())
-
-plot.add_layout(LinearAxis(), place="below")
-plot.add_layout(LinearAxis(), place="left")
-
-plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
 
 line_off_source = ColumnDataSource(dict(x=[], y=[]))
-line_off = plot.add_glyph(line_off_source, Line(x="x", y="y", line_color="black", line_width=2))
+line_off = plot.line(source=line_off_source, x="x", y="y", line_color="black", line_width=2)
 
 line_on_source = ColumnDataSource(dict(x=[], y=[]))
-line_on = plot.add_glyph(line_on_source, Line(x="x", y="y", line_color="blue", line_width=2))
+line_on = plot.line(source=line_on_source, x="x", y="y", line_color="blue", line_width=2)
 
 line_diff_source = ColumnDataSource(dict(x=[], y=[]))
-line_diff = plot.add_glyph(line_diff_source, Line(x="x", y="y", line_color="red", line_width=2))
+line_diff = plot.line(source=line_diff_source, x="x", y="y", line_color="red", line_width=2)
 
 plot.add_layout(
     Legend(

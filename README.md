@@ -66,7 +66,7 @@ Statistics tab:
 * `laser_on: bool` - is used to split statistics between laser_on/laser_off columns, those columns are hidden if this key is not present
 * `is_hit_frame: bool` - increments a number in "Laser ON/OFF frames" columns (those columns are hidden if laser_on is not present)
 
-Hitrate Plot tab:
+Hitrate tab:
 * `pulse_id: int` - is required for statistics to be collected, determines which point along x-axis is updated
 * `is_hit_frame: bool` - determines whether it's a hit (also whether the data may be displayed when "Show Only Hits" button is toggled)
 
