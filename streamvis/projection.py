@@ -1,6 +1,7 @@
 import bottleneck as bn
 import numpy as np
-from bokeh.models import BasicTicker, ColumnDataSource, DataRange1d, Grid, Line, LinearAxis, Plot
+from bokeh.models import ColumnDataSource, DataRange1d
+from bokeh.plotting import figure
 
 DEFAULT_PLOT_SIZE = 200
 
@@ -31,7 +32,8 @@ class Projection:
             if width is None:
                 width = image_view.plot.width
 
-            plot = Plot(
+            plot = figure(
+                y_axis_location="right",
                 x_range=image_view.plot.x_range,
                 y_range=DataRange1d(),
                 height=height,
@@ -39,9 +41,8 @@ class Projection:
                 toolbar_location=None,
             )
 
-            # ---- axes
-            plot.add_layout(LinearAxis(major_label_orientation="vertical"), place="right")
-            plot.add_layout(LinearAxis(major_label_text_font_size="0pt"), place="below")
+            plot.xaxis.major_label_text_font_size = "0pt"
+            plot.yaxis.major_label_orientation = "vertical"
 
         elif direction == "horizontal":
             if height is None:
@@ -50,7 +51,8 @@ class Projection:
             if width is None:
                 width = DEFAULT_PLOT_SIZE
 
-            plot = Plot(
+            plot = figure(
+                x_axis_location="above",
                 x_range=DataRange1d(),
                 y_range=image_view.plot.y_range,
                 height=height,
@@ -58,17 +60,11 @@ class Projection:
                 toolbar_location=None,
             )
 
-            # ---- axes
-            plot.add_layout(LinearAxis(), place="above")
-            plot.add_layout(LinearAxis(major_label_text_font_size="0pt"), place="left")
-
-        # ---- grid lines
-        plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-        plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
+            plot.yaxis.major_label_text_font_size = "0pt"
 
         # ---- line glyph
         self._line_source = ColumnDataSource(dict(x=[], y=[]))
-        plot.add_glyph(self._line_source, Line(x="x", y="y", line_color="steelblue"))
+        plot.line(source=self._line_source, x="x", y="y", line_color="steelblue")
 
         self.plot = plot
 

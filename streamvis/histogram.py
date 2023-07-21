@@ -1,21 +1,7 @@
 import bottleneck as bn
 import numpy as np
-from bokeh.models import (
-    BasicTicker,
-    BoxZoomTool,
-    CheckboxGroup,
-    ColumnDataSource,
-    DataRange1d,
-    Grid,
-    LinearAxis,
-    PanTool,
-    Plot,
-    Quad,
-    ResetTool,
-    SaveTool,
-    Spinner,
-    WheelZoomTool,
-)
+from bokeh.models import CheckboxGroup, ColumnDataSource, DataRange1d, Spinner
+from bokeh.plotting import figure
 
 STEP = 0.1
 
@@ -36,36 +22,32 @@ class Histogram:
         self.plots = []
         self._plot_sources = []
         for ind in range(nplots):
-            plot = Plot(
+            plot = figure(
                 x_range=DataRange1d(),
                 y_range=DataRange1d(),
                 height=height,
                 width=width,
                 toolbar_location="left",
+                tools="pan,box_zoom,wheel_zoom,save,reset",
             )
 
-            # ---- tools
             plot.toolbar.logo = None
             # share 'pan', 'boxzoom', and 'wheelzoom' tools between all plots
             if ind == 0:
-                pantool = PanTool()
-                boxzoomtool = BoxZoomTool()
-                wheelzoomtool = WheelZoomTool()
-            plot.add_tools(pantool, boxzoomtool, wheelzoomtool, SaveTool(), ResetTool())
+                shared_tools = plot.toolbar.tools[:3]
+            else:
+                plot.toolbar.tools[:3] = shared_tools
 
-            # ---- axes
-            plot.add_layout(LinearAxis(), place="below")
-            plot.add_layout(LinearAxis(major_label_orientation="vertical"), place="left")
+            plot.yaxis.major_label_orientation = "vertical"
 
-            # ---- grid lines
-            plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-            plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-            # ---- quad (single bin) glyph
             plot_source = ColumnDataSource(dict(left=[], right=[], top=[]))
-            plot.add_glyph(
-                plot_source,
-                Quad(left="left", right="right", top="top", bottom=0, fill_color="steelblue"),
+            plot.quad(
+                source=plot_source,
+                left="left",
+                right="right",
+                top="top",
+                bottom=0,
+                line_color="black",
             )
 
             self.plots.append(plot)

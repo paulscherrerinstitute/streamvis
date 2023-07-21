@@ -24,8 +24,8 @@ def test_plot_sizes(height, width):
     sv_hist = sv.Histogram(nplots=1, height=height, width=width)
     plot = sv_hist.plots[0]
 
-    assert plot.height == height
-    assert plot.width == width
+    assert plot.plot_height == height
+    assert plot.plot_width == width
 
 
 @pytest.mark.parametrize("value", [0, -1, 1, 350, 800, -1000])

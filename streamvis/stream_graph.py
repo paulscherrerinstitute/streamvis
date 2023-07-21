@@ -2,24 +2,8 @@ from collections import deque
 from datetime import datetime
 from itertools import islice
 
-from bokeh.models import (
-    BasicTicker,
-    BasicTickFormatter,
-    BoxZoomTool,
-    Button,
-    ColumnDataSource,
-    DataRange1d,
-    DatetimeAxis,
-    Grid,
-    Legend,
-    Line,
-    LinearAxis,
-    PanTool,
-    Plot,
-    ResetTool,
-    Spinner,
-    WheelZoomTool,
-)
+from bokeh.models import BasicTickFormatter, Button, ColumnDataSource, DataRange1d, Legend, Spinner
+from bokeh.plotting import figure
 
 MAXLEN = 100
 
@@ -43,40 +27,39 @@ class StreamGraph:
         self._buffers = []
         self._window = 30
 
-        # Custom tick formatter for displaying large numbers
-        tick_formatter = BasicTickFormatter(precision=1)
-
         # Stream graphs
         self.plots = []
         self._sources = []
         for ind in range(nplots):
             # share x_range between plots
             if ind == 0:
-                x_range = DataRange1d()
+                shared_x_range = DataRange1d()
 
-            plot = Plot(x_range=x_range, y_range=DataRange1d(), height=height, width=width)
-
-            # ---- tools
-            plot.toolbar.logo = None
-            plot.add_tools(PanTool(), BoxZoomTool(), WheelZoomTool(dimensions="width"), ResetTool())
-
-            # ---- axes
-            plot.add_layout(LinearAxis(formatter=tick_formatter), place="left")
             if mode == "time":
-                plot.add_layout(DatetimeAxis(), place="below")
+                x_axis_type = "datetime"
             elif mode == "number":
-                plot.add_layout(LinearAxis(), place="below")
+                x_axis_type = "linear"
             else:
-                pass
+                raise ValueError("Parameter `mode` should be either `time` or `number`")
 
-            # ---- grid lines
-            plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-            plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
+            plot = figure(
+                x_axis_type=x_axis_type,
+                x_range=shared_x_range,
+                y_range=DataRange1d(),
+                height=height,
+                width=width,
+                tools="pan,box_zoom,wheel_zoom,reset",
+            )
 
-            # ---- line glyph
+            plot.toolbar.logo = None
+            plot.toolbar.tools[2].dimensions = "width"
+
+            # Custom tick formatter for displaying large numbers
+            plot.yaxis.formatter = BasicTickFormatter(precision=1)
+
             source = ColumnDataSource(dict(x=[], y=[], x_avg=[], y_avg=[]))
-            line_renderer = plot.add_glyph(source, Line(x="x", y="y", line_color="gray"))
-            line_avg_renderer = plot.add_glyph(source, Line(x="x_avg", y="y_avg", line_color="red"))
+            line_renderer = plot.line(source=source, x="x", y="y", line_color="gray")
+            line_avg_renderer = plot.line(source=source, x="x_avg", y="y_avg", line_color="red")
 
             # ---- legend
             plot.add_layout(

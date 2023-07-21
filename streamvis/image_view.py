@@ -1,25 +1,7 @@
 import bottleneck as bn
 import numpy as np
-from bokeh.models import (
-    BasicTicker,
-    CheckboxGroup,
-    ColumnDataSource,
-    CustomJS,
-    Grid,
-    HoverTool,
-    Image,
-    Label,
-    Line,
-    LinearAxis,
-    PanTool,
-    Plot,
-    Quad,
-    Range1d,
-    ResetTool,
-    SaveTool,
-    Text,
-    WheelZoomTool,
-)
+from bokeh.models import CheckboxGroup, ColumnDataSource, CustomJS, HoverTool, Label, Range1d
+from bokeh.plotting import figure
 from PIL import Image as PIL_Image
 
 js_move_zoom = """
@@ -72,33 +54,26 @@ class ImageView:
 
         self.zoom_views = []
 
-        plot = Plot(
+        plot = figure(
+            x_axis_location="above",
+            y_axis_location="right",
             x_range=Range1d(x_start, x_end, bounds=(0, image_width)),
             y_range=Range1d(y_start, y_end, bounds=(0, image_height)),
             height=height,
             width=width,
             toolbar_location="left",
+            tools="pan,wheel_zoom,save,reset",
         )
         self.plot = plot
 
-        # ---- tools
         plot.toolbar.logo = None
 
-        hovertool = HoverTool(tooltips=[("intensity", "@image")], names=["image_glyph"])
+        plot.toolbar.tools[1].maintain_focus = False
+        plot.add_tools(HoverTool(tooltips=[("intensity", "@image")], names=["image_glyph"]))
 
-        plot.add_tools(
-            PanTool(), WheelZoomTool(maintain_focus=False), SaveTool(), ResetTool(), hovertool
-        )
+        plot.yaxis.major_label_orientation = "vertical"
 
-        # ---- axes
-        plot.add_layout(LinearAxis(), place="above")
-        plot.add_layout(LinearAxis(major_label_orientation="vertical"), place="right")
-
-        # ---- grid lines
-        plot.add_layout(Grid(dimension=0, ticker=BasicTicker()))
-        plot.add_layout(Grid(dimension=1, ticker=BasicTicker()))
-
-        # ---- rgba image glyph
+        # ---- image glyph
         self._image_source = ColumnDataSource(
             dict(
                 image=[np.zeros((1, 1), dtype="float32")],
@@ -109,8 +84,16 @@ class ImageView:
             )
         )
 
-        self.image_glyph = Image(image="image", x="x", y="y", dw="dw", dh="dh")
-        image_renderer = plot.add_glyph(self._image_source, self.image_glyph, name="image_glyph")
+        image_renderer = plot.image(
+            source=self._image_source,
+            image="image",
+            x="x",
+            y="y",
+            dw="dw",
+            dh="dh",
+            name="image_glyph",
+        )
+        self.image_glyph = image_renderer.glyph
 
         # This avoids double update of image values on a client, see
         # https://github.com/bokeh/bokeh/issues/7079
@@ -119,24 +102,22 @@ class ImageView:
 
         # ---- pixel value text glyph
         self._pvalue_source = ColumnDataSource(dict(x=[], y=[], text=[]))
-        plot.add_glyph(
-            self._pvalue_source,
-            Text(
-                x="x",
-                y="y",
-                text="text",
-                text_align="center",
-                text_baseline="middle",
-                text_color="white",
-            ),
+        plot.text(
+            source=self._pvalue_source,
+            x="x",
+            y="y",
+            text="text",
+            text_align="center",
+            text_baseline="middle",
+            text_color="white",
         )
 
         # ---- horizontal and vertical projection line glyphs
         self._hproj_source = ColumnDataSource(dict(x=[], y=[]))
-        plot.add_glyph(self._hproj_source, Line(x="x", y="y", line_color="greenyellow"))
+        plot.line(source=self._hproj_source, x="x", y="y", line_color="greenyellow")
 
         self._vproj_source = ColumnDataSource(dict(x=[], y=[]))
-        plot.add_glyph(self._vproj_source, Line(x="x", y="y", line_color="greenyellow"))
+        plot.line(source=self._vproj_source, x="x", y="y", line_color="greenyellow")
 
         proj_switch = CheckboxGroup(
             labels=["Inner Projections"], default_size=145, margin=(0, 5, 0, 5)
@@ -196,7 +177,8 @@ class ImageView:
             )
         )
 
-        area_rect = Quad(
+        self.plot.quad(
+            source=area_source,
             left="left",
             right="right",
             bottom="bottom",
@@ -205,7 +187,6 @@ class ImageView:
             line_width=2,
             fill_alpha=0,
         )
-        self.plot.add_glyph(area_source, area_rect)
 
         x_range_cb = CustomJS(
             args=dict(source=area_source), code=js_move_zoom.format(start="left", end="right")
