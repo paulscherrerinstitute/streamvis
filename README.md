@@ -102,11 +102,5 @@ Resolution Rings overlay:
 Disabled Modules overlay (requires a valid `detector_name`):
 * `disabled_modules: Iterable[int]` - indexes of modules to display as disabled
 
-Trajectory Plot:
-* `number_of_spots: int` - a value increases a color saturation of trajectory glyphs and is shown on mouse hover
-* `swissmx_x: float` - trajectory x-coordinate
-* `swissmx_y: float` - trajectory y-coordinate
-* `frame: int` - a value is shown on mouse hover over a trajectory glyph
-
 Aggregated images:
 * `aggregated_images: int` - in case of aggregation, treat a received image as a sum of that number of images

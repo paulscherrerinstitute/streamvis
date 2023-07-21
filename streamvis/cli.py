@@ -121,7 +121,7 @@ def main():
 
     # StatisticsHandler is used by Receiver to parse metadata information to be displayed in
     # 'statistics' application, all messages are being processed.
-    stats = StatisticsHandler(buffer_size=args.buffer_size)
+    stats = StatisticsHandler()
 
     # Receiver gets messages via zmq stream and parses statistics with StatisticsHandler
     receiver = Receiver(on_receive=stats.parse, buffer_size=args.buffer_size)

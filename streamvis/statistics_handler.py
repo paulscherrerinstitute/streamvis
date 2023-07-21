@@ -1,5 +1,5 @@
 import copy
-from collections import defaultdict, deque
+from collections import defaultdict
 from functools import partial
 from threading import RLock
 
@@ -10,14 +10,13 @@ PULSE_ID_STEP = 10000
 
 
 class StatisticsHandler:
-    def __init__(self, buffer_size=1):
+    def __init__(self):
         """Initialize a statistics handler.
 
         Args:
             buffer_size (int, optional): A peakfinder buffer size. Defaults to 1.
         """
         self.last_hit = (dict(shape=[1, 1]), np.zeros((1, 1), dtype="float32"))
-        self.peakfinder_buffer = deque(maxlen=buffer_size)
         self.hitrate_fast = Hitrate(step_size=100)
         self.hitrate_fast_lon = Hitrate(step_size=100)
         self.hitrate_fast_loff = Hitrate(step_size=100)
@@ -106,7 +105,6 @@ class StatisticsHandler:
             metadata (dict): A dictionary with metadata.
             image (ndarray): An associated image.
         """
-        number_of_spots = metadata.get("number_of_spots")
         is_hit_frame = metadata.get("is_hit_frame", False)
 
         if image.shape != (2, 2) and is_hit_frame:
@@ -182,20 +180,11 @@ class StatisticsHandler:
                 bin_ind = -1
 
             if bin_ind == -1:
-                self.peakfinder_buffer.clear()
                 for key, val in self.data.items():
                     if key == "pulse_id_bins":
                         val.append(pulse_id_bin)
                     else:
                         val.append(0)
-
-            swissmx_x = metadata.get("swissmx_x")
-            swissmx_y = metadata.get("swissmx_y")
-            frame = metadata.get("frame")
-            if swissmx_x and swissmx_y and frame and number_of_spots:
-                self.peakfinder_buffer.append(
-                    np.array([swissmx_x, swissmx_y, frame, number_of_spots])
-                )
 
             self._increment("nframes", bin_ind)
 

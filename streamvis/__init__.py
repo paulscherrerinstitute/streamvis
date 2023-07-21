@@ -18,6 +18,5 @@ from .runtime import Runtime
 from .saturated_pixels import SaturatedPixels
 from .spots import Spots
 from .stream_graph import StreamGraph
-from .trajectory_plot import TrajectoryPlot
 
 __version__ = "1.11.1"
