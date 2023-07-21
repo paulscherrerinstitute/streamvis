@@ -64,12 +64,12 @@ Statistics tab:
 * `is_good_frame: bool` - causes a metadata issue if not True, increments a number in "Bad Frames" column
 * `saturated_pixels: int` - causes a metadata issue if not 0, increments a number in "Sat pix frames" column
 * `laser_on: bool` - is used to split statistics between laser_on/laser_off columns, those columns are hidden if this key is not present
-* `sfx_hit: bool` - increments a number in "Laser ON/OFF frames" columns (those columns are hidden if laser_on is not present)
+* `is_hit_frame: bool` - increments a number in "Laser ON/OFF frames" columns (those columns are hidden if laser_on is not present)
 
 Hitrate Plot tab:
 * `pulse_id: int` - is required for statistics to be collected, determines which point along x-axis is updated
-* `number_of_spots: int` - if larger than a value of --hit-threshold cli argument, then sets sfx_hit to True (ignored, if sfx_hit is present)
-* `sfx_hit: bool` - determines whether it's a hit (also whether the data may be displayed when "Show Only Hits" button is toggled)
+* `number_of_spots: int` - if larger than a value of --hit-threshold cli argument, then sets is_hit_frame to True (ignored, if is_hit_frame is present)
+* `is_hit_frame: bool` - determines whether it's a hit (also whether the data may be displayed when "Show Only Hits" button is toggled)
 
 Radial Profile tab:
 * `pulse_id: int` - is required for statistics to be collected, the corresponding data is ignored if values is not within "Pulse ID Window" from the most recent pulse_id received

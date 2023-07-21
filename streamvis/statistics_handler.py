@@ -109,11 +109,11 @@ class StatisticsHandler:
             image (ndarray): An associated image.
         """
         number_of_spots = metadata.get("number_of_spots")
-        sfx_hit = metadata.get("sfx_hit")
-        if sfx_hit is None:
-            sfx_hit = number_of_spots and number_of_spots > self.hit_threshold
+        is_hit_frame = metadata.get("is_hit_frame")
+        if is_hit_frame is None:
+            is_hit_frame = number_of_spots and number_of_spots > self.hit_threshold
 
-        if image.shape != (2, 2) and sfx_hit:
+        if image.shape != (2, 2) and is_hit_frame:
             # add to buffer only if the recieved image is not dummy
             self.last_hit = (metadata, image)
 
@@ -122,16 +122,16 @@ class StatisticsHandler:
             # no further statistics is possible to collect
             return
 
-        self.hitrate_fast.update(pulse_id, sfx_hit)
-        self.hitrate_slow.update(pulse_id, sfx_hit)
+        self.hitrate_fast.update(pulse_id, is_hit_frame)
+        self.hitrate_slow.update(pulse_id, is_hit_frame)
         laser_on = metadata.get("laser_on")
         if laser_on is not None:
             if laser_on:
-                self.hitrate_fast_lon.update(pulse_id, sfx_hit)
-                self.hitrate_slow_lon.update(pulse_id, sfx_hit)
+                self.hitrate_fast_lon.update(pulse_id, is_hit_frame)
+                self.hitrate_slow_lon.update(pulse_id, is_hit_frame)
             else:
-                self.hitrate_fast_loff.update(pulse_id, sfx_hit)
-                self.hitrate_slow_loff.update(pulse_id, sfx_hit)
+                self.hitrate_fast_loff.update(pulse_id, is_hit_frame)
+                self.hitrate_slow_loff.update(pulse_id, is_hit_frame)
 
             radint_q = metadata.get("radint_q")
             if radint_q is not None:
@@ -161,7 +161,7 @@ class StatisticsHandler:
             if roi_intensities is not None:
                 self.roi_intensities.update(pulse_id, roi_intensities)
                 self.roi_intensities_fast.update(pulse_id, roi_intensities)
-                if sfx_hit:
+                if is_hit_frame:
                     self.roi_intensities_hit.update(pulse_id, roi_intensities)
                     self.roi_intensities_hit_fast.update(pulse_id, roi_intensities)
                 else:
@@ -217,7 +217,7 @@ class StatisticsHandler:
 
                 self._increment(f"{switch}_nframes", bin_ind)
 
-                if sfx_hit:
+                if is_hit_frame:
                     self._increment(f"{switch}_hits", bin_ind)
 
                 self.data[f"{switch}_hits_ratio"][bin_ind] = (
