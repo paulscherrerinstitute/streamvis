@@ -63,7 +63,7 @@ class ColorMapper:
                 high_color.color = cmap_dict[new][-1]
 
         select = Select(
-            title="Colormap:", value=colormap, options=list(cmap_dict.keys()), default_size=100
+            title="Colormap:", value=colormap, options=list(cmap_dict.keys()), width=100
         )
         select.on_change("value", select_callback)
         self.select = select
@@ -77,7 +77,7 @@ class ColorMapper:
                 display_min_spinner.disabled = False
                 display_max_spinner.disabled = False
 
-        auto_switch = CheckboxGroup(labels=["Auto Colormap Range"], default_size=145)
+        auto_switch = CheckboxGroup(labels=["Auto Colormap Range"], width=145)
         auto_switch.on_change("active", auto_switch_callback)
         self.auto_switch = auto_switch
 
@@ -98,7 +98,7 @@ class ColorMapper:
                 else:
                     scale_radiogroup.active = 0
 
-        scale_radiogroup = RadioGroup(labels=["Linear", "Logarithmic"], active=0, default_size=145)
+        scale_radiogroup = RadioGroup(labels=["Linear", "Logarithmic"], active=0, width=145)
         scale_radiogroup.on_change("active", scale_radiogroup_callback)
         self.scale_radiogroup = scale_radiogroup
 
@@ -117,7 +117,7 @@ class ColorMapper:
             value=disp_max,
             step=STEP,
             disabled=bool(auto_switch.active),
-            default_size=145,
+            width=145,
         )
         display_max_spinner.on_change("value", display_max_spinner_callback)
         self.display_max_spinner = display_max_spinner
@@ -137,7 +137,7 @@ class ColorMapper:
             value=disp_min,
             step=STEP,
             disabled=bool(auto_switch.active),
-            default_size=145,
+            width=145,
         )
         display_min_spinner.on_change("value", display_min_spinner_callback)
         self.display_min_spinner = display_min_spinner
@@ -147,9 +147,7 @@ class ColorMapper:
             lin_colormapper.high_color = new_value
             log_colormapper.high_color = new_value
 
-        high_color = ColorPicker(
-            title="High Color:", color=cmap_dict[colormap][-1], default_size=90
-        )
+        high_color = ColorPicker(title="High Color:", color=cmap_dict[colormap][-1], width=90)
         high_color.on_change("color", high_color_callback)
         self.high_color = high_color
 
@@ -158,7 +156,7 @@ class ColorMapper:
             lin_colormapper.nan_color = new_value
             log_colormapper.nan_color = new_value
 
-        mask_color = ColorPicker(title="Mask Color:", color="gray", default_size=90)
+        mask_color = ColorPicker(title="Mask Color:", color="gray", width=90)
         mask_color.on_change("color", mask_color_callback)
         self.mask_color = mask_color
 

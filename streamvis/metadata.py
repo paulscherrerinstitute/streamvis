@@ -57,7 +57,7 @@ class MetadataHandler:
         self.issues_datatable = issues_datatable
 
         # Show all switch
-        show_all_switch = CheckboxGroup(labels=["Show All Metadata"], default_size=145)
+        show_all_switch = CheckboxGroup(labels=["Show All Metadata"], width=145)
         self.show_all_switch = show_all_switch
 
     def add_issue(self, issue):

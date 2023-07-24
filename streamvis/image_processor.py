@@ -8,28 +8,24 @@ class ImageProcessor:
         self.aggregated_image = np.zeros((1, 1), dtype=np.float32)
 
         # Threshold widgets
-        self.threshold_switch = CheckboxGroup(labels=["Apply Thresholding"], default_size=145)
+        self.threshold_switch = CheckboxGroup(labels=["Apply Thresholding"], width=145)
 
-        self.threshold_min_spinner = Spinner(
-            title="Min Intensity:", value=0, step=0.1, default_size=145
-        )
+        self.threshold_min_spinner = Spinner(title="Min Intensity:", value=0, step=0.1, width=145)
 
         self.threshold_max_spinner = Spinner(
-            title="Max Intensity:", value=1000, step=0.1, default_size=145
+            title="Max Intensity:", value=1000, step=0.1, width=145
         )
 
         # Aggregate widgets
-        self.aggregate_switch = CheckboxGroup(labels=["Apply Aggregation"], default_size=145)
+        self.aggregate_switch = CheckboxGroup(labels=["Apply Aggregation"], width=145)
 
-        self.aggregate_limit_spinner = Spinner(
-            title="Limit:", value=0, low=0, step=1, default_size=145
-        )
+        self.aggregate_limit_spinner = Spinner(title="Limit:", value=0, low=0, step=1, width=145)
 
         self.aggregate_counter_textinput = TextInput(
-            title="Counter:", value=str(1), disabled=True, default_size=145
+            title="Counter:", value=str(1), disabled=True, width=145
         )
 
-        self.average_switch = CheckboxGroup(labels=["Show Average"], default_size=145)
+        self.average_switch = CheckboxGroup(labels=["Show Average"], width=145)
 
     @property
     def threshold_min(self):

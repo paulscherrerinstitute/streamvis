@@ -92,7 +92,7 @@ class StatisticsHandler:
                 "ROI Projections",
                 "Radial Profile",
             ],
-            default_size=145,
+            width=145,
         )
         auxiliary_apps_dropdown.js_on_click(CustomJS(code=js_code))
 

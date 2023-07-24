@@ -67,7 +67,7 @@ class Histogram:
                 lower_spinner.disabled = False
                 upper_spinner.disabled = False
 
-        auto_switch = CheckboxGroup(labels=["Auto Hist Range"], active=[0], default_size=145)
+        auto_switch = CheckboxGroup(labels=["Auto Hist Range"], active=[0], width=145)
         auto_switch.on_change("active", auto_switch_callback)
         self.auto_switch = auto_switch
 
@@ -82,7 +82,7 @@ class Histogram:
             value=lower,
             step=STEP,
             disabled=bool(auto_switch.active),
-            default_size=145,
+            width=145,
         )
         lower_spinner.on_change("value", lower_spinner_callback)
         self.lower_spinner = lower_spinner
@@ -98,7 +98,7 @@ class Histogram:
             value=upper,
             step=STEP,
             disabled=bool(auto_switch.active),
-            default_size=145,
+            width=145,
         )
         upper_spinner.on_change("value", upper_spinner_callback)
         self.upper_spinner = upper_spinner
@@ -107,7 +107,7 @@ class Histogram:
         def nbins_spinner_callback(_attr, _old_value, _new_value):
             self._empty_counts()
 
-        nbins_spinner = Spinner(title="Number of Bins:", low=1, value=nbins, default_size=145)
+        nbins_spinner = Spinner(title="Number of Bins:", low=1, value=nbins, width=145)
         nbins_spinner.on_change("value", nbins_spinner_callback)
         self.nbins_spinner = nbins_spinner
 
@@ -120,7 +120,7 @@ class Histogram:
                 else:
                     plot.yaxis[0].axis_label = "Counts"
 
-        log10counts_switch = CheckboxGroup(labels=["log⏨(Counts)"], default_size=145)
+        log10counts_switch = CheckboxGroup(labels=["log⏨(Counts)"], width=145)
         log10counts_switch.on_change("active", log10counts_switch_callback)
         self.log10counts_switch = log10counts_switch
 

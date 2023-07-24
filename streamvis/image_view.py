@@ -67,9 +67,7 @@ class ImageView:
         self.plot = plot
 
         plot.toolbar.logo = None
-
         plot.toolbar.tools[1].maintain_focus = False
-        plot.add_tools(HoverTool(tooltips=[("intensity", "@image")], names=["image_glyph"]))
 
         plot.yaxis.major_label_orientation = "vertical"
 
@@ -100,6 +98,8 @@ class ImageView:
         # https://github.com/bokeh/bokeh/issues/7299
         image_renderer.view.source = ColumnDataSource()
 
+        plot.add_tools(HoverTool(tooltips=[("intensity", "@image")], renderers=[image_renderer]))
+
         # ---- pixel value text glyph
         self._pvalue_source = ColumnDataSource(dict(x=[], y=[], text=[]))
         plot.text(
@@ -119,9 +119,7 @@ class ImageView:
         self._vproj_source = ColumnDataSource(dict(x=[], y=[]))
         plot.line(source=self._vproj_source, x="x", y="y", line_color="greenyellow")
 
-        proj_switch = CheckboxGroup(
-            labels=["Inner Projections"], default_size=145, margin=(0, 5, 0, 5)
-        )
+        proj_switch = CheckboxGroup(labels=["Inner Projections"], width=145, margin=(0, 5, 0, 5))
         self.proj_switch = proj_switch
 
         # ---- image view coordinates label

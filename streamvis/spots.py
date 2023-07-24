@@ -1,5 +1,5 @@
 import numpy as np
-from bokeh.models import Circle, ColumnDataSource
+from bokeh.models import ColumnDataSource, Scatter
 
 
 class Spots:
@@ -16,10 +16,12 @@ class Spots:
 
         # ---- spots circles
         self._source = ColumnDataSource(dict(x=[], y=[]))
-        marker_glyph = Circle(x="x", y="y", size=15, fill_alpha=0, line_width=3, line_color="white")
+        glyph = Scatter(
+            x="x", y="y", marker="circle", size=15, fill_alpha=0, line_width=3, line_color="white"
+        )
 
         for image_view in image_views:
-            image_view.plot.add_glyph(self._source, marker_glyph)
+            image_view.plot.add_glyph(self._source, glyph)
 
     def _clear(self):
         if len(self._source.data["x"]):

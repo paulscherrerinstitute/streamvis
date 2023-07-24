@@ -31,30 +31,28 @@ class StreamControl:
 
             self._update_toggle_view()
 
-        toggle = Toggle(label="Connect", button_type="primary", tags=[True], default_size=145)
+        toggle = Toggle(label="Connect", button_type="primary", tags=[True], width=145)
         toggle.js_on_change("tags", CustomJS(code=js_backpressure_code))
         toggle.on_click(toggle_callback)
         self.toggle = toggle
 
         # data type select
         datatype_select = Select(
-            title="Data type:", value="Image", options=["Image", "Gains"], default_size=145
+            title="Data type:", value="Image", options=["Image", "Gains"], width=145
         )
         self.datatype_select = datatype_select
 
         # conversion options
-        mask_switch = CheckboxGroup(
-            labels=["Mask"], active=[0], default_size=145, margin=(5, 5, 0, 5)
-        )
+        mask_switch = CheckboxGroup(labels=["Mask"], active=[0], width=145, margin=(5, 5, 0, 5))
         self.mask_switch = mask_switch
 
         gap_pixels_switch = CheckboxGroup(
-            labels=["Gap pixels"], active=[0], default_size=145, margin=(0, 5, 0, 5)
+            labels=["Gap pixels"], active=[0], width=145, margin=(0, 5, 0, 5)
         )
         self.gap_pixels_switch = gap_pixels_switch
 
         geometry_switch = CheckboxGroup(
-            labels=["Geometry"], active=[0], default_size=145, margin=(0, 5, 5, 5)
+            labels=["Geometry"], active=[0], width=145, margin=(0, 5, 5, 5)
         )
         self.geometry_switch = geometry_switch
 
@@ -63,22 +61,19 @@ class StreamControl:
 
         # double pixels handling
         double_pixels_div = Div(text="Double pixels:", margin=(5, 5, 0, 5))
-        double_pixels_radiogroup = RadioGroup(labels=DP_LABELS, active=0, default_size=145)
+        double_pixels_radiogroup = RadioGroup(labels=DP_LABELS, active=0, width=145)
         self.double_pixels_radiogroup = double_pixels_radiogroup
         self.double_pixels = column(double_pixels_div, double_pixels_radiogroup)
 
         # rotate image select
         rotate_values = ["0", "90", "180", "270"]
         rotate_image = Select(
-            title="Rotate image (deg):",
-            value=rotate_values[0],
-            options=rotate_values,
-            default_size=145,
+            title="Rotate image (deg):", value=rotate_values[0], options=rotate_values, width=145
         )
         self.rotate_image = rotate_image
 
         # show only events
-        self.show_only_events_switch = CheckboxGroup(labels=["Show Only Events"], default_size=145)
+        self.show_only_events_switch = CheckboxGroup(labels=["Show Only Events"], width=145)
 
         # Previous Image slider
         self._prev_image_buffer = deque(maxlen=60)
@@ -89,7 +84,7 @@ class StreamControl:
             sv_rt.aggregated_image = sv_rt.image
 
         prev_image_slider = Slider(
-            start=0, end=59, value_throttled=0, step=1, title="Previous Image", disabled=True
+            start=0, end=59, value=0, step=1, title="Previous Image", disabled=True
         )
         prev_image_slider.on_change("value_throttled", prev_image_slider_callback)
         self.prev_image_slider = prev_image_slider

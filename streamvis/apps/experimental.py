@@ -57,9 +57,7 @@ def image_index_slider_callback(_attr, _old, new):
     doc.add_next_tick_callback(update_client)
 
 
-image_index_slider = Slider(
-    start=0, end=99, value_throttled=0, step=1, title="Pulse Number", disabled=True
-)
+image_index_slider = Slider(start=0, end=99, value=0, step=1, title="Pulse Number", disabled=True)
 image_index_slider.on_change("value_throttled", image_index_slider_callback)
 
 

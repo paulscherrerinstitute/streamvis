@@ -1,5 +1,5 @@
 import numpy as np
-from bokeh.models import Asterisk, CheckboxGroup, ColumnDataSource
+from bokeh.models import CheckboxGroup, ColumnDataSource, Scatter
 
 
 class SaturatedPixels:
@@ -17,14 +17,14 @@ class SaturatedPixels:
         # ---- saturated pixel markers
         self._source = ColumnDataSource(dict(x=[], y=[]))
 
-        marker_glyph = Asterisk(x="x", y="y", size=20, line_color="white", line_width=2)
+        glyph = Scatter(x="x", y="y", marker="asterisk", size=20, line_color="white", line_width=2)
 
         for image_view in image_views:
-            image_view.plot.add_glyph(self._source, marker_glyph)
+            image_view.plot.add_glyph(self._source, glyph)
 
         # ---- switch
         switch = CheckboxGroup(
-            labels=["Saturated Pixels"], active=[0], default_size=145, margin=(0, 5, 0, 5)
+            labels=["Saturated Pixels"], active=[0], width=145, margin=(0, 5, 0, 5)
         )
         self.switch = switch
 

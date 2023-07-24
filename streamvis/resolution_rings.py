@@ -2,10 +2,10 @@ import numpy as np
 from bokeh.models import (
     CheckboxGroup,
     ColumnDataSource,
-    Cross,
     CustomJSHover,
     Ellipse,
     HoverTool,
+    Scatter,
     Text,
 )
 
@@ -56,13 +56,6 @@ class ResolutionRings:
             args=dict(params=self._formatter_source), code=js_resolution
         )
 
-        hovertool_off = HoverTool(tooltips=[("intensity", "@image")], names=["image_glyph"])
-        hovertool_on = HoverTool(
-            tooltips=[("intensity", "@image"), ("resolution", "@x{resolution} Å")],
-            formatters={"@x": resolution_formatter},
-            names=["image_glyph"],
-        )
-
         # ---- resolution rings
         self._source = ColumnDataSource(dict(x=[], y=[], w=[], h=[], text_x=[], text_y=[], text=[]))
         ellipse_glyph = Ellipse(
@@ -78,7 +71,9 @@ class ResolutionRings:
             text_color="white",
         )
 
-        cross_glyph = Cross(x="beam_center_x", y="beam_center_y", size=15, line_color="red")
+        cross_glyph = Scatter(
+            x="beam_center_x", y="beam_center_y", marker="cross", size=15, line_color="red"
+        )
 
         for image_view in image_views:
             image_view.plot.add_glyph(self._source, ellipse_glyph)
@@ -87,11 +82,22 @@ class ResolutionRings:
 
         # ---- switch
         def switch_callback(_attr, _old, new):
-            hovertool = hovertool_on if 0 in new else hovertool_off
             for image_view in image_views:
+                image_renderer = image_view.plot.select(name="image_glyph")
+                if 0 in new:
+                    hovertool = HoverTool(
+                        tooltips=[("intensity", "@image"), ("resolution", "@x{resolution} Å")],
+                        formatters={"@x": resolution_formatter},
+                        renderers=image_renderer,
+                    )
+                else:
+                    hovertool = HoverTool(
+                        tooltips=[("intensity", "@image")], renderers=image_renderer
+                    )
+
                 image_view.plot.tools[-1] = hovertool
 
-        switch = CheckboxGroup(labels=["Resolution Rings"], default_size=145, margin=(0, 5, 0, 5))
+        switch = CheckboxGroup(labels=["Resolution Rings"], width=145, margin=(0, 5, 0, 5))
         switch.on_change("active", switch_callback)
         self.switch = switch
 

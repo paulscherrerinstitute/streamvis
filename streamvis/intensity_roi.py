@@ -36,7 +36,7 @@ class IntensityROI:
             image_view.plot.add_glyph(self._source, text_glyph)
 
         # ---- switch
-        switch = CheckboxGroup(labels=["Intensity ROIs"], default_size=145, margin=(0, 5, 0, 5))
+        switch = CheckboxGroup(labels=["Intensity ROIs"], width=145, margin=(0, 5, 0, 5))
         self.switch = switch
 
     def _clear(self):
