@@ -19,4 +19,4 @@ from .saturated_pixels import SaturatedPixels
 from .spots import Spots
 from .stream_graph import StreamGraph
 
-__version__ = "1.11.1"
+__version__ = "1.12.0"
