@@ -1,4 +1,4 @@
-[![GitHub version](https://badge.fury.io/gh/ivan-usov%2Fstreamvis.svg)](https://badge.fury.io/gh/ivan-usov%2Fstreamvis)
+![GitHub Tag](https://img.shields.io/github/v/tag/paulscherrerinstitute/streamvis)
 [![Deployment](https://github.com/paulscherrerinstitute/streamvis/actions/workflows/deployment.yaml/badge.svg)](https://github.com/paulscherrerinstitute/streamvis/actions/workflows/deployment.yaml)
 [![GitHub license](https://img.shields.io/github/license/paulscherrerinstitute/streamvis)](https://github.com/paulscherrerinstitute/streamvis/blob/master/LICENSE)
 
