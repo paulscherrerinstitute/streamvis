@@ -8,8 +8,8 @@ import subprocess
 
 def main():
     branch = subprocess.check_output("git rev-parse --abbrev-ref HEAD", shell=True).decode().strip()
-    if branch != "master":
-        print("Aborting, not on 'master' branch.")
+    if branch != "main":
+        print("Aborting, not on 'main' branch.")
         return
 
     filepath = "streamvis/__init__.py"
