@@ -2,8 +2,6 @@ import argparse
 import logging
 import os
 import pkgutil
-from functools import partial
-from threading import Thread
 
 from bokeh.application.application import Application
 from bokeh.application.handlers import ScriptHandler
@@ -11,8 +9,7 @@ from bokeh.server.server import Server
 
 from streamvis import __version__
 from streamvis.handler import StreamvisCheckHandler, StreamvisHandler
-from streamvis.receiver import Receiver, StreamAdapter
-from streamvis.statistics_handler import StatisticsHandler
+from streamvis.jf_adapter import JFAdapter
 
 logging.basicConfig(format="%(asctime)s %(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -40,6 +37,15 @@ def main():
     parser.add_argument("-v", "--version", action="version", version=f"%(prog)s {__version__}")
 
     parser.add_argument("app", type=str, choices=available_apps, help="streamvis application")
+
+    stream_adapters = {"std_jf": JFAdapter}
+    parser.add_argument(
+        "--stream-format",
+        type=str,
+        choices=stream_adapters.keys(),
+        default="std_jf",
+        help="a stream format for input data and metadata messages",
+    )
 
     parser.add_argument(
         "--port", type=int, default=5006, help="a port to listen on for HTTP requests"
@@ -119,24 +125,13 @@ def main():
     app_path = os.path.join(apps_path, args.app + ".py")
     logger.info(app_path)
 
-    # StatisticsHandler is used by Receiver to parse metadata information to be displayed in
-    # 'statistics' application, all messages are being processed.
-    stats = StatisticsHandler()
-
-    # Receiver gets messages via zmq stream and parses statistics with StatisticsHandler
-    receiver = Receiver(on_receive=stats.parse, buffer_size=args.buffer_size)
-
-    # Start receiver in a separate thread
-    start_receiver = partial(receiver.start, args.io_threads, args.connection_mode, args.address)
-    t = Thread(target=start_receiver, daemon=True)
-    t.start()
-
-    # Reconstructs requested images
-    jf_adapter = StreamAdapter()
+    stream_adapter = stream_adapters[args.stream_format](
+        args.buffer_size, args.io_threads, args.connection_mode, args.address
+    )
 
     # StreamvisHandler is a custom bokeh application Handler, which sets some of the core
     # properties for new bokeh documents created by all applications.
-    sv_handler = StreamvisHandler(receiver, stats, jf_adapter, args)
+    sv_handler = StreamvisHandler(stream_adapter, args)
     sv_check_handler = StreamvisCheckHandler(
         max_sessions=args.max_client_connections, allow_client_subnet=args.allow_client_subnet
     )

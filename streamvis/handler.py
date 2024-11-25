@@ -7,20 +7,16 @@ from bokeh.models import Div
 class StreamvisHandler(Handler):
     """Provides a mechanism for generic bokeh applications to build up new streamvis documents."""
 
-    def __init__(self, receiver, stats, jf_adapter, args):
+    def __init__(self, stream_adapter, args):
         """Initialize a streamvis handler for bokeh applications.
 
         Args:
-            receiver (Receiver): A streamvis receiver instance to be shared between all documents.
-            stats (StreamHandler): A streamvis statistics handler.
-            jf_adapter (StreamAdapter): A jungfrau stream adapter.
+            stream_adapter (Any): A stream adapter for a specific data/metadata format.
             args (Namespace): Command line parsed arguments.
         """
         super().__init__()  # no-op
 
-        self.receiver = receiver
-        self.stats = stats
-        self.jf_adapter = jf_adapter
+        self.stream_adapter = stream_adapter
         self.title = args.page_title
         self.client_fps = args.client_fps
 
@@ -33,9 +29,7 @@ class StreamvisHandler(Handler):
         Returns:
             Document
         """
-        doc.receiver = self.receiver
-        doc.stats = self.stats
-        doc.jf_adapter = self.jf_adapter
+        doc.stream_adapter = self.stream_adapter
         doc.title = self.title
         doc.client_fps = self.client_fps
 
@@ -99,10 +93,8 @@ class StreamvisCheckHandler(Handler):
 
     def _clear_doc(self, doc):
         doc.clear()
-        del doc.receiver
-        del doc.jf_adapter
-        del doc.stats
+        del doc.stream_adapter
 
     async def on_session_destroyed(self, session_context):
-        if hasattr(session_context._document, "receiver"):
+        if hasattr(session_context._document, "stream_adapter"):
             self.num_sessions -= 1

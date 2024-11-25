@@ -4,7 +4,7 @@ from bokeh.models import Button, ColumnDataSource, DataRange1d, Legend
 from bokeh.plotting import figure
 
 doc = curdoc()
-stats = doc.stats
+stats = doc.stream_adapter.stats
 doc.title = f"{doc.title} Hitrate"
 
 plot = figure(

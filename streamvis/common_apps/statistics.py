@@ -6,7 +6,7 @@ from bokeh.layouts import column
 from bokeh.models import Button, ColumnDataSource, DataTable, NumberFormatter, TableColumn
 
 doc = curdoc()
-stats = doc.stats
+stats = doc.stream_adapter.stats
 doc.title = f"{doc.title} Statistics"
 
 all_table_columns = {

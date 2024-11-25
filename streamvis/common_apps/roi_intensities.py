@@ -8,7 +8,7 @@ N_BUF = 10
 cm = Category10[N_BUF]
 
 doc = curdoc()
-stats = doc.stats
+stats = doc.stream_adapter.stats
 doc.title = f"{doc.title} ROI intensities"
 
 plot = figure(

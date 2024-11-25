@@ -17,9 +17,7 @@ class StreamControl:
     def __init__(self, sv_rt):
         """Initialize a stream control widget."""
         doc = curdoc()
-        self.receiver = doc.receiver
-        self.stats = doc.stats
-        self.jf_adapter = doc.jf_adapter
+        self.stream_adapter = doc.stream_adapter
         self._sv_rt = sv_rt
 
         # connect toggle button
@@ -98,8 +96,8 @@ class StreamControl:
 
     @property
     def is_receiving(self):
-        """Return the stream receiver state (readonly)"""
-        return self.receiver.state == "receiving"
+        """Return the stream adapter state (readonly)"""
+        return self.stream_adapter.state == "receiving"
 
     @property
     def mask_active(self):
@@ -126,10 +124,10 @@ class StreamControl:
         return self._sv_rt.image.shape
 
     def get_stream_data(self, index):
-        """Get data from the stream receiver.
+        """Get data from the stream adapter.
 
         Args:
-            index (int): index into data buffer of receiver
+            index (int): index into data buffer of the stream adapter
 
         Returns:
             (dict, ndarray): metadata and image at index
@@ -139,10 +137,10 @@ class StreamControl:
 
         if self.show_only_events_switch.active:
             # Show only events
-            metadata, raw_image = self.stats.last_hit
+            metadata, raw_image = self.stream_adapter.stats.last_hit
         else:
             # Show image at index
-            metadata, raw_image = self.receiver.buffer[index]
+            metadata, raw_image = self.stream_adapter.buffer[index]
 
         mask = metadata.get("mask")
         if mask is None:
@@ -191,13 +189,13 @@ class StreamControl:
             self.geometry_switch.disabled = True
             self.double_pixels_radiogroup.disabled = True
 
-        jf_handler = self.jf_adapter.handler
+        jf_handler = self.stream_adapter.handler
         opts_args = dict(
             mask=mask, gap_pixels=gap_pixels, double_pixels=double_pixels, geometry=geometry
         )
 
         if self.datatype_select.value == "Image":
-            image = self.jf_adapter.process(raw_image, metadata, **opts_args)
+            image = self.stream_adapter.process(raw_image, metadata, **opts_args)
 
             if jf_handler and "saturated_pixels" not in metadata and raw_image.dtype == np.uint16:
                 saturated_pixels_y, saturated_pixels_x = jf_handler.get_saturated_pixels(
@@ -209,7 +207,7 @@ class StreamControl:
                 metadata["saturated_pixels"] = len(saturated_pixels_x)
 
         elif self.datatype_select.value == "Gains":
-            image = self.jf_adapter.get_gains(raw_image, metadata, **opts_args)
+            image = self.stream_adapter.get_gains(raw_image, metadata, **opts_args)
 
         n_rot90 = self.n_rot90
         if n_rot90:

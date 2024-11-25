@@ -6,7 +6,6 @@ from bokeh.models import Div, Spacer, Title
 import streamvis as sv
 
 doc = curdoc()
-stats = doc.stats
 
 sv_rt = sv.Runtime()
 
@@ -107,7 +106,7 @@ layout_controls = column(
     sv_streamctrl.prev_image_slider,
     row(sv_streamctrl.conv_opts, sv_streamctrl.double_pixels),
     row(Spacer(width=155), sv_streamctrl.show_only_events_switch),
-    row(doc.stats.auxiliary_apps_dropdown, sv_streamctrl.toggle),
+    row(doc.stream_adapter.stats.auxiliary_apps_dropdown, sv_streamctrl.toggle),
 )
 
 layout_side_panel = column(
