@@ -179,11 +179,14 @@ class StreamControl:
             self.double_pixels_radiogroup.active = 0
 
         if raw_image.dtype == np.uint16:
+            self.datatype_select.disabled = False
             self.mask_switch.disabled = mask_locked
             self.gap_pixels_switch.disabled = gap_pixels_locked
             self.geometry_switch.disabled = geometry_locked
             self.double_pixels_radiogroup.disabled = double_pixels_locked
         else:
+            self.datatype_select.value = "Image"
+            self.datatype_select.disabled = True
             self.mask_switch.disabled = True
             self.gap_pixels_switch.disabled = True
             self.geometry_switch.disabled = True
