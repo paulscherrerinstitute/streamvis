@@ -11,6 +11,16 @@ from streamvis import __version__
 from streamvis.handler import StreamvisCheckHandler, StreamvisHandler
 from streamvis.jf_adapter import JFAdapter
 
+stream_adapters = {"std_jf": JFAdapter}
+# Conditional imports of other stream adapters will succeed if the corresponding optional
+# dependencies were installed
+try:
+    from streamvis.jfjoch_adapter import JFJochAdapter
+
+    stream_adapters["jfjoch"] = JFJochAdapter
+except ImportError:
+    pass
+
 logging.basicConfig(format="%(asctime)s %(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -38,7 +48,6 @@ def main():
 
     parser.add_argument("app", type=str, choices=available_apps, help="streamvis application")
 
-    stream_adapters = {"std_jf": JFAdapter}
     parser.add_argument(
         "--stream-format",
         type=str,

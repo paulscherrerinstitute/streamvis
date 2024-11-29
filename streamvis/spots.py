@@ -33,9 +33,18 @@ class Spots:
         Args:
             metadata (dict): A dictionary with current metadata.
         """
-        number_of_spots = metadata.get("number_of_spots")
-        spot_x = metadata.get("spot_x")
-        spot_y = metadata.get("spot_y")
+        if "magic_number" in metadata:
+            spots = metadata.get("spots")
+            number_of_spots = len(spots)
+            spot_x = []
+            spot_y = []
+            for spot in spots:
+                spot_x.append(spot["x"])
+                spot_y.append(spot["y"])
+        else:
+            number_of_spots = metadata.get("number_of_spots")
+            spot_x = metadata.get("spot_x")
+            spot_y = metadata.get("spot_y")
 
         if number_of_spots is None or spot_x is None or spot_y is None:
             self._clear()

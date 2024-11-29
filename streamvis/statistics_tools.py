@@ -104,9 +104,14 @@ class Profile:
         return self._step_size * self._max_num_steps
 
     def update_x(self, x):
-        if self._x_limits != x:
+        if isinstance(x, list) and self._x_limits != x:
             self._x_limits = x
             self._x = np.arange(*x)
+            self._y.clear()
+            self._n.clear()
+        if isinstance(x, np.ndarray) and not np.array_equal(self._x_limits, x):
+            self._x_limits = x
+            self._x = x
             self._y.clear()
             self._n.clear()
 

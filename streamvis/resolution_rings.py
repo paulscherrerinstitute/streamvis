@@ -112,7 +112,10 @@ class ResolutionRings:
             metadata (dict): A dictionary with current metadata.
         """
         detector_distance = metadata.get("detector_distance", np.nan)
-        beam_energy = metadata.get("beam_energy", np.nan)
+        if "magic_number" in metadata:
+            beam_energy = metadata.get("incident_energy", np.nan)
+        else:
+            beam_energy = metadata.get("beam_energy", np.nan)
         beam_center_x = metadata.get("beam_center_x", np.nan)
         beam_center_y = metadata.get("beam_center_y", np.nan)
 
