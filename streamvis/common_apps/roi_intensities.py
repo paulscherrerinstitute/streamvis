@@ -101,10 +101,8 @@ def update():
 
     if len(plot.legend.items) != len(ys):
         plot.legend.items.clear()
-        for i in range(len(ys)):
-            plot.legend.items.append(
-                LegendItem(label=f"ROI_{i}", renderers=[lines[i], dash_lines[i]])
-            )
+        for i, label in enumerate(stats.roi_labels):
+            plot.legend.items.append(LegendItem(label=label, renderers=[lines[i], dash_lines[i]]))
 
 
 doc.add_root(

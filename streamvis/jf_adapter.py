@@ -238,6 +238,7 @@ class StatisticsHandler:
         self.hitrate_slow = Hitrate(step_size=1000)
         self.hitrate_slow_lon = Hitrate(step_size=1000)
         self.hitrate_slow_loff = Hitrate(step_size=1000)
+        self.roi_labels = []
         self.roi_intensities = Intensities()
         self.roi_intensities_fast = Intensities(step_size=1, max_span=1200)
         self.roi_intensities_hit = Intensities()
@@ -368,6 +369,7 @@ class StatisticsHandler:
 
             roi_intensities = metadata.get("roi_intensities_normalised")
             if roi_intensities is not None:
+                self.roi_labels = [f"ROI_{i}" for i in range(len(roi_intensities))]
                 self.roi_intensities.update(pulse_id, roi_intensities)
                 self.roi_intensities_fast.update(pulse_id, roi_intensities)
                 if is_hit_frame:
