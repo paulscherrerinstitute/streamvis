@@ -9,17 +9,6 @@ from bokeh.server.server import Server
 
 from streamvis import __version__
 from streamvis.handler import StreamvisCheckHandler, StreamvisHandler
-from streamvis.jf_adapter import JFAdapter
-
-stream_adapters = {"std_jf": JFAdapter}
-# Conditional imports of other stream adapters will succeed if the corresponding optional
-# dependencies were installed
-try:
-    from streamvis.jfjoch_adapter import JFJochAdapter
-
-    stream_adapters["jfjoch"] = JFJochAdapter
-except ImportError:
-    pass
 
 logging.basicConfig(format="%(asctime)s %(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -51,7 +40,7 @@ def main():
     parser.add_argument(
         "--stream-format",
         type=str,
-        choices=stream_adapters.keys(),
+        choices=["std_jf", "jfjoch"],
         default="std_jf",
         help="a stream format for input data and metadata messages",
     )
@@ -134,9 +123,21 @@ def main():
     app_path = os.path.join(apps_path, args.app + ".py")
     logger.info(app_path)
 
-    stream_adapter = stream_adapters[args.stream_format](
-        args.buffer_size, args.io_threads, args.connection_mode, args.address
-    )
+    # Imports of stream adapters will succeed if the corresponding optional dependencies are
+    # installed
+    if args.stream_format == "std_jf":
+        from streamvis.jf_adapter import JFAdapter  # pylint: disable=C0415
+
+        stream_adapter = JFAdapter(
+            args.buffer_size, args.io_threads, args.connection_mode, args.address
+        )
+    else:  # args.stream_format == "jfjoch"
+
+        from streamvis.jfjoch_adapter import JFJochAdapter  # pylint: disable=C0415
+
+        stream_adapter = JFJochAdapter(
+            args.buffer_size, args.io_threads, args.connection_mode, args.address
+        )
 
     # StreamvisHandler is a custom bokeh application Handler, which sets some of the core
     # properties for new bokeh documents created by all applications.
