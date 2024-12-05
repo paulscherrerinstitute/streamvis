@@ -163,6 +163,9 @@ class JFJochAdapter:
                 self.state = "receiving"
                 self.stats.parse(metadata, image)
 
+            elif metadata["type"] == "end":
+                pass  # ignore this message type for now
+
             else:
                 warnings.warn(f"Unhandled message type: {metadata['type']}")
 
