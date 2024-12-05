@@ -2,6 +2,7 @@
 
 import copy
 import logging
+import warnings
 from collections import deque
 from datetime import datetime
 from threading import RLock, Thread
@@ -145,6 +146,7 @@ class JFJochAdapter:
                     metadata["pixel_mask"]["default"].astype(bool, copy=True)
                 )
                 image = np.zeros((2, 2), dtype="float32")
+                self.stats.parse(metadata, image)
 
             elif metadata["type"] == "image":
                 # Merge with "start" message metadata
@@ -159,11 +161,10 @@ class JFJochAdapter:
                     self.buffer.append((metadata, image))
 
                 self.state = "receiving"
+                self.stats.parse(metadata, image)
 
             else:
-                raise RuntimeError(f"Unknown jfjoch message type: {metadata['type']}")
-
-            self.stats.parse(metadata, image)
+                warnings.warn(f"Unhandled message type: {metadata['type']}")
 
     def process(
         self, image, metadata, mask=True, gap_pixels=True, double_pixels="keep", geometry=True
