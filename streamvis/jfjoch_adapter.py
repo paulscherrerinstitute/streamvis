@@ -191,9 +191,7 @@ class JFJochAdapter:
                     image = np.zeros((2, 2), dtype="float32")
                     self.stats.parse(metadata, image)
 
-    def process(
-        self, image, metadata, mask=True, gap_pixels=True, double_pixels="keep", geometry=True
-    ):
+    def process(self, image, *_args, mask=True, **_kwargs):
         """Perform jungfrau detector data processing on an image received via stream.
 
         Args:
@@ -207,16 +205,11 @@ class JFJochAdapter:
             image = image.astype(np.float32, copy=True)
 
         if mask and self.pixel_mask is not None:
-            image = self._apply_mask(image)
-
-        return image
-
-    def _apply_mask(self, image):
-        # assign masked values to np.nan
-        if image.shape == self.pixel_mask.shape:
-            _apply_mask_njit(image, self.pixel_mask)
-        else:
-            raise ValueError("Image and mask shapes are not the same")
+            # assign masked values to np.nan
+            if image.shape == self.pixel_mask.shape:
+                _apply_mask_njit(image, self.pixel_mask)
+            else:
+                raise ValueError("Image and mask shapes are not the same")
 
         return image
 
