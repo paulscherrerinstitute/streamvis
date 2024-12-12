@@ -80,7 +80,7 @@ def tag_hook(decoder, tag):
 
 
 class JFJochAdapter:
-    def __init__(self, buffer_size, io_threads, connection_mode, address):
+    def __init__(self, buffer_size, io_threads, connection_mode, address, metadata_address):
         """Initialize a jungfrau adapter.
 
         Args:
@@ -88,6 +88,7 @@ class JFJochAdapter:
             io_threads (int): A size of the zmq thread pool to handle I/O operations.
             connection_mode (str): Use either 'connect' or 'bind' zmq_socket methods.
             address (str): The address string, e.g. 'tcp://127.0.0.1:9001'.
+            metadata_address (str): The metadata stream address string, e.g. 'tcp://127.0.0.1:9002'.
         """
         self.handler = None
         self.pixel_mask = None
@@ -102,23 +103,27 @@ class JFJochAdapter:
         # application. All messages are processed.
         self.stats = StatisticsHandler()
 
+        self._zmq_context = zmq.Context(io_threads=io_threads)
+
         # Start receiving messages in a separate thread
-        t = Thread(target=self.start, args=(io_threads, connection_mode, address), daemon=True)
+        t = Thread(target=self.start, args=(connection_mode, address), daemon=True)
         t.start()
 
-    def start(self, io_threads, connection_mode, address):
+        if metadata_address is not None:
+            t_md = Thread(target=self.start_md, args=(metadata_address,), daemon=True)
+            t_md.start()
+
+    def start(self, connection_mode, address):
         """Start a receiver loop.
 
         Args:
-            io_threads (int): The size of the zmq thread pool to handle I/O operations.
             connection_mode (str): Use either 'connect' or 'bind' zmq_socket methods.
             address (str): The address string, e.g. 'tcp://127.0.0.1:9001'.
 
         Raises:
             RuntimeError: Unknown connection mode.
         """
-        zmq_context = zmq.Context(io_threads=io_threads)
-        zmq_socket = zmq_context.socket(zmq.SUB)  # pylint: disable=E1101
+        zmq_socket = self._zmq_context.socket(zmq.SUB)  # pylint: disable=E1101
         zmq_socket.setsockopt_string(zmq.SUBSCRIBE, "")  # pylint: disable=E1101
 
         if connection_mode == "connect":
@@ -145,8 +150,6 @@ class JFJochAdapter:
                 self.pixel_mask = np.invert(
                     metadata["pixel_mask"]["default"].astype(bool, copy=True)
                 )
-                image = np.zeros((2, 2), dtype="float32")
-                self.stats.parse(metadata, image)
 
             elif metadata["type"] == "image":
                 # Merge with "start" message metadata
@@ -161,13 +164,32 @@ class JFJochAdapter:
                     self.buffer.append((metadata, image))
 
                 self.state = "receiving"
-                self.stats.parse(metadata, image)
 
             elif metadata["type"] == "end":
                 pass  # ignore this message type for now
 
             else:
                 warnings.warn(f"Unhandled message type: {metadata['type']}")
+
+    def start_md(self, md_address):
+        zmq_socket = self._zmq_context.socket(zmq.SUB)  # pylint: disable=E1101
+        zmq_socket.setsockopt_string(zmq.SUBSCRIBE, "")  # pylint: disable=E1101
+        zmq_socket.connect(md_address)
+
+        poller = zmq.Poller()
+        poller.register(zmq_socket, zmq.POLLIN)
+
+        while True:
+            events = dict(poller.poll(1000))
+            if zmq_socket not in events:
+                continue
+
+            message = zmq_socket.recv(flags=0, copy=False, track=False)
+            message = cbor2.loads(message, tag_hook=tag_hook)
+            if message["type"] == "metadata":
+                for metadata in message["images"]:
+                    image = np.zeros((2, 2), dtype="float32")
+                    self.stats.parse(metadata, image)
 
     def process(
         self, image, metadata, mask=True, gap_pixels=True, double_pixels="keep", geometry=True

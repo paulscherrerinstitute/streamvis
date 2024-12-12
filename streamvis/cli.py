@@ -112,6 +112,14 @@ def main():
     )
 
     parser.add_argument(
+        "--jfjoch-metadata-address",
+        metavar="PROTOCOL://HOST:PORT",
+        type=str,
+        default=None,
+        help="an address string for jfjoch metadata zmq socket",
+    )
+
+    parser.add_argument(
         "--args",
         nargs=argparse.REMAINDER,
         default=[],
@@ -136,7 +144,11 @@ def main():
         from streamvis.jfjoch_adapter import JFJochAdapter  # pylint: disable=C0415
 
         stream_adapter = JFJochAdapter(
-            args.buffer_size, args.io_threads, args.connection_mode, args.address
+            args.buffer_size,
+            args.io_threads,
+            args.connection_mode,
+            args.address,
+            args.jfjoch_metadata_address,
         )
 
     # StreamvisHandler is a custom bokeh application Handler, which sets some of the core
