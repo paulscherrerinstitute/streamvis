@@ -164,7 +164,7 @@ class JFAdapter:
             if self.handler is None or self.handler.detector_name != detector_name:
                 try:
                     self.handler = JFDataHandler(detector_name)
-                except KeyError:
+                except ValueError:
                     logging.exception(f"Error creating data handler for detector {detector_name}")
                     self.handler = None
                     return

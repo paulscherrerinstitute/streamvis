@@ -47,7 +47,7 @@ class DisabledModules:
             try:
                 self._ju_handler = ju.JFDataHandler(detector_name)
                 self._detector_name = detector_name
-            except KeyError:
+            except ValueError:
                 self._source.data.update(left=[], right=[], top=[], bottom=[])
                 return
 
