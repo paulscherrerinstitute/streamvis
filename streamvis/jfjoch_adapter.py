@@ -153,7 +153,7 @@ class JFJochAdapter:
 
             elif metadata["type"] == "image":
                 # Merge with "start" message metadata
-                metadata.update(self.start_message_metadata)
+                metadata = {**self.start_message_metadata, **metadata}
 
                 image = metadata["data"]["default"]
                 metadata["time_poll"] = time_poll
