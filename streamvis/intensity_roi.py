@@ -61,7 +61,9 @@ class IntensityROI:
         roi_y2 = metadata.get("roi_y2")
 
         if roi_x1 is None or roi_x2 is None or roi_y1 is None or roi_y2 is None:
-            self._sv_metadata.add_issue("Metadata does not contain data for intensity ROIs")
+            self._sv_metadata.add_issue(
+                "Metadata does not contain XY-coordinates of intensity ROIs"
+            )
             self._clear()
             return
 

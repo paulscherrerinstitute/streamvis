@@ -46,7 +46,9 @@ class SaturatedPixels:
         sat_pix_x = metadata.get("saturated_pixels_x")
 
         if sat_pix_y is None or sat_pix_x is None:
-            self._sv_metadata.add_issue("Metadata does not contain data for saturated pixels")
+            self._sv_metadata.add_issue(
+                "Metadata does not contain XY-coordinates of saturated pixels"
+            )
             self._clear()
             return
 

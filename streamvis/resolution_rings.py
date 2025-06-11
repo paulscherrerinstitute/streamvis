@@ -144,7 +144,9 @@ class ResolutionRings:
             return
 
         if any(np.isnan([detector_distance, beam_energy, beam_center_x, beam_center_y])):
-            self._sv_metadata.add_issue("Metadata does not contain all data for resolution rings")
+            self._sv_metadata.add_issue(
+                "Metadata does not contain all information to calculate resolution rings positions"
+            )
             self._clear()
             return
 
