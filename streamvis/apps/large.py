@@ -20,8 +20,8 @@ ZOOM_PROJ_Y_CANVAS_WIDTH = 150 + 31
 
 # Create streamvis components
 sv_streamctrl = sv.StreamControl(sv_rt)
-sv_metadata = sv.MetadataHandler(datatable_height=230, datatable_width=650)
-sv_metadata.issues_datatable.height = 100
+sv_metadata = sv.MetadataHandler()
+sv_metadata.datatable.height = 230
 
 sv_main = sv.ImageView(height=MAIN_CANVAS_HEIGHT, width=MAIN_CANVAS_WIDTH)
 sv_zoom = sv.ImageView(height=ZOOM_CANVAS_HEIGHT, width=ZOOM_CANVAS_WIDTH)

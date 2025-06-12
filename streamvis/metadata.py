@@ -7,12 +7,10 @@ default_entries = ["frame", "pulse_id", "is_good_frame", "saturated_pixels", "ti
 
 
 class MetadataHandler:
-    def __init__(self, datatable_height=300, datatable_width=700, check_shape=None):
+    def __init__(self, check_shape=None):
         """Initialize a metadata handler.
 
         Args:
-            datatable_height (int, optional): Height of datatable in screen pixels. Defaults to 300.
-            datatable_width (int, optional): Width of plot area in screen pixels. Defaults to 700.
             check_shape (tuple, optional): A tuple to be used for checking shape of received images.
                 If None, then no shape checks are conducted. Defaults to None.
         """
@@ -27,8 +25,8 @@ class MetadataHandler:
                 TableColumn(field="metadata", title="Metadata Name"),
                 TableColumn(field="value", title="Value"),
             ],
-            width=datatable_width,
-            height=datatable_height,
+            width=650,
+            height=300,
             index_position=None,
             selectable=False,
         )
@@ -47,8 +45,8 @@ class MetadataHandler:
                     field="issues", title="Metadata Issues", formatter=issues_datatable_formatter
                 )
             ],
-            width=datatable_width,
-            height=datatable_height,
+            width=650,
+            height=100,
             index_position=None,
             selectable=False,
         )

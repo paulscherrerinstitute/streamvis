@@ -15,7 +15,7 @@ MAIN_CANVAS_HEIGHT = 1000 + 59
 
 
 # Create streamvis components
-sv_metadata = sv.MetadataHandler(datatable_height=300, datatable_width=400)
+sv_metadata = sv.MetadataHandler()
 
 sv_main = sv.ImageView(height=MAIN_CANVAS_HEIGHT, width=MAIN_CANVAS_WIDTH)
 
