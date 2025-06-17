@@ -177,6 +177,7 @@ class ColorMapper:
             image (ndarray): A source image for colormapper.
         """
         if self.auto_switch.active:
+            # This is faster than using bottleneck versions of nanmin and nanmax
             image_min = int(np.nanmin(image))
             image_max = int(np.nanmax(image))
 
