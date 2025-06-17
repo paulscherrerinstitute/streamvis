@@ -164,8 +164,8 @@ class Histogram:
                 max_val = 1 if np.isnan(max_val) else max_val
                 upper = max(upper, max_val)
 
-            self.lower_spinner.value = int(np.floor(lower))
-            self.upper_spinner.value = int(np.ceil(upper))
+            self.lower_spinner.value = np.floor(lower)
+            self.upper_spinner.value = np.ceil(upper)
 
         # get histogram counts and update plots
         for i, data in enumerate(input_data):

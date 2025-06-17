@@ -178,8 +178,8 @@ class ColorMapper:
         """
         if self.auto_switch.active:
             # This is faster than using bottleneck versions of nanmin and nanmax
-            image_min = int(np.nanmin(image))
-            image_max = int(np.nanmax(image))
+            image_min = np.floor(np.nanmin(image))
+            image_max = np.ceil(np.nanmax(image))
 
             if image_min <= 0:  # switch to linear colormap
                 self.scale_radiogroup.active = 0
