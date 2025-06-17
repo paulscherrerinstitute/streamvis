@@ -54,8 +54,8 @@ class SaturatedPixels:
 
         # convert coordinates to numpy arrays, because if these values were received as a part
         # of a zmq message, they will be lists (ndarray is not JSON serializable)
-        sat_pix_y = np.array(sat_pix_y, copy=False)
-        sat_pix_x = np.array(sat_pix_x, copy=False)
+        sat_pix_y = np.array(sat_pix_y)
+        sat_pix_x = np.array(sat_pix_x)
 
         n_rot90 = self._sv_streamctrl.n_rot90
         im_shape = self._sv_streamctrl.current_image_shape  # image shape after rotation in sv
