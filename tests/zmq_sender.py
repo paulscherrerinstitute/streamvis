@@ -6,7 +6,7 @@ from time import sleep
 import numpy as np
 import zmq
 
-N = 6000
+N = 600000
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--stream", default="base")
