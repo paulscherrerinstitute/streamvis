@@ -91,8 +91,10 @@ sv_main.plot.add_layout(sv_colormapper.color_bar, place="below")
 sv_resolrings = sv.ResolutionRings([sv_main, sv_zoom1, sv_zoom2], sv_metadata, sv_streamctrl)
 sv_intensity_roi = sv.IntensityROI([sv_main, sv_zoom1, sv_zoom2], sv_metadata, sv_streamctrl)
 sv_saturated_pixels = sv.SaturatedPixels([sv_main, sv_zoom1, sv_zoom2], sv_metadata, sv_streamctrl)
-# TODO: Add streaks instead
+# TODO: remove spots, leave only streaks
 sv_spots = sv.Spots([sv_main], sv_metadata, sv_streamctrl)
+sv_streaks = sv.Streaks([sv_main], sv_metadata, sv_streamctrl)
+
 sv_disabled_modules = sv.DisabledModules([sv_main], sv_streamctrl)
 
 sv_hist = sv.Histogram(nplots=3, height=300, width=600)
@@ -191,6 +193,7 @@ async def internal_periodic_callback():
     sv_main.update(aggr_image)
 
     sv_spots.update(metadata)
+    sv_streaks.update(metadata)
     sv_resolrings.update(metadata)
     sv_intensity_roi.update(metadata)
     sv_saturated_pixels.update(metadata)
