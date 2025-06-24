@@ -17,6 +17,7 @@ from .resolution_rings import ResolutionRings
 from .runtime import Runtime
 from .saturated_pixels import SaturatedPixels
 from .spots import Spots
+from .streaks import Streaks
 from .stream_graph import StreamGraph
 
 __version__ = "1.13.1"
