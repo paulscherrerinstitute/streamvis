@@ -3,7 +3,14 @@ from datetime import datetime
 from bokeh.models import CheckboxGroup, ColumnDataSource, DataTable, StringFormatter, TableColumn
 
 # metadata entries that are always shown (if present)
-default_entries = ["frame", "pulse_id", "is_good_frame", "saturated_pixels", "time_poll"]
+default_entries = [
+    "frame",
+    "pulse_id",
+    "is_good_frame",
+    "saturated_pixels",
+    "saturated_pixel_count",
+    "time_poll",
+]
 
 
 class MetadataHandler:
@@ -89,10 +96,15 @@ class MetadataHandler:
             self.add_issue("Frame is not good")
             metadata_toshow["is_good_frame"] = is_good_frame
 
-        saturated_pixels = metadata.get("saturated_pixels", False)
+        saturated_pixels = metadata.get("saturated_pixels", 0)
         if saturated_pixels:
             self.add_issue("There are saturated pixels")
             metadata_toshow["saturated_pixels"] = saturated_pixels
+
+        saturated_pixel_count = metadata.get("saturated_pixel_count", 0)
+        if saturated_pixel_count:
+            self.add_issue("There are saturated pixels")
+            metadata_toshow["saturated_pixel_count"] = saturated_pixel_count
 
         shape = metadata.get("shape")
         if self.check_shape and tuple(shape) != tuple(self.check_shape):
