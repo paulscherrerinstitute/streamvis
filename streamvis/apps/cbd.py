@@ -8,8 +8,8 @@ import streamvis as sv
 doc = curdoc()
 
 # Expected image sizes for the detector
-IMAGE_SIZE_X = 1056
-IMAGE_SIZE_Y = 1108
+IMAGE_SIZE_X = 4215 // 2
+IMAGE_SIZE_Y = 4432 // 2
 
 sv_rt = sv.Runtime()
 
