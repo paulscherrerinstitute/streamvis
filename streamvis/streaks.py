@@ -41,6 +41,7 @@ class Streaks:
             return
 
         if len(streaks) != 4:
+            self._sv_metadata.add_issue("Streaks data is inconsistent")
             self._clear()
             return
 
