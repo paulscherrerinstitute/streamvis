@@ -40,7 +40,7 @@ ZOOM2_TOP = ZOOM2_BOTTOM + ZOOM_HEIGHT
 sv_streamctrl = sv.StreamControl(sv_rt)
 sv_metadata = sv.MetadataHandler()
 sv_metadata.datatable.width = 750
-sv_metadata.datatable.height = 130
+sv_metadata.datatable.height = 250
 sv_metadata.issues_datatable.width = 750
 
 sv_main = sv.ImageView(
@@ -48,8 +48,9 @@ sv_main = sv.ImageView(
     width=MAIN_CANVAS_WIDTH,
     image_height=IMAGE_SIZE_Y,
     image_width=IMAGE_SIZE_X,
+    tools="pan,wheel_zoom,xwheel_zoom,ywheel_zoom,save,reset",
 )
-sv_main.plot.title = Title(text=" ")
+sv_main.plot.title = Title(text="JF07T32V01")
 
 sv_zoom1 = sv.ImageView(
     height=ZOOM_CANVAS_HEIGHT,
@@ -60,6 +61,7 @@ sv_zoom1 = sv.ImageView(
     x_end=ZOOM1_RIGHT,
     y_start=ZOOM1_BOTTOM,
     y_end=ZOOM1_TOP,
+    tools="pan,wheel_zoom,xwheel_zoom,ywheel_zoom,save,reset",
 )
 sv_zoom1.plot.title = Title(text="ROI1", text_color="red")
 sv_zoom1.proj_switch = sv_main.proj_switch
@@ -74,6 +76,7 @@ sv_zoom2 = sv.ImageView(
     x_end=ZOOM2_RIGHT,
     y_start=ZOOM2_BOTTOM,
     y_end=ZOOM2_TOP,
+    tools="pan,wheel_zoom,xwheel_zoom,ywheel_zoom,save,reset",
 )
 sv_zoom2.plot.title = Title(text="ROI2", text_color="green")
 sv_zoom2.proj_switch = sv_main.proj_switch

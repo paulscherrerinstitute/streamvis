@@ -23,6 +23,7 @@ class ImageView:
         x_end=None,
         y_start=None,
         y_end=None,
+        tools="pan,wheel_zoom,save,reset",
     ):
         """Initialize image view plot.
 
@@ -39,6 +40,7 @@ class ImageView:
                 Defaults to None.
             y_end (int, optional): Initial y-axis end value. If None, then equals to image_height.
                 Defaults to None.
+            tools (str, optional): Image view tools. A comma-separated list of tool names.
         """
         if x_start is None:
             x_start = 0
@@ -62,7 +64,7 @@ class ImageView:
             height=height,
             width=width,
             toolbar_location="left",
-            tools="pan,wheel_zoom,save,reset",
+            tools=tools,
         )
         self.plot = plot
 
