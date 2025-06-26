@@ -9,7 +9,7 @@ MAXLEN = 100
 
 
 class StreamGraph:
-    def __init__(self, nplots, height=200, width=1000, rollover=10800, mode="time"):
+    def __init__(self, nplots, height=200, width=1000, rollover=10800, mode="time", moving_average=True):
         """Initialize stream graph plots.
 
         Args:
@@ -20,9 +20,11 @@ class StreamGraph:
                 begins to be discarded. If None, then graph will grow unbounded. Defaults to 10800.
             mode (str, optional): stream update mode, 'time' - uses the local wall time,
                 'number' - uses a image number counter. Defaults to 'time'.
+            moving_average (bool, optional): defines whether to plot moving average. Defaults to True.
         """
         self.rollover = rollover
         self.mode = mode
+        self.moving_average = moving_average
         self._stream_t = 0
         self._buffers = []
         self._window = 30
@@ -56,15 +58,30 @@ class StreamGraph:
 
             # Custom tick formatter for displaying large numbers
             plot.yaxis.formatter = BasicTickFormatter(precision=1)
+            data = {
+                "x": [],
+                "y": [],
+            }
+            if self.moving_average:
+                data.update({
+                    "x_avg": [],
+                    "y_avg": [],
+                })
 
-            source = ColumnDataSource(dict(x=[], y=[], x_avg=[], y_avg=[]))
-            line_renderer = plot.line(source=source, x="x", y="y", line_color="gray")
-            line_avg_renderer = plot.line(source=source, x="x_avg", y="y_avg", line_color="red")
+            source = ColumnDataSource(data)
+
+            if self.moving_average:
+                line_renderer = plot.line(source=source, x="x", y="y", line_color="gray")
+                line_avg_renderer = plot.line(source=source, x="x_avg", y="y_avg", line_color="red")
+                plot_items = [("per frame", [line_renderer]), ("moving average", [line_avg_renderer])]
+            else:
+                line_renderer = plot.line(source=source, x="x", y="y", line_color="red")
+                plot_items = [("sum", [line_renderer])]
 
             # ---- legend
             plot.add_layout(
                 Legend(
-                    items=[("per frame", [line_renderer]), ("moving average", [line_avg_renderer])],
+                    items=plot_items,
                     location="top_left",
                 )
             )
@@ -74,16 +91,19 @@ class StreamGraph:
             self._sources.append(source)
             self._buffers.append(deque(maxlen=MAXLEN))
 
-        # Moving average spinner
-        def moving_average_spinner_callback(_attr, _old_value, new_value):
-            if moving_average_spinner.low <= new_value <= moving_average_spinner.high:
-                self._window = new_value
+        if self.moving_average:
+            # Moving average spinner
+            def moving_average_spinner_callback(_attr, _old_value, new_value):
+                if moving_average_spinner.low <= new_value <= moving_average_spinner.high:
+                    self._window = new_value
 
-        moving_average_spinner = Spinner(
-            title="Moving Average Window:", value=self._window, low=1, high=MAXLEN, width=145
-        )
-        moving_average_spinner.on_change("value", moving_average_spinner_callback)
-        self.moving_average_spinner = moving_average_spinner
+            moving_average_spinner = Spinner(
+                title="Moving Average Window:", value=self._window, low=1, high=MAXLEN, width=145
+            )
+            moving_average_spinner.on_change("value", moving_average_spinner_callback)
+            self.moving_average_spinner = moving_average_spinner
+        else:
+            self.moving_average_spinner = None
 
         # Reset button
         def reset_button_callback():
@@ -95,11 +115,22 @@ class StreamGraph:
 
             for source in self._sources:
                 if source.data["x"]:
+                    data = {
+                        "x": [self._stream_t],
+                        "y": [source.data["y"][-1]]
+                    }
+                    if self.moving_average:
+                        data.update({
+                            "x_avg": [self._stream_t],
+                            "y_avg": [source.data["y_avg"][-1]],
+                        })
+
                     source.data.update(
-                        x=[self._stream_t],
-                        y=[source.data["y"][-1]],
-                        x_avg=[self._stream_t],
-                        y_avg=[source.data["y_avg"][-1]],
+                        **data,
+                        # x=[self._stream_t],
+                        # y=[source.data["y"][-1]],
+                        # x_avg=[self._stream_t],
+                        # y_avg=[source.data["y_avg"][-1]],
                     )
 
         reset_button = Button(label="Reset", button_type="default", width=145)
@@ -119,8 +150,18 @@ class StreamGraph:
 
         for value, source, buffer in zip(values, self._sources, self._buffers):
             buffer.append(value)
-            average = sum(islice(reversed(buffer), self._window)) / min(self._window, len(buffer))
+            data = {
+                "x": [self._stream_t],
+                "y": [value]
+            }
+            if self.moving_average:
+                average = sum(islice(reversed(buffer), self._window)) / min(self._window, len(buffer))
+
+                data.update({
+                    "x_avg": [self._stream_t],
+                    "y_avg": [average],
+                })
             source.stream(
-                dict(x=[self._stream_t], y=[value], x_avg=[self._stream_t], y_avg=[average]),
+                data,
                 rollover=self.rollover,
             )
