@@ -278,7 +278,7 @@ class CBDStatisticsHandler:
         streak_rate: int = metadata.get("number_of_streaks")
         self.streak_rate.update(np.array([streak_rate]))
 
-        streak_length: list[float] = metadata.get("streak_len")
+        streak_length: list[float] = metadata.get("streak_lengths")
         self.streak_length.update(np.array(streak_length))
 
         bragg_counts: list[float] = metadata.get("bragg_counts")
