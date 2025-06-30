@@ -82,7 +82,7 @@ sv_zoom2.plot.title = Title(text="ROI 2", text_color="green")
 sv_zoom2.proj_switch = sv_main.proj_switch
 sv_main.add_as_zoom(sv_zoom2, line_color="green")
 
-sv_streamgraph = sv.StreamGraph(nplots=3, height=360, rollover=100, width=INTENSITY_WIDTH, moving_average=False)
+sv_streamgraph = sv.StreamGraph(nplots=3, height=360, rollover=100, width=INTENSITY_WIDTH)
 sv_streamgraph.plots[0].title = Title(text="Total intensity")
 sv_streamgraph.plots[1].title = Title(text="ROI1 Intensity")
 sv_streamgraph.plots[2].title = Title(text="ROI2 Intensity")
