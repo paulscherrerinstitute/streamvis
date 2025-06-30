@@ -40,7 +40,7 @@ def main():
     parser.add_argument(
         "--stream-format",
         type=str,
-        choices=["std_jf", "jfjoch"],
+        choices=["std_jf", "jfjoch", "jfcbd"],
         default="std_jf",
         help="a stream format for input data and metadata messages",
     )
@@ -139,8 +139,13 @@ def main():
         stream_adapter = JFAdapter(
             args.buffer_size, args.io_threads, args.connection_mode, args.address
         )
-    else:  # args.stream_format == "jfjoch"
+    elif args.stream_format == "jfcbd":
+        from streamvis.jfcbd_adapter import JFCBDAdapter  # pylint: disable=C0415
 
+        stream_adapter = JFCBDAdapter(
+            args.buffer_size, args.io_threads, args.connection_mode, args.address
+        )
+    else:  # args.stream_format == "jfjoch"
         from streamvis.jfjoch_adapter import JFJochAdapter  # pylint: disable=C0415
 
         stream_adapter = JFJochAdapter(
