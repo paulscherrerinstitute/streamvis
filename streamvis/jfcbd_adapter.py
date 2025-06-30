@@ -237,8 +237,8 @@ class CBDStatisticsHandler:
             - Background count (Total intensity - Bragg intensity);
 
         """
-        self.streak_rate = NPFIFOArray(dtype=int, empty_value=-1, max_span=5_000)
-        self.streak_length = NPFIFOArray(dtype=float, empty_value=np.nan, max_span=50_000)
+        self.number_of_streaks = NPFIFOArray(dtype=int, empty_value=-1, max_span=5_000)
+        self.streak_lengths = NPFIFOArray(dtype=float, empty_value=np.nan, max_span=50_000)
         self.bragg_counts = NPFIFOArray(dtype=float, empty_value=np.nan, max_span=50_000, aggregate=np.sum)
 
     @property
@@ -275,16 +275,16 @@ class CBDStatisticsHandler:
             print(f"Non-hit, skipping")
             return
 
-        streak_rate: int = metadata.get("number_of_streaks")
-        self.streak_rate.update(np.array([streak_rate]))
+        number_of_streaks: int = metadata.get("number_of_streaks")
+        self.number_of_streaks.update(np.array([number_of_streaks]))
 
-        streak_length: list[float] = metadata.get("streak_lengths")
-        self.streak_length.update(np.array(streak_length))
+        streak_lengths: list[float] = metadata.get("streak_lengths")
+        self.streak_lengths.update(np.array(streak_lengths))
 
         bragg_counts: list[float] = metadata.get("bragg_counts")
         self.bragg_counts.update(np.array(bragg_counts))
 
     def reset(self):
-        self.streak_rate.clear()
-        self.streak_length.clear()
+        self.number_of_streaks.clear()
+        self.streak_lengths.clear()
         self.bragg_counts.clear()

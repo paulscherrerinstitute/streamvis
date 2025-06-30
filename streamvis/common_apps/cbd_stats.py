@@ -90,15 +90,15 @@ doc.add_root(layout)
 
 def update():
     # Line plots
-    if stats.streak_rate and stats.streak_length and stats.bragg_counts:
+    if stats.number_of_streaks and stats.streak_lengths and stats.bragg_counts:
         # Histograms
-        sv_hist_1.update([np.array([stats.streak_rate()])])
-        sv_hist_2.update([np.array([stats.streak_length()])])
+        sv_hist_1.update([np.array([stats.number_of_streaks()])])
+        sv_hist_2.update([np.array([stats.streak_lengths()])])
         sv_hist_3.update([np.array([stats.bragg_counts()])])
         # Stream line
         sv_streamgraph.update([
-            stats.streak_rate.last_value,
-            stats.streak_length.last_value,
+            stats.number_of_streaks.last_value,
+            stats.streak_lengths.last_value,
             stats.bragg_counts.last_value
         ])
 
