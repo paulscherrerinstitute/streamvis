@@ -58,17 +58,17 @@ class StreamGraph:
 
             # Custom tick formatter for displaying large numbers
             plot.yaxis.formatter = BasicTickFormatter(precision=1)
-            data = {
+            source_data = {
                 "x": [],
                 "y": [],
             }
             if self.moving_average:
-                data.update({
+                source_data.update({
                     "x_avg": [],
                     "y_avg": [],
                 })
 
-            source = ColumnDataSource(data)
+            source = ColumnDataSource(source_data)
 
             if self.moving_average:
                 line_renderer = plot.line(source=source, x="x", y="y", line_color="gray")
@@ -127,10 +127,6 @@ class StreamGraph:
 
                     source.data.update(
                         **data,
-                        # x=[self._stream_t],
-                        # y=[source.data["y"][-1]],
-                        # x_avg=[self._stream_t],
-                        # y_avg=[source.data["y_avg"][-1]],
                     )
 
         reset_button = Button(label="Reset", button_type="default", width=145)
@@ -150,18 +146,18 @@ class StreamGraph:
 
         for value, source, buffer in zip(values, self._sources, self._buffers):
             buffer.append(value)
-            data = {
+            source_data = {
                 "x": [self._stream_t],
                 "y": [value]
             }
             if self.moving_average:
                 average = sum(islice(reversed(buffer), self._window)) / min(self._window, len(buffer))
 
-                data.update({
+                source_data.update({
                     "x_avg": [self._stream_t],
                     "y_avg": [average],
                 })
             source.stream(
-                data,
+                source_data,
                 rollover=self.rollover,
             )
