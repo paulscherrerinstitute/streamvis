@@ -11,7 +11,7 @@ from bokeh.models import CustomJS, Dropdown
 from jungfrau_utils import JFDataHandler
 from numba import njit
 
-from streamvis.cbd_statistic_tools import NPFIFOArray
+from streamvis.cbd_statistic_tools import NPFIFOArray, AggregatorWithID
 
 PULSE_ID_STEP = 10000
 
@@ -240,6 +240,7 @@ class CBDStatisticsHandler:
         self.number_of_streaks = NPFIFOArray(dtype=int, empty_value=-1, max_span=5_000)
         self.streak_lengths = NPFIFOArray(dtype=float, empty_value=np.nan, max_span=50_000)
         self.bragg_counts = NPFIFOArray(dtype=float, empty_value=np.nan, max_span=50_000, aggregate=np.sum)
+        self.bragg_aggregator = AggregatorWithID(dtype=float, empty_value=np.nan, max_span=750_000)
 
     @property
     def auxiliary_apps_dropdown(self):
@@ -271,9 +272,20 @@ class CBDStatisticsHandler:
         """
         is_hit_frame = metadata.get("is_hit_frame", False)
 
-        if image.shape == (2, 2) or not is_hit_frame:
-            print(f"Non-hit, skipping")
+        if image.shape == (2, 2):
+            print(f"Dummy, skipping")
             return
+
+        # Update Bragg aggregator with hits and non-hits alike
+        bragg_counts: list[float] = metadata.get("bragg_counts", [0])
+        pulse_id = metadata.get("pulse_id", None)
+        self.bragg_aggregator.update(np.array(bragg_counts), pulse_id)
+
+        if not is_hit_frame:
+            print(f"Not hit frame, skipping")
+            return
+
+        self.bragg_counts.update(np.array(bragg_counts))
 
         number_of_streaks: int = metadata.get("number_of_streaks")
         self.number_of_streaks.update(np.array([number_of_streaks]))
@@ -281,10 +293,8 @@ class CBDStatisticsHandler:
         streak_lengths: list[float] = metadata.get("streak_lengths")
         self.streak_lengths.update(np.array(streak_lengths))
 
-        bragg_counts: list[float] = metadata.get("bragg_counts")
-        self.bragg_counts.update(np.array(bragg_counts))
-
     def reset(self):
         self.number_of_streaks.clear()
         self.streak_lengths.clear()
         self.bragg_counts.clear()
+        self.bragg_aggregator.clear()

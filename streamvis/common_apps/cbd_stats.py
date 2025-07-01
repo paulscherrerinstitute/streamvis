@@ -6,25 +6,28 @@ from bokeh.models import Button, Spacer, Title
 import streamvis as sv
 from streamvis.jfcbd_adapter import CBDStatisticsHandler
 
-APP_WIDTH = 800
-PLOT_HEIGHT = 500
+
+PLOT_WIDTH = 600
+PLOT_HEIGHT = 600
 
 doc = curdoc()
 stats: CBDStatisticsHandler = doc.stream_adapter.stats
 doc.title = f"{doc.title} CBD Statistics"
 
 
-sv_streamgraph = sv.StreamGraph(nplots=3, height=PLOT_HEIGHT, rollover=5000, width=APP_WIDTH)
+sv_streamgraph = sv.StreamGraph(nplots=3, height=PLOT_HEIGHT, rollover=5000, width=PLOT_WIDTH)
 sv_streamgraph.plots[0].title = Title(text="# Streaks")
 sv_streamgraph.plots[1].title = Title(text="Avg Streak length")
 sv_streamgraph.plots[2].title = Title(text="Sum Bragg Counts")
 
-sv_hist_1 = sv.Histogram(nplots=1, height=PLOT_HEIGHT, width=APP_WIDTH)
+sv_hist_1 = sv.Histogram(nplots=1, height=PLOT_HEIGHT, width=PLOT_WIDTH)
 sv_hist_1.plots[0].title = Title(text="# Streaks")
-sv_hist_2 = sv.Histogram(nplots=1, height=PLOT_HEIGHT, width=APP_WIDTH)
+sv_hist_2 = sv.Histogram(nplots=1, height=PLOT_HEIGHT, width=PLOT_WIDTH)
 sv_hist_2.plots[0].title = Title(text="Streak length", text_color="red")
-sv_hist_3 = sv.Histogram(nplots=1, height=PLOT_HEIGHT, width=APP_WIDTH)
+sv_hist_3 = sv.Histogram(nplots=1, height=PLOT_HEIGHT, width=PLOT_WIDTH)
 sv_hist_3.plots[0].title = Title(text="Bragg Counts", text_color="green")
+
+sv_stxm = sv.ScatterPlot(PLOT_WIDTH * 2, PLOT_HEIGHT, 10, "STXM Bragg Counts")
 
 hist_layout = row(
     column(
@@ -70,6 +73,7 @@ def reset_button_callback():
                 x_avg=[],
                 y_avg=[],
             )
+    sv_stxm.clear()
 
 reset_button.on_click(reset_button_callback)
 
@@ -82,6 +86,9 @@ layout = column(
     row(hist_layout),
     Spacer(height=10),
     row(stream_layout),
+    Spacer(height=10),
+    sv_stxm.default_layout,
+    Spacer(height=10),
     reset_button
 )
 
@@ -91,15 +98,19 @@ doc.add_root(layout)
 def update():
     # Line plots
     if stats.number_of_streaks and stats.streak_lengths and stats.bragg_counts:
-        # Histograms
+        # Histograms - update with full data accumulated until now
         sv_hist_1.update([np.array([stats.number_of_streaks()])])
         sv_hist_2.update([np.array([stats.streak_lengths()])])
         sv_hist_3.update([np.array([stats.bragg_counts()])])
-        # Stream line
+        # Stream line - just update last value
         sv_streamgraph.update([
             stats.number_of_streaks.last_value,
             stats.streak_lengths.last_value,
             stats.bragg_counts.last_value
         ])
 
-doc.add_periodic_callback(update, 1000)
+    # STXM - update with values not yet retrieved
+    vs, pids = stats.bragg_aggregator()
+    sv_stxm.update(values=vs, pulse_ids=pids)
+
+doc.add_periodic_callback(update, 2000)
