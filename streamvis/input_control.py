@@ -70,6 +70,12 @@ class StreamControl:
         )
         self.rotate_image = rotate_image
 
+        # flip image checkbox group
+        flip_switch = CheckboxGroup(
+            labels=["Flip L/R", "Flip U/D"], active=[], width=145, margin=(0, 5, 5, 5)
+        )
+        self.flip_switch = flip_switch
+
         # show only events
         self.show_only_events_switch = CheckboxGroup(labels=["Show Only Events"], width=145)
 
@@ -118,6 +124,14 @@ class StreamControl:
     @property
     def n_rot90(self):
         return int(self.rotate_image.value) // 90
+
+    @property
+    def fliplr_active(self):
+        return 0 in self.flip_switch.active
+
+    @property
+    def flipud_active(self):
+        return 1 in self.flip_switch.active
 
     @property
     def current_image_shape(self):
@@ -215,6 +229,12 @@ class StreamControl:
         n_rot90 = self.n_rot90
         if n_rot90:
             image = np.rot90(image, k=n_rot90)
+
+        if self.fliplr_active:
+            image = np.fliplr(image)
+
+        if self.flipud_active:
+            image = np.flipud(image)
 
         image = np.ascontiguousarray(image, dtype=np.float32)
 

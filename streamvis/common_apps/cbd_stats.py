@@ -110,7 +110,8 @@ def update():
         ])
 
     # STXM - update with values not yet retrieved
-    vs, pids = stats.bragg_aggregator()
-    sv_stxm.update(values=vs, pulse_ids=pids)
+    if stats.bragg_aggregator:
+        vs, pids = stats.bragg_aggregator()
+        sv_stxm.update(values=vs, pulse_ids=pids)
 
 doc.add_periodic_callback(update, 2000)

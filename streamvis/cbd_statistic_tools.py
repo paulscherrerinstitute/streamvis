@@ -83,7 +83,12 @@ class AggregatorWithID:
         self._id[...] = 0
         self.last_processed_index = 0
 
+    def __bool__(self):
+        return bool(np.any(self._x != self._nan))
+
     def __call__(self, *args, **kwargs):
+        if not self or self.last_processed_index == 0:
+            return [], []
         start_id = self.last_processed_index
         self.last_processed_index = 0
         return self._x[start_id:], self._id[start_id:]

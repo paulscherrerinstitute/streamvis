@@ -113,6 +113,7 @@ layout_im_controls = column(
         sv_imageproc.threshold_switch,
         Spacer(height=10),
         sv_streamctrl.rotate_image,
+        sv_streamctrl.flip_switch,
         show_overlays_div,
         row(sv_resolrings.switch, sv_main.proj_switch),
 
