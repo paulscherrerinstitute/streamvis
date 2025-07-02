@@ -1,5 +1,5 @@
 from time import time
-from typing import Any
+#from typing import Any
 
 import colorcet as cc
 import numpy as np
@@ -8,7 +8,7 @@ from bokeh.models import ColumnDataSource, ColorBar, Spinner, Select, Spacer, Ch
 from bokeh.palettes import Cividis256, Greys256, Plasma256
 from bokeh.plotting import figure
 from bokeh.transform import linear_cmap
-from numpy import ndarray, dtype
+from numpy import ndarray
 
 cmap_dict = {
     "gray": Greys256,
@@ -18,7 +18,7 @@ cmap_dict = {
     "cividis": Cividis256,
 }
 
-def extend_last_value(arr: ndarray[Any, dtype[np.floating]], num_ext: int) -> ndarray[Any, dtype[Any]]:
+def extend_last_value(arr, num_ext):
     return np.hstack([arr, np.full(shape=(num_ext,), fill_value=arr[-1])])
 
 class ScatterPlot:
