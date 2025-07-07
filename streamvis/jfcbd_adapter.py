@@ -1,5 +1,4 @@
 import logging
-import logging
 import re
 from collections import deque
 from datetime import datetime
@@ -273,7 +272,7 @@ class CBDStatisticsHandler:
         is_hit_frame = metadata.get("is_hit_frame", False)
 
         if image.shape == (2, 2):
-            print(f"Dummy, skipping")
+            logger.debug(f"Dummy, skipping")
             return
 
         # Update Bragg aggregator with hits and non-hits alike
@@ -282,7 +281,7 @@ class CBDStatisticsHandler:
         self.bragg_aggregator.update(np.array(bragg_counts), pulse_id)
 
         if not is_hit_frame:
-            print(f"Not hit frame, skipping")
+            logger.debug(f"Not hit frame, skipping")
             return
 
         self.bragg_counts.update(np.array(bragg_counts))

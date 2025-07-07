@@ -1,3 +1,4 @@
+import logging
 from threading import Lock
 from time import time
 
@@ -17,8 +18,12 @@ cmap_dict = {
     "cividis": Cividis256,
 }
 
+logger = logging.getLogger(__name__)
+
+
 def extend_last_value(arr, num_ext: int):
     return np.hstack([arr, np.full(shape=(num_ext,), fill_value=arr[-1])])
+
 
 class ScatterPlot:
     """
@@ -105,7 +110,7 @@ class ScatterPlot:
 
         # Snake switch
         def snake_switch_callback(_attr, _old, new):
-            print(f"Snake switch switched to {new}")
+            logger.info(f"Snake switch switched to {new}")
             with self._lock:
                 self.reindex_xy()
 
@@ -185,7 +190,7 @@ class ScatterPlot:
 
     def update(self, values: list, pulse_ids: list):
         with self._lock:
-            print(f"Proc {len(values)} bragg frames")
+            logger.debug(f"Proc {len(values)} bragg frames")
             for v, pid in zip(values, pulse_ids):
                 self.update_one(value=v, pulse_id=pid)
 
@@ -193,13 +198,13 @@ class ScatterPlot:
         if self.first_pulse_id is None:
             self.first_pulse_id = pulse_id
         if pulse_id < self.first_pulse_id:
-            print(f"Got pulse id {pulse_id} less than {self.first_pulse_id}. Shift and replot.")
+            logger.info(f"Got pulse id {pulse_id} less than {self.first_pulse_id}. Shift and replot.")
             self.rel_pulse_ids = [0] + (np.array(self.rel_pulse_ids) + 1).tolist()
             self.val = [value] + self.val
             self.reindex_xy()
             return
         pulse_index = pulse_id - self.first_pulse_id
-        print(f"Pulse index is {pulse_index}")
+        logger.debug(f"Pulse index is {pulse_index}")
         self.rel_pulse_ids.append(pulse_index)
         self.val.append(value)
         if max(self.val) != min(self.val):
@@ -218,7 +223,7 @@ class ScatterPlot:
         self.x_coords_inverse = extend_last_value(self.x_coords_inverse, self.slow_step_delay_frames)
 
         self.y_coords = np.linspace(0, self.y_size_mm, self.ynum, endpoint=True)
-        print(f"New Shape is {self.shape}, Max index {self.max_index}")
+        logger.info(f"New Shape is {self.shape}, Max index {self.max_index}")
 
     def reindex_xy(self):
         self.x = []
@@ -228,7 +233,7 @@ class ScatterPlot:
         for pulse_index in self.rel_pulse_ids:
             self.add_x_y(pulse_index)
         t1 = time()
-        print(f"Reindexing axes took {t1 - t0} for {len(self.rel_pulse_ids)} values")
+        logger.info(f"Reindexing axes took {t1 - t0} for {len(self.rel_pulse_ids)} values")
         self.data_source.data.update(x=self.x, y=self.y, val=self.val)
 
     def add_x_y(self, pulse_index):

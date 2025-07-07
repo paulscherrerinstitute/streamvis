@@ -1,5 +1,9 @@
+import logging
 import numpy as np
 from time import time
+
+logger = logging.getLogger(__name__)
+
 
 class NPFIFOArray:
     def __init__(self, dtype, empty_value, max_span=120_000, aggregate=np.average):
@@ -35,7 +39,6 @@ class AggregatorWithID:
     def __init__(self, dtype, empty_value,
                  max_span=500_000,
                  aggregate=np.sum,
-                 sorting=False,
                  max_sort_n=100):
         self._x = np.full(shape=(max_span,), dtype=dtype, fill_value=empty_value)
         self._id = np.full(shape=(max_span,), dtype=int, fill_value=0)
@@ -43,12 +46,11 @@ class AggregatorWithID:
         self.last_value = self._nan
         self._aggregate = aggregate
         self._max_sort_n = max_sort_n
-        self._sorting = sorting
         self.last_processed_index = 0
 
     def update(self, values, pulse_id):
         if pulse_id is None:
-            print(f"Can't update the aggregator: pulse Id is None")
+            logger.warning(f"Can't update the aggregator: pulse Id is None")
             return
 
         # Only store aggregated value per pulse Id
@@ -62,11 +64,6 @@ class AggregatorWithID:
 
         self.last_processed_index -= 1
 
-        if self._sorting:
-            t0 = time()
-            self.sort_by_id()
-            t1 = time()
-            print(f"Sorted update took {t1 - t0} for {self.count} elements")
 
     @property
     def count(self) -> int:
