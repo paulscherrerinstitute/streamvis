@@ -1,5 +1,5 @@
 import numpy as np
-from bokeh.models import ColumnDataSource, Segment
+from bokeh.models import ColumnDataSource, Segment, CheckboxGroup
 
 
 class Streaks:
@@ -23,7 +23,15 @@ class Streaks:
         for image_view in image_views:
             image_view.plot.add_glyph(self._source, glyph)
 
+        self.accumulate_switch = CheckboxGroup(labels=["Accumulate Streaks"], width=145, active=[0])
+
+    @property
+    def accumulating(self):
+        return 0 in self.accumulate_switch.active
+
     def _clear(self):
+        if self.accumulating:
+            return
         if len(self._source.data["x0"]):
             self._source.data.update(x0=[], y0=[], x1=[], y1=[])
 
@@ -71,9 +79,10 @@ class Streaks:
             x0, y0 = im_shape[0] - y0, x0
             x1, y1 = im_shape[0] - y1, x1
 
+        if self.accumulating:
+            x0 = np.hstack([self._source.data["x0"], x0])
+            x1 = np.hstack([self._source.data["x1"], x1])
+            y0 = np.hstack([self._source.data["y0"], y0])
+            y1 = np.hstack([self._source.data["y1"], y1])
 
-        x0 = np.hstack([self._source.data["x0"], x0])
-        x1 = np.hstack([self._source.data["x1"], x1])
-        y0 = np.hstack([self._source.data["y0"], y0])
-        y1 = np.hstack([self._source.data["y1"], y1])
         self._source.data.update(x0=x0, y0=y0, x1=x1, y1=y1)

@@ -113,7 +113,6 @@ layout_im_controls = column(
         sv_imageproc.threshold_switch,
         Spacer(height=10),
         sv_streamctrl.rotate_image,
-        sv_streamctrl.flip_switch,
         show_overlays_div,
         row(sv_resolrings.switch, sv_main.proj_switch),
 
@@ -123,6 +122,7 @@ layout_im_controls = column(
 layout_main = gridplot([[
     column(
         sv_main.plot,
+        sv_streaks.accumulate_switch,
         sv_streamctrl.prev_image_slider,
     ),
     column(
