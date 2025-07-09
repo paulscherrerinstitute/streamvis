@@ -130,20 +130,16 @@ def main():
 
     app_path = os.path.join(apps_path, args.app + ".py")
     logger.info(app_path)
-
     # Imports of stream adapters will succeed if the corresponding optional dependencies are
     # installed
     if args.stream_format == "std_jf":
         from streamvis.jf_adapter import JFAdapter  # pylint: disable=C0415
-
+        if args.app == "cbd":
+            from streamvis.jfcbd_statistics_handler import CBDStatisticsHandler as StatisticsHandler
+        else:
+            from streamvis.jf_adapter import StatisticsHandler
         stream_adapter = JFAdapter(
-            args.buffer_size, args.io_threads, args.connection_mode, args.address
-        )
-    elif args.stream_format == "jfcbd":
-        from streamvis.jfcbd_adapter import JFCBDAdapter  # pylint: disable=C0415
-
-        stream_adapter = JFCBDAdapter(
-            args.buffer_size, args.io_threads, args.connection_mode, args.address
+            args.buffer_size, args.io_threads, args.connection_mode, args.address, StatisticsHandler
         )
     else:  # args.stream_format == "jfjoch"
         from streamvis.jfjoch_adapter import JFJochAdapter  # pylint: disable=C0415

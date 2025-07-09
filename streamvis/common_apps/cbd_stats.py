@@ -4,7 +4,7 @@ from bokeh.layouts import column, row, gridplot
 from bokeh.models import Button, Spacer, Title
 
 import streamvis as sv
-from streamvis.jfcbd_adapter import CBDStatisticsHandler
+from streamvis.jfcbd_statistics_handler import CBDStatisticsHandler
 
 
 PLOT_WIDTH = 600
