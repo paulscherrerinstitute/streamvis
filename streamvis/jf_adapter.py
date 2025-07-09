@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class JFAdapter:
-    def __init__(self, buffer_size, io_threads, connection_mode, address):
+    def __init__(self, buffer_size, io_threads, connection_mode, address, handler_cls):
         """Initialize a jungfrau adapter.
 
         Args:
@@ -27,6 +27,7 @@ class JFAdapter:
             io_threads (int): A size of the zmq thread pool to handle I/O operations.
             connection_mode (str): Use either 'connect' or 'bind' zmq_socket methods.
             address (str): The address string, e.g. 'tcp://127.0.0.1:9001'.
+            handler_cls (class): Class for statistics handler
         """
         # a placeholder for jf data handler to be initiated with detector name
         self.handler = None
@@ -38,7 +39,7 @@ class JFAdapter:
 
         # StatisticsHandler is used to parse metadata information to be displayed in 'statistics'
         # application. All messages are processed.
-        self.stats = StatisticsHandler()
+        self.stats = handler_cls()
 
         # Start receiving messages in a separate thread
         t = Thread(target=self.start, args=(io_threads, connection_mode, address), daemon=True)

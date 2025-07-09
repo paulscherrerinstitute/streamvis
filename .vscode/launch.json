@@ -46,6 +46,18 @@
             "justMyCode": false,
         },
         {
+            "name": "cbd",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/streamvis/cli.py",
+            "args": [
+                "cbd"
+            ],
+            "console": "internalConsole",
+            "env": {},
+            "justMyCode": false,
+        },
+        {
             "name": "bernina",
             "type": "python",
             "request": "launch",
