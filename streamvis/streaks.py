@@ -71,4 +71,9 @@ class Streaks:
             x0, y0 = im_shape[0] - y0, x0
             x1, y1 = im_shape[0] - y1, x1
 
+
+        x0 = np.hstack([self._source.data["x0"], x0])
+        x1 = np.hstack([self._source.data["x1"], x1])
+        y0 = np.hstack([self._source.data["y0"], y0])
+        y1 = np.hstack([self._source.data["y1"], y1])
         self._source.data.update(x0=x0, y0=y0, x1=x1, y1=y1)
