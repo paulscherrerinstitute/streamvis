@@ -284,7 +284,7 @@ class CBDStatisticsHandler:
             logger.debug(f"Not hit frame, skipping")
             return
 
-        self.bragg_counts.update(np.array(bragg_counts))
+        self.bragg_counts.update(np.array([np.sum(bragg_counts)]))
 
         number_of_streaks: int = metadata.get("number_of_streaks")
         self.number_of_streaks.update(np.array([number_of_streaks]))
