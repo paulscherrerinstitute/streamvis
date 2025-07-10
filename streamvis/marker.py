@@ -23,7 +23,7 @@ class Marker:
 
         self._source = ColumnDataSource(dict(x=[x], y=[y]))
         glyph = X(
-            x="x", y="y", size=10, fill_alpha=0, line_width=5, line_color="white"
+            x="x", y="y", size=20, fill_alpha=0, line_width=3, line_color="white"
         )
 
         for image_view in image_views:
