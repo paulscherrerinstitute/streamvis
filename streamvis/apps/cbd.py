@@ -1,7 +1,7 @@
 import bottleneck as bn
 from bokeh.io import curdoc
 from bokeh.layouts import column, gridplot, row
-from bokeh.models import Div, Spacer, Title
+from bokeh.models import BoxZoomTool, Div, Spacer, Title, WheelZoomTool
 
 import streamvis as sv
 
@@ -48,9 +48,9 @@ sv_main = sv.ImageView(
     width=MAIN_CANVAS_WIDTH,
     image_height=IMAGE_SIZE_Y,
     image_width=IMAGE_SIZE_X,
-    tools="pan,wheel_zoom,box_zoom,save,reset",
 )
 sv_main.plot.title = Title(text="JF07T32V01")
+sv_main.plot.add_tools(BoxZoomTool())
 
 sv_zoom1 = sv.ImageView(
     height=ZOOM_CANVAS_HEIGHT,
@@ -61,10 +61,12 @@ sv_zoom1 = sv.ImageView(
     x_end=ZOOM1_RIGHT,
     y_start=ZOOM1_BOTTOM,
     y_end=ZOOM1_TOP,
-    tools="pan,wheel_zoom,xwheel_zoom,ywheel_zoom,box_zoom,save,reset",
 )
 sv_zoom1.plot.title = Title(text="ROI 1", text_color="red")
 sv_zoom1.proj_switch = sv_main.proj_switch
+sv_zoom1.plot.add_tools(
+    BoxZoomTool(), WheelZoomTool(dimensions="width"), WheelZoomTool(dimensions="height")
+)
 sv_main.add_as_zoom(sv_zoom1, line_color="red")
 
 sv_zoom2 = sv.ImageView(
@@ -76,10 +78,12 @@ sv_zoom2 = sv.ImageView(
     x_end=ZOOM2_RIGHT,
     y_start=ZOOM2_BOTTOM,
     y_end=ZOOM2_TOP,
-    tools="pan,wheel_zoom,xwheel_zoom,ywheel_zoom,box_zoom,save,reset",
 )
 sv_zoom2.plot.title = Title(text="ROI 2", text_color="green")
 sv_zoom2.proj_switch = sv_main.proj_switch
+sv_zoom2.plot.add_tools(
+    BoxZoomTool(), WheelZoomTool(dimensions="width"), WheelZoomTool(dimensions="height")
+)
 sv_main.add_as_zoom(sv_zoom2, line_color="green")
 
 sv_streamgraph = sv.StreamGraph(nplots=3, height=360, rollover=100, width=INTENSITY_WIDTH)
