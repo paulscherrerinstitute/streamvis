@@ -95,6 +95,12 @@ sv_main.plot.add_layout(sv_colormapper.color_bar, place="below")
 sv_resolrings = sv.ResolutionRings([sv_main, sv_zoom1, sv_zoom2], sv_metadata, sv_streamctrl)
 sv_streaks = sv.Streaks([sv_main], sv_metadata, sv_streamctrl)
 
+sv_marker = sv.Marker(
+    image_views=[sv_main, sv_zoom1, sv_zoom2],
+    sv_streamctrl=sv_streamctrl,
+    x_high=4215,
+    y_high=4432
+)
 sv_hist = sv.Histogram(nplots=3, height=300, width=800)
 sv_hist.plots[0].title = Title(text="Full image")
 sv_hist.plots[1].title = Title(text="ROI 1", text_color="red")
@@ -115,7 +121,7 @@ layout_im_controls = column(
         sv_streamctrl.rotate_image,
         show_overlays_div,
         row(sv_resolrings.switch, sv_main.proj_switch),
-
+        row(sv_marker.x_spinner, sv_marker.y_spinner)
     )
 
 # Final layouts
@@ -208,6 +214,7 @@ async def internal_periodic_callback():
 
     sv_streaks.update(metadata)
     sv_resolrings.update(metadata)
+    sv_marker.update()
 
     # Deactivate auto histogram range if aggregation is on
     if sv_imageproc.aggregate_switch.active:

@@ -10,6 +10,7 @@ from .image_processor import ImageProcessor
 from .image_view import ImageView
 from .input_control import StreamControl
 from .intensity_roi import IntensityROI
+from .marker import Marker
 from .metadata import MetadataHandler
 from .progress_bar import ProgressBar
 from .projection import Projection
