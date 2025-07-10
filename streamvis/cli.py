@@ -40,7 +40,7 @@ def main():
     parser.add_argument(
         "--stream-format",
         type=str,
-        choices=["std_jf", "jfjoch", "jfcbd"],
+        choices=["std_jf", "jfjoch"],
         default="std_jf",
         help="a stream format for input data and metadata messages",
     )
