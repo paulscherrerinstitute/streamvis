@@ -14,7 +14,7 @@ class NPFIFOArray:
 
     def update(self, values):
         self._x = np.roll(self._x, len(values))
-        self._x[:len(values)] = values
+        self._x[: len(values)] = values
         self.last_value = self._aggregate(values)
 
     def clear(self):
@@ -36,10 +36,7 @@ class NPFIFOArray:
 
 
 class AggregatorWithID:
-    def __init__(self, dtype, empty_value,
-                 max_span=500_000,
-                 aggregate=np.sum,
-                 max_sort_n=100):
+    def __init__(self, dtype, empty_value, max_span=500_000, aggregate=np.sum, max_sort_n=100):
         self._x = np.full(shape=(max_span,), dtype=dtype, fill_value=empty_value)
         self._id = np.full(shape=(max_span,), dtype=int, fill_value=0)
         self._nan = empty_value
@@ -63,7 +60,6 @@ class AggregatorWithID:
         self._id[-1] = pulse_id
 
         self.last_processed_index -= 1
-
 
     @property
     def count(self) -> int:

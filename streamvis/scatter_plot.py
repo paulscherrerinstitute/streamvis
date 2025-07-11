@@ -5,7 +5,7 @@ from time import time
 import colorcet as cc
 import numpy as np
 from bokeh.layouts import column, row
-from bokeh.models import ColumnDataSource, ColorBar, Spinner, Select, Spacer, CheckboxGroup
+from bokeh.models import CheckboxGroup, ColorBar, ColumnDataSource, Select, Spacer, Spinner
 from bokeh.palettes import Cividis256, Greys256, Plasma256
 from bokeh.plotting import figure
 from bokeh.transform import linear_cmap
@@ -30,9 +30,20 @@ class ScatterPlot:
     Colour-mapped scatter plot of value against X and Y coordinates
     """
 
-    def __init__(self, width, height, glyph_size, title, colormap="coolwarm",
-                 x_step_mm=20e-2, y_step_mm=10e-1, x_size_mm=30., y_size_mm=10.,
-                 slow_step_delay_frames=2, frame_rate_hz=100):
+    def __init__(
+        self,
+        width,
+        height,
+        glyph_size,
+        title,
+        colormap="coolwarm",
+        x_step_mm=20e-2,
+        y_step_mm=10e-1,
+        x_size_mm=30.0,
+        y_size_mm=10.0,
+        slow_step_delay_frames=2,
+        frame_rate_hz=100,
+    ):
 
         self._lock = Lock()
         self.cmap = cmap_dict.get(colormap, "coolwarm")
@@ -48,9 +59,7 @@ class ScatterPlot:
         self.data_source = ColumnDataSource(dict(x=self.x, y=self.y, val=self.val))
 
         self.cmap = linear_cmap(
-            field_name='val',
-            palette=cmap_dict.get(colormap, "plasma"),
-            low=-1000, high=1000
+            field_name="val", palette=cmap_dict.get(colormap, "plasma"), low=-1000, high=1000
         )
         self.mapper = self.cmap["transform"]
 
@@ -58,16 +67,17 @@ class ScatterPlot:
             width=width,
             height=height,
             title=title,
-            tools="pan,wheel_zoom,xwheel_zoom,ywheel_zoom,box_zoom,save,reset"
+            tools="pan,wheel_zoom,xwheel_zoom,ywheel_zoom,box_zoom,save,reset",
         )
 
         self.renderer = self.plot.square(
-            x='x', y='y',
+            x="x",
+            y="y",
             line_color=self.cmap,
             color=self.cmap,
             fill_alpha=1,
             size=glyph_size,
-            source=self.data_source
+            source=self.data_source,
         )
 
         self.color_bar = ColorBar(
@@ -78,23 +88,16 @@ class ScatterPlot:
             width=width,
             padding=5,
         )
-        self.plot.add_layout(
-            self.color_bar, place="below"
-        )
+        self.plot.add_layout(self.color_bar, place="below")
 
-        #-------------------------- Controls -----------------------------------------#
+        # -------------------------- Controls -----------------------------------------#
 
         # Glyph size
         def glyph_size_chage_callback(_attr, _old_value, new_value):
             self.renderer.glyph.size = new_value
 
         self.glyph_size_spinner = Spinner(
-            title="Glyph Size",
-            high=100,
-            value=glyph_size,
-            step=5,
-            disabled=False,
-            width=145,
+            title="Glyph Size", high=100, value=glyph_size, step=5, disabled=False, width=145
         )
         self.glyph_size_spinner.on_change("value", glyph_size_chage_callback)
 
@@ -121,7 +124,7 @@ class ScatterPlot:
         self.x_step_um_spinner = Spinner(
             title="Step X (um)",
             high=1000,
-            value=x_step_mm*1e3,
+            value=x_step_mm * 1e3,
             step=10,
             disabled=False,
             width=145,
@@ -135,20 +138,10 @@ class ScatterPlot:
             width=145,
         )
         self.x_size_mm_spinner = Spinner(
-            title="Size X (mm)",
-            high=30,
-            value=x_size_mm,
-            step=10,
-            disabled=False,
-            width=145,
+            title="Size X (mm)", high=30, value=x_size_mm, step=10, disabled=False, width=145
         )
         self.y_size_mm_spinner = Spinner(
-            title="Size Y (mm)",
-            high=10,
-            value=y_size_mm,
-            step=10,
-            disabled=False,
-            width=145,
+            title="Size Y (mm)", high=10, value=y_size_mm, step=10, disabled=False, width=145
         )
         self.slow_step_delay_frames_spinner = Spinner(
             title="Slow step delay (# Pulses)",
@@ -187,7 +180,6 @@ class ScatterPlot:
 
         self.calculate_coords()
 
-
     def update(self, values: list, pulse_ids: list):
         with self._lock:
             logger.debug(f"Proc {len(values)} bragg frames")
@@ -198,7 +190,9 @@ class ScatterPlot:
         if self.first_pulse_id is None:
             self.first_pulse_id = pulse_id
         if pulse_id < self.first_pulse_id:
-            logger.info(f"Got pulse id {pulse_id} less than {self.first_pulse_id}. Shift and replot.")
+            logger.info(
+                f"Got pulse id {pulse_id} less than {self.first_pulse_id}. Shift and replot."
+            )
             self.rel_pulse_ids = [0] + (np.array(self.rel_pulse_ids) + 1).tolist()
             self.val = [value] + self.val
             self.reindex_xy()
@@ -220,7 +214,9 @@ class ScatterPlot:
         self.x_coords_inverse = np.flip(self.x_coords_direct)
         # Extend with "hang" points on slow motor move
         self.x_coords_direct = extend_last_value(self.x_coords_direct, self.slow_step_delay_frames)
-        self.x_coords_inverse = extend_last_value(self.x_coords_inverse, self.slow_step_delay_frames)
+        self.x_coords_inverse = extend_last_value(
+            self.x_coords_inverse, self.slow_step_delay_frames
+        )
 
         self.y_coords = np.linspace(0, self.y_size_mm, self.ynum, endpoint=True)
         logger.info(f"New Shape is {self.shape}, Max index {self.max_index}")
@@ -238,11 +234,7 @@ class ScatterPlot:
 
     def add_x_y(self, pulse_index):
         xy_pulse_index = int(pulse_index / self.pulse_id_increment) % self.max_index
-        x_index, y_index = np.unravel_index(
-            xy_pulse_index,
-            self.shape,
-            order="F"
-        )
+        x_index, y_index = np.unravel_index(xy_pulse_index, self.shape, order="F")
         if self.snake and y_index % 2 == 1:
             self.x.append(self.x_coords_inverse[x_index])
         else:
@@ -263,17 +255,9 @@ class ScatterPlot:
         return row(
             self.plot,
             column(
-                row(
-                    self.x_step_um_spinner,
-                    Spacer(width=15),
-                    self.x_size_mm_spinner,
-                ),
+                row(self.x_step_um_spinner, Spacer(width=15), self.x_size_mm_spinner),
                 Spacer(height=10),
-                row(
-                    self.y_step_um_spinner,
-                    Spacer(width=15),
-                    self.y_size_mm_spinner,
-                ),
+                row(self.y_step_um_spinner, Spacer(width=15), self.y_size_mm_spinner),
                 Spacer(height=10),
                 row(
                     self.slow_step_delay_frames_spinner,
@@ -283,12 +267,8 @@ class ScatterPlot:
                 Spacer(height=10),
                 self.snake_switch,
                 Spacer(height=50),
-                row(
-                    self.cmap_select,
-                    Spacer(width=15),
-                    self.glyph_size_spinner,
-                ),
-            )
+                row(self.cmap_select, Spacer(width=15), self.glyph_size_spinner),
+            ),
         )
 
     @property

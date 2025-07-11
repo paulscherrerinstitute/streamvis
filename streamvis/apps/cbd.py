@@ -100,10 +100,7 @@ sv_resolrings = sv.ResolutionRings([sv_main, sv_zoom1, sv_zoom2], sv_metadata, s
 sv_streaks = sv.Streaks([sv_main], sv_metadata, sv_streamctrl)
 
 sv_marker = sv.Marker(
-    image_views=[sv_main, sv_zoom1, sv_zoom2],
-    sv_streamctrl=sv_streamctrl,
-    x_high=4215,
-    y_high=4432
+    image_views=[sv_main, sv_zoom1, sv_zoom2], sv_streamctrl=sv_streamctrl, x_high=4215, y_high=4432
 )
 sv_hist = sv.Histogram(nplots=3, height=300, width=800)
 sv_hist.plots[0].title = Title(text="Full image")
@@ -115,32 +112,34 @@ sv_imageproc = sv.ImageProcessor()
 show_overlays_div = Div(text="Show Overlays:")
 
 layout_im_controls = column(
-        row(sv_colormapper.select, sv_colormapper.high_color, sv_colormapper.mask_color),
-        row(sv_colormapper.display_min_spinner, sv_colormapper.display_max_spinner),
-        sv_colormapper.auto_switch,
-        Spacer(height=10),
-        row(sv_imageproc.threshold_min_spinner, sv_imageproc.threshold_max_spinner),
-        sv_imageproc.threshold_switch,
-        Spacer(height=10),
-        sv_streamctrl.rotate_image,
-        show_overlays_div,
-        row(sv_resolrings.switch, sv_main.proj_switch),
-        row(sv_marker.x_spinner, sv_marker.y_spinner)
-    )
+    row(sv_colormapper.select, sv_colormapper.high_color, sv_colormapper.mask_color),
+    row(sv_colormapper.display_min_spinner, sv_colormapper.display_max_spinner),
+    sv_colormapper.auto_switch,
+    Spacer(height=10),
+    row(sv_imageproc.threshold_min_spinner, sv_imageproc.threshold_max_spinner),
+    sv_imageproc.threshold_switch,
+    Spacer(height=10),
+    sv_streamctrl.rotate_image,
+    show_overlays_div,
+    row(sv_resolrings.switch, sv_main.proj_switch),
+    row(sv_marker.x_spinner, sv_marker.y_spinner),
+)
 
 # Final layouts
-layout_main = gridplot([[
-    column(
-        sv_main.plot,
-        sv_streaks.accumulate_switch,
-        sv_streamctrl.prev_image_slider,
-    ),
-    column(
-        sv_zoom1.plot,
-        sv_zoom2.plot,
-        Spacer(height=10),
-        row(Spacer(width=30), layout_im_controls),
-    )]], merge_tools=False)
+layout_main = gridplot(
+    [
+        [
+            column(sv_main.plot, sv_streaks.accumulate_switch, sv_streamctrl.prev_image_slider),
+            column(
+                sv_zoom1.plot,
+                sv_zoom2.plot,
+                Spacer(height=10),
+                row(Spacer(width=30), layout_im_controls),
+            ),
+        ]
+    ],
+    merge_tools=False,
+)
 
 layout_hist = column(
     gridplot([[sv_hist.plots[0], sv_hist.plots[1], sv_hist.plots[2]]], merge_tools=False),
@@ -157,34 +156,25 @@ layout_intensity = gridplot(
         *sv_streamgraph.plots,
         column(Spacer(height=5), sv_streamgraph.reset_button),
         Spacer(height=20),
-        row(
-            sv_imageproc.aggregate_limit_spinner,
-            sv_imageproc.aggregate_counter_textinput,
-        ),
-        row(
-            sv_imageproc.aggregate_switch,
-            sv_imageproc.average_switch,
-        ),
-    ], ncols=1, toolbar_location="left", toolbar_options=dict(logo=None)
+        row(sv_imageproc.aggregate_limit_spinner, sv_imageproc.aggregate_counter_textinput),
+        row(sv_imageproc.aggregate_switch, sv_imageproc.average_switch),
+    ],
+    ncols=1,
+    toolbar_location="left",
+    toolbar_options=dict(logo=None),
 )
 
 metadata_div = Div(text="Metadata:")
 layout_metadata = column(
     metadata_div,
     row(
-        column(
-            row(sv_metadata.show_all_switch), sv_metadata.datatable
-        ),
+        column(row(sv_metadata.show_all_switch), sv_metadata.datatable),
         sv_metadata.issues_datatable,
-    )
+    ),
 )
 
 final_layout = column(
-    row(
-        layout_main,
-        Spacer(width=15),
-        layout_intensity,
-    ),
+    row(layout_main, Spacer(width=15), layout_intensity),
     row(
         Spacer(width=15),
         sv_streamctrl.toggle,

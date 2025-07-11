@@ -1,5 +1,5 @@
 import numpy as np
-from bokeh.models import ColumnDataSource, X, Spinner
+from bokeh.models import ColumnDataSource, Spinner, X
 
 
 class Marker:
@@ -22,28 +22,16 @@ class Marker:
             y = y_high // 2
 
         self._source = ColumnDataSource(dict(x=[x], y=[y]))
-        glyph = X(
-            x="x", y="y", size=20, fill_alpha=0, line_width=3, line_color="white"
-        )
+        glyph = X(x="x", y="y", size=20, fill_alpha=0, line_width=3, line_color="white")
 
         for image_view in image_views:
             image_view.plot.add_glyph(self._source, glyph)
 
         self.x_spinner = Spinner(
-            title="Marker X",
-            high=x_high,
-            value=x,
-            step=10,
-            disabled=False,
-            width=145,
+            title="Marker X", high=x_high, value=x, step=10, disabled=False, width=145
         )
         self.y_spinner = Spinner(
-            title="Marker Y",
-            high=y_high,
-            value=y,
-            step=10,
-            disabled=False,
-            width=145,
+            title="Marker Y", high=y_high, value=y, step=10, disabled=False, width=145
         )
 
         def spinner_changed_callback(_attr, _old_value, new_value):

@@ -1,8 +1,9 @@
 import logging
-import numpy as np
-from bokeh.models import Dropdown, CustomJS
-from streamvis.cbd_statistic_tools import NPFIFOArray, AggregatorWithID
 
+import numpy as np
+from bokeh.models import CustomJS, Dropdown
+
+from streamvis.cbd_statistic_tools import AggregatorWithID, NPFIFOArray
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +21,9 @@ class CBDStatisticsHandler:
         """
         self.number_of_streaks = NPFIFOArray(dtype=int, empty_value=-1, max_span=5_000)
         self.streak_lengths = NPFIFOArray(dtype=float, empty_value=np.nan, max_span=50_000)
-        self.bragg_counts = NPFIFOArray(dtype=float, empty_value=np.nan, max_span=50_000, aggregate=np.sum)
+        self.bragg_counts = NPFIFOArray(
+            dtype=float, empty_value=np.nan, max_span=50_000, aggregate=np.sum
+        )
         self.bragg_aggregator = AggregatorWithID(dtype=float, empty_value=np.nan, max_span=750_000)
 
     @property
@@ -34,11 +37,7 @@ class CBDStatisticsHandler:
         }
         """
         auxiliary_apps_dropdown = Dropdown(
-            label="Open Auxiliary App",
-            menu=[
-                "Convergent Beam Diffraction stats",
-            ],
-            width=165,
+            label="Open Auxiliary App", menu=["Convergent Beam Diffraction stats"], width=165
         )
         auxiliary_apps_dropdown.js_on_click(CustomJS(code=js_code))
 

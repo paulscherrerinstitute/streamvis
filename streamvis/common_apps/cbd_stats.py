@@ -1,11 +1,10 @@
 import numpy as np
 from bokeh.io import curdoc
-from bokeh.layouts import column, row, gridplot
+from bokeh.layouts import column, gridplot, row
 from bokeh.models import Button, Spacer, Title
 
 import streamvis as sv
 from streamvis.jfcbd_statistics_handler import CBDStatisticsHandler
-
 
 PLOT_WIDTH = 600
 PLOT_HEIGHT = 600
@@ -56,31 +55,26 @@ hist_layout = row(
             sv_hist_3.upper_spinner,
             sv_hist_3.nbins_spinner,
         ),
-    )
+    ),
 )
 
 
 reset_button = Button(label="Reset", button_type="default", width=145)
+
 
 def reset_button_callback():
     stats.reset()
     # Clear stream graph manually
     for source in sv_streamgraph._sources:
         if source.data["x"]:
-            source.data.update(
-                x=[],
-                y=[],
-                x_avg=[],
-                y_avg=[],
-            )
+            source.data.update(x=[], y=[], x_avg=[], y_avg=[])
     sv_stxm.clear()
+
 
 reset_button.on_click(reset_button_callback)
 
 
-stream_layout = gridplot([
-    sv_streamgraph.plots,
-], merge_tools=False)
+stream_layout = gridplot([sv_streamgraph.plots], merge_tools=False)
 
 layout = column(
     row(hist_layout),
@@ -89,7 +83,7 @@ layout = column(
     Spacer(height=10),
     sv_stxm.default_layout,
     Spacer(height=10),
-    reset_button
+    reset_button,
 )
 
 doc.add_root(layout)
@@ -103,15 +97,18 @@ def update():
         sv_hist_2.update([np.array([stats.streak_lengths()])])
         sv_hist_3.update([np.array([stats.bragg_counts()])])
         # Stream line - just update last value
-        sv_streamgraph.update([
-            stats.number_of_streaks.last_value,
-            stats.streak_lengths.last_value,
-            stats.bragg_counts.last_value
-        ])
+        sv_streamgraph.update(
+            [
+                stats.number_of_streaks.last_value,
+                stats.streak_lengths.last_value,
+                stats.bragg_counts.last_value,
+            ]
+        )
 
     # STXM - update with values not yet retrieved
     if stats.bragg_aggregator:
         vs, pids = stats.bragg_aggregator()
         sv_stxm.update(values=vs, pulse_ids=pids)
+
 
 doc.add_periodic_callback(update, 2000)

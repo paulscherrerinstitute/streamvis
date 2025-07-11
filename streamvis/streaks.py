@@ -1,5 +1,5 @@
 import numpy as np
-from bokeh.models import ColumnDataSource, Segment, CheckboxGroup
+from bokeh.models import CheckboxGroup, ColumnDataSource, Segment
 
 
 class Streaks:
@@ -16,9 +16,7 @@ class Streaks:
 
         # ---- Streaks segments
         self._source = ColumnDataSource(dict(x0=[], y0=[], x1=[], y1=[]))
-        glyph = Segment(
-            x0="x0", y0="y0", x1="x1", y1="y1", line_width=2, line_color="white"
-        )
+        glyph = Segment(x0="x0", y0="y0", x1="x1", y1="y1", line_width=2, line_color="white")
 
         for image_view in image_views:
             image_view.plot.add_glyph(self._source, glyph)
