@@ -67,10 +67,10 @@ class CBDStatisticsHandler:
 
         self.bragg_counts.update(np.array([np.sum(bragg_counts)]))
 
-        number_of_streaks: int = metadata.get("number_of_streaks")
+        number_of_streaks: int = metadata.get("number_of_streaks", 0)
         self.number_of_streaks.update(np.array([number_of_streaks]))
 
-        streak_lengths: list[float] = metadata.get("streak_lengths")
+        streak_lengths: list[float] = metadata.get("streak_lengths", [0])
         self.streak_lengths.update(np.array(streak_lengths))
 
     def reset(self):
