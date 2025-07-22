@@ -90,7 +90,7 @@ class ColorMapper:
                 color_bar.ticker = BasicTicker()
 
             else:  # Logarithmic
-                if self.disp_min > 0:
+                if self.display_min_spinner.value > 0:
                     for image_view in image_views:
                         image_view.image_glyph.color_mapper = log_colormapper
                     color_bar.color_mapper = log_colormapper
@@ -160,16 +160,6 @@ class ColorMapper:
         mask_color.on_change("color", mask_color_callback)
         self.mask_color = mask_color
 
-    @property
-    def disp_min(self):
-        """Minimal display value (readonly)"""
-        return self.display_min_spinner.value
-
-    @property
-    def disp_max(self):
-        """Maximal display value (readonly)"""
-        return self.display_max_spinner.value
-
     def update(self, image):
         """Trigger an update for the colormapper.
 
@@ -180,13 +170,6 @@ class ColorMapper:
             # This is faster than using bottleneck versions of nanmin and nanmax
             image_min = np.floor(np.nanmin(image))
             image_max = np.ceil(np.nanmax(image))
-
-            if image_min <= 0:  # switch to linear colormap
-                self.scale_radiogroup.active = 0
-
-            # force update independently on current display values
-            self.display_min_spinner.high = None
-            self.display_max_spinner.low = None
 
             self.display_min_spinner.value = image_min
             self.display_max_spinner.value = image_max
