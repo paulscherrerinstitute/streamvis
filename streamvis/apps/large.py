@@ -1,6 +1,6 @@
 import bottleneck as bn
 from bokeh.io import curdoc
-from bokeh.layouts import column, gridplot, row
+from bokeh.layouts import column, grid, row
 from bokeh.models import Div, Spacer, Title
 
 import streamvis as sv
@@ -55,9 +55,7 @@ sv_imageproc = sv.ImageProcessor()
 
 # Final layouts
 layout_intensity = column(
-    gridplot(
-        sv_streamgraph.plots, ncols=1, toolbar_location="left", toolbar_options=dict(logo=None)
-    ),
+    grid(sv_streamgraph.plots, ncols=1),
     row(
         sv_streamgraph.moving_average_spinner,
         column(Spacer(height=19), sv_streamgraph.reset_button),
@@ -82,9 +80,7 @@ layout_debug = column(
     layout_intensity, Spacer(height=30), row(layout_hist, Spacer(width=30), layout_metadata)
 )
 
-layout_zoom = gridplot(
-    [[sv_zoom_proj_v.plot, None], [sv_zoom.plot, sv_zoom_proj_h.plot]], merge_tools=False
-)
+layout_zoom = grid([[sv_zoom_proj_v.plot, None], [sv_zoom.plot, sv_zoom_proj_h.plot]])
 
 show_overlays_div = Div(text="Show Overlays:")
 

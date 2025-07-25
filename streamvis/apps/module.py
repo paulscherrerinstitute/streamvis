@@ -1,6 +1,6 @@
 import bottleneck as bn
 from bokeh.io import curdoc
-from bokeh.layouts import column, gridplot, row
+from bokeh.layouts import column, grid, row
 from bokeh.models import Div, Spacer, Title
 
 import streamvis as sv
@@ -62,9 +62,7 @@ sv_imageproc = sv.ImageProcessor()
 
 # Final layouts
 layout_utility = column(
-    gridplot(
-        sv_streamgraph.plots, ncols=1, toolbar_location="left", toolbar_options=dict(logo=None)
-    ),
+    grid(sv_streamgraph.plots, ncols=1),
     row(
         sv_streamgraph.moving_average_spinner,
         column(Spacer(height=19), sv_streamgraph.reset_button),
@@ -97,7 +95,7 @@ layout_metadata = column(
 )
 
 layout_hist = column(
-    gridplot(sv_hist.plots, ncols=1, toolbar_location="left", toolbar_options=dict(logo=None)),
+    grid(sv_hist.plots, ncols=1),
     row(
         column(sv_hist.auto_switch, sv_hist.log10counts_switch),
         sv_hist.lower_spinner,

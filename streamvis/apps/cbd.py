@@ -1,6 +1,6 @@
 import bottleneck as bn
 from bokeh.io import curdoc
-from bokeh.layouts import column, gridplot, row
+from bokeh.layouts import column, grid, row
 from bokeh.models import BoxZoomTool, Div, Spacer, Title, WheelZoomTool
 
 import streamvis as sv
@@ -126,7 +126,7 @@ layout_im_controls = column(
 )
 
 # Final layouts
-layout_main = gridplot(
+layout_main = grid(
     [
         [
             column(sv_main.plot, sv_streaks.accumulate_switch, sv_streamctrl.prev_image_slider),
@@ -137,12 +137,11 @@ layout_main = gridplot(
                 row(Spacer(width=30), layout_im_controls),
             ),
         ]
-    ],
-    merge_tools=False,
+    ]
 )
 
 layout_hist = column(
-    gridplot([[sv_hist.plots[0], sv_hist.plots[1], sv_hist.plots[2]]], merge_tools=False),
+    grid([[sv_hist.plots[0], sv_hist.plots[1], sv_hist.plots[2]]]),
     row(
         column(sv_hist.auto_switch, sv_hist.log10counts_switch),
         sv_hist.lower_spinner,
@@ -151,7 +150,7 @@ layout_hist = column(
     ),
 )
 
-layout_intensity = gridplot(
+layout_intensity = grid(
     [
         *sv_streamgraph.plots,
         column(Spacer(height=5), sv_streamgraph.reset_button),
@@ -160,8 +159,6 @@ layout_intensity = gridplot(
         row(sv_imageproc.aggregate_switch, sv_imageproc.average_switch),
     ],
     ncols=1,
-    toolbar_location="left",
-    toolbar_options=dict(logo=None),
 )
 
 metadata_div = Div(text="Metadata:")

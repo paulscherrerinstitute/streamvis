@@ -1,6 +1,6 @@
 import numpy as np
 from bokeh.io import curdoc
-from bokeh.layouts import column, gridplot, row
+from bokeh.layouts import column, grid, row
 from bokeh.models import Button, Spacer, Title
 
 import streamvis as sv
@@ -74,7 +74,7 @@ def reset_button_callback():
 reset_button.on_click(reset_button_callback)
 
 
-stream_layout = gridplot([sv_streamgraph.plots], merge_tools=False)
+stream_layout = grid(sv_streamgraph.plots, nrows=1)
 
 layout = column(
     row(hist_layout),

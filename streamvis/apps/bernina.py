@@ -1,6 +1,6 @@
 import bottleneck as bn
 from bokeh.io import curdoc
-from bokeh.layouts import column, gridplot, row
+from bokeh.layouts import column, grid, row
 from bokeh.models import Div, Spacer, Title
 
 import streamvis as sv
@@ -79,7 +79,7 @@ sv_zoom2.plot.title = Title(text="Background roi", text_color="green")
 sv_zoom2.proj_switch = sv_main.proj_switch
 sv_main.add_as_zoom(sv_zoom2, line_color="green")
 
-sv_streamgraph = sv.StreamGraph(nplots=2, height=160, width=DEBUG_INTENSITY_WIDTH)
+sv_streamgraph = sv.StreamGraph(nplots=2, height=165, width=DEBUG_INTENSITY_WIDTH)
 sv_streamgraph.plots[0].title = Title(text="Total intensity")
 sv_streamgraph.plots[1].title = Title(text="Normalized signal−background Intensity")
 
@@ -103,10 +103,10 @@ sv_imageproc = sv.ImageProcessor()
 
 
 # Final layouts
-layout_main = gridplot([[sv_main.plot, column(sv_zoom1.plot, sv_zoom2.plot)]], merge_tools=False)
+layout_main = grid([[sv_main.plot, column(sv_zoom1.plot, sv_zoom2.plot)]])
 
 layout_hist = column(
-    gridplot([[sv_hist.plots[0], sv_hist.plots[1], sv_hist.plots[2]]], merge_tools=False),
+    grid(sv_hist.plots, nrows=1),
     row(
         column(sv_hist.auto_switch, sv_hist.log10counts_switch),
         sv_hist.lower_spinner,
@@ -116,9 +116,7 @@ layout_hist = column(
 )
 
 layout_utility = column(
-    gridplot(
-        sv_streamgraph.plots, ncols=1, toolbar_location="left", toolbar_options=dict(logo=None)
-    ),
+    grid(sv_streamgraph.plots, ncols=1),
     row(
         sv_streamgraph.moving_average_spinner,
         column(Spacer(height=19), sv_streamgraph.reset_button),

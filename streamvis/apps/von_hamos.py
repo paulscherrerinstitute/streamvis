@@ -2,7 +2,7 @@ from datetime import datetime
 
 import bottleneck as bn
 from bokeh.io import curdoc
-from bokeh.layouts import column, gridplot, row
+from bokeh.layouts import column, grid, row
 from bokeh.models import Button, ColumnDataSource, Div, Line, Select, Spacer, Title
 
 import streamvis as sv
@@ -168,17 +168,11 @@ sv_streamgraph.plots[2].title = Title(text="Zoom Area 2 Total Intensity")
 
 # Final layouts
 layout_zoom1 = column(
-    gridplot(
-        [[sv_zoom1_proj_v.plot, None], [sv_zoom1.plot, sv_zoom1_proj_h.plot]], merge_tools=False
-    ),
-    sv_hist.plots[0],
+    grid([[sv_zoom1_proj_v.plot, None], [sv_zoom1.plot, sv_zoom1_proj_h.plot]]), sv_hist.plots[0]
 )
 
 layout_zoom2 = column(
-    gridplot(
-        [[sv_zoom2_proj_v.plot, None], [sv_zoom2.plot, sv_zoom2_proj_h.plot]], merge_tools=False
-    ),
-    sv_hist.plots[1],
+    grid([[sv_zoom2_proj_v.plot, None], [sv_zoom2.plot, sv_zoom2_proj_h.plot]]), sv_hist.plots[1]
 )
 
 layout_bottom_row_controls = row(
@@ -201,9 +195,7 @@ layout_bottom_row_controls = row(
 )
 
 layout_streamgraphs = column(
-    gridplot(
-        sv_streamgraph.plots, ncols=1, toolbar_location="left", toolbar_options=dict(logo=None)
-    ),
+    grid(sv_streamgraph.plots, ncols=1),
     row(
         sv_streamgraph.moving_average_spinner,
         column(Spacer(height=19), sv_streamgraph.reset_button),
