@@ -2,7 +2,18 @@ from collections import deque
 from datetime import datetime
 from itertools import islice
 
-from bokeh.models import BasicTickFormatter, Button, ColumnDataSource, DataRange1d, Legend, Spinner
+from bokeh.models import (
+    BasicTickFormatter,
+    BoxZoomTool,
+    Button,
+    ColumnDataSource,
+    DataRange1d,
+    Legend,
+    PanTool,
+    ResetTool,
+    Spinner,
+    WheelZoomTool,
+)
 from bokeh.plotting import figure
 
 MAXLEN = 100
@@ -30,11 +41,11 @@ class StreamGraph:
         # Stream graphs
         self.plots = []
         self._sources = []
-        for ind in range(nplots):
-            # share x_range between plots
-            if ind == 0:
-                shared_x_range = DataRange1d()
 
+        # share x_range and tools between plots
+        shared_x_range = DataRange1d()
+        shared_tools = [PanTool(), BoxZoomTool(), WheelZoomTool(dimensions="width"), ResetTool()]
+        for ind in range(nplots):
             if mode == "time":
                 x_axis_type = "datetime"
             elif mode == "number":
@@ -48,11 +59,11 @@ class StreamGraph:
                 y_range=DataRange1d(),
                 height=height,
                 width=width,
-                tools="pan,box_zoom,wheel_zoom,reset",
+                tools=shared_tools,
+                toolbar_location=("left" if ind == 0 else None),  # toolbar only on the first plot
             )
 
             plot.toolbar.logo = None
-            plot.toolbar.tools[2].dimensions = "width"
 
             # Custom tick formatter for displaying large numbers
             plot.yaxis.formatter = BasicTickFormatter(precision=1)
