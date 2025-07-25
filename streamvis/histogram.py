@@ -21,7 +21,7 @@ class Histogram:
         # Histogram plots
         self.plots = []
         self._plot_sources = []
-        for ind in range(nplots):
+        for _ in range(nplots):
             plot = figure(
                 x_range=DataRange1d(),
                 y_range=DataRange1d(),
@@ -32,11 +32,6 @@ class Histogram:
             )
 
             plot.toolbar.logo = None
-            # share 'pan', 'boxzoom', and 'wheelzoom' tools between all plots
-            if ind == 0:
-                shared_tools = plot.toolbar.tools[:3]
-            else:
-                plot.toolbar.tools[:3] = shared_tools
 
             plot.yaxis.major_label_orientation = "vertical"
 
