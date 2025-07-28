@@ -1,5 +1,5 @@
 import numpy as np
-from bokeh.models import ColumnDataSource, Spinner, X
+from bokeh.models import ColumnDataSource, Scatter, Spinner
 
 
 class Marker:
@@ -22,7 +22,9 @@ class Marker:
             y = y_high // 2
 
         self._source = ColumnDataSource(dict(x=[x], y=[y]))
-        glyph = X(x="x", y="y", size=20, fill_alpha=0, line_width=3, line_color="white")
+        glyph = Scatter(
+            x="x", y="y", size=20, fill_alpha=0, line_width=3, line_color="white", marker="x"
+        )
 
         for image_view in image_views:
             image_view.plot.add_glyph(self._source, glyph)
