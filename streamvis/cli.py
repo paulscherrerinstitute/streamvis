@@ -40,8 +40,8 @@ def main():
     parser.add_argument(
         "--stream-format",
         type=str,
-        choices=["std_jf", "jfjoch"],
-        default="std_jf",
+        choices=["sf-daq-jf", "jfjoch"],
+        default="sf-daq-jf",
         help="a stream format for input data and metadata messages",
     )
 
@@ -133,7 +133,7 @@ def main():
 
     # Imports of stream adapters will succeed if the corresponding optional dependencies are
     # installed
-    if args.stream_format == "std_jf":
+    if args.stream_format == "sf-daq-jf":
         from streamvis.jf_adapter import JFAdapter  # pylint: disable=C0415
 
         if args.app == "cbd":
