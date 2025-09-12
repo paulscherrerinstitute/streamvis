@@ -3,7 +3,7 @@ import logging
 import numpy as np
 from bokeh.models import CustomJS, Dropdown
 
-from streamvis.cbd_statistic_tools import AggregatorWithID, NPFIFOArray
+from streamvis.statistics_tools import AggregatorWithID, NPFIFOArray
 
 logger = logging.getLogger(__name__)
 
