@@ -17,8 +17,7 @@ jobs:
         $CONDA/bin/conda config --system --remove channels defaults
         $CONDA/bin/conda config --append channels conda-forge
         $CONDA/bin/conda config --append channels paulscherrerinstitute
-        $CONDA/bin/conda install --quiet --yes conda-build anaconda-client conda-libmamba-solver
-        $CONDA/bin/conda config --set solver libmamba
+        $CONDA/bin/conda install --quiet --yes conda-build anaconda-client
 
     - name: Build
       run: |
