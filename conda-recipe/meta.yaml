@@ -1,8 +1,10 @@
-{% set data = load_setup_py_data() %}
+{% set version_match = load_file_regex(load_file="streamvis/__init__.py", regex_pattern='__version__ = "(.+?)"') %}
+{% set version = version_match[1] %}
+{% set pyproject = load_file_data('pyproject.toml') %}
 
 package:
-  name: streamvis
-  version: {{ data['version'] }}
+  name: {{ pyproject['project']['name'] }}
+  version: {{ version }}
 
 source:
   path: ..
@@ -10,25 +12,18 @@ source:
 build:
   script: python -m pip install .
   noarch: python
-  number: 0
   entry_points:
     - streamvis = streamvis.cli:main
 
 requirements:
-  build:
+  host:
     - python >=3.8
-    - setuptools
+    - hatchling
   run:
     - python >=3.8
-    - numba
-    - bokeh =2.1
-    - jungfrau_utils =3
-    - pyzmq
-    - pillow >=4.3
-    - colorcet
-    - bottleneck
-    - jinja2 <3.1  # TODO: bokeh/2.1.x breaks with jinja/3.1.0
-    - cbor2
+    {% for dep in pyproject['project']['dependencies'] %}
+    - {{ dep }}
+    {% endfor %}
 
 test:
   source_files:
@@ -39,7 +34,10 @@ test:
     - pytest tests
 
 about:
-  home: https://github.com/paulscherrerinstitute/streamvis
-  summary: {{ data['description'] }}
-  license: GNU GPLv3
-  license_file: LICENSE
+  home: {{ pyproject['project']['urls']['Homepage'] }}
+  summary: {{ pyproject['project']['description'] }}
+  license: {{ pyproject['project']['license'] }}
+  license_file:
+    {% for lf in pyproject['project']['license-files'] %}
+    - {{ lf }}
+    {% endfor %}

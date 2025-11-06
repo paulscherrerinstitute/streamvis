@@ -1,0 +1,38 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "streamvis"
+dynamic = ["version"]  # version will be read from __init__.py
+requires-python = ">=3.8"
+dependencies = [
+    "numba",
+    "bokeh ~=2.1",
+    "jungfrau_utils ~=3.0",
+    "pyzmq",
+    "pillow >=4.3",
+    "colorcet",
+    "bottleneck",
+    "jinja2 <3.1",  # TODO: bokeh/2.1.x breaks with jinja/3.1.0
+    "cbor2",
+]
+authors = [
+  {name = "Paul Scherrer Institute"}
+]
+maintainers = [
+  {name = "Ivan Usov", email = "ivan.usov@psi.ch"}
+]
+description = "Live stream visualization server for detectors at PSI."
+readme = "README.md"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+
+[project.urls]
+Homepage = "https://github.com/paulscherrerinstitute/streamvis"
+
+[tool.hatch.build.targets.wheel]
+include = ["streamvis"]
+
+[tool.hatch.version]
+path = "streamvis/__init__.py"
