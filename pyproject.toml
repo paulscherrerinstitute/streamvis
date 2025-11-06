@@ -8,6 +8,7 @@ dynamic = ["version"]  # version will be read from __init__.py
 requires-python = ">=3.8"
 dependencies = [
     "numba",
+    "numpy <2",  # TODO: bokeh/2.1.x breaks with numpy>=2.0
     "bokeh ~=2.1",
     "jungfrau_utils ~=3.0",
     "pyzmq",
