@@ -135,6 +135,7 @@ class ImageView:
 
     # a reason for the additional boundary checks:
     # https://github.com/bokeh/bokeh/issues/8118
+    # TODO: remove additional boundary checks when migrated to bokeh/3.1
     @property
     def x_start(self):
         """Current x-axis image start value (readonly)."""
