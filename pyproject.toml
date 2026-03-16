@@ -5,17 +5,15 @@ build-backend = "hatchling.build"
 [project]
 name = "streamvis"
 dynamic = ["version"]  # version will be read from __init__.py
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 dependencies = [
     "numba",
-    "numpy <2",  # TODO: bokeh/2.1.x breaks with numpy>=2.0
-    "bokeh ~=2.1",
+    "bokeh ~=3.9",
     "jungfrau_utils ~=3.0",
     "pyzmq",
     "pillow >=4.3",
     "colorcet",
     "bottleneck",
-    "jinja2 <3.1",  # TODO: bokeh/2.1.x breaks with jinja/3.1.0
     "cbor2",
 ]
 authors = [
