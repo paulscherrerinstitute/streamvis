@@ -12,7 +12,6 @@ from .input_control import StreamControl
 from .intensity_roi import IntensityROI
 from .marker import Marker
 from .metadata import MetadataHandler
-from .progress_bar import ProgressBar
 from .projection import Projection
 from .resolution_rings import ResolutionRings
 from .runtime import Runtime

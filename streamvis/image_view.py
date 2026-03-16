@@ -1,3 +1,5 @@
+from math import ceil, floor
+
 import bottleneck as bn
 import numpy as np
 from bokeh.models import CheckboxGroup, ColumnDataSource, CustomJS, HoverTool, Label, Range1d
@@ -93,10 +95,12 @@ class ImageView:
         )
         self.image_glyph = image_renderer.glyph
 
-        # This avoids double update of image values on a client, see
-        # https://github.com/bokeh/bokeh/issues/7079
-        # https://github.com/bokeh/bokeh/issues/7299
-        image_renderer.view.source = ColumnDataSource()
+        # This avoids multi-update of image values on a client, see
+        # https://github.com/bokeh/bokeh/issues/14797
+        image_renderer.hover_glyph = None
+        image_renderer.muted_glyph = None
+        image_renderer.nonselection_glyph = None
+        image_renderer.selection_glyph = None
 
         plot.add_tools(HoverTool(tooltips=[("intensity", "@image")], renderers=[image_renderer]))
 
@@ -133,28 +137,25 @@ class ImageView:
         """Return resized image that is currently displayed (readonly)."""
         return self._image_source.data["image"][0]
 
-    # a reason for the additional boundary checks:
-    # https://github.com/bokeh/bokeh/issues/8118
-    # TODO: remove additional boundary checks when migrated to bokeh/3.1
     @property
     def x_start(self):
         """Current x-axis image start value (readonly)."""
-        return int(np.floor(max(self.plot.x_range.start, self.plot.x_range.bounds[0])))
+        return floor(self.plot.x_range.start)
 
     @property
     def x_end(self):
         """Current x-axis image end value (readonly)."""
-        return int(np.ceil(min(self.plot.x_range.end, self.plot.x_range.bounds[1])))
+        return ceil(self.plot.x_range.end)
 
     @property
     def y_start(self):
         """Current y-axis image start value (readonly)."""
-        return int(np.floor(max(self.plot.y_range.start, self.plot.y_range.bounds[0])))
+        return floor(self.plot.y_range.start)
 
     @property
     def y_end(self):
         """Current y-axis image end value (readonly)."""
-        return int(np.ceil(min(self.plot.y_range.end, self.plot.y_range.bounds[1])))
+        return ceil(self.plot.y_range.end)
 
     def add_as_zoom(self, image_view, line_color="red"):
         """Add an ImageView plot as a zoom view.
@@ -217,17 +218,17 @@ class ImageView:
             self.plot.y_range.bounds[1] != pil_image.height
             or self.plot.x_range.bounds[1] != pil_image.width
         ):
+            self.plot.x_range.bounds = (0, pil_image.width)
             self.plot.x_range.start = 0
             self.plot.x_range.reset_start = 0
             self.plot.x_range.end = pil_image.width
             self.plot.x_range.reset_end = pil_image.width
-            self.plot.x_range.bounds = (0, pil_image.width)
 
+            self.plot.y_range.bounds = (0, pil_image.height)
             self.plot.y_range.start = 0
             self.plot.y_range.reset_start = 0
             self.plot.y_range.end = pil_image.height
             self.plot.y_range.reset_end = pil_image.height
-            self.plot.y_range.bounds = (0, pil_image.height)
 
         if (
             self.plot.inner_width < self.x_end - self.x_start

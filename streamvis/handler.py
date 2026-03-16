@@ -32,6 +32,8 @@ class StreamvisHandler(Handler):
         doc.stream_adapter = self.stream_adapter
         doc.title = self.title
         doc.client_fps = self.client_fps
+        doc.config.reconnect_session = False
+        doc.config.notify_connection_status = False
 
 
 class StreamvisCheckHandler(Handler):
