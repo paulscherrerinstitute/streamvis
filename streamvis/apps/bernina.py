@@ -1,7 +1,7 @@
 import bottleneck as bn
 from bokeh.io import curdoc
 from bokeh.layouts import column, grid, row
-from bokeh.models import Div, Spacer, Title
+from bokeh.models import Div, IndexFilter, Spacer, Title
 
 import streamvis as sv
 
@@ -184,14 +184,25 @@ async def internal_periodic_callback():
     _, metadata = sv_rt.image, sv_rt.metadata
     thr_image, reset, aggr_image = sv_rt.thresholded_image, sv_rt.reset, sv_rt.aggregated_image
 
-    sv_colormapper.update(aggr_image)
-    sv_main.update(aggr_image)
+    with (
+        sv_main.plot.hold(render=True),
+        sv_zoom1.plot.hold(render=True),
+        sv_zoom2.plot.hold(render=True),
+    ):
+        sv_main.image_renderer.view.filter = IndexFilter(indices=[])
+        sv_zoom1.image_renderer.view.filter = IndexFilter(indices=[])
+        sv_zoom2.image_renderer.view.filter = IndexFilter(indices=[])
+        sv_colormapper.update(aggr_image)
+        sv_main.update(aggr_image)
+        sv_main.image_renderer.view.filter = IndexFilter(indices=[0])
+        sv_zoom1.image_renderer.view.filter = IndexFilter(indices=[0])
+        sv_zoom2.image_renderer.view.filter = IndexFilter(indices=[0])
 
-    sv_spots.update(metadata)
-    sv_resolrings.update(metadata)
-    sv_intensity_roi.update(metadata)
-    sv_saturated_pixels.update(metadata)
-    sv_disabled_modules.update(metadata)
+        sv_spots.update(metadata)
+        sv_resolrings.update(metadata)
+        sv_intensity_roi.update(metadata)
+        sv_saturated_pixels.update(metadata)
+        sv_disabled_modules.update(metadata)
 
     # Deactivate auto histogram range if aggregation is on
     if sv_imageproc.aggregate_switch.active:

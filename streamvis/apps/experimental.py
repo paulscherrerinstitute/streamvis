@@ -1,7 +1,7 @@
 import h5py
 from bokeh.io import curdoc
 from bokeh.layouts import column, row
-from bokeh.models import Button, Slider, TextInput
+from bokeh.models import Button, IndexFilter, Slider, TextInput
 
 import streamvis as sv
 
@@ -80,8 +80,11 @@ doc.add_root(final_layout)
 async def update_client():
     image, metadata = sv_rt.image, sv_rt.metadata
 
-    sv_colormapper.update(image)
-    sv_main.update(image)
+    with sv_main.plot.hold(render=True):
+        sv_main.image_renderer.view.filter = IndexFilter(indices=[])
+        sv_colormapper.update(image)
+        sv_main.update(image)
+        sv_main.image_renderer.view.filter = IndexFilter(indices=[0])
 
     # Statistics
     im_block = image[sv_main.y_start : sv_main.y_end, sv_main.x_start : sv_main.x_end]

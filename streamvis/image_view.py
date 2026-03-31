@@ -93,6 +93,7 @@ class ImageView:
             dh="dh",
             name="image_glyph",
         )
+        self.image_renderer = image_renderer
         self.image_glyph = image_renderer.glyph
 
         # This avoids multi-update of image values on a client, see
