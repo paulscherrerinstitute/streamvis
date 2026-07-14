@@ -42,7 +42,7 @@ class ColorMapper:
         log_colormapper = LogColorMapper(palette=cmap_dict[colormap], low=disp_min, high=disp_max)
 
         for image_view in image_views:
-            image_view.image_glyph.color_mapper = lin_colormapper
+            image_view.image_renderer.glyph.color_mapper = lin_colormapper
 
         color_bar = ColorBar(
             color_mapper=lin_colormapper,
@@ -84,7 +84,7 @@ class ColorMapper:
         def scale_radiogroup_callback(_attr, _old, new):
             if new == 0:  # Linear
                 for image_view in image_views:
-                    image_view.image_glyph.color_mapper = lin_colormapper
+                    image_view.image_renderer.glyph.color_mapper = lin_colormapper
                 color_bar.color_mapper = lin_colormapper
                 color_bar.ticker = BasicTicker()
 
@@ -96,7 +96,7 @@ class ColorMapper:
                         display_min_spinner.value = STEP
 
                     for image_view in image_views:
-                        image_view.image_glyph.color_mapper = log_colormapper
+                        image_view.image_renderer.glyph.color_mapper = log_colormapper
                     color_bar.color_mapper = log_colormapper
                     color_bar.ticker = LogTicker()
 

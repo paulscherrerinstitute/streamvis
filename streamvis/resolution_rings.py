@@ -83,16 +83,15 @@ class ResolutionRings:
         # ---- switch
         def switch_callback(_attr, _old, new):
             for image_view in image_views:
-                image_renderer = image_view.plot.select(name="image_glyph")
                 if 0 in new:
                     hovertool = HoverTool(
                         tooltips=[("intensity", "@image"), ("resolution", "@x{resolution} Å")],
                         formatters={"@x": resolution_formatter},
-                        renderers=image_renderer,
+                        renderers=[image_view.image_renderer],
                     )
                 else:
                     hovertool = HoverTool(
-                        tooltips=[("intensity", "@image")], renderers=image_renderer
+                        tooltips=[("intensity", "@image")], renderers=[image_view.image_renderer]
                     )
 
                 image_view.plot.tools[-1] = hovertool
