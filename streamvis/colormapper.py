@@ -83,22 +83,39 @@ class ColorMapper:
         # ---- scale radiogroup
         def scale_radiogroup_callback(_attr, _old, new):
             if new == 0:  # Linear
-                for image_view in image_views:
-                    image_view.image_renderer.glyph.color_mapper = lin_colormapper
+                color_mapper = lin_colormapper
                 color_bar.color_mapper = lin_colormapper
                 color_bar.ticker = BasicTicker()
 
             else:  # Logarithmic
                 if self.display_min_spinner.value < 0:
                     scale_radiogroup.active = 0
+                    return
                 else:
                     if self.display_min_spinner.value == 0:
                         display_min_spinner.value = STEP
 
-                    for image_view in image_views:
-                        image_view.image_renderer.glyph.color_mapper = log_colormapper
+                    color_mapper = log_colormapper
                     color_bar.color_mapper = log_colormapper
                     color_bar.ticker = LogTicker()
+
+            # TODO: Workaround for a bug (https://github.com/bokeh/bokeh/issues/14957)
+            for image_view in image_views:
+                image_renderer = image_view.plot.image(
+                    source=image_view._image_source,
+                    image="image",
+                    x="x",
+                    y="y",
+                    dw="dw",
+                    dh="dh",
+                    color_mapper=color_mapper,
+                )
+                image_renderer.hover_glyph = None
+                image_renderer.muted_glyph = None
+                image_renderer.nonselection_glyph = None
+                image_renderer.selection_glyph = None
+                image_view.plot.renderers.remove(image_view.image_renderer)
+                image_view.image_renderer = image_renderer
 
         scale_radiogroup = RadioGroup(labels=["Linear", "Logarithmic"], active=0, width=145)
         scale_radiogroup.on_change("active", scale_radiogroup_callback)
