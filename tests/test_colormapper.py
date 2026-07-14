@@ -57,5 +57,7 @@ def test_update_log_no_auto(disp_min, disp_max):
     sv_cm.scale_radiogroup.active = 1
     sv_cm.update(test_image)
 
+    if disp_min == 0:
+        disp_min += sv.colormapper.STEP
     assert sv_cm.display_min_spinner.value == disp_min
     assert sv_cm.display_max_spinner.value == disp_max
