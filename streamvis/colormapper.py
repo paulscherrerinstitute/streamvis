@@ -89,13 +89,16 @@ class ColorMapper:
                 color_bar.ticker = BasicTicker()
 
             else:  # Logarithmic
-                if self.display_min_spinner.value > 0:
+                if self.display_min_spinner.value < 0:
+                    scale_radiogroup.active = 0
+                else:
+                    if self.display_min_spinner.value == 0:
+                        display_min_spinner.value = STEP
+
                     for image_view in image_views:
                         image_view.image_glyph.color_mapper = log_colormapper
                     color_bar.color_mapper = log_colormapper
                     color_bar.ticker = LogTicker()
-                else:
-                    scale_radiogroup.active = 0
 
         scale_radiogroup = RadioGroup(labels=["Linear", "Logarithmic"], active=0, width=145)
         scale_radiogroup.on_change("active", scale_radiogroup_callback)
