@@ -65,7 +65,7 @@ class JFAdapter:
         elif connection_mode == "bind":
             zmq_socket.bind(address)
         else:
-            raise RuntimeError("Unknown connection mode {connection_mode}")
+            raise RuntimeError(f"Unknown connection mode {connection_mode}")
 
         poller = zmq.Poller()
         poller.register(zmq_socket, zmq.POLLIN)
@@ -211,7 +211,9 @@ class JFAdapter:
             if image.shape == mask.shape:
                 _apply_mask_njit(image, mask)
             else:
-                raise ValueError("Image and mask shapes are not the same")
+                raise ValueError(
+                    f"Image {image.shape} and mask {mask.shape} shapes are not the same"
+                )
 
         return image
 

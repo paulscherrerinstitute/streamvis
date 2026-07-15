@@ -131,7 +131,7 @@ class JFJochAdapter:
         elif connection_mode == "bind":
             zmq_socket.bind(address)
         else:
-            raise RuntimeError("Unknown connection mode {connection_mode}")
+            raise RuntimeError(f"Unknown connection mode {connection_mode}")
 
         poller = zmq.Poller()
         poller.register(zmq_socket, zmq.POLLIN)
@@ -209,7 +209,9 @@ class JFJochAdapter:
             if image.shape == self.pixel_mask.shape:
                 _apply_mask_njit(image, self.pixel_mask)
             else:
-                raise ValueError("Image and mask shapes are not the same")
+                raise ValueError(
+                    f"Image {image.shape} and mask {self.pixel_mask.shape} shapes are not the same"
+                )
 
         return image
 
