@@ -139,7 +139,7 @@ layout_controls = row(
         row(sv_streamctrl.datatype_select, sv_streamctrl.rotate_image),
         sv_streamctrl.prev_image_slider,
         row(sv_streamctrl.conv_opts, sv_streamctrl.double_pixels),
-        row(Spacer(width=155), sv_streamctrl.show_only_events_switch),
+        row(sv_streamctrl.module_edge_pixels, column(Spacer(height=40), sv_streamctrl.show_only_events_switch)),
         row(doc.stream_adapter.stats.auxiliary_apps_dropdown, sv_streamctrl.toggle),
     ),
     Spacer(width=30),

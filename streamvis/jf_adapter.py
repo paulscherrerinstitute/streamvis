@@ -99,7 +99,14 @@ class JFAdapter:
             self.stats.parse(metadata, image)
 
     def process(
-        self, image, metadata, mask=True, gap_pixels=True, double_pixels="keep", geometry=True
+        self,
+        image,
+        metadata,
+        mask=True,
+        gap_pixels=True,
+        double_pixels="keep",
+        module_edge_pixels="keep",
+        geometry=True,
     ):
         """Perform jungfrau detector data processing on an image received via stream.
 
@@ -124,21 +131,25 @@ class JFAdapter:
         # skip conversion step if jungfrau data handler cannot do it, thus avoiding Exception raise
         conversion = self.handler.can_convert()
         proc_image = self.handler.process(
-            image,
-            conversion=conversion,
-            mask=False,
-            gap_pixels=gap_pixels,
-            double_pixels=double_pixels,
-            geometry=geometry,
+            image, conversion=conversion, mask=False, gap_pixels=gap_pixels, geometry=geometry
         )
 
         if mask:
-            proc_image = self._apply_mask(proc_image, gap_pixels, double_pixels, geometry)
+            proc_image = self._apply_mask(
+                proc_image, gap_pixels, double_pixels, module_edge_pixels, geometry
+            )
 
         return proc_image
 
     def get_gains(
-        self, image, metadata, mask=True, gap_pixels=True, double_pixels="keep", geometry=True
+        self,
+        image,
+        metadata,
+        mask=True,
+        gap_pixels=True,
+        double_pixels="keep",
+        module_edge_pixels="keep",
+        geometry=True,
     ):
         # parse metadata
         self._update_handler(metadata)
@@ -153,7 +164,7 @@ class JFAdapter:
         if mask:
             if double_pixels == "interp":
                 double_pixels = "keep"
-            gains = self._apply_mask(gains, gap_pixels, double_pixels, geometry)
+            gains = self._apply_mask(gains, gap_pixels, double_pixels, module_edge_pixels, geometry)
 
         return gains
 
@@ -197,11 +208,14 @@ class JFAdapter:
         daq_rec = metadata.get("daq_rec")
         self.handler.highgain = False if (daq_rec is None) else bool(daq_rec & 0b1)
 
-    def _apply_mask(self, image, gap_pixels, double_pixels, geometry):
+    def _apply_mask(self, image, gap_pixels, double_pixels, module_edge_pixels, geometry):
         # assign masked values to np.nan
         if self.handler.pixel_mask is not None:
             mask = self.handler.get_pixel_mask(
-                gap_pixels=gap_pixels, double_pixels=double_pixels, geometry=geometry
+                gap_pixels=gap_pixels,
+                double_pixels=double_pixels,
+                module_edge_pixels=module_edge_pixels,
+                geometry=geometry,
             )
 
             # cast to np.float32 in case there was no conversion, but mask should still be applied

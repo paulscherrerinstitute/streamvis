@@ -11,6 +11,7 @@ cb_obj.tags = [true];
 """
 
 DP_LABELS = ["keep", "mask", "interp"]
+MEP_LABELS = ["keep", "mask"]
 
 
 class StreamControl:
@@ -63,6 +64,12 @@ class StreamControl:
         self.double_pixels_radiogroup = double_pixels_radiogroup
         self.double_pixels = column(double_pixels_div, double_pixels_radiogroup)
 
+        # module edge pixels handling
+        module_edge_pixels_div = Div(text="Module edge pixels:", margin=(5, 5, 0, 5))
+        module_edge_pixels_radiogroup = RadioGroup(labels=MEP_LABELS, active=0, width=145)
+        self.module_edge_pixels_radiogroup = module_edge_pixels_radiogroup
+        self.module_edge_pixels = column(module_edge_pixels_div, module_edge_pixels_radiogroup)
+
         # rotate image select
         rotate_values = ["0", "90", "180", "270"]
         rotate_image = Select(
@@ -114,6 +121,10 @@ class StreamControl:
     @property
     def double_pixels_active(self):
         return DP_LABELS[self.double_pixels_radiogroup.active]
+
+    @property
+    def module_edge_pixels_active(self):
+        return MEP_LABELS[self.module_edge_pixels_radiogroup.active]
 
     @property
     def n_rot90(self):
@@ -178,12 +189,21 @@ class StreamControl:
             double_pixels = "keep"
             self.double_pixels_radiogroup.active = 0
 
+        module_edge_pixels = metadata.get("module_edge_pixels")
+        if module_edge_pixels is None:
+            module_edge_pixels = self.module_edge_pixels_active
+            module_edge_pixels_locked = False
+        else:
+            self.module_edge_pixels_radiogroup.active = MEP_LABELS.index(module_edge_pixels)
+            module_edge_pixels_locked = True
+
         if raw_image.dtype == np.uint16:
             self.datatype_select.disabled = False
             self.mask_switch.disabled = mask_locked
             self.gap_pixels_switch.disabled = gap_pixels_locked
             self.geometry_switch.disabled = geometry_locked
             self.double_pixels_radiogroup.disabled = double_pixels_locked
+            self.module_edge_pixels_radiogroup.disabled = module_edge_pixels_locked
         else:
             self.datatype_select.value = "Image"
             self.datatype_select.disabled = True
@@ -191,10 +211,15 @@ class StreamControl:
             self.gap_pixels_switch.disabled = True
             self.geometry_switch.disabled = True
             self.double_pixels_radiogroup.disabled = True
+            self.module_edge_pixels_radiogroup.disabled = True
 
         jf_handler = self.stream_adapter.handler
         opts_args = dict(
-            mask=mask, gap_pixels=gap_pixels, double_pixels=double_pixels, geometry=geometry
+            mask=mask,
+            gap_pixels=gap_pixels,
+            double_pixels=double_pixels,
+            module_edge_pixels=module_edge_pixels,
+            geometry=geometry,
         )
 
         if self.datatype_select.value == "Image":
