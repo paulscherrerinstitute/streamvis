@@ -9,7 +9,7 @@ requires-python = ">=3.10"
 dependencies = [
     "numba",
     "bokeh ~=3.9.0",
-    "jungfrau_utils ~=3.0",
+    "jungfrau_utils ~=3.19",
     "pyzmq",
     "pillow >=4.3",
     "colorcet",

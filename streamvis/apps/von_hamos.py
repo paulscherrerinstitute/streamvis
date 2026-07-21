@@ -149,7 +149,7 @@ save_spectrum_button.on_click(save_spectrum_button_callback)
 
 
 def save_spectrum_select_callback(_attr, _old, new):
-    (z1_hx, z1_hy, z1_vx, z1_vy, z2_hx, z2_hy, z2_vx, z2_vy) = saved_spectra[new]
+    z1_hx, z1_hy, z1_vx, z1_vy, z2_hx, z2_hy, z2_vx, z2_vy = saved_spectra[new]
 
     zoom1_spectrum_y_source.data.update(x=z1_hx, y=z1_hy)
     zoom1_spectrum_x_source.data.update(x=z1_vx, y=z1_vy)
@@ -216,7 +216,7 @@ layout_controls = column(
     row(sv_streamctrl.datatype_select, sv_streamctrl.rotate_image),
     sv_streamctrl.prev_image_slider,
     row(sv_streamctrl.conv_opts, sv_streamctrl.double_pixels),
-    row(Spacer(width=155), sv_streamctrl.show_only_events_switch),
+    row(sv_streamctrl.module_edge_pixels, column(Spacer(height=40), sv_streamctrl.show_only_events_switch)),
     row(doc.stream_adapter.stats.auxiliary_apps_dropdown, sv_streamctrl.toggle),
 )
 
