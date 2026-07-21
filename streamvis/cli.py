@@ -167,11 +167,11 @@ def main():
     bokeh_handler = ScriptHandler(filename=app_path, argv=args.args)
     applications["/"] = Application(sv_handler, bokeh_handler, sv_check_handler)
 
-    # Add all common applications
-    common_apps_path = os.path.join(base_path, "common_apps")
-    for module_info in pkgutil.iter_modules([common_apps_path]):
+    # Add all auxiliary applications
+    auxiliary_apps_path = os.path.join(base_path, "auxiliary_apps")
+    for module_info in pkgutil.iter_modules([auxiliary_apps_path]):
         app_name = module_info.name
-        bokeh_handler = ScriptHandler(filename=os.path.join(common_apps_path, app_name + ".py"))
+        bokeh_handler = ScriptHandler(filename=os.path.join(auxiliary_apps_path, app_name + ".py"))
         sv_check_handler = StreamvisCheckHandler(allow_client_subnet=args.allow_client_subnet)
         applications[f"/{app_name}"] = Application(sv_handler, bokeh_handler, sv_check_handler)
 
