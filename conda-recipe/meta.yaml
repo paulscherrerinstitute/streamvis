@@ -21,9 +21,14 @@ requirements:
     - hatchling
   run:
     - python {{ pyproject['project']['requires-python'] }}
-    {% for dep in pyproject['project']['dependencies'] %}
-    - {{ dep }}
-    {% endfor %}
+    - numba
+    - bokeh ~=3.9.0
+    - jungfrau_utils ~=3.19
+    - pyzmq
+    - pillow >=4.3
+    - colorcet
+    - bottleneck
+    - cbor2
 
 test:
   source_files:
