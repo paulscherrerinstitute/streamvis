@@ -42,7 +42,7 @@ class StreamControl:
         self.datatype_select = datatype_select
 
         # conversion options
-        mask_switch = CheckboxGroup(labels=["Mask"], active=[0], width=145, margin=(5, 5, 0, 5))
+        mask_switch = CheckboxGroup(labels=["Mask"], active=[0], width=145, margin=(0, 5, 0, 5))
         self.mask_switch = mask_switch
 
         gap_pixels_switch = CheckboxGroup(
@@ -51,11 +51,11 @@ class StreamControl:
         self.gap_pixels_switch = gap_pixels_switch
 
         geometry_switch = CheckboxGroup(
-            labels=["Geometry"], active=[0], width=145, margin=(0, 5, 5, 5)
+            labels=["Geometry"], active=[0], width=145, margin=(0, 5, 0, 5)
         )
         self.geometry_switch = geometry_switch
 
-        conv_opts_div = Div(text="Conversion options:", margin=(5, 5, 0, 5))
+        conv_opts_div = Div(text="Conversion options:")
         self.conv_opts = column(conv_opts_div, mask_switch, gap_pixels_switch, geometry_switch)
 
         # double pixels handling
