@@ -10,23 +10,22 @@ import streamvis as sv
 doc = curdoc()
 
 # Expected image sizes for the detector
-IMAGE_SIZE_X = 9216 + (9 - 1) * 6 + 2 * 3 * 9
-IMAGE_SIZE_Y = 514
+IMAGE_WIDTH = 9216 + (9 - 1) * 6 + 2 * 3 * 9
+IMAGE_HEIGHT = 514
 
 sv_rt = sv.Runtime()
 
-# Currently, it's possible to control only a canvas size, but not a size of the plotting area.
-MAIN_CANVAS_WIDTH = 3700 + 55
-MAIN_CANVAS_HEIGHT = 514 + 59
+MAIN_CANVAS_WIDTH = 3700
+MAIN_CANVAS_HEIGHT = 514
 
-ZOOM_CANVAS_WIDTH = 1030 + 55
-ZOOM_CANVAS_HEIGHT = 514 + 30
+ZOOM_CANVAS_WIDTH = 1030
+ZOOM_CANVAS_HEIGHT = 514
 
 ZOOM_AGG_Y_PLOT_WIDTH = 200
 ZOOM_AGG_X_PLOT_HEIGHT = 370
 
 ZOOM_WIDTH = 1030
-ZOOM_HEIGHT = IMAGE_SIZE_Y
+ZOOM_HEIGHT = IMAGE_HEIGHT
 
 ZOOM1_LEFT = (ZOOM_WIDTH + 6) * 2
 ZOOM1_BOTTOM = 0
@@ -49,15 +48,15 @@ sv_metadata.issues_datatable.width = 800
 sv_main = sv.ImageView(
     height=MAIN_CANVAS_HEIGHT,
     width=MAIN_CANVAS_WIDTH,
-    image_height=IMAGE_SIZE_Y,
-    image_width=IMAGE_SIZE_X,
+    image_height=IMAGE_HEIGHT,
+    image_width=IMAGE_WIDTH,
 )
 
 sv_zoom1 = sv.ImageView(
     height=ZOOM_CANVAS_HEIGHT,
     width=ZOOM_CANVAS_WIDTH,
-    image_height=IMAGE_SIZE_Y,
-    image_width=IMAGE_SIZE_X,
+    image_height=IMAGE_HEIGHT,
+    image_width=IMAGE_WIDTH,
     x_start=ZOOM1_LEFT,
     x_end=ZOOM1_RIGHT,
     y_start=ZOOM1_BOTTOM,
@@ -75,8 +74,8 @@ sv_zoom1_proj_h = sv.Projection(sv_zoom1, "horizontal", width=ZOOM_AGG_Y_PLOT_WI
 sv_zoom2 = sv.ImageView(
     height=ZOOM_CANVAS_HEIGHT,
     width=ZOOM_CANVAS_WIDTH,
-    image_height=IMAGE_SIZE_Y,
-    image_width=IMAGE_SIZE_X,
+    image_height=IMAGE_HEIGHT,
+    image_width=IMAGE_WIDTH,
     x_start=ZOOM2_LEFT,
     x_end=ZOOM2_RIGHT,
     y_start=ZOOM2_BOTTOM,
@@ -216,7 +215,10 @@ layout_controls = column(
     row(sv_streamctrl.datatype_select, sv_streamctrl.rotate_image),
     sv_streamctrl.prev_image_slider,
     row(sv_streamctrl.conv_opts, sv_streamctrl.double_pixels),
-    row(sv_streamctrl.module_edge_pixels, column(Spacer(height=40), sv_streamctrl.show_only_events_switch)),
+    row(
+        sv_streamctrl.module_edge_pixels,
+        column(Spacer(height=40), sv_streamctrl.show_only_events_switch),
+    ),
     row(doc.stream_adapter.stats.auxiliary_apps_dropdown, sv_streamctrl.toggle),
 )
 

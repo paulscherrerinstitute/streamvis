@@ -9,14 +9,11 @@ doc = curdoc()
 
 sv_rt = sv.Runtime()
 
-# Currently, it's possible to control only a canvas size, but not a size of the plotting area.
-MAIN_CANVAS_WIDTH = 2200 + 55
-MAIN_CANVAS_HEIGHT = 1900 + 64
+MAIN_CANVAS_WIDTH = 2200
+MAIN_CANVAS_HEIGHT = 1900
 
-ZOOM_CANVAS_WIDTH = 800 + 55
-ZOOM_CANVAS_HEIGHT = 800 + 30
-ZOOM_PROJ_X_CANVAS_HEIGHT = 150 + 11
-ZOOM_PROJ_Y_CANVAS_WIDTH = 150 + 31
+ZOOM_CANVAS_WIDTH = 800
+ZOOM_CANVAS_HEIGHT = 800
 
 # Create streamvis components
 sv_streamctrl = sv.StreamControl(sv_rt)
@@ -28,10 +25,10 @@ sv_zoom = sv.ImageView(height=ZOOM_CANVAS_HEIGHT, width=ZOOM_CANVAS_WIDTH)
 sv_zoom.proj_switch = sv_main.proj_switch
 sv_main.add_as_zoom(sv_zoom, line_color="white")
 
-sv_zoom_proj_v = sv.Projection(sv_zoom, "vertical", height=ZOOM_PROJ_X_CANVAS_HEIGHT)
+sv_zoom_proj_v = sv.Projection(sv_zoom, "vertical", height=150)
 sv_zoom_proj_v.plot.renderers[0].glyph.line_width = 2
 
-sv_zoom_proj_h = sv.Projection(sv_zoom, "horizontal", width=ZOOM_PROJ_Y_CANVAS_WIDTH)
+sv_zoom_proj_h = sv.Projection(sv_zoom, "horizontal", width=150)
 sv_zoom_proj_h.plot.renderers[0].glyph.line_width = 2
 
 sv_colormapper = sv.ColorMapper([sv_main, sv_zoom])
@@ -101,7 +98,10 @@ layout_controls = column(
     row(sv_streamctrl.datatype_select, sv_streamctrl.rotate_image),
     sv_streamctrl.prev_image_slider,
     row(sv_streamctrl.conv_opts, sv_streamctrl.double_pixels),
-    row(sv_streamctrl.module_edge_pixels, column(Spacer(height=40), sv_streamctrl.show_only_events_switch)),
+    row(
+        sv_streamctrl.module_edge_pixels,
+        column(Spacer(height=40), sv_streamctrl.show_only_events_switch),
+    ),
     row(doc.stream_adapter.stats.auxiliary_apps_dropdown, sv_streamctrl.toggle),
 )
 

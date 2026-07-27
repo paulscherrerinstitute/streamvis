@@ -8,17 +8,16 @@ import streamvis as sv
 doc = curdoc()
 
 # Expected image sizes for the detector
-IMAGE_SIZE_X = 1030
-IMAGE_SIZE_Y = 1554
+IMAGE_WIDTH = 1030
+IMAGE_HEIGHT = 1554
 
 sv_rt = sv.Runtime()
 
-# Currently, it's possible to control only a canvas size, but not a size of the plotting area.
-MAIN_CANVAS_WIDTH = IMAGE_SIZE_X // 2 + 55 + 40
-MAIN_CANVAS_HEIGHT = IMAGE_SIZE_Y // 2 + 86 + 60
+MAIN_CANVAS_WIDTH = IMAGE_WIDTH // 2 + 100
+MAIN_CANVAS_HEIGHT = IMAGE_HEIGHT // 2 + 150
 
-ZOOM_CANVAS_WIDTH = 388 + 55
-ZOOM_CANVAS_HEIGHT = 388 + 62
+ZOOM_CANVAS_WIDTH = 450
+ZOOM_CANVAS_HEIGHT = 450
 
 DEBUG_INTENSITY_WIDTH = 700
 
@@ -46,16 +45,16 @@ sv_metadata.issues_datatable.width = 750
 sv_main = sv.ImageView(
     height=MAIN_CANVAS_HEIGHT,
     width=MAIN_CANVAS_WIDTH,
-    image_height=IMAGE_SIZE_Y,
-    image_width=IMAGE_SIZE_X,
+    image_height=IMAGE_HEIGHT,
+    image_width=IMAGE_WIDTH,
 )
 sv_main.plot.title = Title(text=" ")
 
 sv_zoom1 = sv.ImageView(
     height=ZOOM_CANVAS_HEIGHT,
     width=ZOOM_CANVAS_WIDTH,
-    image_height=IMAGE_SIZE_Y,
-    image_width=IMAGE_SIZE_X,
+    image_height=IMAGE_HEIGHT,
+    image_width=IMAGE_WIDTH,
     x_start=ZOOM1_LEFT,
     x_end=ZOOM1_RIGHT,
     y_start=ZOOM1_BOTTOM,
@@ -68,8 +67,8 @@ sv_main.add_as_zoom(sv_zoom1, line_color="red")
 sv_zoom2 = sv.ImageView(
     height=ZOOM_CANVAS_HEIGHT,
     width=ZOOM_CANVAS_WIDTH,
-    image_height=IMAGE_SIZE_Y,
-    image_width=IMAGE_SIZE_X,
+    image_height=IMAGE_HEIGHT,
+    image_width=IMAGE_WIDTH,
     x_start=ZOOM2_LEFT,
     x_end=ZOOM2_RIGHT,
     y_start=ZOOM2_BOTTOM,
@@ -139,7 +138,10 @@ layout_controls = row(
         row(sv_streamctrl.datatype_select, sv_streamctrl.rotate_image),
         sv_streamctrl.prev_image_slider,
         row(sv_streamctrl.conv_opts, sv_streamctrl.double_pixels),
-        row(sv_streamctrl.module_edge_pixels, column(Spacer(height=40), sv_streamctrl.show_only_events_switch)),
+        row(
+            sv_streamctrl.module_edge_pixels,
+            column(Spacer(height=40), sv_streamctrl.show_only_events_switch),
+        ),
         row(doc.stream_adapter.stats.auxiliary_apps_dropdown, sv_streamctrl.toggle),
     ),
     Spacer(width=30),

@@ -9,12 +9,11 @@ doc = curdoc()
 
 sv_rt = sv.Runtime()
 
-# Currently, it's possible to control only a canvas size, but not a size of the plotting area.
-MAIN_CANVAS_WIDTH = 800 + 55
-MAIN_CANVAS_HEIGHT = 800 + 60
+MAIN_CANVAS_WIDTH = 800
+MAIN_CANVAS_HEIGHT = 800
 
-ZOOM_CANVAS_WIDTH = 600 + 55
-ZOOM_CANVAS_HEIGHT = 600 + 30
+ZOOM_CANVAS_WIDTH = 600
+ZOOM_CANVAS_HEIGHT = 600
 
 
 # Create streamvis components
@@ -80,7 +79,10 @@ layout_controls = column(
     row(sv_streamctrl.datatype_select, sv_streamctrl.rotate_image),
     sv_streamctrl.prev_image_slider,
     row(sv_streamctrl.conv_opts, sv_streamctrl.double_pixels),
-    row(sv_streamctrl.module_edge_pixels, column(Spacer(height=40), sv_streamctrl.show_only_events_switch)),
+    row(
+        sv_streamctrl.module_edge_pixels,
+        column(Spacer(height=40), sv_streamctrl.show_only_events_switch),
+    ),
     row(doc.stream_adapter.stats.auxiliary_apps_dropdown, sv_streamctrl.toggle),
 )
 

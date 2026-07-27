@@ -9,9 +9,8 @@ doc = curdoc()
 
 sv_rt = sv.Runtime()
 
-# Currently, it's possible to control only a canvas size, but not a size of the plotting area.
-MAIN_CANVAS_WIDTH = 1000 + 55
-MAIN_CANVAS_HEIGHT = 1000 + 59
+MAIN_CANVAS_WIDTH = 1000
+MAIN_CANVAS_HEIGHT = 1000
 
 
 # Create streamvis components

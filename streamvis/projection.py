@@ -3,7 +3,7 @@ import numpy as np
 from bokeh.models import ColumnDataSource, DataRange1d
 from bokeh.plotting import figure
 
-DEFAULT_PLOT_SIZE = 200
+DEFAULT_PLOT_SIZE = 170
 
 
 class Projection:

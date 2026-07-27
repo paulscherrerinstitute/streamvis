@@ -8,17 +8,16 @@ import streamvis as sv
 doc = curdoc()
 
 # Expected image sizes for the detector
-IMAGE_SIZE_X = 4215 // 2
-IMAGE_SIZE_Y = 4432 // 2
+IMAGE_WIDTH = 4215 // 2
+IMAGE_HEIGHT = 4432 // 2
 
 sv_rt = sv.Runtime()
 
-# Currently, it's possible to control only a canvas size, but not a size of the plotting area.
-MAIN_CANVAS_WIDTH = IMAGE_SIZE_X // 2 + 55 + 40
-MAIN_CANVAS_HEIGHT = IMAGE_SIZE_Y // 2 + 86 + 60
+MAIN_CANVAS_WIDTH = IMAGE_WIDTH // 2
+MAIN_CANVAS_HEIGHT = IMAGE_HEIGHT // 2
 
-ZOOM_CANVAS_WIDTH = 388 + 55
-ZOOM_CANVAS_HEIGHT = 388 + 62
+ZOOM_CANVAS_WIDTH = 450
+ZOOM_CANVAS_HEIGHT = 450
 
 INTENSITY_WIDTH = 700
 
@@ -46,8 +45,8 @@ sv_metadata.issues_datatable.width = 1000
 sv_main = sv.ImageView(
     height=MAIN_CANVAS_HEIGHT,
     width=MAIN_CANVAS_WIDTH,
-    image_height=IMAGE_SIZE_Y,
-    image_width=IMAGE_SIZE_X,
+    image_height=IMAGE_HEIGHT,
+    image_width=IMAGE_WIDTH,
 )
 sv_main.plot.title = Title(text="JF07T32V01")
 sv_main.plot.add_tools(BoxZoomTool())
@@ -55,8 +54,8 @@ sv_main.plot.add_tools(BoxZoomTool())
 sv_zoom1 = sv.ImageView(
     height=ZOOM_CANVAS_HEIGHT,
     width=ZOOM_CANVAS_WIDTH,
-    image_height=IMAGE_SIZE_Y,
-    image_width=IMAGE_SIZE_X,
+    image_height=IMAGE_HEIGHT,
+    image_width=IMAGE_WIDTH,
     x_start=ZOOM1_LEFT,
     x_end=ZOOM1_RIGHT,
     y_start=ZOOM1_BOTTOM,
@@ -72,8 +71,8 @@ sv_main.add_as_zoom(sv_zoom1, line_color="red")
 sv_zoom2 = sv.ImageView(
     height=ZOOM_CANVAS_HEIGHT,
     width=ZOOM_CANVAS_WIDTH,
-    image_height=IMAGE_SIZE_Y,
-    image_width=IMAGE_SIZE_X,
+    image_height=IMAGE_HEIGHT,
+    image_width=IMAGE_WIDTH,
     x_start=ZOOM2_LEFT,
     x_end=ZOOM2_RIGHT,
     y_start=ZOOM2_BOTTOM,
