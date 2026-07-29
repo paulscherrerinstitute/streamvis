@@ -25,6 +25,7 @@ class ImageView:
         x_end=None,
         y_start=None,
         y_end=None,
+        show_pixel_values_on_zoom=True,
     ):
         """Initialize image view plot.
 
@@ -41,6 +42,8 @@ class ImageView:
                 Defaults to None.
             y_end (int, optional): Initial y-axis end value. If None, then equals to image_height.
                 Defaults to None.
+            show_pixel_values_on_zoom (bool, optional): Draw per-pixel value numbers when zoomed-in
+                close enough. Defaults to True.
         """
         if x_start is None:
             x_start = 0
@@ -55,6 +58,7 @@ class ImageView:
             y_end = image_height
 
         self.zoom_views = []
+        self.show_pixel_values_on_zoom = show_pixel_values_on_zoom
 
         plot = figure(
             x_axis_location="above",
@@ -249,9 +253,11 @@ class ImageView:
         )
 
         # Draw numbers
-        canvas_pix_ratio_x = self.plot.inner_width / (self.x_end - self.x_start)
-        canvas_pix_ratio_y = self.plot.inner_height / (self.y_end - self.y_start)
-        if canvas_pix_ratio_x > 70 and canvas_pix_ratio_y > 50:
+        if (
+            self.show_pixel_values_on_zoom
+            and self.plot.inner_width / (self.x_end - self.x_start) > 70
+            and self.plot.inner_height / (self.y_end - self.y_start) > 50
+        ):
             textv = [
                 f"{val:.1f}"
                 for val in image[self.y_start : self.y_end, self.x_start : self.x_end].flatten()
