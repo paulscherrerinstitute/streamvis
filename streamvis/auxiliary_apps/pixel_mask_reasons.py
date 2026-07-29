@@ -56,7 +56,9 @@ color_mapper = LinearColorMapper(
     low_color="#e1e0d9", palette=["#2a78d6"], high_color="#eb6834", low=0.5, high=1.5
 )
 
-sv_main = sv.ImageView(height=MAIN_CANVAS_HEIGHT, width=MAIN_CANVAS_WIDTH)
+sv_main = sv.ImageView(
+    height=MAIN_CANVAS_HEIGHT, width=MAIN_CANVAS_WIDTH, show_pixel_values_on_zoom=False
+)
 sv_main.image_renderer.glyph.color_mapper = color_mapper
 del sv_main.plot.toolbar.tools[-1]  # remove HoverTool
 
