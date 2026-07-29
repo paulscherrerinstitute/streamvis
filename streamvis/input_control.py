@@ -255,6 +255,13 @@ class StreamControl:
 
         return metadata, image
 
+    def get_pixel_mask_reasons(self):
+        metadata, _ = self.stream_adapter.buffer[-1]
+        pixel_mask_reasons = self.stream_adapter.get_pixel_mask_reasons(
+            metadata, gap_pixels=self.gap_pixels_active, geometry=self.geometry_active
+        )
+        return metadata, pixel_mask_reasons
+
     def _update_toggle_view(self):
         """Update label and button type of the toggle"""
         if self.is_activated:

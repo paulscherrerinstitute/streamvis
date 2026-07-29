@@ -168,6 +168,15 @@ class JFAdapter:
 
         return gains
 
+    def get_pixel_mask_reasons(self, metadata, gap_pixels=True, geometry=True):
+        # parse metadata
+        self._update_handler(metadata)
+
+        if self.handler is None:
+            return None
+
+        return self.handler.get_pixel_mask_reasons(gap_pixels=gap_pixels, geometry=geometry)
+
     def _update_handler(self, metadata):
         # as a first step, try to set the detector_name, skip if detector_name is empty
         detector_name = metadata.get("detector_name")
@@ -313,6 +322,9 @@ class StatisticsHandler:
             case "Radial Profile":
                 window.open('/radial_profile');
                 break;
+            case "Pixel Mask Reasons":
+                window.open('/pixel_mask_reasons');
+                break;
         }
         """
         auxiliary_apps_dropdown = Dropdown(
@@ -324,6 +336,7 @@ class StatisticsHandler:
                 "ROI Pump-Probe",
                 "ROI Projections",
                 "Radial Profile",
+                "Pixel Mask Reasons",
             ],
             width=145,
         )
