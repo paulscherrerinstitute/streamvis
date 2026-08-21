@@ -21,4 +21,4 @@ from .spots import Spots
 from .streaks import Streaks
 from .stream_graph import StreamGraph
 
-__version__ = "1.15.0"
+__version__ = "1.15.1"
