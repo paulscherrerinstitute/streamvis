@@ -18,6 +18,7 @@ plot = figure(
     y_range=DataRange1d(),
     toolbar_location="left",
     tools="pan,box_zoom,wheel_zoom,save,reset",
+    sizing_mode="stretch_both",
 )
 
 plot.toolbar.logo = None
@@ -109,7 +110,7 @@ doc.add_root(
     column(
         column(plot, sizing_mode="stretch_both"),
         row(step_size_select, hit_nohit_select, column(Spacer(height=18), reset_button)),
-        sizing_mode="stretch_width",
+        sizing_mode="stretch_both",
     )
 )
 doc.add_periodic_callback(update, 1000)

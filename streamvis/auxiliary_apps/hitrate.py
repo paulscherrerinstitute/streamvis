@@ -15,6 +15,7 @@ plot = figure(
     y_range=DataRange1d(),
     toolbar_location="left",
     tools="pan,box_zoom,wheel_zoom,save,reset",
+    sizing_mode="stretch_both",
 )
 
 plot.toolbar.logo = None
@@ -120,6 +121,6 @@ def update():
 
 
 doc.add_root(
-    column(column(plot, sizing_mode="stretch_both"), row(reset_button), sizing_mode="stretch_width")
+    column(column(plot, sizing_mode="stretch_both"), row(reset_button), sizing_mode="stretch_both")
 )
 doc.add_periodic_callback(update, 1000)

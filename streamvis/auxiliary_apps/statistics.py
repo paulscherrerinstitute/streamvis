@@ -39,6 +39,7 @@ table = DataTable(
     height=50,
     index_position=None,
     sortable=False,
+    sizing_mode="stretch_both",
 )
 
 sum_table_source = ColumnDataSource(stats.sum_data)
@@ -48,6 +49,7 @@ sum_table = DataTable(
     height=50,
     index_position=None,
     sortable=False,
+    sizing_mode="stretch_width",
 )
 
 
@@ -102,7 +104,7 @@ layout = column(
     column(table, sizing_mode="stretch_both"),
     sum_table,
     reset_stats_button,
-    sizing_mode="stretch_width",
+    sizing_mode="stretch_both",
 )
 
 doc.add_root(layout)
