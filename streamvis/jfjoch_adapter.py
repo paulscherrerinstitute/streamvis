@@ -143,7 +143,8 @@ class JFJochAdapter:
                 continue
 
             time_poll = datetime.now()
-            message = zmq_socket.recv(flags=0, copy=False, track=False)
+            # convert from zmq.Frame to bytes with copy=True
+            message = zmq_socket.recv(flags=0, copy=True, track=False)
             metadata = cbor2.loads(message, tag_hook=tag_hook)
             if metadata["type"] == "start":
                 self.start_message_metadata = metadata
@@ -184,7 +185,8 @@ class JFJochAdapter:
             if zmq_socket not in events:
                 continue
 
-            message = zmq_socket.recv(flags=0, copy=False, track=False)
+            # convert from zmq.Frame to bytes with copy=True
+            message = zmq_socket.recv(flags=0, copy=True, track=False)
             message = cbor2.loads(message, tag_hook=tag_hook)
             if message["type"] == "metadata":
                 for metadata in message["images"]:
