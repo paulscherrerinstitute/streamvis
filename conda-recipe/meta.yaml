@@ -28,7 +28,7 @@ requirements:
     - pillow >=4.3
     - colorcet
     - bottleneck
-    - cbor2
+    - cbor2 >=6
 
 test:
   source_files:

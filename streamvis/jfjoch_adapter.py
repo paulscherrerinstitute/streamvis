@@ -29,13 +29,13 @@ def decode_multi_dim_array(tag, order):
     elif isinstance(contents, (np.ndarray, np.generic)):
         array = contents
     else:
-        raise cbor2.CBORDecodeValueError("expected array or typed array")
+        raise cbor2.CBORDecodeError("expected array or typed array")
     return array.reshape(dimensions, order=order)
 
 
 def decode_typed_array(tag, dtype):
     if not isinstance(tag.value, bytes):
-        raise cbor2.CBORDecodeValueError("expected byte string in typed array")
+        raise cbor2.CBORDecodeError("expected byte string in typed array")
     return np.frombuffer(tag.value, dtype=dtype)
 
 
@@ -74,7 +74,7 @@ tag_decoders = {
 }
 
 
-def tag_hook(decoder, tag):
+def tag_hook(tag, immutable):
     tag_decoder = tag_decoders.get(tag.tag)
     return tag_decoder(tag) if tag_decoder else tag
 
